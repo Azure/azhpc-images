@@ -5,13 +5,19 @@ set -ex
 ./install_utils.sh
 
 # install compilers
-./install_gcc-8.2.sh
+./install_gcc.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
 # install mpi libraries
 ./install_mpis.sh
+
+# install AMD tuned libraries
+./install_amd_libs.sh
+
+# install Intel libraries
+./install_intel_libs.sh
 
 # optimizations
 ./hpc-tuning.sh

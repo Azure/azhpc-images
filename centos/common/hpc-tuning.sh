@@ -9,8 +9,10 @@ systemctl disable firewalld
 cat << EOF >> /etc/security/limits.conf
 *               hard    memlock         unlimited
 *               soft    memlock         unlimited
-*               soft    nofile          65535
 *               hard    nofile          65535
+*               soft    nofile          65535
+*               hard    stack           unlimited
+*               soft    stack           unlimited
 EOF
 
 # Enable reclaim mode

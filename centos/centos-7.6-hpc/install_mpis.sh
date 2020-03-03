@@ -10,12 +10,12 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.5.0
-HPCX_VERSION="v2.5.0"
-wget http://www.mellanox.com/downloads/hpc/hpc-x/v2.5/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-4.7-1.0.0.1-redhat7.6-x86_64.tbz
-tar -xvf hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-4.7-1.0.0.1-redhat7.6-x86_64.tbz
-mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-4.7-1.0.0.1-redhat7.6-x86_64 ${INSTALL_PREFIX}
-HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-4.7-1.0.0.1-redhat7.6-x86_64
+# HPC-X v2.6.0
+HPCX_VERSION="v2.6.0"
+wget https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
+tar -xvf hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
+mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64 ${INSTALL_PREFIX}
+HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64
 
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/

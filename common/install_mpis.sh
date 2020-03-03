@@ -13,8 +13,8 @@ export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
 set CC=/opt/${GCC_VERSION}/bin/gcc
 set GCC=/opt/${GCC_VERSION}/bin/gcc
 
-# MVAPICH2 2.3.2
-MV2_VERSION="2.3.2"
+# MVAPICH2 2.3.3
+MV2_VERSION="2.3.3"
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
@@ -31,9 +31,9 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 
 
-# Intel MPI 2019 (update 5)
-IMPI_2019_VERSION="2019.5.281"
-wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15838/l_mpi_${IMPI_2019_VERSION}.tgz
+# Intel MPI 2019 (update 6)
+IMPI_2019_VERSION="2019.6.166"
+wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16120/l_mpi_${IMPI_2019_VERSION}.tgz
 tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
 cd l_mpi_${IMPI_2019_VERSION}
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
@@ -97,14 +97,7 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
 #  Intel MPI ${IMPI_VERSION}
 #
 conflict        mpi
-prepend-path    PATH            /opt/intel/impi/${IMPI_VERSION}/intel64/bin
-prepend-path    LD_LIBRARY_PATH /opt/intel/impi/${IMPI_VERSION}/intel64/lib
-prepend-path    MANPATH         /opt/intel/impi/${IMPI_VERSION}/man
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_VERSION}/intel64
+module load /opt/intel/impi/${IMPI_VERSION}/intel64/modulefiles/mpi
 EOF
 
 #IntelMPI-v2019
@@ -114,14 +107,7 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
 #  Intel MPI ${IMPI_2019_VERSION}
 #
 conflict        mpi
-prepend-path    PATH            /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-prepend-path    LD_LIBRARY_PATH /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-prepend-path    MANPATH         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
+module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
 EOF
 
 # Create symlinks for modulefiles

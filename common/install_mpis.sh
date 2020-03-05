@@ -51,6 +51,13 @@ sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 cd ..
 
 
+# Install MVAPICH2-X 2.3rc3
+wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+rpm -Uvh --nodeps mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+MV2X_PATH="/opt/mvapich2-x/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
+MV2X_VERSION="2.3rc3"
+
+
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/
 
@@ -110,9 +117,28 @@ conflict        mpi
 module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
 EOF
 
+# MVAPICH2-X 2.3rc3
+cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION}
+#%Module 1.0
+#
+#  MVAPICH2-X ${MV2X_VERSION}
+#
+conflict        mpi
+module load ${GCC_VERSION}
+prepend-path    PATH            ${MV2X_PATH}/bin
+prepend-path    LD_LIBRARY_PATH ${MV2X_PATH}/lib
+prepend-path    MANPATH         ${MV2X_PATH}/share/man
+setenv          MPI_BIN         ${MV2X_PATH}/bin
+setenv          MPI_INCLUDE     ${MV2X_PATH}/include
+setenv          MPI_LIB         ${MV2X_PATH}/lib
+setenv          MPI_MAN         ${MV2X_PATH}/share/man
+setenv          MPI_HOME        ${MV2X_PATH}
+EOF
+
 # Create symlinks for modulefiles
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION} /usr/share/Modules/modulefiles/mpi/impi
+ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

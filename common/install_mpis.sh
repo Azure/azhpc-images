@@ -22,8 +22,8 @@ cd mvapich2-${MV2_VERSION}
 cd ..
 
 
-# OpenMPI 4.0.2
-OMPI_VERSION="4.0.2"
+# OpenMPI 4.0.3
+OMPI_VERSION="4.0.3"
 wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}

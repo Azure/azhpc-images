@@ -13,8 +13,8 @@ export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
 set CC=/opt/${GCC_VERSION}/bin/gcc
 set GCC=/opt/${GCC_VERSION}/bin/gcc
 
-# MVAPICH2 2.3.2
-MV2_VERSION="2.3.2"
+# MVAPICH2 2.3.3
+MV2_VERSION="2.3.3"
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
@@ -22,8 +22,8 @@ cd mvapich2-${MV2_VERSION}
 cd ..
 
 
-# OpenMPI 4.0.2
-OMPI_VERSION="4.0.2"
+# OpenMPI 4.0.3
+OMPI_VERSION="4.0.3"
 wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
@@ -31,9 +31,9 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 
 
-# Intel MPI 2019 (update 5)
-IMPI_2019_VERSION="2019.5.281"
-wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15838/l_mpi_${IMPI_2019_VERSION}.tgz
+# Intel MPI 2019 (update 6)
+IMPI_2019_VERSION="2019.6.166"
+wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16120/l_mpi_${IMPI_2019_VERSION}.tgz
 tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
 cd l_mpi_${IMPI_2019_VERSION}
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
@@ -49,6 +49,13 @@ cd l_mpi_${IMPI_VERSION}
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 ./install.sh --silent ./silent.cfg
 cd ..
+
+
+# Install MVAPICH2-X 2.3rc3
+wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+rpm -Uvh --nodeps mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+MV2X_PATH="/opt/mvapich2-x/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
+MV2X_VERSION="2.3rc3"
 
 
 # Setup module files for MPIs
@@ -97,14 +104,7 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
 #  Intel MPI ${IMPI_VERSION}
 #
 conflict        mpi
-prepend-path    PATH            /opt/intel/impi/${IMPI_VERSION}/intel64/bin
-prepend-path    LD_LIBRARY_PATH /opt/intel/impi/${IMPI_VERSION}/intel64/lib
-prepend-path    MANPATH         /opt/intel/impi/${IMPI_VERSION}/man
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_VERSION}/intel64
+module load /opt/intel/impi/${IMPI_VERSION}/intel64/modulefiles/mpi
 EOF
 
 #IntelMPI-v2019
@@ -114,14 +114,25 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
 #  Intel MPI ${IMPI_2019_VERSION}
 #
 conflict        mpi
-prepend-path    PATH            /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-prepend-path    LD_LIBRARY_PATH /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-prepend-path    MANPATH         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
+module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
+EOF
+
+# MVAPICH2-X 2.3rc3
+cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION}
+#%Module 1.0
+#
+#  MVAPICH2-X ${MV2X_VERSION}
+#
+conflict        mpi
+module load ${GCC_VERSION}
+prepend-path    PATH            ${MV2X_PATH}/bin
+prepend-path    LD_LIBRARY_PATH ${MV2X_PATH}/lib
+prepend-path    MANPATH         ${MV2X_PATH}/share/man
+setenv          MPI_BIN         ${MV2X_PATH}/bin
+setenv          MPI_INCLUDE     ${MV2X_PATH}/include
+setenv          MPI_LIB         ${MV2X_PATH}/lib
+setenv          MPI_MAN         ${MV2X_PATH}/share/man
+setenv          MPI_HOME        ${MV2X_PATH}
 EOF
 
 # Create symlinks for modulefiles
@@ -129,4 +140,5 @@ ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modu
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION} /usr/share/Modules/modulefiles/mpi/impi
+ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

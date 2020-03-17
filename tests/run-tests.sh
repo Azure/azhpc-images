@@ -12,7 +12,7 @@ IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 MVAPICH2_PATH="/opt/mvapich2-2.3.3"
 MVAPICH2X_PATH="/opt/mvapich2-x/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 
-OPENMPI_PATH="/opt/openmpi-4.0.2"
+OPENMPI_PATH="/opt/openmpi-4.0.3"
 
 
 distro=`cat /etc/redhat-release | awk '{print $4}'`

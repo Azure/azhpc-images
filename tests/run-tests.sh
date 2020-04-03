@@ -72,6 +72,12 @@ check_exists "/usr/share/Modules/modulefiles/mpi/openmpi"
 
 check_exists "/usr/share/Modules/modulefiles/gcc-${GCC_VERSION}"
 
+# verify AMD modulefiles
+check_exists "/usr/share/Modules/modulefiles/amd/fftw"
+check_exists "/usr/share/Modules/modulefiles/amd/libflame"
+check_exists "/usr/share/Modules/modulefiles/amd/blis"
+check_exists "/usr/share/Modules/modulefiles/amd/blis-mt"
+
 # verify s/w package installations
 check_exists "/opt/gcc-${GCC_VERSION}/"
 check_exists "/opt/amd/blis/"

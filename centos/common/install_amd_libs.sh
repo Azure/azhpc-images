@@ -8,7 +8,6 @@ export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
 set CC=/opt/${GCC_VERSION}/bin/gcc
 set GCC=/opt/${GCC_VERSION}/bin/gcc
 
-yum install -y texinfo
 INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 

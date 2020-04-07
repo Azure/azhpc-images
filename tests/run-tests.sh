@@ -5,8 +5,9 @@ MKL_VERSION="2019.5.281"
 MOFED_VERSION="MLNX_OFED_LINUX-5.0-1.0.0.0"
 HPCX_PATH_76="/opt/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64"
 HPCX_PATH_77="/opt/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.7-x86_64"
+HPCX_PATH_81="/opt/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat8.1-x86_64"
 
-IMPI2019_PATH="/opt/intel/compilers_and_libraries_2020.0.166"
+IMPI2019_PATH="/opt/intel/compilers_and_libraries_2020.1.217"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 MVAPICH2_PATH="/opt/mvapich2-2.3.3"
@@ -14,14 +15,19 @@ MVAPICH2X_PATH="/opt/mvapich2-x/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 
 OPENMPI_PATH="/opt/openmpi-4.0.3"
 
-
 distro=`cat /etc/redhat-release | awk '{print $4}'`
 if [ $distro == "7.6.1810" ]
 then
     HPCX_PATH=${HPCX_PATH_76}
+    CHECK_IMPI_2018=1
 elif [ $distro == "7.7.1908" ]
 then
     HPCX_PATH=${HPCX_PATH_77}
+    CHECK_IMPI_2018=1
+elif [ $distro == "8.1.1911" ]
+then
+    HPCX_PATH=${HPCX_PATH_81}
+    CHECK_IMPI_2018=0
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -41,13 +47,13 @@ check_exists() {
 
 # check exit code
 check_exit_code() {
-if [ $? -eq 0 ]
-then
-    echo "[OK] : $1"
-else
-    echo "*** Error - $2!" >&2
-    exit -1
-fi
+    if [ $? -eq 0 ]
+    then
+        echo "[OK] : $1"
+    else
+        echo "*** Error - $2!" >&2
+        exit -1
+    fi
 }
 
 # verify MOFED installation
@@ -62,9 +68,14 @@ check_exit_code "IB device is listed" "IB device not found"
 ibstat | grep "LinkUp"
 check_exit_code "IB device state: LinkUp" "IB link not up"
 
-# verify modulefiles
+# verify MPI modulefiles
 check_exists "/usr/share/Modules/modulefiles/mpi/hpcx"
-check_exists "/usr/share/Modules/modulefiles/mpi/impi"
+
+if [ $CHECK_IMPI_2018 -eq 1 ]
+then
+    check_exists "/usr/share/Modules/modulefiles/mpi/impi"
+fi
+
 check_exists "/usr/share/Modules/modulefiles/mpi/impi-2019"
 check_exists "/usr/share/Modules/modulefiles/mpi/mvapich2"
 check_exists "/usr/share/Modules/modulefiles/mpi/mvapich2x"
@@ -100,16 +111,26 @@ mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env UCX_TLS=rc -env I_MPI_SHM=0 ${IMP
 check_exit_code "Intel MPI 2019" "Failed to run Intel MPI 2019"
 module unload mpi/impi-2019
 
-# impi 2018
-module load mpi/impi
-mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa ${IMPI2018_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
-check_exit_code "Intel MPI 2018" "Failed to run Intel MPI 2018"
-module unload mpi/impi
+#impi 2018
+if [ $CHECK_IMPI_2018 -eq 1 ]
+then
+    module load mpi/impi
+    mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa ${IMPI2018_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
+    check_exit_code "Intel MPI 2018" "Failed to run Intel MPI 2018"
+    module unload mpi/impi
+fi
 
 # mvapich2
 module load mpi/mvapich2
 mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
 check_exit_code "MVAPICH2" "Failed to run MVAPICH2"
+module unload mpi/mvapich2
+
+# mvapich2x
+module load mpi/mvapich2x
+mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
+check_exit_code "MVAPICH2X" "Failed to run MVAPICH2X"
+module unload mpi/mvapich2x
 
 # Note: no need to run MVAPICH2-x and OpenMPI, as these are already covered by MVAPICH2 and HPC-X runs
 # But make sure they are installed

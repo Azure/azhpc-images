@@ -8,19 +8,21 @@ yum install -y numactl \
     libxml2-devel \
     byacc \
     environment-modules \
-    python-devel \
-    python-setuptools \
     gtk2 \
     atk \
     cairo \
     tcl \
     tk \
     m4 \
+    tcsh \
+    gcc-gfortran \
+    python36-devel \
+    elfutils-libelf-devel \
+    kernel-rpm-macros \
     glibc-devel \
-    glibc-static \
     libudev-devel \
     binutils \
     binutils-devel \
-	selinux-policy-devel \
-	kernel-headers \
-	nfs-utils
+    selinux-policy-devel \
+    kernel-headers \
+    nfs-utils

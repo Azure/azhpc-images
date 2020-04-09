@@ -93,6 +93,11 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
 #
 conflict        mpi
 module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
+setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
+setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
+setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
+setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
+setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
 EOF
 
 # MVAPICH2-X 2.3rc3

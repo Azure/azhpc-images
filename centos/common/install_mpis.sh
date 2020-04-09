@@ -30,26 +30,14 @@ cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 
-
-# Intel MPI 2019 (update 6)
-IMPI_2019_VERSION="2019.6.166"
-wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16120/l_mpi_${IMPI_2019_VERSION}.tgz
+# Intel MPI 2019 (update 7)
+IMPI_2019_VERSION="2019.7.217"
+wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_${IMPI_2019_VERSION}.tgz
 tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
 cd l_mpi_${IMPI_2019_VERSION}
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 ./install.sh --silent ./silent.cfg
 cd ..
-
-
-# Intel MPI 2018 (update 4)
-IMPI_VERSION="2018.4.274"
-wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/13651/l_mpi_${IMPI_VERSION}.tgz
-tar -xvf l_mpi_${IMPI_VERSION}.tgz
-cd l_mpi_${IMPI_VERSION}
-sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
-./install.sh --silent ./silent.cfg
-cd ..
-
 
 # Install MVAPICH2-X 2.3rc3
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
@@ -97,16 +85,6 @@ setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
-#IntelMPI-v2018
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
-#%Module 1.0
-#
-#  Intel MPI ${IMPI_VERSION}
-#
-conflict        mpi
-module load /opt/intel/impi/${IMPI_VERSION}/intel64/modulefiles/mpi
-EOF
-
 #IntelMPI-v2019
 cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
 #%Module 1.0
@@ -139,6 +117,5 @@ EOF
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
-ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION} /usr/share/Modules/modulefiles/mpi/impi
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

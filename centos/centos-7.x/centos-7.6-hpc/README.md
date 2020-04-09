@@ -1,6 +1,6 @@
-# CentOS 7.7 HPC Image
+# CentOS 7.6 HPC Image
 
-The CentOS 7.7 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
+The CentOS 7.6 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability. This image consists of the following HPC tools and libraries:
 
 - Mellanox OFED
@@ -19,6 +19,6 @@ consistency, and reliability. This image consists of the following HPC tools and
   - AMD Flame
   - Intel MKL
 
-The MPI libraries are configured as environment modules. Users can select any preferred MPI flavor as follows:
+Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
 
-`module load mpi/<mpi-flavor>`
+`module load <package-name>`

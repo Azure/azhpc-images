@@ -34,5 +34,5 @@ EOF
 ln -s /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION} /usr/share/Modules/modulefiles/mpi/hpcx
 
 # Install platform independent MPIs
-../../common/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}
+../common/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}
 

@@ -1,14 +1,16 @@
 #!/bin/bash
 set -ex
 
-# Change versions (Ubuntu, GPU driver) here if needed
-# See https://github.com/Azure/azhpc-extensions/blob/master/NvidiaGPU/resources.json
-DRIVER_URL=https://go.microsoft.com/fwlink/?linkid=874271
-CUDA_REPO_PKG=cuda-repo-ubuntu_amd64.deb
-PUBKEY_URL=http://download.microsoft.com/download/F/F/A/FFAC979D-AD9C-4684-A6CE-C92BB9372A3B/7fa2af80.pub
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
 
-sudo wget --retry-connrefused --tries=3 --waitretry=5 $DRIVER_URL -O $CUDA_REPO_PKG -nv # Download tarball
-sudo dpkg -i $CUDA_REPO_PKG
-sudo apt-key adv --fetch-keys $PUBKEY_URL 
-sudo apt-get install --no-install-recommends -y cuda-drivers
-sudo apt-get install -y cuda
+PUBKEY_URL=/var/cuda-repo-10-2-local-10.2.89-440.33.01/7fa2af80.pub
+CUDA_REPO_PKG=cuda-repo-ubuntu1804-10-2-local-10.2.89-440.33.01_1.0-1_amd64.deb
+
+wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda-repo-ubuntu1804-10-2-local-10.2.89-440.33.01_1.0-1_amd64.deb
+
+dpkg -i ${CUDA_REPO_PKG}
+apt-key add ${PUBKEY_URL}
+apt-get update
+apt-get install --no-install-recommends -y cuda-drivers
+apt-get -y install cuda

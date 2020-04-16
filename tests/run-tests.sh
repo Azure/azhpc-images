@@ -1,4 +1,6 @@
 #!/bin/bash
+source /etc/profile
+module use /usr/share/Modules/modulefiles
 
 GCC_VERSION="9.2.0"
 MKL_VERSION="2019.5.281"
@@ -98,6 +100,7 @@ check_exists "/opt/amd/libflame/"
 check_exists "/opt/intel/compilers_and_libraries_${MKL_VERSION}/linux/mkl/"
 
 # verify mpi installations
+module avail
 
 # hpcx
 module load mpi/hpcx

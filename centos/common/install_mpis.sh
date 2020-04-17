@@ -42,9 +42,16 @@ cd ..
 # Install MVAPICH2-X 2.3rc3
 wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
 rpm -Uvh --nodeps mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
-MV2X_PATH="/opt/mvapich2-x/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
+MV2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
+MV2X_PATH="${MV2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 MV2X_VERSION="2.3rc3"
 
+# download and build benchmark for MVAPICH2-X 2.3rc3
+wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.6.2.tar.gz
+tar -xvf osu-micro-benchmarks-5.6.2.tar.gz
+cd osu-micro-benchmarks-5.6.2/
+./configure CC=${MV2X_PATH}/bin/mpicc CXX=${MV2X_PATH}/bin/mpicxx --prefix=${MV2X_INSTALLATION_DIRECTORY}/ && make -j$(nproc) && make install
+cd ..
 
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/

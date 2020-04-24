@@ -29,35 +29,14 @@ CHECK_MVAPICH2=0
 CHECK_MVAPICH2X=0
 CHECK_CUDA=0
 
-# Find distro
-find_distro() {
-    local os=`cat /etc/os-release | awk 'match($0, /^NAME="(.*)"/, result) { print result[1] }'`
-    if [[ $os == "CentOS Linux" ]]
-    then
-        local centos_distro=`find_centos_distro`
-        echo "${os} ${centos_distro}"
-    elif [[ $os == "Ubuntu" ]]
-    then
-        local ubuntu_distro=`find_ubuntu_distro`
-        echo "${os} ${ubuntu_distro}"
-    else
-        echo "*** Error - invalid distro!"
-        exit -1
-    fi
-}
-
-# Find CentOS distro
-find_centos_distro() {
-    echo `cat /etc/redhat-release | awk '{print $4}'`
-}
-
-# Find Ubuntu distro
-find_ubuntu_distro() {
-    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}'`
-}
-
-distro=`find_distro`
-echo "Detected distro: ${distro}"
+distro=`./../common/extract_distro.sh`
+if [ $? -eq 0 ]
+then
+    echo "Detected distro: ${distro}"
+else
+    echo "*** Error - invalid distro!"
+    exit -1
+fi
 
 if [[ $distro == "CentOS Linux 7.6.1810" ]]
 then

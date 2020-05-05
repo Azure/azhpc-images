@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Load gcc
 GCC_VERSION=gcc-9.2.0
@@ -12,7 +13,8 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.6.0
 HPCX_VERSION="v2.6.0"
-wget https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "3d372fc3e2c5e9559ff6ebd80e4d87e5548cedda0bc6bfa7b3dccfcad7f9a077"
 tar -xvf hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
 mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64 ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64

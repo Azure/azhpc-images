@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 GCC_VERSION=$1
 HPCX_PATH=$2
@@ -15,7 +16,8 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 # MVAPICH2 2.3.3
 MV2_VERSION="2.3.3"
-wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
+MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "41d3261be57e5bc8aabf4e32981543c015c5443ff032a26f18205985e18c2b73"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
@@ -24,7 +26,8 @@ cd ..
 
 # OpenMPI 4.0.3
 OMPI_VERSION="4.0.3"
-wget https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
+OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "6346bf976001ad274c7e018d6cc35c92bbb9426d8f7754fac00a17ea5ac8eebc"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
@@ -32,7 +35,8 @@ cd ..
 
 # Intel MPI 2019 (update 7)
 IMPI_2019_VERSION="2019.7.217"
-wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_${IMPI_2019_VERSION}.tgz
+IMPI_2019_DOWNLOAD_URL=http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_${IMPI_2019_VERSION}.tgz
+$COMMON_DIR/download_and_verify.sh $IMPI_2019_DOWNLOAD_URL "90383b0023f84ac003a55d8bb29dbcf0c639f43a25a2d8d8698a16e770ac9c07"
 tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
 cd l_mpi_${IMPI_2019_VERSION}
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
@@ -40,14 +44,16 @@ sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 cd ..
 
 # Install MVAPICH2-X 2.3rc3
-wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+MVAPICH2X_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3rc3/mofed5.0/mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
+$COMMON_DIR/download_and_verify.sh $MVAPICH2X_DOWNLOAD_URL "d47617bc39056b567509b32d7ebf5d9497aad2b2fd9e1001cd9013fdf15e728c"
 rpm -Uvh --nodeps mvapich2-x-advanced-xpmem-mofed5.0-gnu9.2.0-2.3rc3-1.el7.x86_64.rpm
 MV2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 MV2X_PATH="${MV2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 MV2X_VERSION="2.3rc3"
 
 # download and build benchmark for MVAPICH2-X 2.3rc3
-wget http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.6.2.tar.gz
+MVAPICH2X_BENCHMARK_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.6.2.tar.gz
+$COMMON_DIR/download_and_verify.sh $MVAPICH2X_BENCHMARK_DOWNLOAD_URL "2ecb90abd85398786823c0716d92448d7094657d3f017c65d270ffe39afc7b95"
 tar -xvf osu-micro-benchmarks-5.6.2.tar.gz
 cd osu-micro-benchmarks-5.6.2/
 ./configure CC=${MV2X_PATH}/bin/mpicc CXX=${MV2X_PATH}/bin/mpicxx --prefix=${MV2X_INSTALLATION_DIRECTORY}/ && make -j$(nproc) && make install

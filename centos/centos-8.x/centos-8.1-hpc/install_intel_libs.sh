@@ -1,4 +1,4 @@
 #!/bin/bash
 
-../../../common/install_intel_libs.sh
+$COMMON_DIR/install_intel_libs.sh
 

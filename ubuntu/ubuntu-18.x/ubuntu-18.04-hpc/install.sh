@@ -2,6 +2,9 @@
 #!/bin/bash
 set -ex
 
+# set properties
+source ./set_properties.sh
+
 # install utils
 ./install_utils.sh
 
@@ -25,3 +28,6 @@ set -ex
 
 # optimizations
 ./hpc-tuning.sh
+
+# copy test file
+$COMMON_DIR/copy_test_file.sh

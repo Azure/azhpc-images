@@ -28,6 +28,7 @@ CHECK_OMPI=0
 CHECK_MVAPICH2=0
 CHECK_MVAPICH2X=0
 CHECK_CUDA=0
+CHECK_LUSTRE=0
 
 # Find distro
 find_distro() {
@@ -68,6 +69,7 @@ then
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=1
+    CHECK_LUSTRE=1
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
 elif [[ $distro == "CentOS Linux 7.7.1908" ]]
 then
@@ -78,6 +80,7 @@ then
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=1
+    CHECK_LUSTRE=1
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
 elif [[ $distro == "CentOS Linux 8.1.1911" ]]
 then
@@ -226,6 +229,13 @@ if [ $CHECK_CUDA -eq 1 ]
 then
     nvidia-smi
     check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
+fi
+
+# Check if lustre client is installed properly
+if [ $CHECK_LUSTRE -eq 1 ]
+then
+    modprobe -v lustre
+    check_exit_code "Lustre Client" "Failed to load Lustre Client"
 fi
 
 echo "ALL OK!"

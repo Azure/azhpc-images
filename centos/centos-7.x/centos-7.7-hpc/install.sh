@@ -27,3 +27,6 @@ source ./set_properties.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
+
+# lustre client
+./install_lustre_client.sh

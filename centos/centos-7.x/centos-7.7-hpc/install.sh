@@ -29,4 +29,4 @@ source ./set_properties.sh
 $COMMON_DIR/copy_test_file.sh
 
 # lustre client
-./install_lustre_client.sh
+#./install_lustre_client.sh

@@ -11,13 +11,13 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.6.0
-HPCX_VERSION="v2.6.0"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "3d372fc3e2c5e9559ff6ebd80e4d87e5548cedda0bc6bfa7b3dccfcad7f9a077"
-tar -xvf hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64.tbz
-mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64 ${INSTALL_PREFIX}
-HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-redhat7.6-x86_64
+# HPC-X v2.7.0
+HPCX_VERSION="v2.7.0"
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.7.0-gcc9.2.0-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.6-x86_64.tbz
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "18d4be252d11b80d1e00cda814861d24fe9defcd800e5b1892c23148bbb460cf"
+tar -xvf hpcx-${HPCX_VERSION}-gcc9.2.0-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.6-x86_64.tbz
+mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.6-x86_64 ${INSTALL_PREFIX}
+HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.6-x86_64
 
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/

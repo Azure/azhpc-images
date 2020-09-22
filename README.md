@@ -1,6 +1,6 @@
 [![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-val?branchName=master)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
-[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-val?branchName=master&jobName=ValidateVirtualMachine&configuration=ValidateVirtualMachine%20ubuntu1804)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+Ubuntu 18.04 [![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-val?branchName=master&jobName=ValidateVirtualMachine&configuration=ValidateVirtualMachine%20ubuntu1804)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 CentOS 8.1 [![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-val?branchName=master&jobName=ValidateVirtualMachine&configuration=ValidateVirtualMachine%20centos81)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 

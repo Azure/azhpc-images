@@ -108,7 +108,7 @@ then
     MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
     MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}
     OPENMPI_PATH=${CENTOS_OPENMPI_PATH}
-elif [[ $distro == "Ubuntu 18.04.4" ]]
+elif [[ $distro == "Ubuntu 18.04" ]]
 then
     HPCX_PATH=${HPCX_PATH_UBUNTU_1804}
     CHECK_HPCX=1

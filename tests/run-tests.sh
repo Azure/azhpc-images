@@ -58,7 +58,7 @@ find_centos_distro() {
 
 # Find Ubuntu distro
 find_ubuntu_distro() {
-    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}'`
+    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
 }
 
 distro=`find_distro`

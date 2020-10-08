@@ -1,4 +1,4 @@
-# CentOS 7.7 HPC Image
+# CentOS 7.8 HPC Image
 
 The CentOS 7.8 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability. This image consists of the following HPC tools and libraries:

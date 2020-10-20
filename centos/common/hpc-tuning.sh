@@ -18,7 +18,11 @@ echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 sysctl -p
 
 # Configure WALinuxAgent
-sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
-# sed -i -e 's/CGroups.EnforceLimits=n/CGroups.EnforceLimits=y/g' /etc/waagent.conf
-systemctl enable waagent
-
+sudo sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
+echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
+echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
+echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
+echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
+echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
+echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
+sudo systemctl restart waagent

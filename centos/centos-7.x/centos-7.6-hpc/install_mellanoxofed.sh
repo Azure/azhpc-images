@@ -1,9 +1,12 @@
 #!/bin/bash
 set -ex
 
-MLNX_OFED_DOWNLOAD_URL=http://content.mellanox.com/ofed/MLNX_OFED-5.1-0.6.6.0/MLNX_OFED_LINUX-5.1-0.6.6.0-rhel7.6-x86_64.tgz
-$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "a6366c43a51dc4e43e672c5c72ed732506f7aa68790103fbc40286a7a39623aa"
-tar zxvf MLNX_OFED_LINUX-5.1-0.6.6.0-rhel7.6-x86_64.tgz
+MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/MLNX_OFED_LINUX-5.1-2.4.6.0-rhel7.6-x86_64.tgz
+TARBALL=$(basename ${MLNX_OFED_DOWNLOAD_URL})
+MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
+
+$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "6966b086332f65b76efa41f5604588ba43321f09b634b6c59104423406f11f1e"
+tar zxvf ${TARBALL}
 
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
 KERNEL=${KERNEL[-1]}
@@ -11,4 +14,4 @@ KERNEL=${KERNEL[-1]}
 #RELEASE=( $(cat /etc/centos-release | awk '{print $4}') )
 #yum -y install http://olcentgbl.trafficmanager.net/centos/${RELEASE}/updates/x86_64/kernel-devel-${KERNEL}.rpm
 yum install -y kernel-devel-${KERNEL}
-./MLNX_OFED_LINUX-5.1-0.6.6.0-rhel7.6-x86_64/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo
+./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo

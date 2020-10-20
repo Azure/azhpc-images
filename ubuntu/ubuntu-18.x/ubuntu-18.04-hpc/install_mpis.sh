@@ -10,15 +10,17 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.6.0
-HPCX_VERSION="v2.6.0"
+# HPC-X v2.7.2
+HPCX_VERSION="v2.7.2"
 
-HPCX_DOWNLOAD_URL=http://www.mellanox.com/downloads/hpc/hpc-x/v2.6/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64.tbz
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "15f27a3f14d6e90c5b08f5ffd43e836b570ebf78b9b240042c35c071d90c43c2"
-tar -xvf hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64.tbz
-mv hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64  ${INSTALL_PREFIX}
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.7.2-gcc-MLNX_OFED_LINUX-5.1-2.4.6.0-ubuntu18.04-x86_64.tbz
+TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
+HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-HPCX_PATH=${INSTALL_PREFIX}/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "3050ed693f002e3e976155a6b7258038fc23ef0a8f4921457a70592b97b90c43"
+tar -xvf ${TARBALL}
+mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
+HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 
 # MVAPICH2 2.3.4
 MV2_VERSION="2.3.4"
@@ -29,10 +31,10 @@ cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 
-# OpenMPI 4.0.4
-OMPI_VERSION="4.0.4"
+# OpenMPI 4.0.5
+OMPI_VERSION="4.0.5"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "dca264f420411f540a496bdd131bffd83e325fc9006286b39dd19b62d7368233"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "572e777441fd47d7f06f1b8a166e7f44b8ea01b8b2e79d1e299d509725d1bd05"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install

@@ -6,25 +6,24 @@ MKL_VERSION="2019.5.281"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
-CENTOS_MOFED_VERSION="MLNX_OFED_LINUX-5.1-0.6.6.0"
-HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-v2.7.0-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-v2.7.0-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.0-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.7.0-gcc-MLNX_OFED_LINUX-5.1-0.6.6.0-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+CENTOS_MOFED_VERSION="MLNX_OFED_LINUX-5.1-2.4.6.0"
+HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
 CENTOS_IMPI2019_PATH="/opt/intel/compilers_and_libraries_2020.2.254"
 CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.4"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
-CENTOS_OPENMPI_PATH="/opt/openmpi-4.0.4"
+CENTOS_OPENMPI_PATH="/opt/openmpi-4.0.5"
 
-UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.0-1.0.0.0"
-HPCX_PATH_UBUNTU_1804="/opt/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64"
+UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.1-2.4.6.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.6.0-gcc-MLNX_OFED_LINUX-5.0-1.0.0.0-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.3.2/"
+HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.6.0-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2/"
 UBUNTU_IMPI2019_PATH="/opt/intel/compilers_and_libraries_2020.2.254"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-2.3.4"
 UBUNTU_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
-UBUNTU_OPENMPI_PATH="/opt/openmpi-4.0.4"
+UBUNTU_OPENMPI_PATH="/opt/openmpi-4.0.5"
 
 CHECK_HPCX=0
 CHECK_IMPI_2019=0
@@ -33,8 +32,7 @@ CHECK_OMPI=0
 CHECK_MVAPICH2=0
 CHECK_MVAPICH2X=0
 CHECK_CUDA=0
-CHECK_LUSTRE=0
-CHECK_BLIS_MT=0
+CHECK_AOCL=1
 
 # Find distro
 find_distro() {
@@ -74,7 +72,7 @@ then
     CHECK_IMPI_2018=1
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
-    CHECK_MVAPICH2X=1
+    CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
     MOFED_VERSION=${CENTOS_MOFED_VERSION}
     IMPI2019_PATH=${CENTOS_IMPI2019_PATH}
@@ -89,7 +87,7 @@ then
     CHECK_IMPI_2018=1
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
-    CHECK_MVAPICH2X=1
+    CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
     MOFED_VERSION=${CENTOS_MOFED_VERSION}
     IMPI2019_PATH=${CENTOS_IMPI2019_PATH}
@@ -104,7 +102,7 @@ then
     CHECK_IMPI_2018=1
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
-    CHECK_MVAPICH2X=1
+    CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
     MOFED_VERSION=${CENTOS_MOFED_VERSION}
     IMPI2019_PATH=${CENTOS_IMPI2019_PATH}
@@ -118,7 +116,7 @@ then
     CHECK_IMPI_2019=1
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
-    CHECK_MVAPICH2X=1
+    CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
     MOFED_VERSION=${CENTOS_MOFED_VERSION}
     IMPI2019_PATH=${CENTOS_IMPI2019_PATH}
@@ -140,6 +138,7 @@ then
     MVAPICH2_PATH=${UBUNTU_MVAPICH2_PATH}
     MVAPICH2X_PATH=${UBUNTU_MVAPICH2X_PATH}
     OPENMPI_PATH=${UBUNTU_OPENMPI_PATH}
+    CHECK_AOCL=0
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -185,23 +184,17 @@ check_exit_code "IB device state: LinkUp" "IB link not up"
 # verify GCC modulefile
 check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
 
-# verify AMD modulefiles
-check_exists "${MODULE_FILES_ROOT}/amd/fftw"
-check_exists "${MODULE_FILES_ROOT}/amd/libflame"
-check_exists "${MODULE_FILES_ROOT}/amd/blis"
-
 # verify s/w package installations
 check_exists "/opt/gcc-${GCC_VERSION}/"
-check_exists "/opt/amd/blis/"
-check_exists "/opt/amd/fftw/"
-check_exists "/opt/amd/libflame/"
 check_exists "/opt/intel/compilers_and_libraries_${MKL_VERSION}/linux/mkl/"
 
-# blis-mt
-if [ $CHECK_BLIS_MT -eq 1 ]
+if [ $CHECK_AOCL -eq 1 ]
 then
-    check_exists "${MODULE_FILES_ROOT}/amd/blis-mt"
-    check_exists "/opt/amd/blis-mt/"
+    # verify AMD modulefiles
+    check_exists "${MODULE_FILES_ROOT}/amd/aocl"
+
+    check_exists "/opt/amd/lib/"
+    check_exists "/opt/amd/include/"
 fi
 
 # verify mpi installations and their modulefiles
@@ -275,13 +268,6 @@ if [ $CHECK_CUDA -eq 1 ]
 then
     nvidia-smi
     check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
-fi
-
-# Check if lustre client is installed properly
-if [ $CHECK_LUSTRE -eq 1 ]
-then
-    modprobe -v lustre
-    check_exit_code "Lustre Client" "Failed to load Lustre Client"
 fi
 
 echo "ALL OK!"

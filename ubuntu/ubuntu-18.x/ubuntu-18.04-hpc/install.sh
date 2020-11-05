@@ -17,11 +17,12 @@ source ./set_properties.sh
 # install mpi libraries
 ./install_mpis.sh
 
+# cleanup downloaded tarballs
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz
+rm -Rf -- */
+
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
-
-# install AMD tuned libraries
-./install_amd_libs.sh
 
 # install Intel libraries
 ./install_intel_libs.sh

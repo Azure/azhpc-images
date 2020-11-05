@@ -25,9 +25,9 @@ cd ..
 
 
 # OpenMPI 4.0.4
-OMPI_VERSION="4.0.4"
+OMPI_VERSION="4.0.5"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "dca264f420411f540a496bdd131bffd83e325fc9006286b39dd19b62d7368233"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "572e777441fd47d7f06f1b8a166e7f44b8ea01b8b2e79d1e299d509725d1bd05"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
@@ -44,20 +44,20 @@ sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 cd ..
 
 # Install MVAPICH2-X 2.3
-MVAPICH2X_DOWNLOAD_URL=https://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3/mofed5.1/mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh $MVAPICH2X_DOWNLOAD_URL "cbccc85ebbcdea4769999a42a45d40c9a22bf000410f46de219d69a0ef0291b6"
-rpm -Uvh --nodeps mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm
-MV2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
-MV2X_PATH="${MV2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
-MV2X_VERSION="2.3"
+#MVAPICH2X_DOWNLOAD_URL=https://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3/mofed5.1/mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm
+#$COMMON_DIR/download_and_verify.sh $MVAPICH2X_DOWNLOAD_URL "cbccc85ebbcdea4769999a42a45d40c9a22bf000410f46de219d69a0ef0291b6"
+#rpm -Uvh --nodeps mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm
+#MV2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
+#MV2X_PATH="${MV2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
+#MV2X_VERSION="2.3"
 
 # download and build benchmark for MVAPICH2-X 2.3
-MVAPICH2X_BENCHMARK_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.6.3.tar.gz
-$COMMON_DIR/download_and_verify.sh $MVAPICH2X_BENCHMARK_DOWNLOAD_URL "c5eaa8c5b086bde8514fa4cac345d66b397e02283bc06e44cb6402268a60aeb8"
-tar -xvf osu-micro-benchmarks-5.6.3.tar.gz
-cd osu-micro-benchmarks-5.6.3/
-./configure CC=${MV2X_PATH}/bin/mpicc CXX=${MV2X_PATH}/bin/mpicxx --prefix=${MV2X_INSTALLATION_DIRECTORY}/ && make -j$(nproc) && make install
-cd ..
+#MVAPICH2X_BENCHMARK_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.6.3.tar.gz
+#$COMMON_DIR/download_and_verify.sh $MVAPICH2X_BENCHMARK_DOWNLOAD_URL "c5eaa8c5b086bde8514fa4cac345d66b397e02283bc06e44cb6402268a60aeb8"
+#tar -xvf osu-micro-benchmarks-5.6.3.tar.gz
+#cd osu-micro-benchmarks-5.6.3/
+#./configure CC=${MV2X_PATH}/bin/mpicc CXX=${MV2X_PATH}/bin/mpicxx --prefix=${MV2X_INSTALLATION_DIRECTORY}/ && make -j$(nproc) && make install
+#cd ..
 
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/
@@ -114,26 +114,26 @@ setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
 EOF
 
 # MVAPICH2-X 2.3
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION}
-#%Module 1.0
-#
-#  MVAPICH2-X ${MV2X_VERSION}
-#
-conflict        mpi
-module load ${GCC_VERSION}
-prepend-path    PATH            ${MV2X_PATH}/bin
-prepend-path    LD_LIBRARY_PATH ${MV2X_PATH}/lib
-prepend-path    MANPATH         ${MV2X_PATH}/share/man
-setenv          MPI_BIN         ${MV2X_PATH}/bin
-setenv          MPI_INCLUDE     ${MV2X_PATH}/include
-setenv          MPI_LIB         ${MV2X_PATH}/lib
-setenv          MPI_MAN         ${MV2X_PATH}/share/man
-setenv          MPI_HOME        ${MV2X_PATH}
-EOF
+#cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION}
+##%Module 1.0
+##
+##  MVAPICH2-X ${MV2X_VERSION}
+##
+#conflict        mpi
+#module load ${GCC_VERSION}
+#prepend-path    PATH            ${MV2X_PATH}/bin
+#prepend-path    LD_LIBRARY_PATH ${MV2X_PATH}/lib
+#prepend-path    MANPATH         ${MV2X_PATH}/share/man
+#setenv          MPI_BIN         ${MV2X_PATH}/bin
+#setenv          MPI_INCLUDE     ${MV2X_PATH}/include
+#setenv          MPI_LIB         ${MV2X_PATH}/lib
+#setenv          MPI_MAN         ${MV2X_PATH}/share/man
+#setenv          MPI_HOME        ${MV2X_PATH}
+#EOF
 
 # Create symlinks for modulefiles
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
-ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
+#ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

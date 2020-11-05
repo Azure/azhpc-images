@@ -1,4 +1,3 @@
 #!/bin/bash
 
-../../common/install_amd_libs.sh
-
+$COMMON_DIR/../centos/centos-8.x/common/install_amd_libs.sh

@@ -27,3 +27,6 @@ source ./set_properties.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
+
+# install diagnostic script
+"$COMMON_DIR/install_hpcdiag.sh"

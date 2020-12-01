@@ -19,6 +19,7 @@ consistency, and reliability. This image consists of the following HPC tools and
   - Intel MKL
 - GPU Drivers
   - Nvidia GPU Driver
+- Azure HPC Diagnostics Tool
 
 Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
 

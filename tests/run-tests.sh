@@ -7,9 +7,10 @@ MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 CENTOS_MOFED_VERSION="MLNX_OFED_LINUX-5.1-2.4.6.0"
+CENTOS_MOFED_VERSION_78="MLNX_OFED_LINUX-5.1-0.6.6.0"
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.0-gcc-${CENTOS_MOFED_VERSION_78}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.7.2-gcc-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
 CENTOS_IMPI2019_PATH="/opt/intel/compilers_and_libraries_2020.2.254"
@@ -104,7 +105,7 @@ then
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
-    MOFED_VERSION=${CENTOS_MOFED_VERSION}
+    MOFED_VERSION=${CENTOS_MOFED_VERSION_78}
     IMPI2019_PATH=${CENTOS_IMPI2019_PATH}
     MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
     MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}

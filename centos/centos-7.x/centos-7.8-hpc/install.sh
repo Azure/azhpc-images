@@ -30,3 +30,6 @@ $COMMON_DIR/copy_test_file.sh
 
 # lustre client
 #./install_lustre_client.sh
+
+# install diagnostic script
+"$COMMON_DIR/install_hpcdiag.sh"

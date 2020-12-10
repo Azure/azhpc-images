@@ -189,6 +189,9 @@ check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
 check_exists "/opt/gcc-${GCC_VERSION}/"
 check_exists "/opt/intel/compilers_and_libraries_${MKL_VERSION}/linux/mkl/"
 
+# verify hpcdiag installation
+check_exists '/opt/azurehpc/diagnostics/gather_azhpc_vm_diagnostics.sh'
+
 if [ $CHECK_AOCL -eq 1 ]
 then
     # verify AMD modulefiles

@@ -22,8 +22,8 @@ yum install -y numactl \
     libudev-devel \
     binutils \
     binutils-devel \
-	selinux-policy-devel \
-	kernel-headers \
-	nfs-utils \
-	fuse-libs \
-	libpciaccess
+    selinux-policy-devel \
+    kernel-headers \
+    nfs-utils \
+    fuse-libs \
+    libpciaccess

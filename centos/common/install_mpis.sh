@@ -14,20 +14,20 @@ export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
 set CC=/opt/${GCC_VERSION}/bin/gcc
 set GCC=/opt/${GCC_VERSION}/bin/gcc
 
-# MVAPICH2 2.3.4
-MV2_VERSION="2.3.4"
+# MVAPICH2 2.3.5
+MV2_VERSION="2.3.5"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "7226a45c7c98333c8e5d2888119cce186199b430c13b7b1dca1769909e68ea7a"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "f9f467fec5fc981a89a7beee0374347b10c683023c76880f92a1a0ad4b961a8c"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 
 
-# OpenMPI 4.0.4
-OMPI_VERSION="4.0.5"
-OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "572e777441fd47d7f06f1b8a166e7f44b8ea01b8b2e79d1e299d509725d1bd05"
+# OpenMPI 4.1.0
+OMPI_VERSION="4.1.0"
+OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "228467c3dd15339d9b26cf26a291af3ee7c770699c5e8a1b3ad786f9ae78140a"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install

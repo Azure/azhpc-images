@@ -43,6 +43,22 @@ sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 ./install.sh --silent ./silent.cfg
 cd ..
 
+# Intel MPI 2021 (update 1) - oneAPI
+IMPI_2021_VERSION="2021.1.1"
+tee > /tmp/oneAPI.repo << EOF
+[oneAPI]
+name=Intel(R) oneAPI repository
+baseurl=https://yum.repos.intel.com/oneapi
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+EOF
+
+sudo mv /tmp/oneAPI.repo /etc/yum.repos.d
+
+sudo yum install intel-hpckit -y
+
 # Install MVAPICH2-X 2.3
 #MVAPICH2X_DOWNLOAD_URL=https://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3/mofed5.1/mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm
 #$COMMON_DIR/download_and_verify.sh $MVAPICH2X_DOWNLOAD_URL "cbccc85ebbcdea4769999a42a45d40c9a22bf000410f46de219d69a0ef0291b6"
@@ -113,6 +129,21 @@ setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
 setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
 EOF
 
+#IntelMPI-v2021
+cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION}
+#%Module 1.0
+#
+#  Intel MPI ${IMPI_2021_VERSION}
+#
+conflict        mpi
+module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi
+setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/bin
+setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/include
+setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/lib
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/man
+setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}
+EOF
+
 # MVAPICH2-X 2.3
 #cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION}
 ##%Module 1.0
@@ -135,5 +166,6 @@ EOF
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
+ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
 #ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

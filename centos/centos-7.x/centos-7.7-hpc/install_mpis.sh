@@ -13,7 +13,7 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.8.0
 HPCX_VERSION="v2.8.0"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.0-gcc9.2.0-MLNX_OFED_LINUX-5.2-1.0.4.0-redhat7.7-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.0-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-redhat7.7-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

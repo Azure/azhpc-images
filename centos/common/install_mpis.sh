@@ -45,19 +45,9 @@ cd ..
 
 # Intel MPI 2021 (update 1) - oneAPI
 IMPI_2021_VERSION="2021.1.1"
-tee > /tmp/oneAPI.repo << EOF
-[oneAPI]
-name=Intel(R) oneAPI repository
-baseurl=https://yum.repos.intel.com/oneapi
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-EOF
-
-sudo mv /tmp/oneAPI.repo /etc/yum.repos.d
-
-sudo yum install intel-hpckit -y
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17397/l_mpi_oneapi_p_2021.1.1.76_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe"
+./l_mpi_oneapi_p_2021.1.1.76_offline.sh -s -a -s --eula accept
 
 # Install MVAPICH2-X 2.3
 #MVAPICH2X_DOWNLOAD_URL=https://mvapich.cse.ohio-state.edu/download/mvapich/mv2x/2.3/mofed5.1/mvapich2-x-azure-xpmem-mofed5.1-gnu9.2.0-v2.3xmofed5-1.el7.x86_64.rpm

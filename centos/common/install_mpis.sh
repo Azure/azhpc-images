@@ -34,14 +34,14 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 
 # Intel MPI 2019 (update 8)
-IMPI_2019_VERSION="2019.8.254"
-IMPI_2019_DOWNLOAD_URL=http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16814/l_mpi_${IMPI_2019_VERSION}.tgz
-$COMMON_DIR/download_and_verify.sh $IMPI_2019_DOWNLOAD_URL "fa163b4b79bd1b7509980c3e7ad81b354fc281a92f9cf2469bf4d323899567c0"
-tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
-cd l_mpi_${IMPI_2019_VERSION}
-sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
-./install.sh --silent ./silent.cfg
-cd ..
+# IMPI_2019_VERSION="2019.8.254"
+# IMPI_2019_DOWNLOAD_URL=http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16814/l_mpi_${IMPI_2019_VERSION}.tgz
+# $COMMON_DIR/download_and_verify.sh $IMPI_2019_DOWNLOAD_URL "fa163b4b79bd1b7509980c3e7ad81b354fc281a92f9cf2469bf4d323899567c0"
+# tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
+# cd l_mpi_${IMPI_2019_VERSION}
+# sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
+# ./install.sh --silent ./silent.cfg
+# cd ..
 
 # Intel MPI 2021 (update 1) - oneAPI
 IMPI_2021_VERSION="2021.1.1"
@@ -115,19 +115,19 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 #IntelMPI-v2019
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
-#%Module 1.0
-#
-#  Intel MPI ${IMPI_2019_VERSION}
-#
-conflict        mpi
-module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
-EOF
+# cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION}
+# #%Module 1.0
+# #
+# #  Intel MPI ${IMPI_2019_VERSION}
+# #
+# conflict        mpi
+# module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
+# setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
+# setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
+# setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
+# setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
+# setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
+# EOF
 
 #IntelMPI-v2021
 cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION}
@@ -165,7 +165,7 @@ EOF
 # Create symlinks for modulefiles
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
-ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
+# ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2019_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2019
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
 #ln -s /usr/share/Modules/modulefiles/mpi/mvapich2x-${MV2X_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2x
 

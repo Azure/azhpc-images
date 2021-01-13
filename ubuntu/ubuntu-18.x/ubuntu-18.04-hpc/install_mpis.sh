@@ -54,7 +54,7 @@ cd ..
 IMPI_2021_VERSION="2021.1.1"
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17397/l_mpi_oneapi_p_2021.1.1.76_offline.sh
 $COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe"
-./l_mpi_oneapi_p_2021.1.1.76_offline.sh -s -a -s --eula accept
+sudo bash l_mpi_oneapi_p_2021.1.1.76_offline.sh -s -a -s --eula accept
 
 # Module Files
 MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi

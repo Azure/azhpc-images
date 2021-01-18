@@ -25,6 +25,9 @@ source ./set_properties.sh
 # install Intel libraries
 ./install_intel_libs.sh
 
+# add udev rule
+$COMMON_DIR/../centos/common/add-udev-rules.sh
+
 # optimizations
 ./hpc-tuning.sh
 

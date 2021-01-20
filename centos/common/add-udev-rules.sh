@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-cat << EOF >> /etc/udev/rules.d/60-ib.rules
+#cat << EOF >> /etc/udev/rules.d/60-ib.rules
 # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
 # Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
 #
@@ -29,5 +29,5 @@ cat << EOF >> /etc/udev/rules.d/60-ib.rules
 #   Device type = RoCE
 #   mlx5_0 -> rocex525400c0fe123455
 #
-ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_PCI"
-EOF
+#ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_PCI"
+#EOF

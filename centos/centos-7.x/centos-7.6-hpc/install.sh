@@ -17,7 +17,7 @@ source ./set_properties.sh
 ./install_mpis.sh
 
 # install nvidia gpu driver
-./install_nvidiagpudriver.sh
+#./install_nvidiagpudriver.sh
 
 # install AMD tuned libraries
 ./install_amd_libs.sh

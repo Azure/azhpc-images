@@ -2,7 +2,7 @@
 source /etc/profile
 
 GCC_VERSION="9.2.0"
-MKL_VERSION="2019.5.281"
+MKL_VERSION="2021.1.1"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
@@ -195,7 +195,7 @@ check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
 
 # verify s/w package installations
 check_exists "/opt/gcc-${GCC_VERSION}/"
-check_exists "/opt/intel/compilers_and_libraries_${MKL_VERSION}/linux/mkl/"
+check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
 
 # verify hpcdiag installation
 check_exists '/opt/azurehpc/diagnostics/gather_azhpc_vm_diagnostics.sh'

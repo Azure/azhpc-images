@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+#Test
+
 MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/MLNX_OFED_LINUX-5.1-2.4.6.0-ubuntu18.04-x86_64.tgz
 TARBALL=$(basename ${MLNX_OFED_DOWNLOAD_URL})
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)

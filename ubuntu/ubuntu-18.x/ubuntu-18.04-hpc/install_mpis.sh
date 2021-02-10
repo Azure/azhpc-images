@@ -25,7 +25,7 @@ HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 # MVAPICH2 2.3.5
 MV2_VERSION="2.3.5"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "7226a45c7c98333c8e5d2888119cce186199b430c13b7b1dca1769909e68ea7a"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "f9f467fec5fc981a89a7beee0374347b10c683023c76880f92a1a0ad4b961a8c"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install

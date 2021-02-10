@@ -188,7 +188,7 @@ check_exists "/opt/gcc-${GCC_VERSION}/"
 check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
 
 # verify hpcdiag installation
-# check_exists '/opt/azurehpc/diagnostics/gather_azhpc_vm_diagnostics.sh'
+check_exists '/opt/azurehpc/diagnostics/gather_azhpc_vm_diagnostics.sh'
 
 if [ $CHECK_AOCL -eq 1 ]
 then

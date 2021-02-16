@@ -28,6 +28,9 @@ source ./set_properties.sh
 # add udev rule
 $COMMON_DIR/../centos/common/add-udev-rules.sh
 
+# add interface rules
+$COMMON_DIR/../centos/common/network-config.sh
+
 # optimizations
 ./hpc-tuning.sh
 

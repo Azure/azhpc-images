@@ -10,22 +10,22 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.2
-HPCX_VERSION="v2.7.2"
+# HPC-X v2.7.4
+HPCX_VERSION="v2.7.4"
 
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.7.2-gcc-MLNX_OFED_LINUX-5.1-2.4.6.0-ubuntu18.04-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.7.4-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-ubuntu18.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "3050ed693f002e3e976155a6b7258038fc23ef0a8f4921457a70592b97b90c43"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "2b6ca6d05ed1d49d7cad8969fcd9ad2c3e1f99ed6ef955b184d29ad5852afa64"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 
-# MVAPICH2 2.3.4
-MV2_VERSION="2.3.4"
+# MVAPICH2 2.3.5
+MV2_VERSION="2.3.5"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "7226a45c7c98333c8e5d2888119cce186199b430c13b7b1dca1769909e68ea7a"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "f9f467fec5fc981a89a7beee0374347b10c683023c76880f92a1a0ad4b961a8c"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
@@ -40,16 +40,11 @@ cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 
-# Intel MPI 2019 (update 8)
-IMPI_2019_VERSION="2019.8.254"
-IMPI_2019_DOWNLOAD_URL=http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16814/l_mpi_${IMPI_2019_VERSION}.tgz
-$COMMON_DIR/download_and_verify.sh $IMPI_2019_DOWNLOAD_URL "fa163b4b79bd1b7509980c3e7ad81b354fc281a92f9cf2469bf4d323899567c0"
-tar -xvf l_mpi_${IMPI_2019_VERSION}.tgz
-cd l_mpi_${IMPI_2019_VERSION}
-sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
-./install.sh --silent ./silent.cfg
-cd ..
-
+# Intel MPI 2021 (update 1)
+IMPI_2021_VERSION="2021.1.1"
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17397/l_mpi_oneapi_p_2021.1.1.76_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe"
+sudo bash l_mpi_oneapi_p_2021.1.1.76_offline.sh -s -a -s --eula accept
 
 # Module Files
 MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi
@@ -101,23 +96,23 @@ setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
-# Intel 2019
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2019_VERSION}
+# Intel 2021
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION}
 #%Module 1.0
 #
-#  Intel MPI ${IMPI_2019_VERSION}
+#  Intel MPI ${IMPI_2021_VERSION}
 #
 conflict        mpi
-module load /opt/intel/impi/${IMPI_2019_VERSION}/intel64/modulefiles/mpi
-setenv          MPI_BIN         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/bin
-setenv          MPI_INCLUDE     /opt/intel/impi/${IMPI_2019_VERSION}/intel64/include
-setenv          MPI_LIB         /opt/intel/impi/${IMPI_2019_VERSION}/intel64/lib
-setenv          MPI_MAN         /opt/intel/impi/${IMPI_2019_VERSION}/man
-setenv          MPI_HOME        /opt/intel/impi/${IMPI_2019_VERSION}/intel64
+module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi
+setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/bin
+setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/include
+setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/lib
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/man
+setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}
 EOF
 
 # Softlinks
 ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
 ln -s ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION} ${MODULE_FILES_DIRECTORY}/mvapich2
 ln -s ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/openmpi
-ln -s ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2019_VERSION} ${MODULE_FILES_DIRECTORY}/impi-2019
+ln -s ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION} ${MODULE_FILES_DIRECTORY}/impi-2021

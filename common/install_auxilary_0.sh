@@ -85,3 +85,5 @@ EOF
 # Get the kernel patch
 sudo chmod 777 /mnt
 apt install -y linux-image-unsigned-5.4.0-1040-azure/bionic-updates
+
+sudo reboot

@@ -1,11 +1,5 @@
 #!/bin/bash
 
-sudo apt-get update
-sudo apt install build-essential -y
-
-# Get the kernel patch
-apt install -y linux-image-unsigned-5.4.0-1040-azure/bionic-updates
-
 # Place the topology file in /opt/msft
 sudo mkdir -p /opt/msft
 sudo bash -c "cat > /opt/msft/ndv4-topo.xml" <<'EOF'

@@ -23,6 +23,12 @@ rm -Rf -- */
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# Install NCCL
+sudo bash $COMMON_DIR/install_nccl.sh
+
+# Install DCGM
+sudo bash $COMMON_DIR/install_dcgm.sh
+
 # install Intel libraries
 ./install_intel_libs.sh
 
@@ -34,3 +40,6 @@ rm -Rf -- */
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
+
+# Network Optimization
+$COMMON_DIR/network-tuning.sh

@@ -28,3 +28,6 @@ apt-get -y install numactl \
                    bison \
                    libnl-route-3-200 \
                    gfortran
+
+# Get the kernel patch
+apt install -y linux-image-unsigned-5.4.0-1040-azure/bionic-updates

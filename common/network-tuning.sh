@@ -3,6 +3,9 @@
 sudo apt-get update
 sudo apt install build-essential -y
 
+# Get the kernel patch
+apt install -y linux-image-unsigned-5.4.0-1040-azure/bionic-updates
+
 # Place the topology file in /opt/msft
 sudo mkdir -p /opt/msft
 sudo bash -c "cat > /opt/msft/ndv4-topo.xml" <<'EOF'
@@ -65,8 +68,5 @@ sudo bash -c "cat > /etc/udev/rules.d/60-rdma-persistent-naming.rules" <<'EOF'
 #
 ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_PCI"
 EOF
-
-# Get the kernel patch
-apt install -y linux-image-unsigned-5.4.0-1040-azure/bionic-updates
 
 sudo reboot

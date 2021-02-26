@@ -4,6 +4,9 @@ set -ex
 # set properties
 source ./set_properties.sh
 
+# Kernel Update
+./kernel-update.sh
+
 # install utils
 ./install_utils.sh
 
@@ -24,10 +27,10 @@ rm -Rf -- */
 ./install_nvidiagpudriver.sh
 
 # Install NCCL
-sudo bash $COMMON_DIR/install_nccl.sh
+$COMMON_DIR/install_nccl.sh
 
 # Install DCGM
-sudo bash $COMMON_DIR/install_dcgm.sh
+$COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
 ./install_intel_libs.sh
@@ -38,8 +41,8 @@ sudo bash $COMMON_DIR/install_dcgm.sh
 # optimizations
 ./hpc-tuning.sh
 
-# copy test file
-$COMMON_DIR/copy_test_file.sh
-
 # Network Optimization
 $COMMON_DIR/network-tuning.sh
+
+# copy test file
+$COMMON_DIR/copy_test_file.sh

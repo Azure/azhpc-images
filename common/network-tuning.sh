@@ -62,5 +62,3 @@ sudo bash -c "cat > /etc/udev/rules.d/60-rdma-persistent-naming.rules" <<'EOF'
 #
 ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_PCI"
 EOF
-
-sudo reboot

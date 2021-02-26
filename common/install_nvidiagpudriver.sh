@@ -4,7 +4,7 @@ set -ex
 # Nvidia driver
 cd /mnt
 NVIDIA_DRIVER_URL=https://download.nvidia.com/XFree86/Linux-x86_64/460.27.04/NVIDIA-Linux-x86_64-460.27.04.run
-$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "a654eab5ce50650c0cd1fdcc78c655d0de573a2b925c20839252ffab2cbc1ccf"
+wget $NVIDIA_DRIVER_URL
 chmod 755 NVIDIA-Linux-x86_64-450.80.02.run
 sudo ./NVIDIA-Linux-x86_64-450.80.02.run -s
 
@@ -18,7 +18,7 @@ echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | sudo tee 
 # Install nvidia fabric manager (required for ND96asr_v4)
 cd /mnt
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/nvidia-fabricmanager-450_450.80.02-1_amd64.deb
-$COMMON_DIR/download_and_verify.sh $NVIDIA_FABRIC_MNGR_URL "4f14f162ad40e0824695f7489e27b24cf762b733ffcb0f30f084a228659594bf"
+wget $NVIDIA_FABRIC_MNGR_URL
 sudo apt install -y ./nvidia-fabricmanager-450_450.80.02-1_amd64.deb
 sudo systemctl enable nvidia-fabricmanager
 sudo systemctl start nvidia-fabricmanager

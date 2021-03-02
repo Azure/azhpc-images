@@ -4,7 +4,7 @@ set -ex
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://download.nvidia.com/XFree86/Linux-x86_64/460.27.04/NVIDIA-Linux-x86_64-460.27.04.run
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "a654eab5ce50650c0cd1fdcc78c655d0de573a2b925c20839252ffab2cbc1ccf"
-sudo bash NVIDIA-Linux-x86_64-450.80.02.run --silent
+sudo bash NVIDIA-Linux-x86_64-460.27.04.run --silent
 
 # Install Cuda
 wget https://developer.download.nvidia.com/compute/cuda/11.0.3/local_installers/cuda_11.0.3_450.51.06_linux.run

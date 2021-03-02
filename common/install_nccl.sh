@@ -14,22 +14,20 @@ sudo dpkg -i libnccl2_2.8.3-1+cuda11.0_amd64.deb
 sudo dpkg -i libnccl-dev_2.8.3-1+cuda11.0_amd64.deb
 
 # Install the nccl rdma sharp plugin
-# cd /tmp
-# mkdir -p /usr/local/nccl-rdma-sharp-plugins
-# sudo apt install -y zlib1g-dev
-# git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
-# cd nccl-rdma-sharp-plugins
-# git checkout v2.0.x-ar
-# ./autogen.sh
-# ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
-# make
-# sudo make install
+cd /tmp
+sudo mkdir -p /usr/local/nccl-rdma-sharp-plugins
+sudo apt install -y zlib1g-dev
+git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
+cd nccl-rdma-sharp-plugins
+git checkout v2.0.x-ar
+./autogen.sh
+./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
+make
+sudo make install
 
 # Build the nccl tests
-cd /opt/msft
-HPCX_DIR=hpcx-v
-git clone https://github.com/NVIDIA/nccl-tests.git
-. /opt/${HPCX_DIR}*/hpcx-init.sh
-hpcx_load
-cd nccl-tests
-make MPI=1
+module load mpi/hpcx
+sudo git clone https://github.com/NVIDIA/nccl-tests.git
+cd nccl-test
+sudo make MPI=1 MPI_HOME=${HPCX_MPI_DIR} NCCL_HOME=/tmp/nccl/build CUDA_HOME=/usr/local/cuda
+module unload mpi/hpcx

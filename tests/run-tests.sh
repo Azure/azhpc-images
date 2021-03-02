@@ -224,17 +224,6 @@ then
     module unload mpi/impi-2021
 fi
 
-# # impi 2019
-# if [ $CHECK_IMPI_2019 -eq 1 ]
-# then
-#     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2019"
-
-#     module load mpi/impi-2019
-#     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${IMPI2019_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
-#     check_exit_code "Intel MPI 2019" "Failed to run Intel MPI 2019"
-#     module unload mpi/impi-2019
-# fi
-
 # impi 2018
 if [ $CHECK_IMPI_2018 -eq 1 ]
 then

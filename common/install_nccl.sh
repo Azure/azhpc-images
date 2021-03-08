@@ -6,6 +6,8 @@ cd /tmp
 git clone https://github.com/NVIDIA/nccl.git
 cd nccl/
 git checkout v2.8.4-1
+git cherry-pick -x ef5f37461fdbf11104cf0ee13da80d80b84b4cbc
+git cherry-pick -x 99b8a0393ffa379f3b0b81f3d5c0baa6aad7abef
 make -j src.build
 make pkg.debian.build
 cd build/pkg/deb/

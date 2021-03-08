@@ -2,7 +2,7 @@
 
 # Place the topology file in /opt/microsoft
 sudo mkdir -p /opt/microsoft
-sudo bash -c "cat > /opt/msft/ndv4-topo.xml" <<'EOF'
+sudo bash -c "cat > /opt/microsoft/ndv4-topo.xml" <<'EOF'
 <system version="1">
   <cpu numaid="0" affinity="0000ffff,0000ffff" arch="x86_64" vendor="AuthenticAMD" familyid="143" modelid="49">
     <pci busid="ffff:ff:01.0" class="0x060400" link_speed="16 GT/s" link_width="16">

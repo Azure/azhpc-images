@@ -33,6 +33,8 @@ CHECK_MVAPICH2=0
 CHECK_MVAPICH2X=0
 CHECK_CUDA=0
 CHECK_AOCL=1
+CHECK_NV_PMEM=0
+CHECK_NCCL=0
 
 # Find distro
 find_distro() {
@@ -138,6 +140,8 @@ then
     MVAPICH2X_PATH=${UBUNTU_MVAPICH2X_PATH}
     OPENMPI_PATH=${UBUNTU_OPENMPI_PATH}
     CHECK_AOCL=0
+    CHECK_NV_PMEM=1
+    CHECK_NCCL=1
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -224,17 +228,6 @@ then
     module unload mpi/impi-2021
 fi
 
-# # impi 2019
-# if [ $CHECK_IMPI_2019 -eq 1 ]
-# then
-#     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2019"
-
-#     module load mpi/impi-2019
-#     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${IMPI2019_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
-#     check_exit_code "Intel MPI 2019" "Failed to run Intel MPI 2019"
-#     module unload mpi/impi-2019
-# fi
-
 # impi 2018
 if [ $CHECK_IMPI_2018 -eq 1 ]
 then
@@ -252,7 +245,7 @@ then
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
 
     module load mpi/mvapich2
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
+    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
     check_exit_code "MVAPICH2" "Failed to run MVAPICH2"
     module unload mpi/mvapich2
 fi
@@ -281,6 +274,33 @@ if [ $CHECK_CUDA -eq 1 ]
 then
     nvidia-smi
     check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
+fi
+
+if [ $CHECK_NV_PMEM -eq 1 ]
+then
+    lsmod | grep nv
+    check_exit_code "NV Peer Memory Module" "Failed to locate Module"
+fi
+
+if [ $CHECK_NCCL -eq 1 ]
+then
+    module load mpi/hpcx
+
+    mpirun -np 8 \
+    --allow-run-as-root \
+    --map-by ppr:8:node \
+    -x LD_LIBRARY_PATH \
+    -mca coll_hcoll_enable 0 \
+    -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
+    -x UCX_IB_PCI_RELAXED_ORDERING=on \
+    -x UCX_TLS=tcp \
+    -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+    -x NCCL_SOCKET_IFNAME=eth0 \
+    -x NCCL_NET_GDR_LEVEL=5 \
+    -x NCCL_TOPO_FILE=/opt/microsoft/topo.xml \
+    /opt/microsoft/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+
+    module unload mpi/hpcx
 fi
 
 echo "ALL OK!"

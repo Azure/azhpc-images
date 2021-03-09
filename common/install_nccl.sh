@@ -7,7 +7,6 @@ git clone https://github.com/NVIDIA/nccl.git
 cd nccl/
 git checkout v2.8.4-1
 git cherry-pick -x ef5f37461fdbf11104cf0ee13da80d80b84b4cbc
-git cherry-pick -x 99b8a0393ffa379f3b0b81f3d5c0baa6aad7abef
 make -j src.build
 make pkg.debian.build
 cd build/pkg/deb/
@@ -27,7 +26,11 @@ make
 make install
 
 # Build the nccl tests
+source /etc/profile.d/modules.sh
+module load mpi/hpcx
 cd /tmp
-git clone https://github.com/NVIDIA/nccl-tests.git
+sudo -u hpcuser git clone https://github.com/NVIDIA/nccl-tests.git
+chmod +775 nccl_tests
 cd /tmp/nccl-tests
 make MPI=1 MPI_HOME=/opt/hpcx-v2.7.4-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-ubuntu18.04-x86_64/ompi CUDA_HOME=/usr/local/cuda
+module unload mpi/hpcx

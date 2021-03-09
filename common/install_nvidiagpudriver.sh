@@ -33,7 +33,7 @@ dpkg-buildpackage -us -uc
 sudo dpkg -i ../nvidia-peer-memory_1.1-0_all.deb 
 sudo dpkg -i ../nvidia-peer-memory-dkms_1.1-0_all.deb 
 sudo modprobe nv_peer_mem
-lsmod | grep nv #Add for test
+lsmod | grep nv
 
 sudo bash -c "cat > /etc/modules-load.d/nv_peer_mem.conf" <<'EOF'
 nv_peer_mem

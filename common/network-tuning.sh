@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Both configurations are specific to NDv4
 # Place the topology file in /opt/microsoft
 sudo mkdir -p /opt/microsoft
 sudo bash -c "cat > /opt/microsoft/ndv4-topo.xml" <<'EOF'

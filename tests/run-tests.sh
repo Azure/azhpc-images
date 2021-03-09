@@ -240,6 +240,7 @@ then
 fi
 
 # mvapich2
+# Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
 if [ $CHECK_MVAPICH2 -eq 1 ]
 then
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
@@ -289,7 +290,7 @@ then
     mpirun -np 8 \
     --allow-run-as-root \
     --map-by ppr:8:node \
-    -x LD_LIBRARY_PATH \
+    -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
     -mca coll_hcoll_enable 0 \
     -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
     -x UCX_IB_PCI_RELAXED_ORDERING=on \

@@ -241,7 +241,7 @@ then
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
 
     module load mpi/mvapich2
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
+    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  ${MVAPICH2_PATH}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
     check_exit_code "MVAPICH2" "Failed to run MVAPICH2"
     module unload mpi/mvapich2
 fi

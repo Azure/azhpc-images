@@ -28,9 +28,9 @@ make install
 # Build the nccl tests
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
-cd /tmp
-sudo -u hpcuser git clone https://github.com/NVIDIA/nccl-tests.git
-chmod +775 nccl_tests
-cd /tmp/nccl-tests
+sudo mkdir -p /opt/microsoft
+cd /opt/microsoft
+sudo git clone https://github.com/NVIDIA/nccl-tests.git
+cd /opt/microsoft/nccl-tests
 make MPI=1 MPI_HOME=/opt/hpcx-v2.7.4-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-ubuntu18.04-x86_64/ompi CUDA_HOME=/usr/local/cuda
 module unload mpi/hpcx

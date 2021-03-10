@@ -7,6 +7,9 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
+# Kernel Update
+$COMMON_DIR/kernel-update.sh
+
 # install compilers
 ./install_gcc.sh
 
@@ -23,6 +26,12 @@ rm -Rf -- */
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# Install NCCL
+$COMMON_DIR/install_nccl.sh
+
+# Install DCGM
+$COMMON_DIR/install_dcgm.sh
+
 # install Intel libraries
 ./install_intel_libs.sh
 
@@ -31,6 +40,9 @@ rm -Rf -- */
 
 # optimizations
 ./hpc-tuning.sh
+
+# Network Optimization
+$COMMON_DIR/network-tuning.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

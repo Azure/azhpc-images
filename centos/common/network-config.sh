@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 sed -i '/\[main\]/a no-auto-default=*' /etc/NetworkManager/NetworkManager.conf
 

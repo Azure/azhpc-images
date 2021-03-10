@@ -45,4 +45,4 @@ git clone https://github.com/NVIDIA/gdrcopy.git
 cd gdrcopy/packages/
 CUDA=/usr/local/cuda ./build-deb-packages.sh 
 sudo dpkg -i gdrdrv-dkms_2.2-1_amd64.deb 
-sudo dpkg -i gdrcopy_2.2-1_amd64.deb 
+sudo dpkg -i gdrcopy_2.2-1_amd64.deb

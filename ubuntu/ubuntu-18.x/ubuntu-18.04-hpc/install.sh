@@ -32,6 +32,9 @@ $COMMON_DIR/install_nccl.sh
 # Install DCGM
 $COMMON_DIR/install_dcgm.sh
 
+# Place GPU topology file
+$COMMON_DIR/gpu-topology.sh
+
 # install Intel libraries
 ./install_intel_libs.sh
 

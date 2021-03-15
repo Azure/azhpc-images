@@ -13,13 +13,6 @@ sudo ./cuda_11.0.3_450.51.06_linux.run --silent
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | sudo tee -a /etc/bash.bashrc
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | sudo tee -a /etc/bash.bashrc
 
-# Install nvidia fabric manager (required for ND96asr_v4)
-NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/nvidia-fabricmanager-450_450.80.02-1_amd64.deb
-$COMMON_DIR/download_and_verify.sh $NVIDIA_FABRIC_MNGR_URL "4f14f162ad40e0824695f7489e27b24cf762b733ffcb0f30f084a228659594bf"
-sudo apt install -y ./nvidia-fabricmanager-450_450.80.02-1_amd64.deb
-sudo systemctl enable nvidia-fabricmanager
-sudo systemctl start nvidia-fabricmanager
-
 # Install NV Peer Memory (GPU Direct RDMA)
 sudo apt install -y dkms libnuma-dev
 git clone https://github.com/Mellanox/nv_peer_memory.git

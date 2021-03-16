@@ -1,3 +1,4 @@
+
 #!/bin/bash
 source /etc/profile
 
@@ -11,6 +12,7 @@ HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.6-
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${CENTOS_MOFED_VERSION}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
 CENTOS_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.1.1"
 CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
@@ -114,6 +116,20 @@ then
 elif [[ $distro == "CentOS Linux 8.1.1911" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_CENTOS_81}
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_OMPI=1
+    CHECK_MVAPICH2=1
+    CHECK_MVAPICH2X=0
+    MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
+    MOFED_VERSION=${CENTOS_MOFED_VERSION}
+    IMPI2021_PATH=${CENTOS_IMPI2021_PATH}
+    MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
+    MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}
+    OPENMPI_PATH=${CENTOS_OPENMPI_PATH}
+elif [[ $distro == "CentOS Linux 8.3.2011" ]]
+then
+    HPCX_OMB_PATH=${HPCX_OMB_PATH_CENTOS_83}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
     CHECK_OMPI=1

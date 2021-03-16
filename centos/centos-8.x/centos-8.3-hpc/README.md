@@ -1,4 +1,4 @@
-# CentOS 8.1 HPC Image
+# CentOS 8.3 HPC Image
 
 The CentOS 8.3 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability. This image consists of the following HPC tools and libraries:

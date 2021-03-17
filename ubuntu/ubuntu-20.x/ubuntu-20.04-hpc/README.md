@@ -1,4 +1,4 @@
-# Ubuntu 18.04 HPC Image
+# Ubuntu 20.04 HPC Image
 
 The Ubuntu 18.04 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability. This image consists of the following HPC tools and libraries:

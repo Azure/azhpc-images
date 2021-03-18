@@ -7,9 +7,6 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
-# Kernel Update
-$COMMON_DIR/kernel-update.sh
-
 # install compilers
 ./install_gcc.sh
 

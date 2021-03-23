@@ -5,6 +5,7 @@ set -ex
 # install rdma_rename with NAME_FIXED option
 #
 
+pushd /tmp
 rdma_core_branch=stable-v34
 git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
 pushd rdma-core
@@ -12,6 +13,7 @@ bash build.sh
 cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_branch
 popd
 rm -rf rdma-core
+popd
 
 #
 # setup systemd service

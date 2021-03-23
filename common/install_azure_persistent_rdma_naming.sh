@@ -22,7 +22,7 @@ popd
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
-rdma_rename=/usr/lib/udev/rdma_rename_${rdma_core_branch}
+rdma_rename=/usr/sbin/rdma_rename_${rdma_core_branch}
 
 an_index=0
 ib_index=0
@@ -33,12 +33,12 @@ for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
 	
 	if [ "\$link_layer" = "InfiniBand" ]; then
 		
-		\$rdma_rename \$old_device NAME_FIXED mlx_ib\${ib_index}
+		\$rdma_rename \$old_device NAME_FIXED mlx5_ib\${ib_index}
 		ib_index=\$((\$ib_index + 1))
 		
 	elif [ "\$link_layer" = "Ethernet" ]; then
 	
-		\$rdma_rename \$old_device NAME_FIXED mlx_an\${an_index}
+		\$rdma_rename \$old_device NAME_FIXED mlx5_an\${an_index}
 		an_index=\$((\$an_index + 1))
 		
 	else
@@ -67,3 +67,4 @@ WantedBy=multi-user.target
 EOF
 
 systemctl enable azure_persistent_rdma_naming.service
+systemctl start azure_persistent_rdma_naming.service

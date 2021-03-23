@@ -27,4 +27,7 @@ apt-get -y install numactl \
                    libnl-3-200 \
                    bison \
                    libnl-route-3-200 \
-                   gfortran
+                   gfortran \
+                   cmake \
+                   libnl-3-dev \
+                   libnl-route-3-dev

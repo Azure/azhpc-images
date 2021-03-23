@@ -49,6 +49,7 @@ for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
 	
 done
 EOF
+chmod 755 /usr/sbin/azure_persistent_rdma_naming.sh
 
 cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming.service
 [Unit]

@@ -43,3 +43,6 @@ $COMMON_DIR/network-tuning.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
+
+# install persistent rdma naming
+$COMMON_DIR/install_azure_persistent_rdma_naming.sh

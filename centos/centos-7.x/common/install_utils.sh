@@ -26,4 +26,6 @@ yum install -y numactl \
     kernel-headers \
     nfs-utils \
     fuse-libs \
-    libpciaccess
+    libpciaccess \
+    cmake \
+    libnl3-devel

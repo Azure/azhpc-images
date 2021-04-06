@@ -19,9 +19,9 @@ CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 CENTOS_OPENMPI_PATH="/opt/openmpi-4.0.5"
 
-UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.2-1.0.4.0"
+UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.2-2.2.0.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.7.4-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.8.1-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-v2.7.4-gcc-${UBUNTU_MOFED_VERSION}-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.1.1"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
@@ -332,8 +332,10 @@ then
     -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
     -x NCCL_SOCKET_IFNAME=eth0 \
     -x NCCL_NET_GDR_LEVEL=5 \
-    -x NCCL_TOPO_FILE=/opt/microsoft/topo.xml \
-    /opt/microsoft/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+    -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
+    /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+
+    check_exit_code "Single Node NCCL Test" "Failed"
 
     module unload mpi/hpcx
 fi

@@ -13,11 +13,11 @@ INSTALL_PREFIX=/opt
 # HPC-X v2.8.1
 HPCX_VERSION="v2.8.1"
 
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.1-gcc-MLNX_OFED_LINUX-5.2-2.2.0.0-ubuntu18.04-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.1-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu18.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "d78da08a130c19e53c07c16dedfbeaecd400077d68c7d26770d079d0bcc17668"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "02542a5746d29171ec51a263afef43df8375d14a8a9ad807048776cc8f6b55c8"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

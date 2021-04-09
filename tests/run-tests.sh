@@ -19,12 +19,11 @@ CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 CENTOS_OPENMPI_PATH="/opt/openmpi-4.0.5"
 
-
 UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.2-2.2.3.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
 HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.8.1-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-v2.7.4-gcc-${UBUNTU_MOFED_VERSION}-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.1.1"
+UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.2.0"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
 UBUNTU_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 UBUNTU_OPENMPI_PATH="/opt/openmpi-4.0.5"

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Both configurations are specific to NDv4
 # Place the topology file in /opt/microsoft

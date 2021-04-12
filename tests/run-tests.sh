@@ -11,6 +11,7 @@ CENTOS_MOFED_VERSION="MLNX_OFED_LINUX-5.2-1.0.4.0"
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_79="/opt/hpcx-v2.8.0-gcc-${CENTOS_MOFED_VERSION}-redhat7.9-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.7.4-gcc-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${CENTOS_MOFED_VERSION}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
@@ -114,6 +115,24 @@ then
     MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
     MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}
     OPENMPI_PATH=${CENTOS_OPENMPI_PATH}
+elif [[ $distro == "CentOS Linux 7.9.2009" ]]
+then
+    HPCX_OMB_PATH=${HPCX_OMB_PATH_CENTOS_79}
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_IMPI_2018=1
+    CHECK_OMPI=1
+    CHECK_MVAPICH2=1
+    CHECK_MVAPICH2X=0
+    MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
+    MOFED_VERSION=${CENTOS_MOFED_VERSION}
+    IMPI2021_PATH=${CENTOS_IMPI2021_PATH}
+    MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
+    MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}
+    OPENMPI_PATH=${CENTOS_OPENMPI_PATH}
+    CHECK_AOCL=1
+    CHECK_NV_PMEM=1
+    CHECK_NCCL=1
 elif [[ $distro == "CentOS Linux 8.1.1911" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_CENTOS_81}
@@ -331,6 +350,7 @@ then
     -x UCX_TLS=tcp \
     -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
     -x NCCL_SOCKET_IFNAME=eth0 \
+    -x NCCL_DEBUG=WARN \
     -x NCCL_NET_GDR_LEVEL=5 \
     -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
     /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G

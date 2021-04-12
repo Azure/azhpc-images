@@ -32,6 +32,8 @@ sudo bash -c "cat > /etc/modules-load.d/nv_peer_mem.conf" <<'EOF'
 nv_peer_mem
 EOF
 
+sudo systemctl enable nv_peer_mem.service
+
 # Install gdrcopy
 sudo apt install -y check libsubunit0 libsubunit-dev build-essential devscripts debhelper check libsubunit-dev fakeroot
 git clone https://github.com/NVIDIA/gdrcopy.git

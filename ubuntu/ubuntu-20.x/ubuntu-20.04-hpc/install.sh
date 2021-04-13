@@ -24,10 +24,10 @@ rm -Rf -- */
 ./install_nvidiagpudriver.sh
 
 # Install NCCL
-$COMMON_DIR/install_nccl.sh
+$UBUNTU_COMMON_DIR/install_nccl.sh
 
 # Install DCGM
-$COMMON_DIR/install_dcgm.sh
+./install_dcgm.sh
 
 # install Intel libraries
 ./install_intel_libs.sh

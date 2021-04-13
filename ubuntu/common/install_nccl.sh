@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Install NCCL
 sudo apt install -y build-essential devscripts debhelper fakeroot

@@ -1,6 +1,7 @@
 #!/bin/bash
+set -ex
 
-$COMMON_DIR/install_nvidiagpudriver.sh
+$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/nvidia-fabricmanager-460_460.32.03-1_amd64.deb

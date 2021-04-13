@@ -10,14 +10,14 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.8.1
-HPCX_VERSION="v2.8.1"
+# HPC-X v2.8.3
+HPCX_VERSION="v2.8.3"
 
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.1-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu20.04-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.3-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu20.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "d1f1de8332dd6ed72765782b2cca2712fc28103b7350f6792f2429090bda38eb"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "fc2535d7ebec786b6d94d107ded1ba5633dec578039e3a99390ec47297d32bf9"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

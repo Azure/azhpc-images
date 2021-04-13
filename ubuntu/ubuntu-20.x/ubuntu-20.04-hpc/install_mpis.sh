@@ -10,14 +10,14 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.4
-HPCX_VERSION="v2.7.4"
+# HPC-X v2.8.1
+HPCX_VERSION="v2.8.1"
 
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.7.4-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-ubuntu20.04-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.1-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu20.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "f63b5caa4c43bcdca1462622acdcc1cb8a92ba3bc5738ff08e39d10e91682c3c"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "d1f1de8332dd6ed72765782b2cca2712fc28103b7350f6792f2429090bda38eb"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
@@ -40,11 +40,11 @@ cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 
-# Intel MPI 2021 (update 1)
-IMPI_2021_VERSION="2021.1.1"
-IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17397/l_mpi_oneapi_p_2021.1.1.76_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "8b7693a156c6fc6269637bef586a8fd3ea6610cac2aae4e7f48c1fbb601625fe"
-sudo bash l_mpi_oneapi_p_2021.1.1.76_offline.sh -s -a -s --eula accept
+# Intel MPI 2021 (Update 2)
+IMPI_2021_VERSION="2021.2.0"
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17729/l_mpi_oneapi_p_2021.2.0.215_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "d0d4cdd11edaff2e7285e38f537defccff38e37a3067c02f4af43a3629ad4aa3"
+sudo bash l_mpi_oneapi_p_2021.2.0.215_offline.sh -s -a -s --eula accept
 
 # Module Files
 MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi

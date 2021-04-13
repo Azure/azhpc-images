@@ -35,6 +35,9 @@ $COMMON_DIR/install_dcgm.sh
 # install diagnostic script
 "$COMMON_DIR/install_hpcdiag.sh"
 
+# install persistent rdma naming
+$COMMON_DIR/install_azure_persistent_rdma_naming.sh
+
 # optimizations
 ./hpc-tuning.sh
 
@@ -43,6 +46,3 @@ $COMMON_DIR/network-tuning.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
-
-# install persistent rdma naming
-$COMMON_DIR/install_azure_persistent_rdma_naming.sh

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -ex
 
-MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/MLNX_OFED_LINUX-5.2-1.0.4.0-rhel8.1-x86_64.tgz
+MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/MLNX_OFED_LINUX-5.2-2.2.3.0-rhel8.1-x86_64.tgz
 TARBALL=$(basename ${MLNX_OFED_DOWNLOAD_URL})
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 
-$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "dd27e147e5cc208e8f6bb3dba252dd207fd2fb60afb48ee67c295660c79fb977"
+$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "a5015f685f7b2113af27b31bf18a373decf59c5ebdbace4cd790c5d039cbee5d"
 tar zxvf ${TARBALL}
 
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )

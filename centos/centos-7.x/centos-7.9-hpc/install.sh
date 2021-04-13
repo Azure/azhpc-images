@@ -54,7 +54,7 @@ $COMMON_DIR/../centos/common/add-udev-rules.sh
 $COMMON_DIR/../centos/common/network-config.sh
 
 # install diagnostic script
-"$COMMON_DIR/install_hpcdiag.sh"
+$COMMON_DIR/install_hpcdiag.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

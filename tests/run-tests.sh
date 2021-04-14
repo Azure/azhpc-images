@@ -16,10 +16,10 @@ HPCX_OMB_PATH_CENTOS_79="/opt/hpcx-v2.8.3-gcc-${CENTOS_MOFED_VERSION}-redhat7.9-
 HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-v2.8.3-gcc-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${CENTOS_MOFED_VERSION_83}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
-CENTOS_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.1.1"
+CENTOS_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.2.0"
 CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
-CENTOS_OPENMPI_PATH="/opt/openmpi-4.0.5"
+CENTOS_OPENMPI_PATH="/opt/openmpi-4.1.0"
 
 UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.2-2.2.3.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
@@ -28,7 +28,7 @@ HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-v2.8.3-gcc-${UBUNTU_MOFED_VERSION}-ubuntu20
 UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.2.0"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-2.3.5"
 UBUNTU_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
-UBUNTU_OPENMPI_PATH="/opt/openmpi-4.0.5"
+UBUNTU_OPENMPI_PATH="/opt/openmpi-4.1.0"
 
 CHECK_HPCX=0
 CHECK_IMPI_2021=0
@@ -331,12 +331,14 @@ then
     check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
 fi
 
+# Check NV_Peer_Memory
 if [ $CHECK_NV_PMEM -eq 1 ]
 then
     lsmod | grep nv
     check_exit_code "NV Peer Memory Module" "Failed to locate Module"
 fi
 
+# Perform Single Node NCCL Test
 if [ $CHECK_NCCL -eq 1 ]
 then
     module load mpi/hpcx

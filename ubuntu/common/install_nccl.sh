@@ -2,7 +2,7 @@
 set -ex
 
 # Install NCCL
-sudo apt install -y build-essential devscripts debhelper fakeroot
+apt install -y build-essential devscripts debhelper fakeroot
 cd /tmp
 git clone https://github.com/NVIDIA/nccl.git
 cd nccl/
@@ -12,8 +12,8 @@ git cherry-pick -x ef5f37461fdbf11104cf0ee13da80d80b84b4cbc
 make -j src.build
 make pkg.debian.build
 cd build/pkg/deb/
-sudo dpkg -i libnccl2_2.8.4-1+cuda11.2_amd64.deb
-sudo dpkg -i libnccl-dev_2.8.4-1+cuda11.2_amd64.deb
+dpkg -i libnccl2_2.8.4-1+cuda11.2_amd64.deb
+dpkg -i libnccl-dev_2.8.4-1+cuda11.2_amd64.deb
 
 # Install the nccl rdma sharp plugin
 cd /tmp
@@ -30,7 +30,7 @@ make install
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 cd /opt
-sudo git clone https://github.com/NVIDIA/nccl-tests.git
+git clone https://github.com/NVIDIA/nccl-tests.git
 cd /opt/nccl-tests
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 module unload mpi/hpcx

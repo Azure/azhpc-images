@@ -4,7 +4,6 @@ The Ubuntu 18.04 HPC Image includes optimizations and recommended configurations
 consistency, and reliability. This image consists of the following HPC tools and libraries:
 
 - Mellanox OFED
-- Pre-configured IPoIB (IP-over-InfiniBand)
 - Popular InfiniBand based MPI Libraries
   - HPC-X
   - IntelMPI
@@ -19,14 +18,16 @@ consistency, and reliability. This image consists of the following HPC tools and
   - Intel MKL
 - GPU Drivers
   - Nvidia GPU Driver
+- SHARP Daemon (sharpd)
 - NCCL
   - NCCL RDMA Sharp Plugin
-  - NCCL Tests
+  - NCCL Benchmarks
+  - Topology file for NDv4
 - NV Peer Memory (GPU Direct RDMA)
-- GRD Copy
+- GDR Copy
 - Data Center GPU Manager
 - Azure HPC Diagnostics Tool
 
-Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
+Software packages (MPI / HPC libraries) are configured as environment modules. Users can select preferred MPI or software packages as follows:
 
 `module load <package-name>`

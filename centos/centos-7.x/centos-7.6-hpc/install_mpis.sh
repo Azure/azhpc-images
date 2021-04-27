@@ -22,6 +22,11 @@ tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 
+# Enable Sharpd
+sudo /opt/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-redhat7.6-x86_64/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
+sudo systemctl enable sharpd
+sudo systemctl start sharpd
+
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/
 

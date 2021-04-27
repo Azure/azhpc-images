@@ -5,7 +5,7 @@ systemctl disable ufw
 
 # Disable cloud-init
 echo network: {config: disabled} | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
-sudo bash -c "cat > /etc/netplan/50-cloud-init.yaml" <<'EOF'
+bash -c "cat > /etc/netplan/50-cloud-init.yaml" <<'EOF'
 network:
     ethernets:
         eth0:
@@ -13,8 +13,6 @@ network:
     version: 2
 EOF
 netplan apply
-
-
 
 # Update memory limits
 cat << EOF >> /etc/security/limits.conf
@@ -29,12 +27,20 @@ EOF
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 sysctl -p
 
+# Install WALinuxAgent
+apt-get install python3-setuptools
+git clone https://github.com/Azure/WALinuxAgent.git
+cd WALinuxAgent/
+git fetch origin pull/2239/head:ib_name
+git checkout ib_name
+python3 setup.py install --register-service
+
 # Configure WALinuxAgent
-sudo sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
+sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
 echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
-sudo systemctl restart walinuxagent
+systemctl restart walinuxagent

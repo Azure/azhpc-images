@@ -2,30 +2,28 @@
 set -e
 
 # Load gcc
-GCC_VERSION=gcc-9.2.0
-export PATH=/opt/${GCC_VERSION}/bin:$PATH
-export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
-set CC=/opt/${GCC_VERSION}/bin/gcc
-set GCC=/opt/${GCC_VERSION}/bin/gcc
+GCC_VERSION=gcc-9.3.0
+set CC=/usr/bin/gcc
+set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.8.3
+# HPC-X v2.8.3 GCC 9.3.0
 HPCX_VERSION="v2.8.3"
 
 HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.3-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu20.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "fc2535d7ebec786b6d94d107ded1ba5633dec578039e3a99390ec47297d32bf9"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "a3f0752218b00c9085fb518feb834d5870ce4ec212db03312217cc5ddc94ccf2"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 
 # Enable Sharpd
-sudo /opt/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu20.04-x86_64/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
-sudo systemctl enable sharpd
-sudo systemctl start sharpd
+${HPCX_PATH}/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
+systemctl enable sharpd
+systemctl start sharpd
 
 # MVAPICH2 2.3.5
 MV2_VERSION="2.3.5"
@@ -72,7 +70,6 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION}
 #  MVAPICH2 ${MV2_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/mvapich2-${MV2_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/mvapich2-${MV2_VERSION}/lib
 prepend-path    MANPATH         /opt/mvapich2-${MV2_VERSION}/share/man
@@ -90,7 +87,6 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #  OpenMPI ${OMPI_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man

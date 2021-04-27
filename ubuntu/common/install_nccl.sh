@@ -34,3 +34,11 @@ git clone https://github.com/NVIDIA/nccl-tests.git
 cd /opt/nccl-tests
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 module unload mpi/hpcx
+
+# NCCL-Tests Preset Run Config
+cat << EOF >> /etc/nccl.conf
+NCCL_IB_PCI_RELAXED_ORDERING=1
+CUDA_DEVICE_ORDER=PCI_BUS_ID
+NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
+NCCL_SOCKET_IFNAME=eth0
+EOF

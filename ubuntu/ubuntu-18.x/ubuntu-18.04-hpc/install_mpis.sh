@@ -23,9 +23,9 @@ mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 
 # Enable Sharpd
-sudo /opt/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu18.04-x86_64/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
-sudo systemctl enable sharpd
-sudo systemctl start sharpd
+${HPCX_PATH}/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
+systemctl enable sharpd
+systemctl start sharpd
 
 # MVAPICH2 2.3.5
 MV2_VERSION="2.3.5"

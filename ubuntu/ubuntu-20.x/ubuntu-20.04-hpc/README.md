@@ -19,14 +19,36 @@ consistency, and reliability. This image consists of the following HPC tools and
   - Intel MKL
 - GPU Drivers
   - Nvidia GPU Driver
+- SHARP Daemon (sharpd)
 - NCCL
   - NCCL RDMA Sharp Plugin
-  - NCCL Tests
+  - NCCL Benchmarks
+  - Topology file for NDv4
 - NV Peer Memory (GPU Direct RDMA)
-- GRD Copy
+- GDR Copy
 - Data Center GPU Manager
 - Azure HPC Diagnostics Tool
 
-Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
+This Image is compliant with the Linux Kernel 5.4.0-1046-azure.
+
+Software packages (MPI / HPC libraries) are configured as environment modules. Users can select preferred MPI or software packages as follows:
 
 `module load <package-name>`
+
+Running Single Node NCCL Test (example):
+
+```sh
+mpirun -np 8 \
+    --allow-run-as-root \
+    --map-by ppr:8:node \
+    -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+    -mca coll_hcoll_enable 0 \
+    -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
+    -x UCX_TLS=tcp \
+    -x UCX_NET_DEVICES=eth0 \
+    -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+    -x NCCL_SOCKET_IFNAME=eth0 \
+    -x NCCL_DEBUG=WARN \
+    -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
+    /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+```

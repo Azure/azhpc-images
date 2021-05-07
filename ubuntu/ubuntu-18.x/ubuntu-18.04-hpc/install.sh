@@ -39,7 +39,7 @@ $COMMON_DIR/install_hpcdiag.sh
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # optimizations
-./hpc-tuning.sh
+$UBUNTU_COMMON_DIR/hpc-tuning.sh
 
 # Network Optimization
 $COMMON_DIR/network-tuning.sh

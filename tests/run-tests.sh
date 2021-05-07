@@ -40,6 +40,7 @@ CHECK_CUDA=0
 CHECK_AOCL=1
 CHECK_NV_PMEM=0
 CHECK_NCCL=0
+CHECK_GCC=1
 
 # Find distro
 find_distro() {
@@ -196,6 +197,7 @@ then
     CHECK_AOCL=0
     CHECK_NV_PMEM=1
     CHECK_NCCL=1
+    CHECK_GCC=0
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -239,10 +241,19 @@ ibstat | grep "LinkUp"
 check_exit_code "IB device state: LinkUp" "IB link not up"
 
 # verify GCC modulefile
-check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
+if [ $CHECK_GCC -eq 1 ]
+then
+    # Not using gcc 9.2.0 in Ubuntu 20.04 (9.3.0 used)
+    check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
+fi
 
 # verify s/w package installations
-check_exists "/opt/gcc-${GCC_VERSION}/"
+if [ $CHECK_GCC -eq 1 ]
+then
+    # Not using gcc 9.2.0 in Ubuntu 20.04 (9.3.0 used)
+    check_exists "/opt/gcc-${GCC_VERSION}/"
+fi
+
 check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
 
 # verify hpcdiag installation

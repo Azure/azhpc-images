@@ -6,14 +6,12 @@ yum install -y rpm-build rpmdevtools
 pushd /tmp
 git clone https://github.com/NVIDIA/nccl.git
 pushd nccl
-git checkout v2.8.4-1
-git cherry-pick -x 99b8a0393ffa379f3b0b81f3d5c0baa6aad7abef
-git cherry-pick -x ef5f37461fdbf11104cf0ee13da80d80b84b4cbc
+git checkout v2.9.9-1
 make -j src.build
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-2.8.4-1+cuda11.2.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-2.8.4-1+cuda11.2.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-2.8.4-1+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-2.9.9-1+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-2.9.9-1+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-2.9.9-1+cuda11.2.x86_64.rpm
 popd
 
 # Install the nccl rdma sharp plugin

@@ -6,14 +6,12 @@ apt install -y build-essential devscripts debhelper fakeroot
 cd /tmp
 git clone https://github.com/NVIDIA/nccl.git
 cd nccl/
-git checkout v2.8.4-1
-git cherry-pick -x 99b8a0393ffa379f3b0b81f3d5c0baa6aad7abef
-git cherry-pick -x ef5f37461fdbf11104cf0ee13da80d80b84b4cbc
+git checkout v2.9.9-1
 make -j src.build
 make pkg.debian.build
 cd build/pkg/deb/
-dpkg -i libnccl2_2.8.4-1+cuda11.2_amd64.deb
-dpkg -i libnccl-dev_2.8.4-1+cuda11.2_amd64.deb
+dpkg -i libnccl2_2.9.9-1+cuda11.2_amd64.deb
+dpkg -i libnccl-dev_2.9.9-1+cuda11.2_amd64.deb
 
 # Install the nccl rdma sharp plugin
 cd /tmp

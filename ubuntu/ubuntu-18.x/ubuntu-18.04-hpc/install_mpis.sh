@@ -3,21 +3,19 @@ set -e
 
 # Load gcc
 GCC_VERSION=gcc-9.2.0
-export PATH=/opt/${GCC_VERSION}/bin:$PATH
-export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
-set CC=/opt/${GCC_VERSION}/bin/gcc
-set GCC=/opt/${GCC_VERSION}/bin/gcc
+set CC=/usr/bin/gcc
+set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.8.3
-HPCX_VERSION="v2.8.3"
+# HPC-X v2.9.0
+HPCX_VERSION="v2.9.0"
 
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.3-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-ubuntu18.04-x86_64.tbz
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.9.0-gcc-MLNX_OFED_LINUX-5.4-1.0.3.0-ubuntu18.04-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "61bfbee2ded031e605cf926e6ab0c0c8fe8b29524a3e23274412637e12e1c1c5"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "5b395006a05c888794b0b6204198d3bab597a8333c982ea5409f4f18e65bcbef"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
@@ -36,10 +34,10 @@ cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 
-# OpenMPI 4.1.0
-OMPI_VERSION="4.1.0"
+# OpenMPI 4.1.1
+OMPI_VERSION="4.1.1"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "228467c3dd15339d9b26cf26a291af3ee7c770699c5e8a1b3ad786f9ae78140a"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "d80b9219e80ea1f8bcfe5ad921bd9014285c4948c5965f4156a3831e60776444"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
@@ -72,7 +70,6 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION}
 #  MVAPICH2 ${MV2_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/mvapich2-${MV2_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/mvapich2-${MV2_VERSION}/lib
 prepend-path    MANPATH         /opt/mvapich2-${MV2_VERSION}/share/man
@@ -90,7 +87,6 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #  OpenMPI ${OMPI_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man

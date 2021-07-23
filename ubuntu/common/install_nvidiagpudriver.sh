@@ -25,9 +25,11 @@ EOF
 sudo systemctl enable nv_peer_mem.service
 
 # Install gdrcopy
-sudo apt install -y check libsubunit0 libsubunit-dev build-essential devscripts debhelper check libsubunit-dev fakeroot
+sudo apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 git clone https://github.com/NVIDIA/gdrcopy.git
 cd gdrcopy/packages/
 CUDA=/usr/local/cuda ./build-deb-packages.sh 
-sudo dpkg -i gdrdrv-dkms_2.2-1_amd64.deb 
-sudo dpkg -i gdrcopy_2.2-1_amd64.deb
+sudo dpkg -i gdrdrv-dkms_*_amd64* 
+sudo dpkg -i libgdrapi_*_amd64*
+sudo dpkg -i gdrcopy-tests_*_amd64*
+sudo dpkg -i gdrcopy_*_amd64*

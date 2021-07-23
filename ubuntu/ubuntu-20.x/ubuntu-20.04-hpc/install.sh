@@ -45,4 +45,4 @@ $COMMON_DIR/network-tuning.sh
 $COMMON_DIR/copy_test_file.sh
 
 # diable auto kernel updates
-./disable_auto_upgrade.sh
+$UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

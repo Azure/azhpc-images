@@ -21,14 +21,14 @@ CENTOS_MVAPICH2_PATH="/opt/mvapich2-2.3.6"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 CENTOS_OPENMPI_PATH="/opt/openmpi-4.1.0"
 
-UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.2-2.2.3.0"
+UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.8.3-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-v2.8.3-gcc-${UBUNTU_MOFED_VERSION}-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-v2.9.0-gcc-${UBUNTU_MOFED_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-v2.9.0-gcc-${UBUNTU_MOFED_VERSION}-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/2021.2.0"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-2.3.6"
 UBUNTU_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
-UBUNTU_OPENMPI_PATH="/opt/openmpi-4.1.0"
+UBUNTU_OPENMPI_PATH="/opt/openmpi-4.1.1"
 
 CHECK_HPCX=0
 CHECK_IMPI_2021=0
@@ -179,6 +179,7 @@ then
     OPENMPI_PATH=${UBUNTU_OPENMPI_PATH}
     CHECK_AOCL=0
     CHECK_NV_PMEM=1
+    CHECK_GCC=0
     CHECK_NCCL=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then

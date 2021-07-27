@@ -24,10 +24,10 @@ cd mvapich2-${MV2_VERSION}
 cd ..
 
 
-# OpenMPI 4.1.0
-OMPI_VERSION="4.1.0"
+# OpenMPI 4.1.1
+OMPI_VERSION="4.1.1"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "228467c3dd15339d9b26cf26a291af3ee7c770699c5e8a1b3ad786f9ae78140a"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "d80b9219e80ea1f8bcfe5ad921bd9014285c4948c5965f4156a3831e60776444"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install

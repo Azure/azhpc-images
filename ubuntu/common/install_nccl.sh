@@ -13,7 +13,7 @@ cd build/pkg/deb/
 dpkg -i libnccl2_2.9.9-1+cuda11.2_amd64.deb
 sudo apt-mark hold libnccl2
 dpkg -i libnccl-dev_2.9.9-1+cuda11.2_amd64.deb
-sudo apt mark hold libnccl-dev
+sudo apt-mark hold libnccl-dev
 
 # Install the nccl rdma sharp plugin
 cd /tmp

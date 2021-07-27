@@ -11,13 +11,13 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.8.3
-HPCX_VERSION="v2.8.3"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.3-gcc-MLNX_OFED_LINUX-5.2-2.2.3.0-redhat7.9-x86_64.tbz
+# HPC-X v2.9.0
+HPCX_VERSION="v2.9.0"
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.9.0-gcc9.2.0-MLNX_OFED_LINUX-5.4-1.0.3.0-redhat7.9-x86_64.tbz
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "4b08379f59c640cf830c69a283d893727e5aa32b53f0247ecc2037af008036e7"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "ed1288376f3296c7dd95edb64984d94f09d1c7e84f91af773f376b24f1b79c9b"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

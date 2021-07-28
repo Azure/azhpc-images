@@ -29,4 +29,5 @@ yum install -y numactl \
     fuse-libs \
     libpciaccess \
     cmake \
-    libnl3-devel
+    libnl3-devel \
+    libarchive

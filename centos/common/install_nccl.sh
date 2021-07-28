@@ -10,8 +10,11 @@ git checkout v2.9.9-1
 make -j src.build
 make pkg.redhat.build
 rpm -i ./build/pkg/rpm/x86_64/libnccl-2.9.9-1+cuda11.2.x86_64.rpm
+echo "exclude=libnccl" | sudo tee -a /etc/yum.conf
 rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-2.9.9-1+cuda11.2.x86_64.rpm
+echo "exclude=libnccl-devel" | sudo tee -a /etc/yum.conf
 rpm -i ./build/pkg/rpm/x86_64/libnccl-static-2.9.9-1+cuda11.2.x86_64.rpm
+echo "exclude=libnccl-static" | sudo tee -a /etc/yum.conf
 popd
 
 # Install the nccl rdma sharp plugin

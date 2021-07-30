@@ -27,6 +27,15 @@ EOF
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 sysctl -p
 
+# Install WALinuxAgent
+apt-get install python3-setuptools
+WALINUXAGENT_DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v2.3.1.1.tar.gz
+TARBALL=$(basename ${WALINUXAGENT_DOWNLOAD_URL})
+wget $WALINUXAGENT_DOWNLOAD_URL
+tar zxvf $TARBALL
+cd WALinuxAgent-2.3.1.1
+python3 setup.py install --register-service
+
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
 echo "Extensions.GoalStatePeriod=120" | sudo tee -a /etc/waagent.conf

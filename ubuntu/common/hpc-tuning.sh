@@ -29,11 +29,10 @@ sysctl -p
 
 # Install WALinuxAgent
 apt-get install python3-setuptools
-WALINUXAGENT_DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v2.3.1.1.tar.gz
-TARBALL=$(basename ${WALINUXAGENT_DOWNLOAD_URL})
-wget $WALINUXAGENT_DOWNLOAD_URL
-tar zxvf $TARBALL
-cd WALinuxAgent-2.3.1.1
+git clone https://github.com/Azure/WALinuxAgent.git
+cd WALinuxAgent/
+git fetch origin pull/2308/head:version-2.4.0.1
+git checkout version-2.4.0.1
 python3 setup.py install --register-service
 
 # Configure WALinuxAgent

@@ -26,8 +26,11 @@ yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/s/subunit
 yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/s/subunit-devel-0.0.21-2.el7.x86_64.rpm
 yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-2.8.4-1.el7.noarch.rpm
 yum install -y dkms rpm-build make check check-devel subunit subunit-devel 
-git clone https://github.com/NVIDIA/gdrcopy.git
-pushd gdrcopy/packages/
+GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.3.tar.gz
+TARBALL=$(basename ${GDRCOPY_DOWNLOAD_URL})
+wget $GDRCOPY_DOWNLOAD_URL
+tar zxvf $TARBALL
+pushd gdrcopy-2.3/packages/
 CUDA=/usr/local/cuda ./build-rpm-packages.sh
 rpm -Uvh gdrcopy-kmod-2.3-1dkms.noarch.el7.rpm
 echo "exclude=gdrcopy-kmod.noarch" | sudo tee -a /etc/yum.conf

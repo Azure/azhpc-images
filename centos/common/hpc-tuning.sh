@@ -17,7 +17,10 @@ EOF
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 sysctl -p
 
-# Install WALinuxAgent
+# Uninstall WALinuxAgent from base image
+rpm -e --nodeps WALinuxAgent
+
+# Install Custom WALinuxAgent
 WALINUXAGENT_DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v2.3.1.1.tar.gz
 TARBALL=$(basename ${WALINUXAGENT_DOWNLOAD_URL})
 wget $WALINUXAGENT_DOWNLOAD_URL

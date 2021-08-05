@@ -29,11 +29,11 @@ rm -rf -- */
 # install Intel libraries
 ./install_intel_libs.sh
 
-# cleanup downloaded tarballs
-rm -rf *.tar.gz *_offline.sh *.rpm *.run
-
 # Install NCCL
 ./install_nccl.sh
+
+# cleanup downloaded tarballs
+rm -rf *.tar.gz *_offline.sh *.rpm *.run
 
 # Install DCGM
 ./install_dcgm.sh

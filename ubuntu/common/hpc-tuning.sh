@@ -30,10 +30,11 @@ sysctl -p
 # Install WALinuxAgent
 apt-get install python3-setuptools
 git clone https://github.com/Azure/WALinuxAgent.git
-cd WALinuxAgent/
+pushd WALinuxAgent/
 git fetch origin pull/2308/head:version-2.4.0.1
 git checkout version-2.4.0.1
 python3 setup.py install --register-service
+popd
 
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
@@ -44,3 +45,4 @@ echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
 systemctl restart walinuxagent
+$COMMON_DIR/write_component_version.sh "WAAGENT" $(python3 /usr/sbin/waagent --version | grep -o "[0-9].[0-9].[0-9].[0-9]" | head -n 1)

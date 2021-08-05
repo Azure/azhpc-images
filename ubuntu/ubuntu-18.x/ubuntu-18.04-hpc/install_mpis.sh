@@ -9,10 +9,11 @@ set GCC=/usr/bin/gcc
 INSTALL_PREFIX=/opt
 
 # HPC-X v2.9.0
+MLNX_OFED_VERSION="5.4-1.0.3.0"
 HPCX_VERSION="v2.9.0"
-
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.9.0-gcc-MLNX_OFED_LINUX-5.4-1.0.3.0-ubuntu18.04-x86_64.tbz
-TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
+$COMMON_DIR/write_component_version.sh "HPCX" ${HPCX_VERSION}
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-ubuntu18.04-x86_64.tbz"
+HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
 $COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "5b395006a05c888794b0b6204198d3bab597a8333c982ea5409f4f18e65bcbef"
@@ -27,6 +28,7 @@ systemctl start sharpd
 
 # MVAPICH2 2.3.6
 MV2_VERSION="2.3.6"
+$COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
 $COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "b3a62f2a05407191b856485f99da05f5e769d6381cd63e2fcb83ee98fc46a249"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
@@ -36,6 +38,7 @@ cd ..
 
 # OpenMPI 4.1.1
 OMPI_VERSION="4.1.1"
+$COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
 $COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "d80b9219e80ea1f8bcfe5ad921bd9014285c4948c5965f4156a3831e60776444"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
@@ -45,6 +48,7 @@ cd ..
 
 # Intel MPI 2021 (Update 2)
 IMPI_2021_VERSION="2021.2.0"
+$COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17729/l_mpi_oneapi_p_2021.2.0.215_offline.sh
 $COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "d0d4cdd11edaff2e7285e38f537defccff38e37a3067c02f4af43a3629ad4aa3"
 bash l_mpi_oneapi_p_2021.2.0.215_offline.sh -s -a -s --eula accept

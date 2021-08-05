@@ -5,10 +5,10 @@ INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 
 AOCL_VERSION="2.2-4"
-AOCL_DOWNLOAD_URL="https://azhpcstor.blob.core.windows.net/azhpc-images-store/aocl-linux-aocc-2.2-4_centos7.tar.gz"
+$COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
+TARBALL="aocl-linux-aocc-${AOCL_VERSION}_centos7.tar.gz"
+AOCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 $COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL "4bdc5caec0233066ded3e2bfedb1e03bdeec82725361764d8860075f64ff4031"
-
-TARBALL=$(basename ${AOCL_DOWNLOAD_URL})
 tar -xvf ${TARBALL}
 cd aocl-linux-aocc-${AOCL_VERSION}
 

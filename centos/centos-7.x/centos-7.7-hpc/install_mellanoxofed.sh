@@ -1,8 +1,10 @@
 #!/bin/bash
 set -ex
 
-MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/MLNX_OFED_LINUX-5.4-1.0.3.0-rhel7.7-x86_64.tgz
-TARBALL=$(basename ${MLNX_OFED_DOWNLOAD_URL})
+VERSION="5.4-1.0.3.0"
+$COMMON_DIR/write_component_version.sh "MOFED" ${VERSION}
+TARBALL="MLNX_OFED_LINUX-${VERSION}-rhel7.7-x86_64.tgz"
+MLNX_OFED_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/$TARBALL
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 
 $COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "e12e7d1606c8ad875c61be261d45e7cd11b0e15258ca29f7a6830077c57c9792"

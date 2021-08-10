@@ -13,15 +13,15 @@ source ./set_properties.sh
 # install mpi libraries
 ./install_mpis.sh
 
-# cleanup downloaded tarballs
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz
-rm -Rf -- */
-
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
+
+# cleanup downloaded tarballs
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -Rf -- */
 
 # Install DCGM
 ./install_dcgm.sh

@@ -26,22 +26,24 @@ cd mpc-1.0.3
 cd ..
 
 # install gcc 9.2
-GCC_DOWNLOAD_URL=https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.gz
+GCC_VERSION="9.2.0"
+GCC_DOWNLOAD_URL=https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
+$COMMON_DIR/write_component_version.sh "GCC" ${GCC_VERSION}
 $COMMON_DIR/download_and_verify.sh $GCC_DOWNLOAD_URL "a931a750d6feadacbeecb321d73925cd5ebb6dfa7eff0802984af3aef63759f4"
-tar -xvf gcc-9.2.0.tar.gz
-cd gcc-9.2.0
-./configure --disable-multilib --prefix=/opt/gcc-9.2.0 && make -j$(nproc) && make install
+tar -xvf gcc-${GCC_VERSION}.tar.gz
+cd gcc-${GCC_VERSION}
+./configure --disable-multilib --prefix=/opt/gcc-${GCC_VERSION} && make -j$(nproc) && make install
 cd ..
 
 # create modulefile
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/gcc-9.2.0
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/gcc-${GCC_VERSION}
 #%Module 1.0
 #
-#  GCC 9.2.0
+#  GCC ${GCC_VERSION}
 #
-prepend-path    PATH            /opt/gcc-9.2.0/bin
-prepend-path    LD_LIBRARY_PATH /opt/gcc-9.2.0/lib64
-setenv          CC              /opt/gcc-9.2.0/bin/gcc
-setenv          GCC             /opt/gcc-9.2.0/bin/gcc
+prepend-path    PATH            /opt/gcc-${GCC_VERSION}/bin
+prepend-path    LD_LIBRARY_PATH /opt/gcc-${GCC_VERSION}/lib64
+setenv          CC              /opt/gcc-${GCC_VERSION}/bin/gcc
+setenv          GCC             /opt/gcc-${GCC_VERSION}/bin/gcc
 EOF
 

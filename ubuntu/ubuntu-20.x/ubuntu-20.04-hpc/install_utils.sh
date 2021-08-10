@@ -30,4 +30,5 @@ apt-get -y install numactl \
                    gfortran \
                    cmake \
                    libnl-3-dev \
-                   libnl-route-3-dev
+                   libnl-route-3-dev \
+                   net-tools

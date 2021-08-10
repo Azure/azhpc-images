@@ -25,8 +25,9 @@ WALINUXAGENT_DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tag
 TARBALL=$(basename ${WALINUXAGENT_DOWNLOAD_URL})
 wget $WALINUXAGENT_DOWNLOAD_URL
 tar zxvf $TARBALL
-cd WALinuxAgent-2.3.1.1
+pushd WALinuxAgent-2.3.1.1
 python setup.py install --register-service
+popd
 
 # Configure WALinuxAgent
 sudo sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
@@ -37,3 +38,4 @@ echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
 sudo systemctl restart waagent
+$COMMON_DIR/write_component_version.sh "WAAGENT" $(python /usr/sbin/waagent --version | grep -o "[0-9].[0-9].[0-9].[0-9]" | head -n 1)

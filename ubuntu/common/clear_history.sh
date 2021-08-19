@@ -3,7 +3,7 @@ set -ex
 
 # Remove logs, cache, temporary installation dir and other host info
 rm -rf /var/log/*
-rm -f /etc/resolv.conf /etc/ssh/ssh_host_*
+rm -f /etc/ssh/ssh_host_*
 rm -rf /tmp/nccl* /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf
 rm -f /var/lib/systemd/random-seed
 rm -rf /var/cache/*

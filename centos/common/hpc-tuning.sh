@@ -17,17 +17,11 @@ EOF
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 sysctl -p
 
-# Uninstall WALinuxAgent from base image
-rpm -e --nodeps WALinuxAgent
+# Remove auoms if exists - Prevent CPU utilization by auoms
+if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
 
-# Install Custom WALinuxAgent
-WALINUXAGENT_DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v2.3.1.1.tar.gz
-TARBALL=$(basename ${WALINUXAGENT_DOWNLOAD_URL})
-wget $WALINUXAGENT_DOWNLOAD_URL
-tar zxvf $TARBALL
-pushd WALinuxAgent-2.3.1.1
-python setup.py install --register-service
-popd
+# Update WALinuxAgent - for IPoIB
+yum update -y WALinuxAgent
 
 # Configure WALinuxAgent
 sudo sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf

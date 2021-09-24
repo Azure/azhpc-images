@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# Sync yum and rpmdb after installing rpm's outside yum
+yum history sync
+
 # Clear History
 rm -rf /var/log/*
 rm -f /etc/ssh/ssh_host_*

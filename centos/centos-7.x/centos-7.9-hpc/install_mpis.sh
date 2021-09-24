@@ -32,18 +32,9 @@ systemctl start sharpd
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/
 
-# HPC-X
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION}
-#%Module 1.0
-#
-#  HPCx ${HPCX_VERSION}
-#
-conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx
-EOF
-
 # Create symlinks for modulefiles
-ln -s /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION} /usr/share/Modules/modulefiles/mpi/hpcx
+ln -s ${HPCX_PATH}/modulefiles/hpcx /usr/share/Modules/modulefiles/mpi/hpcx
+ln -s ${HPCX_PATH}/modulefiles/hpcx /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION}
 
 # Install platform independent MPIs
 ../common/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}

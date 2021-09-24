@@ -7,7 +7,6 @@ yum install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
-    environment-modules \
     python-devel \
     python-setuptools \
     gtk2 \
@@ -28,4 +27,6 @@ yum install -y numactl \
     fuse-libs \
     libpciaccess \
     cmake \
-    libnl3-devel
+    libnl3-devel \
+    epel-release
+yum install -y Lmod

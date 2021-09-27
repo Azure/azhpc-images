@@ -47,11 +47,12 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 
 # Intel MPI 2021 (Update 2)
-IMPI_2021_VERSION="2021.2.0"
+IMPI_2021_VERSION="2021.4.0"
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
-IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17729/l_mpi_oneapi_p_2021.2.0.215_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "d0d4cdd11edaff2e7285e38f537defccff38e37a3067c02f4af43a3629ad4aa3"
-bash l_mpi_oneapi_p_2021.2.0.215_offline.sh -s -a -s --eula accept
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18186/l_mpi_oneapi_p_2021.4.0.441_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "cc4b7072c61d0bd02b1c431b22d2ea3b84b967b59d2e587e77a9e7b2c24f2a29"
+bash l_mpi_oneapi_p_2021.4.0.441_offline.sh -s -a -s --eula accept
+mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 
 # Module Files
 MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi
@@ -108,7 +109,7 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION}
 #  Intel MPI ${IMPI_2021_VERSION}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi
+module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/include
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/lib

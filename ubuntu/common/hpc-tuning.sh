@@ -29,20 +29,22 @@ sysctl -p
 
 # Install WALinuxAgent
 apt-get install python3-setuptools
-git clone https://github.com/Azure/WALinuxAgent.git
-pushd WALinuxAgent/
-git fetch origin pull/2308/head:version-2.4.0.1
-git checkout version-2.4.0.1
+WAAGENT_VERSION=v2.5.0.1
+$COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
+DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/pre-${WAAGENT_VERSION}.tar.gz
+wget ${DOWNLOAD_URL}
+tar -xvf $(basename ${DOWNLOAD_URL})
+pushd WALinuxAgent-pre-${WAAGENT_VERSION}/
 python3 setup.py install --register-service
 popd
 
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
-echo "Extensions.GoalStatePeriod=120" | sudo tee -a /etc/waagent.conf
+echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
+echo "Extensions.InitialGoalStatePeriod=6" | sudo tee -a /etc/waagent.conf
 echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
 systemctl restart walinuxagent
-$COMMON_DIR/write_component_version.sh "WAAGENT" $(python3 /usr/sbin/waagent --version | grep -o "[0-9].[0-9].[0-9].[0-9]" | head -n 1)

@@ -5,15 +5,12 @@ $COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install NV Peer Memory (GPU Direct RDMA)
 sudo apt install -y dkms libnuma-dev
-NV_PEER_MEMORY_VERSION="1.1-0"
+NV_PEER_MEMORY_VERSION="1.2-0"
 NV_PEER_MEMORY_VERSION_PREFIX=$(echo ${NV_PEER_MEMORY_VERSION} | awk -F- '{print $1}')
 $COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
-TARBALL="${NV_PEER_MEMORY_VERSION}.tar.gz"
-NV_PEER_MEMORY_DOWNLOAD_URL=https://github.com/Mellanox/nv_peer_memory/archive/refs/tags/${TARBALL}
-wget ${NV_PEER_MEMORY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
+git clone https://github.com/gpudirect/nv_peer_memory.git --branch peermem_ex --single-branch
 
-cd nv_peer_memory-${NV_PEER_MEMORY_VERSION}
+cd nv_peer_memory
 ./build_module.sh 
 cd /tmp
 tar xzf /tmp/nvidia-peer-memory_${NV_PEER_MEMORY_VERSION_PREFIX}.orig.tar.gz

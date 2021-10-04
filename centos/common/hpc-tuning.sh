@@ -25,7 +25,8 @@ yum update -y WALinuxAgent
 
 # Configure WALinuxAgent
 sudo sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
-echo "Extensions.GoalStatePeriod=120" | sudo tee -a /etc/waagent.conf
+echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
+echo "Extensions.InitialGoalStatePeriod=6" | sudo tee -a /etc/waagent.conf
 echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf

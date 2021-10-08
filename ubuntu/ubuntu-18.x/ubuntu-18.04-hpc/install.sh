@@ -19,6 +19,9 @@ source ./set_properties.sh
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
 
+# Install NVIDIA docker container
+$UBUNTU_COMMON_DIR/install_docker.sh
+
 # cleanup downloaded tarballs
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */

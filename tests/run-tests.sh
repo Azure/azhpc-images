@@ -1,10 +1,52 @@
 
 #!/bin/bash
+# transform long form MOFED-LTS flag to short
+for arg in "$@"; do
+    shift
+    case "$arg" in
+        "--mofed-lts") set -- "$@" "-l" ;;
+        *) set -- "$@" "$arg"
+    esac
+done
+
+# display the usage of lts flag for user
+usage() { echo "Usage: $0 [--mofed-lts <true|false>]"  1>&2; exit 1; }
+
+while getopts ":l:" o; do
+    case "${o}" in
+        l)
+            l=${OPTARG}
+            ((l == true || l == false)) || usage
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${l}" ]; then
+    usage
+fi
+
+MOFED_LTS=${l} # true/ false
+
 source /etc/profile
 
 GCC_VERSION="9.2.0"
 MKL_VERSION="2021.1.1"
-HPCX_VERSION="v2.9.0"
+
+if [ "${MOFED_LTS}" = true ]
+then
+    HPCX_VERSION="v2.7.0"
+    UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-4.9-3.1.5.0"
+    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
+else
+    HPCX_VERSION="v2.9.0"
+    UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.4-3.0.0.0"
+    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
+fi
+
 MVAPICH2_VERSION="2.3.6"
 OMPI_VERSION="4.1.1"
 IMPI_2021_VERSION="2021.4.0"
@@ -25,10 +67,9 @@ CENTOS_MVAPICH2_PATH="/opt/mvapich2-${MVAPICH2_VERSION}"
 CENTOS_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 CENTOS_OPENMPI_PATH="/opt/openmpi-${OMPI_VERSION}"
 
-UBUNTU_MOFED_VERSION="MLNX_OFED_LINUX-5.4-3.0.0.0"
 UBUNTU_MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.4-1.0.3.0-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5.4-1.0.3.0-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu20.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 UBUNTU_IMPI2021_PATH="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION}"
 UBUNTU_MVAPICH2_PATH="/opt/mvapich2-${MVAPICH2_VERSION}"
 UBUNTU_MVAPICH2X_PATH="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
@@ -182,9 +223,15 @@ then
     MVAPICH2X_PATH=${UBUNTU_MVAPICH2X_PATH}
     OPENMPI_PATH=${UBUNTU_OPENMPI_PATH}
     CHECK_AOCL=0
-    CHECK_NV_PMEM=1
     CHECK_GCC=0
-    CHECK_NCCL=1
+    if [ "${MOFED_LTS}" = true ]
+    then 
+        CHECK_NV_PMEM=0
+        CHECK_NCCL=0
+    else 
+        CHECK_NV_PMEM=1
+        CHECK_NCCL=1
+    fi
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}

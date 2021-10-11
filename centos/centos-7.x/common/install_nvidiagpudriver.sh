@@ -4,14 +4,12 @@ set -ex
 $COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install NV Peer Memory (GPU Direct RDMA)
-NV_PEER_MEMORY_VERSION="1.1-0"
+NV_PEER_MEMORY_VERSION="1.2-0"
 $COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
-TARBALL="${NV_PEER_MEMORY_VERSION}.tar.gz"
-NV_PEER_MEMORY_DOWNLOAD_URL="https://github.com/Mellanox/nv_peer_memory/archive/refs/tags/${TARBALL}"
-wget ${NV_PEER_MEMORY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
+git clone https://github.com/gpudirect/nv_peer_memory.git --branch peermem_ex --single-branch
 
-pushd nv_peer_memory-${NV_PEER_MEMORY_VERSION}
+pushd nv_peer_memory
+yum install -y rpm-build
 ./build_module.sh 
 rpmbuild --rebuild /tmp/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.src.rpm
 rpm -ivh ~/rpmbuild/RPMS/x86_64/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.x86_64.rpm

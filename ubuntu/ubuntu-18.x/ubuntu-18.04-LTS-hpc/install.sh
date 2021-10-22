@@ -16,6 +16,9 @@ source ./set_properties.sh
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# Install NCCL
+./install_nccl.sh
+
 # cleanup downloaded tarballs
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */

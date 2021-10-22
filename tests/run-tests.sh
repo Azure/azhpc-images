@@ -54,11 +54,12 @@ MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 CENTOS_MOFED_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
+CENTOS_MOFED_VERSION_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 CENTOS_MOFED_VERSION_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${CENTOS_MOFED_VERSION}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${CENTOS_MOFED_VERSION}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${CENTOS_MOFED_VERSION}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_79="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${CENTOS_MOFED_VERSION}-redhat7.9-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+HPCX_OMB_PATH_CENTOS_79="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${HPCX_MOFED_INTEGRATION_VERSION}-redhat7.9-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-${HPCX_VERSION}-gcc${GCC_VERSION}-${CENTOS_MOFED_VERSION}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${CENTOS_MOFED_VERSION_83}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 CENTOS_MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
@@ -172,7 +173,7 @@ then
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=0
     MODULE_FILES_ROOT=${CENTOS_MODULE_FILES_ROOT}
-    MOFED_VERSION=${CENTOS_MOFED_VERSION}
+    MOFED_VERSION=${CENTOS_MOFED_VERSION_79}
     IMPI2021_PATH=${CENTOS_IMPI2021_PATH}
     MVAPICH2_PATH=${CENTOS_MVAPICH2_PATH}
     MVAPICH2X_PATH=${CENTOS_MVAPICH2X_PATH}
@@ -224,13 +225,12 @@ then
     OPENMPI_PATH=${UBUNTU_OPENMPI_PATH}
     CHECK_AOCL=0
     CHECK_GCC=0
+    CHECK_NCCL=1
     if [ "${MOFED_LTS}" = true ]
     then 
         CHECK_NV_PMEM=0
-        CHECK_NCCL=0
     else 
         CHECK_NV_PMEM=1
-        CHECK_NCCL=1
     fi
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
@@ -406,20 +406,34 @@ if [ $CHECK_NCCL -eq 1 ]
 then
     module load mpi/hpcx
 
-    mpirun -np 8 \
-    --allow-run-as-root \
-    --map-by ppr:8:node \
-    -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
-    -mca coll_hcoll_enable 0 \
-    -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
-    -x UCX_IB_PCI_RELAXED_ORDERING=on \
-    -x UCX_TLS=tcp \
-    -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
-    -x NCCL_SOCKET_IFNAME=eth0 \
-    -x NCCL_DEBUG=WARN \
-    -x NCCL_NET_GDR_LEVEL=5 \
-    -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
-    /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+    if [ "${MOFED_LTS}" = true ]
+    then
+        mpirun -np 4 \
+        -x LD_LIBRARY_PATH \
+        --allow-run-as-root \
+        --map-by ppr:4:node \
+        -mca coll_hcoll_enable 0 \
+        -x UCX_TLS=tcp \
+        -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+        -x NCCL_SOCKET_IFNAME=eth0 \
+        -x NCCL_DEBUG=WARN \
+        /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+    else
+        mpirun -np 8 \
+        --allow-run-as-root \
+        --map-by ppr:8:node \
+        -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+        -mca coll_hcoll_enable 0 \
+        -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
+        -x UCX_IB_PCI_RELAXED_ORDERING=on \
+        -x UCX_TLS=tcp \
+        -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+        -x NCCL_SOCKET_IFNAME=eth0 \
+        -x NCCL_DEBUG=WARN \
+        -x NCCL_NET_GDR_LEVEL=5 \
+        -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
+        /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+    fi
 
     check_exit_code "Single Node NCCL Test" "Failed"
 

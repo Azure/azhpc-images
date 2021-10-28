@@ -28,6 +28,8 @@ consistency, and reliability. This image consists of the following HPC tools and
 - GDR Copy
 - Data Center GPU Manager
 - Azure HPC Diagnostics Tool
+- Moby
+- NVIDIA-Docker
 
 This Image is compliant with the Linux Kernel 5.4.0-1046-azure.
 

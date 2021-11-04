@@ -33,4 +33,4 @@ echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
 sudo systemctl restart waagent
-$COMMON_DIR/write_component_version.sh "WAAGENT" $(python /usr/sbin/waagent --version | grep -o "[0-9].[0-9].[0-9].[0-9]" | head -n 1)
+$COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')

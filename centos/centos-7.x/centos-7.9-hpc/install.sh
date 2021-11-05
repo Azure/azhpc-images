@@ -32,6 +32,9 @@ rm -rf -- */
 # Install NCCL
 ./install_nccl.sh
 
+# Install NVIDIA docker container
+$COMMON_DIR/../centos/centos-7.x/common/install_docker.sh
+
 # cleanup downloaded tarballs
 rm -rf *.tar.gz *_offline.sh *.rpm *.run
 

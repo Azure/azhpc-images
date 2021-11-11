@@ -3,7 +3,7 @@ set -ex
 
 # Install NCCL
 yum install -y rpm-build rpmdevtools
-NCCL_VERSION="2.9.9-1"
+NCCL_VERSION="2.11.4-1"
 $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
@@ -14,11 +14,11 @@ tar -xvf ${TARBALL}
 pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda11.5.x86_64.rpm
 echo "exclude=libnccl" | sudo tee -a /etc/yum.conf
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda11.5.x86_64.rpm
 echo "exclude=libnccl-devel" | sudo tee -a /etc/yum.conf
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda11.2.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda11.5.x86_64.rpm
 echo "exclude=libnccl-static" | sudo tee -a /etc/yum.conf
 popd
 

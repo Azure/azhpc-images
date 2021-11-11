@@ -6,7 +6,7 @@ $COMMON_DIR/install_nvidiagpudriver.sh
 # Install NV Peer Memory (GPU Direct RDMA)
 NV_PEER_MEMORY_VERSION="1.2-0"
 $COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
-git clone https://github.com/gpudirect/nv_peer_memory.git --branch peermem_ex --single-branch
+git clone https://github.com/gpudirect/nv_peer_memory.git
 
 pushd nv_peer_memory
 yum install -y rpm-build
@@ -48,11 +48,11 @@ echo "exclude=gdrcopy-devel.noarch" | sudo tee -a /etc/yum.conf
 popd
 
 # Install Fabric Manager
-NVIDIA_FABRIC_MANAGER_VERSION="460-460.32.03-1"
+NVIDIA_FABRIC_MANAGER_VERSION="495.29.05-1"
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
-NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "6801295b4d7d08682d7cc56b403139214f366dd65646824fed63be72294eb464"
-yum install -y ./nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-echo "exclude=nvidia-fabricmanager-460" | sudo tee -a /etc/yum.conf
+NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
+$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "d157e9e45cca7aab5eb73483444be32d747dc419fd23a3517c9a8e95db952272"
+yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
+echo "exclude=nvidia-fabric-manager" | sudo tee -a /etc/yum.conf
 systemctl enable nvidia-fabricmanager
 systemctl start nvidia-fabricmanager

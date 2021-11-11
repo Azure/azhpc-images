@@ -8,7 +8,7 @@ sudo apt install -y dkms libnuma-dev
 NV_PEER_MEMORY_VERSION="1.2-0"
 NV_PEER_MEMORY_VERSION_PREFIX=$(echo ${NV_PEER_MEMORY_VERSION} | awk -F- '{print $1}')
 $COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
-git clone https://github.com/gpudirect/nv_peer_memory.git --branch peermem_ex --single-branch
+git clone https://github.com/gpudirect/nv_peer_memory.git
 
 cd nv_peer_memory
 ./build_module.sh 

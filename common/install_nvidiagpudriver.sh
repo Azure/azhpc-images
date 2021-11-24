@@ -15,5 +15,5 @@ echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | sudo tee 
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "f7254b97d400c692504796496f4e7d8f64e93b1e31c427860a4f219a186f125e"
-bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent
+bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}

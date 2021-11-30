@@ -31,7 +31,8 @@ apt-get -y install numactl \
                    cmake \
                    libnl-3-dev \
                    libnl-route-3-dev \
-                   libsecret-1-0
+                   libsecret-1-0 \
+                   dkms
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.

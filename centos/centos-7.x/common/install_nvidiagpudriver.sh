@@ -25,11 +25,6 @@ EOF
 sudo systemctl enable nv_peer_mem.service
 
 # Install GDRCopy
-yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/s/subunit-0.0.21-2.el7.x86_64.rpm
-yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/s/subunit-devel-0.0.21-2.el7.x86_64.rpm
-yum install -y https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-2.8.6-1.el7.noarch.rpm
-yum install -y dkms rpm-build make check check-devel subunit subunit-devel 
-
 GDRCOPY_VERSION="2.3"
 $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"
@@ -48,10 +43,10 @@ echo "exclude=gdrcopy-devel.noarch" | sudo tee -a /etc/yum.conf
 popd
 
 # Install Fabric Manager
-NVIDIA_FABRIC_MANAGER_VERSION="495.29.05-1"
+NVIDIA_FABRIC_MANAGER_VERSION="470.82.01-1"
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "d157e9e45cca7aab5eb73483444be32d747dc419fd23a3517c9a8e95db952272"
+$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "6d88af6382fa3013e158b60128ef1fb117f4a4cc0fb6225155a2f7ff1c4a147f"
 yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
 echo "exclude=nvidia-fabric-manager" | sudo tee -a /etc/yum.conf
 systemctl enable nvidia-fabricmanager

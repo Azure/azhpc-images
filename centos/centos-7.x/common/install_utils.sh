@@ -29,8 +29,15 @@ yum install -y numactl \
     libpciaccess \
     cmake \
     libnl3-devel \
-    libsecret
-
+    libsecret \
+    dkms \
+    rpm-build \
+    make \
+    check \
+    check-devel \
+    subunit \
+    subunit-devel
+    
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
 wget https://azcopyvnextrelease.blob.core.windows.net/release20210920/azcopy_linux_se_amd64_10.12.2.tar.gz

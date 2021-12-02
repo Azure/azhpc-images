@@ -22,7 +22,7 @@ yum install -y kernel-modules-extra
 KERNEL=( $(rpm -q kernel-devel | sed 's/kernel-devel\-//g') )
 KERNEL=${KERNEL[-1]}
 
-./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo
+./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo --skip-unsupported-devices-check --without-fw-update
 
 # Restarting openibd
 /etc/init.d/openibd restart

@@ -10,7 +10,7 @@ MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 $COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "29bb4655ed1f1f23d7195539b8d89c4466e824ec7c3e796246e8df149b09bfa5"
 tar zxvf ${TARBALL}
 
-./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support
+./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support --without-fw-update
 
 # Restarting openibd
 /etc/init.d/openibd restart

@@ -16,7 +16,7 @@ KERNEL=${KERNEL[-1]}
 #RELEASE=( $(cat /etc/centos-release | awk '{print $4}') )
 #yum -y install http://olcentgbl.trafficmanager.net/centos/${RELEASE}/updates/x86_64/kernel-devel-${KERNEL}.rpm
 yum install -y kernel-devel-${KERNEL}
-./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo
+./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo --skip-unsupported-devices-check --without-fw-update
 
 # Restarting openibd
 /etc/init.d/openibd restart

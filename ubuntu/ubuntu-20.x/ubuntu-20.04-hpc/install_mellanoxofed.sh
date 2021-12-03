@@ -10,7 +10,7 @@ MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 $COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "4a553572286f37cf649d68d70ffecd3d9acf5ba61a0935bb44d7b194782fdd39"
 tar zxvf ${TARBALL}
 
-./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support --skip-unsupported-devices-check
+./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support --skip-unsupported-devices-check --without-fw-update
 
 # Restarting openibd
 /etc/init.d/openibd restart

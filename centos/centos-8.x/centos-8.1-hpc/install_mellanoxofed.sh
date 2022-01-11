@@ -24,5 +24,8 @@ KERNEL=${KERNEL[-1]}
 
 ./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo --skip-unsupported-devices-check --without-fw-update
 
+# Issue: Module mlx5_ib belong to a kernel which is not a part of MLNX
+# Resolution: set FORCE=1/ force-restart /etc/init.d/openibd 
+# This causes openibd to ignore the kernel difference but relies on weak-updates
 # Restarting openibd
-/etc/init.d/openibd restart
+/etc/init.d/openibd force-restart

@@ -2,16 +2,8 @@
 set -ex
 
 # Install Moby Engine + CLI
-VERSION="3.0.2"
-$COMMON_DIR/write_component_version.sh "MOBY" $VERSION
-TARBALL="moby-$VERSION-centos.tar.gz"
-MOBY_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/$TARBALL
-$COMMON_DIR/download_and_verify.sh ${MOBY_DOWNLOAD_URL} "860d442471f56fdb53bbffc14fa01a8c68515fdb01d287b9ea0dc5a3c8462f28"
-tar -xvzf ${TARBALL}
-pushd moby/
-yum install -y moby-engine-${VERSION}-centos.x86_64.rpm
-yum install -y moby-cli-${VERSION}-centos.x86_64.rpm
-popd
+yum install -y moby-engine
+yum install -y moby-cli
 
 # Install NVIDIA Docker
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html

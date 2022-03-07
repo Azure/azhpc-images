@@ -42,3 +42,11 @@ systemctl restart docker
 # Write the docker version to components file
 docker_version=$(nvidia-docker --version | awk -F' ' '{print $3}')
 $COMMON_DIR/write_component_version.sh "NVIDIA-DOCKER" ${docker_version::-1}
+
+# Clean repos
+rm -rf /etc/yum.repos.d/nvidia-*
+rm -rf /etc/yum.repos.d/microsoft-prod.repo
+
+rm -rf /var/cache/yum/x86_64/7/packages-microsoft-com-prod/
+rm -rf /var/cache/yum/x86_64/7/nvidia-*
+rm -rf /var/cache/yum/x86_64/7/libnvidia-container/

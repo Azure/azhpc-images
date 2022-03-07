@@ -4,10 +4,13 @@ set -ex
 # Remove logs, cache, temporary installation dir and other host info
 rm -rf /var/log/*
 rm -f /etc/ssh/ssh_host_*
-rm -rf /tmp/nccl* /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf
-rm -f /var/lib/systemd/random-seed
-rm -rf /var/cache/*
-rm -rf /run/cloud-init /var/lib/cloud/instances/*
+rm -rf /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf /tmp/tmp*
+rm -rf /var/lib/systemd/random-seed /var/intel/ /var/cache/* /var/lib/cloud/instances/*
+rm -rf /run/cloud-init
+rm -rf /root/intel/
+
+# Empty machine information
+cat /dev/null > /etc/machine-id
 
 # Clear bash history
 cat /dev/null > ~/.bash_history && history -c

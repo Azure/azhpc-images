@@ -29,12 +29,12 @@ sysctl -p
 
 # Install WALinuxAgent
 apt-get install python3-setuptools
-WAAGENT_VERSION=v2.5.0.1
+WAAGENT_VERSION=2.5.0.2
 $COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
-DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/pre-${WAAGENT_VERSION}.tar.gz
+DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
 wget ${DOWNLOAD_URL}
 tar -xvf $(basename ${DOWNLOAD_URL})
-pushd WALinuxAgent-pre-${WAAGENT_VERSION}/
+pushd WALinuxAgent-${WAAGENT_VERSION}/
 python3 setup.py install --register-service
 popd
 
@@ -47,4 +47,5 @@ echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
 echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
+systemctl daemon-reload
 systemctl restart walinuxagent

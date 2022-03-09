@@ -47,3 +47,7 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID
 NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
 NCCL_SOCKET_IFNAME=eth0
 EOF
+
+# Remove installation files
+rm -rf /tmp/${TARBALL}
+rm -rf /tmp/nccl-${NCCL_VERSION}

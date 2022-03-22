@@ -17,6 +17,28 @@
 
 This repository contains installation scripts for HPC images in Azure Marketplace.
 
+## Preparing HPC Red Hat Enterprise Linux Image
+
+Red Hat publishes a collection of marketplace images for different 
+applications and licensing models. To use RHEL and get all the software and drivers
+included in the azhpc-images we recommend that you build a custom image using 
+the scripts in this repository.
+
+The following usage has been verified using the RHEL 7.9 marketplace image 
+`RedHat:RHEL:79-gen2:7.9.2021121602`
+and a Standard_NC6s_v2 VM. Create a VM with this configuration
+and use the script contained in this project.
+
+```bash
+sudo ./rhel-hpc-7_9-install.sh
+```
+
+Once this command is run successfully, then you can use the documented procedure
+for [capturing a linux image](https://docs.microsoft.com/azure/virtual-machines/linux/capture-image).
+
+>Note: Accelerated Networking with IB networking isn't
+supported in the RHEL-HPC prepared image. Use `AcceleratedNetworking = False`.
+
 
 # Contributing
 

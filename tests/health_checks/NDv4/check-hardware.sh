@@ -29,6 +29,11 @@ find_nics="sudo timeout 3m lshw -C network"
 error_nics="Fail: lshw failed with error code"
 catch_error "$find_nics" "$error_nics"
 nnics=$(echo "$output" | grep -i ConnectX-6 | wc -l)
+#Count the number of gpu-names nvidia-smi outputs.
+ngpus=$(sudo nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+
+#Count the number of nics lshw detects.
+nnics=$(sudo lshw -C network | grep -i product | wc -l)
 
 #Did either test fail?
 passed=1

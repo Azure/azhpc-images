@@ -8,8 +8,8 @@ num_ps=0
 #Check ibstat Rates and make sure they are all 200.
 for i in $(ibstat | grep "Rate:" | cut -d: -f2 | xargs); do 
 	num_r=$((num_r+1));
-	if [ $i -lt $ib ];
-        	then ib=$i;
+	if [ $i -lt $ib ]; then
+        	ib=$i;
 	fi;
 done
 
@@ -36,14 +36,12 @@ if [ $ib -lt 200 ]; then
 fi
 
 if [ $num_s -lt $num_r ]; then
-	echo "The ib 'State' is not set to 'Active' for all"\
-		"devices."
+	echo "The ib 'State' is not set to 'Active' for all devices."
 	pass=0
 fi
 
 if [ $num_ps -lt $num_r ]; then
-	echo "The ib 'Physical state' is not set to LinkUp for"\
-		"all devices."
+	echo "The ib 'Physical state' is not set to LinkUp for all devices."
 	pass=0
 fi
 if [ $pass -eq 1 ]; then

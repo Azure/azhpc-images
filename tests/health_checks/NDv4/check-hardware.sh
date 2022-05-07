@@ -4,7 +4,7 @@
 ngpus=$(sudo nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 
 #Count the number of nics lshw detects.
-nnics=$(sudo lshw -C network | grep -i product | wc -l)
+nnics=$(sudo lshw -C network | grep -i ConnectX-6 | wc -l)
 
 #Did either test fail?
 passed=1

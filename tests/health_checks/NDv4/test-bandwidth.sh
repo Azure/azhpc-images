@@ -14,13 +14,27 @@ wget -q $string
 #Compile the gpu-copy benchmark.
 nvcc -I/usr/include/ -L/usr/lib/x86_64-linux-gnu/ -lnuma gpu_copy.cu -o gpu-copy
 
+
 #Run the superbench device to host bandwidth test.
 x_htod=$(./gpu-copy --size 134217728 --num_warm_up 5 \
 	--num_loops 10 --htod --dma_copy)
+err_htod=$?
+if [ $err_htod -ne 0 ]; then
+	echo "Fail: The htod gpu_copy test failed to execute."\
+		"It exited with error code $err_htod"
+	exit $err_htod
+fi
 
 #Run the superbench host to device bandwidth test.
 x_dtoh=$(./gpu-copy --size 134217728 --num_warm_up 5 \
 	--num_loops 10 --dtoh --dma_copy)
+
+err_dtoh=$?
+if [ $err_dtoh -ne 0 ]; then
+	echo "Fail: The dtoh gpu_copy test failed to execute."\
+		"It exited with error code $err_dtoh"
+	exit $err_dtoh
+fi
 
 rm "gpu-copy"
 rm "gpu_copy.cu"
@@ -28,7 +42,7 @@ rm "gpu_copy.cu"
 pass=1
 
 #Loop over all of the detected GPUs.
-for i in $(eval echo {0..$((ngpus-1))}); do
+for i in $(seq 0 $((ngpus-1))); do
 	#Collect host to device bandwidths computed in each numa zone.
 	bw_htod=$(echo "$x_htod" | grep "gpu$i" | cut -d' ' -f2 | cut -d. -f1)
 	max_htodbw=0

@@ -1,5 +1,4 @@
 #!/bin/bash
-d=0;
 #ECC errors are handled by row remapping on A100. First count the number of 
 #row remappings due to ECC errors (correctable and otherwise). If any GPU has
 #512 or  more, the test fails. 
@@ -48,7 +47,7 @@ uncorrectable_v=( ${uncorrectable} )
 
 
 #Identify any GPUs that have experienced more row remaps than allowed.
-for i in $(eval echo {0..$((ngpus-1))}); do
+for i in $(seq 0 $((ngpus-1))); do
 	val=$((correctable_v[i] + uncorrectable_v[i]))
 	if [ $val -gt 511 ]; then
 		pass=0

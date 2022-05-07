@@ -70,6 +70,7 @@ ngpus=$(echo "$output" | wc -l)
 
 
 
+
 #Run the superbench device to host bandwidth test.
 exec_htod="timeout 3m $CHECK_DIR/gpu-copy --size 134217728 --num_warm_up 5"
 exec_htod+=" --num_loops 10 --htod --dma_copy"

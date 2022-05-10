@@ -57,6 +57,13 @@ for i in $(seq 0 $((ngpus-1))); do
 	fi	       
 done
 
+#Disable persistence mode on GPUs that started with it disabled.
+for i in $(seq 0 $((ngpus-1))); do
+	if [ ${pmvals[$i]} == "Disabled" ]; then
+	       sudo nvidia-smi -i $i -pm 0 > /dev/null
+	fi	       
+done
+
 if [ $fails -gt 0 ]; then
 	echo -e " \t **Fail** dcgmi tests have hit errors. Execute the"\
 		"command 'dcgmi diag -r 1' to see specific failures"

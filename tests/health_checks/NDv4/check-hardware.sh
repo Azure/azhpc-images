@@ -30,10 +30,17 @@ error_nics="Fail: lshw failed with error code"
 catch_error "$find_nics" "$error_nics"
 nnics=$(echo "$output" | grep -i ConnectX-6 | wc -l)
 #Count the number of gpu-names nvidia-smi outputs.
-ngpus=$(sudo nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+executable="sudo timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
+error="Fail: nvidia-smi failed counting GPUs with error code"
+catch_error "$executable" "$error"
+ngpus=$(echo "$output" | wc -l)
+
 
 #Count the number of nics lshw detects.
-nnics=$(sudo lshw -C network | grep -i ConnectX-6 | wc -l)
+executable="sudo timeout 3m lshw -C network"
+error="Fail: lshw failed with error code"
+catch_error "$executable" "$error"
+nnics=$(echo "$output" | grep -i ConnectX-6 | wc -l)
 
 #Did either test fail?
 passed=1

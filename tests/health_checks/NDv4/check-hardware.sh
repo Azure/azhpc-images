@@ -37,9 +37,9 @@ ngpus=$(echo "$output" | wc -l)
 
 
 #Count the number of nics lshw detects.
-executable="sudo timeout 3m lshw -C network"
-error="Fail: lshw failed with error code"
-catch_error "$executable" "$error"
+find_nics="sudo timeout 3m lshw -C network"
+error_nics="Fail: lshw failed with error code"
+catch_error "$find_nics" "$error_nics"
 nnics=$(echo "$output" | grep -i ConnectX-6 | wc -l)
 
 #Did either test fail?

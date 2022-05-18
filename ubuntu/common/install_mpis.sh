@@ -1,25 +1,27 @@
 #!/bin/bash
 set -ex
 
+# Parameters
+RELEASE_VERSION=$1
+HPCX_CHECKSUM=$2
+
 # Load gcc
-GCC_VERSION=gcc-9.2.0
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.0
-MLNX_OFED_VERSION="4.7-1.0.0.1"
-HPCX_VERSION="v2.7.0"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-ubuntu18.04-x86_64.tbz"
+# HPC-X v2.11
+HPCX_VERSION="v2.11"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-ubuntu${RELEASE_VERSION}-cuda11-gdrcopy2-nccl2.11-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "83f03e2d01cb1e4198e50ed9bdadb742aebf5d247369071bc911096824147d7a"
+$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} ${HPCX_CHECKSUM}
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
-$COMMON_DIR/write_component_version.sh "HPCX" ${HPCX_VERSION}
+$COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # MVAPICH2 2.3.7
 MV2_VERSION="2.3.7"
@@ -37,10 +39,7 @@ OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${
 $COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "9c0fd1f78fc90ca9b69ae4ab704687d5544220005ccd7678bf58cc13135e67e0"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
-# disable OpenSHMEM build
-sed -i "s/enable_oshmem_fortran=yes/enable_oshmem_fortran=no/" contrib/platform/mellanox/optimized
-sed -i "s/enable_oshmem=yes/enable_oshmem=no/" contrib/platform/mellanox/optimized
-./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --disable-oshmem --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
+./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 

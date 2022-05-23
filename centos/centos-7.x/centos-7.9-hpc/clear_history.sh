@@ -5,13 +5,13 @@ set -ex
 yum history sync
 
 # Clear History
-rm -rf /var/log/*
-rm -f /etc/ssh/ssh_host_*
+rm -rf /var/log/* /var/lib/systemd/random-seed 
+rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
+rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant*
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
-rm -rf /var/lib/systemd/random-seed /var/intel/ /var/cache/*
-rm -rf /run/cloud-init /var/lib/cloud/instances/*
-rm -rf /root/intel/
+rm -rf /run/cloud-init
+rm -rf /root/*
 
 # Empty machine information
 cat /dev/null > /etc/machine-id
@@ -27,6 +27,4 @@ do
 done
 sync;
 
-unset HISTFILE
-#rm -f /root/.bash_history
-history -c
+export HISTSIZE=0 && history -c && sync

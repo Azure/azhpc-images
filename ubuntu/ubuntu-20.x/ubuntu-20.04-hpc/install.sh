@@ -47,6 +47,9 @@ $COMMON_DIR/network-tuning.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
+# copy monitor files
+$COMMON_DIR/copy_monitoring_files.sh
+
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 

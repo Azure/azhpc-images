@@ -1,0 +1,3 @@
+[submodule "monitoring_tools/Moneo"]
+	path = monitoring_tools/Moneo
+	url = https://github.com/Azure/Moneo.git

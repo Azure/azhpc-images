@@ -62,6 +62,9 @@ $COMMON_DIR/install_hpcdiag.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
+# copy monitor files
+$COMMON_DIR/copy_monitoring_files.sh
+
 # disable cloud-init
 ./disable_cloudinit.sh
 

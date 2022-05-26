@@ -13,21 +13,9 @@ source ./set_properties.sh
 # install mpi libraries
 ./install_mpis.sh
 
-# install nvidia gpu driver
-./install_nvidiagpudriver.sh
-
-# Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
-
-# Install NVIDIA docker container
-$UBUNTU_COMMON_DIR/install_docker.sh
-
 # cleanup downloaded tarballs
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
-
-# Install DCGM
-$UBUNTU_COMMON_DIR/install_dcgm.sh 2004
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh
@@ -53,6 +41,10 @@ $COMMON_DIR/install_monitoring_tools.sh
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
+./install_rocm.sh
+./install_rccl.sh
+
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $UBUNTU_COMMON_DIR/clear_history.sh
+

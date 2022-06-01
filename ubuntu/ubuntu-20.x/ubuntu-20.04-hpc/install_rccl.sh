@@ -5,7 +5,15 @@ sudo apt-get install -y rocblas rccl-dev rccl-rdma-sharp-plugins
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 cd rccl-tests
-make MPI=1 MPI_HOME=/opt/hpcx-v2.11-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/ HIP_HOME=/opt/rocm^Cip NCCL_HOME=/opt/rocm/rccl CUSTOM_RCCL_LIB=/opt/rocm/rccl/lib/librccl.so
+
+HPCX="/opt/hpcx-v2.11-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2"
+HPCX+="-nccl2.11-x86_64/ompi/"
+RCCLLIB="/opt/rocm/rccl/lib/librccl.so"
+RCCLDIR="/opt/rocm/rccl"
+HIPDIR="/opt/rocm/hip"
+
+make MPI=1 MPI_HOME=$HPCX HIP_HOME=$HIPDIR NCCL_HOME=$RCCLDIR \
+	CUSTOM_RCCL_LIB=$RCCLLIB
 cd ..
 
 DEST_TEST_DIR=/opt/rccl-tests

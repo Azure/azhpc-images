@@ -185,8 +185,8 @@ then
     MVAPICH2X_PATH=${MVAPICH2X_PATH_CENTOS}
     OPENMPI_PATH=${OPENMPI_PATH_CENTOS}
     CHECK_AOCL=1
-    CHECK_NV_PMEM=1
-    CHECK_NCCL=1
+    CHECK_NV_PMEM=0
+    CHECK_NCCL=0
 elif [[ $distro == "CentOS Linux 8.1.1911" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_CENTOS_81}
@@ -231,12 +231,12 @@ then
     OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
     CHECK_AOCL=0
     CHECK_GCC=0
-    CHECK_NCCL=1
+    CHECK_NCCL=0
     if [ "${MOFED_LTS}" = true ]
     then 
         CHECK_NV_PMEM=0
     else 
-        CHECK_NV_PMEM=1
+        CHECK_NV_PMEM=0
     fi
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
@@ -253,8 +253,8 @@ then
     MVAPICH2X_PATH=${MVAPICH2X_PATH_UBUNTU}
     OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
     CHECK_AOCL=0
-    CHECK_NV_PMEM=1
-    CHECK_NCCL=1
+    CHECK_NV_PMEM=0
+    CHECK_NCCL=0
     CHECK_GCC=0
 else
     echo "*** Error - invalid distro!"

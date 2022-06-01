@@ -37,9 +37,6 @@ $COMMON_DIR/../centos/common/network-config.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
-# install monitor tools
-$COMMON_DIR/install_monitoring_tools.sh
-
 # lustre client
 #./install_lustre_client.sh
 

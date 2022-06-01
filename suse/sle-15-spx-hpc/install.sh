@@ -1,8 +1,11 @@
 #!/bin/bash
 set -ex
 
+# set environment variables
+. ./set_environmental_variables.sh
+
 # set properties
-source ./set_properties.sh
+. ./set_properties.sh
 
 # install utils
 ./install_utils.sh
@@ -10,8 +13,8 @@ source ./set_properties.sh
 # install compilers
 # ./install_gcc.sh
 
-# # skip mellanox ofed (included)
-# ./install_mellanoxofed.sh
+# install mellanox ofed
+./install_mellanoxofed.sh
 
 # # install mpi libraries
 # ./install_mpis.sh
@@ -26,10 +29,10 @@ source ./set_properties.sh
 # ./install_intel_libs.sh
 
 # # add udev rule
-# $COMMON_DIR/../centos/common/add-udev-rules.sh
+# $COMMON_DIR/../suse/common/add-udev-rules.sh
 
 # # add interface rules
-# $COMMON_DIR/../centos/common/network-config.sh
+# $COMMON_DIR/../suse/common/network-config.sh
 
 # # optimizations
 # ./hpc-tuning.sh

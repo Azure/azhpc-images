@@ -1,18 +1,11 @@
 #!/bin/bash
 set -ex
 
-#Download and install basic rocm packages
-#wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-#echo 'deb [arch=amd64] https://repo.radeon.com/amdgpu/22.10.3/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
-#echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/5.1.3 ubuntu main' | sudo tee /etc/apt/sources.list.d/rocm.list
-#sudo apt-get update
-#sudo apt install -y rocm-dkms
-#sudo apt install -y rocm-hip-sdk rocm-hip-libraries rocm-hip-runtime
-#sudo apt install -y rocm-bandwidth-test rocm-libs
-#sudo apt install -y rocm-ml-libraries rocm-ml-sdk
 #
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-wget https://repo.radeon.com/amdgpu-install/22.10.1/ubuntu/focal/amdgpu-install_22.10.1.50101-1_all.deb
+amddeb="https://repo.radeon.com/amdgpu-install/22.10.1/ubuntu/focal/"
+amddeb+="amdgpu-install_22.10.1.50101-1_all.deb"
+wget $amddeb
 sudo apt-get install -y ./amdgpu-install_22.10.1.50101-1_all.deb
 sudo amdgpu-install -y --usecase=rocm
 

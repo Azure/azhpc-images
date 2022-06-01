@@ -1,13 +1,23 @@
 #!/bin/bash
 set -ex
 
+# Parameters
+RELEASE_VERSION=$1
+CHECKSUM=$2
+
+# Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
 # Install Cuda
-NVIDIA_VERSION="510.47.03"
-CUDA_VERSION="11.6.1"
-CUDA_URL=https://developer.download.nvidia.com/compute/cuda/${CUDA_VERSION}/local_installers/cuda_${CUDA_VERSION}_${NVIDIA_VERSION}_linux.run
-$COMMON_DIR/download_and_verify.sh $CUDA_URL "ab219afce00b74200113269866fbff75ead037bcfc23551a8338c2684c984d7e"
-chmod +x cuda_${CUDA_VERSION}_${NVIDIA_VERSION}_linux.run
-sh cuda_${CUDA_VERSION}_${NVIDIA_VERSION}_linux.run --silent
+NVIDIA_VERSION="510.73.08"
+if [ ${RELEASE_VERSION} == "1804" ]; then CUDA_VERSION="11.6"; else CUDA_VERSION="11-6"; fi
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}-keyring.gpg 
+mv cuda-ubuntu${RELEASE_VERSION}-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/ /" | sudo tee /etc/apt/sources.list.d/cuda-ubuntu${RELEASE_VERSION}-x86_64.list
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}.pin
+mv cuda-ubuntu${RELEASE_VERSION}.pin /etc/apt/preferences.d/cuda-repository-pin-600
+
+apt-get update
+apt install -y cuda-toolkit-${CUDA_VERSION}
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
@@ -24,7 +34,11 @@ cp -r ./Samples/* /usr/local/cuda-11.6/samples/
 popd
 
 # Nvidia driver
-NVIDIA_DRIVER_URL=https://download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
-$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "f2a421dae836318d3c0d96459ccb3af27e90e50c95b0faa4288af76279e5d690"
+NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
+$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "c854bb2dc3368c0127dc08a85bd902f8558a5149085af13d061c612cf06c2913"
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
+
+# remove keyring and repo files
+rm -rf /usr/share/keyrings/cuda-archive-keyring.gpg
+rm -rf /etc/apt/preferences.d/cuda-repository-pin-600

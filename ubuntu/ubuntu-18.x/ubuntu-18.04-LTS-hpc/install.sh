@@ -27,7 +27,7 @@ rm -Rf -- */
 $UBUNTU_COMMON_DIR/install_dcgm.sh 1804
 
 # install Intel libraries
-$COMMON_DIR/install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

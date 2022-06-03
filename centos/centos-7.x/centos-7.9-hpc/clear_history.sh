@@ -7,6 +7,7 @@ yum history sync
 # Clear History
 rm -rf /var/log/* /var/lib/systemd/random-seed 
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
+rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant*
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*

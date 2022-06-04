@@ -34,7 +34,6 @@ MOFED_LTS=${l} # true/ false
 source /etc/profile
 
 GCC_VERSION="9.2.0"
-MKL_VERSION="2021.1.1"
 
 if [ "${MOFED_LTS}" = true ]
 then
@@ -131,6 +130,8 @@ find_sle_hpc_distro() {
 
 distro=`find_distro`
 echo "Detected distro: ${distro}"
+
+if [[ $distro == *"CentOS Linux"* ]]; then MKL_VERSION="2021.1.1"; else MKL_VERSION="2022.1.0"; fi
 
 if [[ $distro == "CentOS Linux 7.6.1810" ]]
 then

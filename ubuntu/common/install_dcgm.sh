@@ -6,12 +6,12 @@ set -ex
 VERSION=$1
 
 # Install DCGM
-DCGM_VERSION=2.3.1
-$COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
+DCGM_VERSION=2.3.6
 DCGM_GPUMNGR_URL=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION}/x86_64/datacenter-gpu-manager_${DCGM_VERSION}_amd64.deb
-$COMMON_DIR/download_and_verify.sh $DCGM_GPUMNGR_URL "0431dc987d3e67e6193b47c40ce71be443069c49adaa91ea0b904629b594a12c"
+$COMMON_DIR/download_and_verify.sh $DCGM_GPUMNGR_URL "d43955818b37fa80744eff75b84b71cc4c43c22a024cecfe9cbc3dc279705a6e"
 dpkg -i datacenter-gpu-manager_${DCGM_VERSION}_amd64.deb && \
 rm -f datacenter-gpu-manager_${DCGM_VERSION}_amd64.deb
+$COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
 
 # Create service for dcgm to launch on bootup
 bash -c "cat > /etc/systemd/system/dcgm.service" <<'EOF'

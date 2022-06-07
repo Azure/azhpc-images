@@ -13,7 +13,7 @@ if ! [[ -d ${MOFED_FOLDER} ]]; then
     tar zxvf ${TARBALL}
 fi
 
-# remove python2 when mellanox installer issue fixed
+# mellanox installer dependencies
 zypper install --no-confirm \
     rpm-build \
     insserv-compat \

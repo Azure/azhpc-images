@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
 
-# set environment variables
-. ./set_environmental_variables.sh
+# export environment variables
+. ./export_environment_variables.sh
 
 # set properties
 . ./set_properties.sh

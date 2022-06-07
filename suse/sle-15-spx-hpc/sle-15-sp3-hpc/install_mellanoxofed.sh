@@ -5,41 +5,49 @@ MLNX_OFED_DOWNLOAD_URL=http://content.mellanox.com/ofed/MLNX_OFED-${MOFED_VERSIO
 TARBALL=$(basename ${MLNX_OFED_DOWNLOAD_URL})
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 
-$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "4790a3196eef0d1266646a8b65f0fa4813e89c508b5f62484053686d6d66932a"
-tar zxvf ${TARBALL}
-
-KERNEL=$(uname -r | awk -F- '{print $(NF)}')
-if [[ ${KERNEL} == "default" ]]; then \
-    KERNEL=""
-else
-    KERNEL="-${KERNEL}"
+if ! [[ -f ${TARBALL} ]]; then
+    $COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "237d989373f13f33a75806c5035da342247290cff9ab07f5c5c475e6517288c4"
 fi
 
-KERNEL_VERSION_RELEASE=$(rpm -qa kernel${KERNEL} --queryformat "%{VERSION}-%{RELEASE}")
+if ! [[ -d ${MOFED_FOLDER} ]]; then
+    tar zxvf ${TARBALL}
+fi
 
 # remove python2 when mellanox installer issue fixed
 zypper install --no-confirm \
     rpm-build \
     insserv-compat \
-    kernel-source${KERNEL}-${KERNEL_VERSION_RELEASE} \
     patch \
     make \
-    kernel-syms${KERNEL}-${KERNEL_VERSION_RELEASE} \
     python3-devel \
-    python2 \
     tk \
     expat \
     createrepo_c
 
+# running kernel might be older, force install earlier version.
+# consider rebooting with latest kernel prior
+zypper install --no-confirm --force \
+    kernel-source${KERNEL_FLAVOR}-${KERNEL_VERSION_RELEASE} \
+    kernel-syms${KERNEL_FLAVOR}-${KERNEL_VERSION_RELEASE}
+
+# mlnxofedinstall requires kernel-source installed regardless of kernel flavor
+if ! [[ ${KERNEL} -ne "default" ]]; then
+    zypper install --no-confirm \
+        kernel-source
+fi
+
 # Error: One or more packages depends on MLNX_OFED_LINUX.
 # Those packages should be removed before uninstalling MLNX_OFED_LINUX:
-
 zypper --ignore-unknown remove --no-confirm \
     librdmacm1 \
     srp_daemon \
     rdma-core-devel
 
 ./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support 
+
+# You may need to update your initramfs before next boot. To do that, run:
+# dracut -f
+dracut -f
 
 echo "\n" >> /etc/modprobe.d/mlnx.conf
 echo "\n# blacklist rpcrdma which relies on rdma_cm, conflicts with rdma_ucm" >> /etc/modprobe.d/mlnx.conf

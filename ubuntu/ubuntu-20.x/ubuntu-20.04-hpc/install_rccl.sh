@@ -3,6 +3,8 @@ set -ex
 
 sudo apt-get install -y rocblas rccl-dev rccl-rdma-sharp-plugins
 
+sudo sysctl kernel.numa_balancing=0
+
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 cd rccl-tests
 

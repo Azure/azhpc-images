@@ -14,8 +14,12 @@ RCCLLIB="/opt/rocm/rccl/lib/librccl.so"
 RCCLDIR="/opt/rocm/rccl"
 HIPDIR="/opt/rocm/hip"
 
-make MPI=1 MPI_HOME=$HPCX HIP_HOME=$HIPDIR NCCL_HOME=$RCCLDIR \
-	CUSTOM_RCCL_LIB=$RCCLLIB
+
+echo "gfx90a" > target.lst
+
+ROCM_TARGET_LST=$(pwd)/target.lst make MPI=1 MPI_HOME=$HPCX HIP_HOME=$HIPDIR \
+        NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
+
 cd ..
 
 DEST_TEST_DIR=/opt/rccl-tests

@@ -1,4 +1,0 @@
-[submodule "azhpai-images"]
-	path = azhpai-images
-	url = git@ssh.dev.azure.com:v3/AISEco/azhpai-images/azhpai-images
-	branch = master

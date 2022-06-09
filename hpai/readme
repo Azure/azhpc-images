@@ -1,0 +1,5 @@
+# Installation
+$ ./install.sh
+
+#/ Testing
+$ deepspeed -h /opt/aisoftware/hostfile.ds python3 deepspeed_allreduce-perf.py

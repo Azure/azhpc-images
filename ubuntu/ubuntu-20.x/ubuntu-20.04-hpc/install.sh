@@ -44,6 +44,10 @@ $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 ./install_rocm.sh
 ./install_rccl.sh
 
+ibps="\nACTION==\"add\", SUBSYSTEM==\"net\", DRIVERS==\"?*\", ATTR{type}"
+ibps+="==\"32\", KERNEL==\"ib*\", NAME=\"ib0\""
+echo -e $ibps | sudo tee -a /etc/udev/rules.d/70-persistent-ipoib.rules
+
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $UBUNTU_COMMON_DIR/clear_history.sh

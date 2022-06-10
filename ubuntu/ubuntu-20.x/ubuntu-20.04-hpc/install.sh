@@ -13,6 +13,11 @@ source ./set_properties.sh
 # install mpi libraries
 ./install_mpis.sh
 
+# Install moby-engine
+apt-get install -y moby-engine
+systemctl enable docker
+systemctl restart docker
+
 # cleanup downloaded tarballs
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
@@ -38,7 +43,10 @@ $COMMON_DIR/copy_test_file.sh
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
+#install rocm software stack
 ./install_rocm.sh
+
+#install rccl and rccl-tests
 ./install_rccl.sh
 
 # clear history

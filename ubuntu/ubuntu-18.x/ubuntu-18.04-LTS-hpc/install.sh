@@ -27,7 +27,7 @@ rm -Rf -- */
 $UBUNTU_COMMON_DIR/install_dcgm.sh 1804
 
 # install Intel libraries
-$COMMON_DIR/install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -43,6 +43,7 @@ $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
 $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
+
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

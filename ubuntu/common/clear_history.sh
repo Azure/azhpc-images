@@ -4,6 +4,7 @@ set -ex
 # Remove logs, cache, temporary installation dir and other host info
 rm -rf /var/log/* /var/lib/systemd/random-seed
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
+rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf /tmp/tmp*
 rm -rf /run/cloud-init

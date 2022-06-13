@@ -48,7 +48,11 @@ $COMMON_DIR/network-tuning.sh
 $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
+<<<<<<< HEAD
 $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
+=======
+$COMMON_DIR/install_monitoring_tools.sh
+>>>>>>> upstream/master
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

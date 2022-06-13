@@ -2,6 +2,8 @@
 set -ex
 
 apt-get update
+apt-get install -y python3.8
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
 apt-get -y install build-essential
 apt-get -y install numactl \
                    rpm \

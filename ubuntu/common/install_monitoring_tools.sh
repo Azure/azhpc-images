@@ -13,6 +13,6 @@ mkdir -p $MONITOR_DIR
 
 pushd $MONITOR_DIR
 
-git clone https://github.com/Azure/Moneo  --branch v0.1.1
+git clone https://github.com/Azure/Moneo  --branch v0.1.2
 
 popd

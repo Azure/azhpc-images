@@ -2,10 +2,11 @@
 set -ex
 
 
+apt-get update
 apt-get install -y python3.8
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-sudo apt-get -y remove python3-apt
-sudo apt-get -y install python3-apt
+apt-get -y remove python3-apt
+apt-get -y install python3-apt
 
 apt-get update
 apt-get -y install build-essential

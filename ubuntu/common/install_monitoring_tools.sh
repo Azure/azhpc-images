@@ -10,6 +10,8 @@ MONITOR_DIR=/opt/azurehpc/monitoring
 
 mkdir -p $MONITOR_DIR
 
+#need to remove cuda signed list
+rm /etc/apt/sources.list.d/cuda-ubuntu*.list 2> /dev/null
 
 pushd $MONITOR_DIR
 

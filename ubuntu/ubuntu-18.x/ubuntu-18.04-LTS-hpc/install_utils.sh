@@ -1,13 +1,6 @@
 #!/bin/bash
 set -ex
 
-
-apt-get update
-apt-get install -y python3.8
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-apt-get -y remove python3-apt
-apt-get -y install python3-apt
-
 apt-get update
 apt-get -y install build-essential
 apt-get -y install numactl \
@@ -39,8 +32,6 @@ apt-get -y install numactl \
                    libnl-3-dev \
                    libnl-route-3-dev \
                    libsecret-1-0 \
-		   ansible \
-		   python3-pip \
                    dkms
 
 # Install azcopy tool 

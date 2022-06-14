@@ -6,7 +6,7 @@ set -e
 pip3 install --upgrade pip
 python3 -m pip install ansible
 
-MONITOR_DIR=/opt/azurehpc/monitoring
+MONITOR_DIR=/opt/azurehpc/tools
 
 mkdir -p $MONITOR_DIR
 

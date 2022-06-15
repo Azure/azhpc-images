@@ -15,7 +15,7 @@
 
 # Azhpc Images
 
-This repository contains installation scripts for HPC images in Azure Marketplace.
+This repository contains installation scripts for HPC images in Azure Marketplace, specifically [CentOS-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/openlogic.centos-hpc) and [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc).
 
 
 # Contributing

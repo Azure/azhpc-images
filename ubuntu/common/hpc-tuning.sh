@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Disable some unneeded services by default (administrators can re-enable if desired)
 systemctl disable ufw
@@ -29,6 +30,7 @@ sysctl -p
 
 # Install WALinuxAgent
 apt-get install python3-setuptools
+pip3 install distro
 WAAGENT_VERSION=2.5.0.2
 $COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
 DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz

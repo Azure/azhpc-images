@@ -6,17 +6,20 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- bash: |
-    echo $(System.PullRequest.PullRequestNumber)
-  displayName: Print PR Num
+jobs:
+- job: queue_azdo
+  timeoutInMinutes: 360
+  steps:
+  - bash: |
+      echo $(System.PullRequest.PullRequestNumber)
+    displayName: Print PR Num
 
-- task: Bash@3
-  inputs:
-    targetType: 'filePath'
-    filePath: './azure-pipelines/queue_ado.sh'
-    failOnStderr: true
-  env:
-    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    PR_NUM: $(System.PullRequest.PullRequestNumber)
-  displayName: Queue Validation Build and Monitor Status
+  - task: Bash@3
+    inputs:
+      targetType: 'filePath'
+      filePath: './azure-pipelines/queue_ado.sh'
+      failOnStderr: true
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      PR_NUM: $(System.PullRequest.PullRequestNumber)
+    displayName: Queue Validation Build and Monitor Status

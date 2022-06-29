@@ -3,8 +3,8 @@ trigger: none
 pr:
 - master
 
-pool:
-  vmImage: ubuntu-latest
+pool: 
+  name: 1ES-hosted-pool-scrub1
 
 jobs:
 - job: queue_azdo

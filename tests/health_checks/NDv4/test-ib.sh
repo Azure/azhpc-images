@@ -28,10 +28,18 @@ exec_ibstat="timeout 3m ibstatus"
 error_ibstat="**Fail** ibstatus exited with error code"
 catch_error "$exec_ibstat" "$error_ibstat"
 ibstat_out=$(echo "$output")
+
+#make sure we are only checking rates for InfiniBand
+types=$(echo "$ibstat_out" | grep "link_layer:" | awk '{print $2}')
+types_v=( ${types} )
+
 for i in $(echo "$ibstat_out" | grep "rate:" | awk '{print $2}'); do 
 	num_r=$((num_r+1));
 	if [ $i -lt $ib ]; then
-        	ib=$i;
+		ir=$((num_r-1))
+		if [ "${types_v[ir]}" = "InfiniBand" ]; then
+			ib=$i;
+		fi
 	fi;
 done
 

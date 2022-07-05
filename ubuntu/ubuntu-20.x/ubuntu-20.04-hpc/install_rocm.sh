@@ -9,13 +9,10 @@ pack="linux-modules-extra-$ver"
 sudo apt install -y $pack
 
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-
-
-wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-amddeb="https://repo.radeon.com/amdgpu-install/22.10.1/ubuntu/focal/"
-amddeb+="amdgpu-install_22.10.1.50101-1_all.deb"
+amddeb="https://repo.radeon.com/amdgpu-install/22.20/ubuntu/focal/"
+amddeb+="amdgpu-install_22.20.50200-1_all.deb"
 wget $amddeb
-sudo apt-get install -y ./amdgpu-install_22.10.1.50101-1_all.deb
+sudo apt-get install -y ./amdgpu-install_22.20.50200-1_all.deb
 sudo amdgpu-install -y --usecase=rocm
 
 
@@ -40,4 +37,39 @@ line=$(cat /etc/default/grub.d/50-cloudimg-settings.cfg | grep GRUB_CMDLINE_LINU
 cat /etc/default/grub.d/50-cloudimg-settings.cfg | sed -e "s/$line/$string/" > temp_file.txt
 sudo mv temp_file.txt /etc/default/grub.d/50-cloudimg-settings.cfg
 sudo update-grub
+
+echo "Writing gpu mode probe in init.d"
+bprefix="#!"
+echo "$bprefix/bin/sh" > /tmp/tempinit.sh
+echo "at_count=0" >> /tmp/tempinit.sh
+echo 'while [ $at_count -le 90 ]' >> /tmp/tempinit.sh
+echo "do" >> /tmp/tempinit.sh
+echo '    if [ $(lspci | grep AMD/ATI -c) -eq 16 ]; then' >> /tmp/tempinit.sh
+echo '     echo Required 16 GPU found' >> /tmp/tempinit.sh
+echo '       at_count=91' >> /tmp/tempinit.sh
+echo '    else' >> /tmp/tempinit.sh
+echo '       sleep 10' >> /tmp/tempinit.sh
+echo '       at_count=$( $at_count + 1 )' >> /tmp/tempinit.sh
+echo '  fi' >> /tmp/tempinit.sh
+echo 'done' >> /tmp/tempinit.sh
+echo 'echo doing Modprobe for amdgpu' >> /tmp/tempinit.sh
+echo "sudo modprobe amdgpu" >> /tmp/tempinit.sh
+echo ""
+echo "exit 0" >> /tmp/tempinit.sh
+sudo cp /tmp/tempinit.sh /etc/init.d/initamdgpu.sh
+sudo chmod +x /etc/init.d/initamdgpu.sh
+rm /tmp/tempinit.sh
+
+echo "Completed gpu mode probe in init.d"
+
+echo -e '[Unit]\n\nDescription=Runs /etc/init.d/initamdgpu.sh\n\n' \
+               | sudo tee rocmstartup.service
+echo -e '[Service]\n\nExecStart=/etc/init.d/initamdgpu.sh\n\n' \
+               | sudo tee -a rocmstartup.service
+echo -e '[Install]\n\nWantedBy=multi-user.target' \
+               | sudo tee -a rocmstartup.service
+
+sudo mv rocmstartup.service /etc/systemd/system/rocmstartup.service
+sudo systemctl start rocmstartup
+sudo systemctl enable rocmstartup
 

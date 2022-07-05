@@ -4,6 +4,7 @@ set -ex
 sudo apt-get install -y rocblas rccl-dev rccl-rdma-sharp-plugins
 
 sudo sysctl kernel.numa_balancing=0
+echo "kernel.numa_balancing=0" | sudo tee -a /etc/sysctl.conf
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 cd rccl-tests
@@ -27,3 +28,4 @@ mkdir -p $DEST_TEST_DIR
 
 cp rccl-tests/build/* $DEST_TEST_DIR
 rm -r rccl-tests
+

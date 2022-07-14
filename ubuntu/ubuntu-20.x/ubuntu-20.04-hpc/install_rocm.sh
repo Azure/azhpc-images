@@ -26,17 +26,21 @@ echo 'EXTRA_GROUPS=video' | sudo tee -a /etc/adduser.conf
 echo 'EXTRA_GROUPS=render' | sudo tee -a /etc/adduser.conf
 
 #update grub settings
-pre=$(cat /etc/default/grub.d/50-cloudimg-settings.cfg | grep GRUB_CMDLINE_LINUX= | cut -d"\"" -f2)
-string="GRUB_CMDLINE_LINUX=\"$pre amd_iommu=on iommu=pt\""
-line=$(cat /etc/default/grub.d/50-cloudimg-settings.cfg | grep GRUB_CMDLINE_LINUX=)
-cat /etc/default/grub.d/50-cloudimg-settings.cfg | sed -e "s/$line/$string/" > temp_file.txt
-sudo mv temp_file.txt /etc/default/grub.d/50-cloudimg-settings.cfg
-
-string="GRUB_CMDLINE_LINUX_DEFAULT=\"panic=0 nowatchdog amd_iommu=on iommu=pt\""
+string="GRUB_CMDLINE_LINUX_DEFAULT=\"panic=0 nowatchdog\""
 line=$(cat /etc/default/grub.d/50-cloudimg-settings.cfg | grep GRUB_CMDLINE_LINUX_DEFAULT=)
 cat /etc/default/grub.d/50-cloudimg-settings.cfg | sed -e "s/$line/$string/" > temp_file.txt
 sudo mv temp_file.txt /etc/default/grub.d/50-cloudimg-settings.cfg
 sudo update-grub
+
+#add nofile limits
+string_so="*               soft    nofile          1048576"
+line=$(cat /etc/security/limits.conf | grep "soft    nofile")
+cat /etc/security/limits.conf | sed -e "s/$line/$string_so/" > temp_file.txt
+sudo mv temp_file.txt /etc/security/limits.conf
+string_ha="*               hard    nofile          1048576"
+line=$(cat /etc/security/limits.conf | grep "hard    nofile")
+cat /etc/security/limits.conf | sed -e "s/$line/$string_ha/" > temp_file.txt
+sudo mv temp_file.txt /etc/security/limits.conf
 
 echo "Writing gpu mode probe in init.d"
 bprefix="#!"

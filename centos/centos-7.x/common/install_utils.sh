@@ -30,7 +30,7 @@ yum install -y numactl \
     cmake \
     libnl3-devel \
     libsecret \
-    https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-3.0.3-1.el7.noarch.rpm \
+    https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-3.0.5-1.el7.noarch.rpm \
     rpm-build \
     make \
     check \

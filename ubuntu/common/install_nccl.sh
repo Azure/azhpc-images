@@ -43,14 +43,6 @@ popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
 
-# NCCL-Tests Preset Run Config
-cat << EOF >> /etc/nccl.conf
-NCCL_IB_PCI_RELAXED_ORDERING=1
-CUDA_DEVICE_ORDER=PCI_BUS_ID
-NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-NCCL_SOCKET_IFNAME=eth0
-EOF
-
 $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 
 # Remove installation files

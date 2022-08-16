@@ -47,9 +47,6 @@ rm -rf *.tar.gz *_offline.sh *.rpm *.run
 # Network Optimization
 $COMMON_DIR/network-tuning.sh
 
-# set the topology for NCCL
-$COMMON_DIR/set_topology.sh
-
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 

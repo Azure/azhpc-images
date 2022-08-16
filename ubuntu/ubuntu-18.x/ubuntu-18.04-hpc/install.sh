@@ -44,9 +44,6 @@ $UBUNTU_COMMON_DIR/hpc-tuning.sh
 # Network Optimization
 $COMMON_DIR/network-tuning.sh
 
-# set the topology for NCCL
-$COMMON_DIR/set_topology.sh
-
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 

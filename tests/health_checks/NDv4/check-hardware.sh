@@ -18,10 +18,15 @@ catch_error() {
 output=""
 
 #Count the number of gpu-name nvidia-smi outputs.
-gpu_names="sudo timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
+gpu_names="timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
 error_smi="Fail: nvidia-smi failed with error code"
 catch_error "$gpu_names" "$error_smi"
 ngpus=$(echo "$output" | wc -l)
+
+smi_warnings="timeout 3m nvidia-smi"
+catch_error "$smi_warnings" "$error_smi"
+out_warn=$(echo "$output")
+nwarn=$(echo "$out_warn" | grep "WARNING" | wc -l)
 
 
 #Count the number of nics lshw detects.
@@ -30,8 +35,19 @@ error_nics="Fail: lshw failed with error code"
 catch_error "$find_nics" "$error_nics"
 nnics=$(echo "$output" | grep -i ConnectX-6 | wc -l)
 
+#Count the number of nvmedrives.
+find_nvme="sudo timeout 3m lshw -C storage" 
+error_nvme="Fail: lshw failed with error code"
+catch_error "$find_nvme" "$error_nvme"
+nnvme=$(echo "$output" | grep nvme | grep logical | wc -l)
+
 #Did either test fail?
 passed=1
+if [ $nwarn -ne 0 ]; then
+	passed=0
+	echo "nvidia-smi reported warnings, see output below:"
+	echo "$out_warn" 
+fi
 
 if [ $ngpus -ne 8 ]; then
 	passed=0
@@ -43,9 +59,14 @@ if [ $nnics -ne 8 ]; then
 	echo "$nnics NICs detected with 8 expected."
 fi
 
+if [ $nnvme -ne 8 ]; then
+	passed=0
+	echo "$nnvme NVMEs detected with 8 expected."
+fi
+
 if [ $passed -ne 1 ]; then
-	echo "Fail: Error when detecting GPUs and NICs."
+	echo "Fail: Error when detecting GPUs, NVMEs, and NICs."
 	exit 1;
 else
-	echo "Correct number of GPUs and NICs detected."
+	echo "Correct number of GPUs, NVMEs, and NICs detected."
 fi

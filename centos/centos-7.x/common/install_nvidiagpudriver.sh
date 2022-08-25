@@ -49,5 +49,3 @@ NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/r
 $COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "ade1051a189fe84a326b8021d1446eb03d48e0a998e8cada85081b27a89923f1"
 yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
 echo "exclude=nvidia-fabric-manager" | sudo tee -a /etc/yum.conf
-systemctl enable nvidia-fabricmanager
-systemctl start nvidia-fabricmanager

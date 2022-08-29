@@ -31,9 +31,11 @@ apt-get -y install numactl \
                    cmake \
                    libnl-3-dev \
                    libnl-route-3-dev \
+                   net-tools \
                    libsecret-1-0 \
+		   ansible \
+		   python3-pip \
                    dkms \
-                   python3-pip \
                    jq
 
 # Install azcopy tool 

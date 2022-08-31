@@ -48,16 +48,16 @@ echo "$bprefix/bin/sh" > /tmp/tempinit.sh
 echo "at_count=0" >> /tmp/tempinit.sh
 echo 'while [ $at_count -le 90 ]' >> /tmp/tempinit.sh
 echo "do" >> /tmp/tempinit.sh
-echo '    if [ $(lspci | grep AMD/ATI -c) -eq 16 ]; then' >> /tmp/tempinit.sh
-echo '     echo Required 16 GPU found' >> /tmp/tempinit.sh
+echo '    if [ $(lspci -d 1002:740c | wc -l) -eq 16 ]; then' >> /tmp/tempinit.sh
+echo '       echo Required 16 GPU found' >> /tmp/tempinit.sh
 echo '       at_count=91' >> /tmp/tempinit.sh
+echo '       echo doing Modprobe for amdgpu' >> /tmp/tempinit.sh
+echo "       sudo modprobe amdgpu" >> /tmp/tempinit.sh
 echo '    else' >> /tmp/tempinit.sh
 echo '       sleep 10' >> /tmp/tempinit.sh
-echo '       at_count=$( $at_count + 1 )' >> /tmp/tempinit.sh
-echo '  fi' >> /tmp/tempinit.sh
+echo '       at_count=$(($at_count + 1))' >> /tmp/tempinit.sh
+echo '    fi' >> /tmp/tempinit.sh
 echo 'done' >> /tmp/tempinit.sh
-echo 'echo doing Modprobe for amdgpu' >> /tmp/tempinit.sh
-echo "sudo modprobe amdgpu" >> /tmp/tempinit.sh
 echo ""
 echo "exit 0" >> /tmp/tempinit.sh
 sudo cp /tmp/tempinit.sh /etc/init.d/initamdgpu.sh

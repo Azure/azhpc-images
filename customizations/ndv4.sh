@@ -1,10 +1,11 @@
 #!/bin/bash
 set -ex
 
-# Both configurations are specific to NDv4
+# Place NDv4 topo file under /opt/microsoft/ndv4
+mkdir -p /opt/microsoft/ndv4
+
 # Place the topology file in /opt/microsoft
-sudo mkdir -p /opt/microsoft
-sudo bash -c "cat > /opt/microsoft/ndv4-topo.xml" <<'EOF'
+bash -c "cat > /opt/microsoft/ndv4-topo.xml" <<'EOF'
 <system version="1">
   <cpu numaid="0" affinity="0000ffff,0000ffff" arch="x86_64" vendor="AuthenticAMD" familyid="23" modelid="49">
     <pci busid="ffff:ff:01.0" class="0x060400" link_speed="16 GT/s" link_width="16">
@@ -39,4 +40,14 @@ sudo bash -c "cat > /opt/microsoft/ndv4-topo.xml" <<'EOF'
     </pci>
   </cpu>
 </system>
+EOF
+
+# Link the NDv4 topology file into /opt/microsoft/ndv4/
+# Topology file in /opt/microsoft/ndv4-topo.xml will eventually be deleted
+ln -s /opt/microsoft/ndv4-topo.xml /opt/microsoft/ndv4/topo.xml
+
+## Set NCCL configuration file for NDv4
+bash -c "cat > /etc/nccl.conf" <<'EOF'
+NCCL_IB_PCI_RELAXED_ORDERING=1
+NCCL_TOPO_FILE=/opt/microsoft/ndv4/topo.xml
 EOF

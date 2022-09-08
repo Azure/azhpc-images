@@ -42,7 +42,10 @@ apt-get -y install numactl \
                    libnl-route-3-dev \
                    net-tools \
                    libsecret-1-0 \
-                   dkms
+		   ansible \
+		   python3-pip \
+                   dkms \
+                   jq
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.

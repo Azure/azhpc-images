@@ -27,10 +27,10 @@ rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
 
 # Install DCGM
-./install_dcgm.sh
+$UBUNTU_COMMON_DIR/install_dcgm.sh 1804
 
 # install Intel libraries
-./install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -41,11 +41,14 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
-# Network Optimization
-$COMMON_DIR/network-tuning.sh
+# SKU Customization
+$COMMON_DIR/setup_sku_customizations.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
+
+# install monitor tools
+$UBUNTU_COMMON_DIR/install_monitoring_tools.sh
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

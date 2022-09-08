@@ -1,30 +1,44 @@
 #!/bin/bash
 set -ex
 
-$COMMON_DIR/install_nvidiagpudriver.sh
+# Parameters
+RELEASE_VERSION=$1
+CHECKSUM=$2
 
-# Install NV Peer Memory (GPU Direct RDMA)
-sudo apt install -y dkms libnuma-dev
-NV_PEER_MEMORY_VERSION="1.2-0"
-NV_PEER_MEMORY_VERSION_PREFIX=$(echo ${NV_PEER_MEMORY_VERSION} | awk -F- '{print $1}')
-$COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
-git clone https://github.com/gpudirect/nv_peer_memory.git
+# Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
+# Install Cuda
+NVIDIA_VERSION="510.73.08"
+if [ ${RELEASE_VERSION} == "1804" ]; then CUDA_VERSION="11.6"; else CUDA_VERSION="11-6"; fi
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}-keyring.gpg 
+mv cuda-ubuntu${RELEASE_VERSION}-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
 
-cd nv_peer_memory
-./build_module.sh 
-cd /tmp
-tar xzf /tmp/nvidia-peer-memory_${NV_PEER_MEMORY_VERSION_PREFIX}.orig.tar.gz
-cd nvidia-peer-memory-${NV_PEER_MEMORY_VERSION_PREFIX}/
-dpkg-buildpackage -us -uc 
-sudo dpkg -i ../nvidia-peer-memory_${NV_PEER_MEMORY_VERSION}_all.deb 
-sudo apt-mark hold nvidia-peer-memory
-sudo dpkg -i ../nvidia-peer-memory-dkms_${NV_PEER_MEMORY_VERSION}_all.deb 
-sudo apt-mark hold nvidia-peer-memory-dkms
-sudo modprobe nv_peer_mem
-lsmod | grep nv
+echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/ /" | sudo tee /etc/apt/sources.list.d/cuda-ubuntu${RELEASE_VERSION}-x86_64.list
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}.pin
+mv cuda-ubuntu${RELEASE_VERSION}.pin /etc/apt/preferences.d/cuda-repository-pin-600
 
-sudo bash -c "cat > /etc/modules-load.d/nv_peer_mem.conf" <<'EOF'
-nv_peer_mem
-EOF
+apt-get update
+apt install -y cuda-toolkit-${CUDA_VERSION}
+echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
+$COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 
-sudo systemctl enable nv_peer_mem.service
+# Download CUDA samples
+CUDA_SAMPLES_VERSION="11.6"
+TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
+CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
+wget ${CUDA_SAMPLES_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
+pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
+make
+cp -r ./Samples/* /usr/local/cuda-11.6/samples/
+popd
+
+# Nvidia driver
+NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
+$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "c854bb2dc3368c0127dc08a85bd902f8558a5149085af13d061c612cf06c2913"
+bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
+$COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
+
+# remove keyring and repo files
+rm -rf /usr/share/keyrings/cuda-archive-keyring.gpg
+rm -rf /etc/apt/preferences.d/cuda-repository-pin-600

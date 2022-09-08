@@ -30,14 +30,28 @@ yum install -y numactl \
     cmake \
     libnl3-devel \
     libsecret \
-    https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-3.0.3-1.el7.noarch.rpm \
     rpm-build \
     make \
     check \
     check-devel \
     subunit \
     subunit-devel
-    
+
+## Install dkms from the EPEL repository
+wget -r --no-parent -A "dkms-*.el7.noarch.rpm" https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/ 
+yum localinstall ./dl.fedoraproject.org/pub/epel/7/x86_64/Packages/d/dkms-*.el7.noarch.rpm -y
+
+## Install jq Utility
+# Download dependency libonig.so for jq
+wget -r --no-parent -A "oniguruma-*.el7.x86_64.rpm" https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/o/
+yum localinstall ./dl.fedoraproject.org/pub/epel/7/x86_64/Packages/o/oniguruma-*.el7.x86_64.rpm -y
+# Download jq utility
+wget -r --no-parent -A "jq-*.el7.x86_64.rpm" https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/j/
+yum localinstall ./dl.fedoraproject.org/pub/epel/7/x86_64/Packages/j/jq-*.el7.x86_64.rpm -y
+
+# Remove rpm files
+rm -rf ./dl.fedoraproject.org/
+
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
 wget https://azcopyvnextrelease.blob.core.windows.net/release20210920/azcopy_linux_se_amd64_10.12.2.tar.gz

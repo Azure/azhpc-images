@@ -13,24 +13,17 @@ source ./set_properties.sh
 # install mpi libraries
 ./install_mpis.sh
 
-# install nvidia gpu driver
-./install_nvidiagpudriver.sh
-
-# Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
-
-# Install NVIDIA docker container
-$UBUNTU_COMMON_DIR/install_docker.sh
+# Install moby-engine
+apt-get install -y moby-engine
+systemctl enable docker
+systemctl restart docker
 
 # cleanup downloaded tarballs
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
 
-# Install DCGM
-./install_dcgm.sh
-
 # install Intel libraries
-./install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -41,8 +34,8 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
-# Network Optimization
-$COMMON_DIR/network-tuning.sh
+# SKU Customization
+$COMMON_DIR/setup_sku_customizations.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh
@@ -50,6 +43,13 @@ $COMMON_DIR/copy_test_file.sh
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
+#install rocm software stack
+./install_rocm.sh
+
+#install rccl and rccl-tests
+./install_rccl.sh
+
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $UBUNTU_COMMON_DIR/clear_history.sh
+

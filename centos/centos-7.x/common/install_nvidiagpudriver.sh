@@ -46,8 +46,6 @@ popd
 NVIDIA_FABRIC_MANAGER_VERSION="470.82.01-1"
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "6d88af6382fa3013e158b60128ef1fb117f4a4cc0fb6225155a2f7ff1c4a147f"
+$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "ade1051a189fe84a326b8021d1446eb03d48e0a998e8cada85081b27a89923f1"
 yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
 echo "exclude=nvidia-fabric-manager" | sudo tee -a /etc/yum.conf
-systemctl enable nvidia-fabricmanager
-systemctl start nvidia-fabricmanager

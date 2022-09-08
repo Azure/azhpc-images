@@ -42,3 +42,7 @@ make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
+
+# Remove installation files
+rm -rf /tmp/${TARBALL}
+rm -rf /tmp/nccl-${NCCL_VERSION}

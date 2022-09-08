@@ -39,5 +39,12 @@ systemctl enable docker
 systemctl restart docker
 
 # Write the docker version to components file
+moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')
 docker_version=$(nvidia-docker --version | awk -F' ' '{print $3}')
+$COMMON_DIR/write_component_version.sh "MOBY-ENGINE" ${moby_version}
 $COMMON_DIR/write_component_version.sh "NVIDIA-DOCKER" ${docker_version::-1}
+
+# Remove unwanted repos
+rm -f /etc/apt/sources.list.d/nvidia*
+rm -f /etc/apt/sources.list.d/microsoft-prod.list
+rm -f /etc/apt/trusted.gpg.d/microsoft.gpg

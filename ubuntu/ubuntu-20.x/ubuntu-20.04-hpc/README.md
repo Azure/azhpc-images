@@ -45,12 +45,10 @@ mpirun -np 8 \
     --map-by ppr:8:node \
     -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
     -mca coll_hcoll_enable 0 \
-    -x NCCL_IB_PCI_RELAXED_ORDERING=1 \
     -x UCX_TLS=tcp \
     -x UCX_NET_DEVICES=eth0 \
     -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
     -x NCCL_SOCKET_IFNAME=eth0 \
     -x NCCL_DEBUG=WARN \
-    -x NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml \
     /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
 ```

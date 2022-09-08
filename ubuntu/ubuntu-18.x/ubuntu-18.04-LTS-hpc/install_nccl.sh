@@ -3,7 +3,7 @@ set -ex
 
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
-NCCL_VERSION="2.12.12-1"
+NCCL_VERSION="2.14.3-1"
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp
@@ -32,14 +32,6 @@ make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
-
-# NCCL-Tests Preset Run Config
-cat << EOF >> /etc/nccl.conf
-NCCL_IB_PCI_RELAXED_ORDERING=1
-CUDA_DEVICE_ORDER=PCI_BUS_ID
-NCCL_TOPO_FILE=/opt/microsoft/ndv4-topo.xml
-NCCL_SOCKET_IFNAME=eth0
-EOF
 
 $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 

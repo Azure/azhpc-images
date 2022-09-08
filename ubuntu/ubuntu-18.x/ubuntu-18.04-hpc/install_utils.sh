@@ -56,7 +56,6 @@ apt-get -y install numactl \
                    libnl-3-dev \
                    libnl-route-3-dev \
                    libsecret-1-0 \
-		   ansible \
                    dkms \
                    jq
 

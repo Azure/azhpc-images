@@ -30,6 +30,10 @@ cat << EOF >> /etc/security/limits.conf
 EOF
 
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
+echo "sunrpc.tcp_max_slot_table_entries=128" >> /etc/sysctl.conf
+echo "net.ipv4.neigh.default.gc_thresh1 4096" >> /etc/sysctl.conf
+echo "net.ipv4.neigh.default.gc_thresh2 8192" >> /etc/sysctl.conf
+echo "net.ipv4.neigh.default.gc_thresh3 16384" >> /etc/sysctl.conf
 sysctl -p
 
 # Install WALinuxAgent

@@ -5,7 +5,7 @@ set -ex
 source ./set_properties.sh
 
 # install utils
-./install_utils.sh
+$UBUNTU_COMMON_DIR/install_utils.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
@@ -35,8 +35,8 @@ $COMMON_DIR/install_hpcdiag.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
-# Network Optimization
-$COMMON_DIR/network-tuning.sh
+# SKU Customization
+$COMMON_DIR/setup_sku_customizations.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

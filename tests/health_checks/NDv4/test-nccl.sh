@@ -23,7 +23,7 @@ pass=1
 #Count the number of gpu-name nvidia-smi outputs.
 error_smi="**Fail** nvidia-smi failed with error code"
 #Load the mpi module.
-module load mpi/hpcx
+module load mpi/hpcx > /dev/null
 
 #Lock graphics clocks to 1400.
 lock_clocks="sudo nvidia-smi -lgc 1400"
@@ -33,7 +33,7 @@ mpi_text="mpirun -np 8 --bind-to numa --map-by ppr:8:node -x LD_LIBRARY_PATH="
 mpi_text+="/usr/local/nccl-rdma-sharp-plugins/lib:\$LD_LIBRARY_PATH"
 mpi_text+=" -mca coll_hcoll_enable 0 -x NCCL_IB_PCI_RELAXED_ORDERING=1"
 
-exec_text="/opt/nccl-tests/build/all_reduce_perf -b1G -f2 -g1 -e 1G"
+exec_text="/opt/nccl-tests/build/all_reduce_perf -c 1 -b1G -f2 -g1 -e 1G"
 
 exec_nvlink="timeout 3m $mpi_text -x UCX_TLS=tcp -x UCX_NET_DEVICES=eth0"
 exec_nvlink+=" -x CUDA_DEVICE_ORDER=PCI_BUS_ID -x NCCL_SOCKET_IFNAME=eth0 -x"
@@ -50,7 +50,7 @@ nccl_nvlink=$(echo "$output")
 #select the average bandwidth from the nccl output.
 bw=$(echo "$nccl_nvlink" | grep "Avg bus bandwidth" | awk '{print $6}')
 #the average bandwidth should be above 235 GB/s.
-less=$(echo "scale=4; 220.0 > $bw" | bc)
+less=$(echo "scale=4; 230.0 > $bw" | bc)
 if [ $less -eq 1 ]; then
        echo -e "\t **Fail** observed bandwidth in nvlink nccl test is $bw."
        pass=0

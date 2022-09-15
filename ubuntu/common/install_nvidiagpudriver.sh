@@ -7,7 +7,7 @@ CHECKSUM=$2
 
 # Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
 # Install Cuda
-NVIDIA_VERSION="510.73.08"
+NVIDIA_VERSION="510.85.02"
 if [ ${RELEASE_VERSION} == "1804" ]; then CUDA_VERSION="11.6"; else CUDA_VERSION="11-6"; fi
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}-keyring.gpg 
 mv cuda-ubuntu${RELEASE_VERSION}-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
@@ -35,7 +35,7 @@ popd
 
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
-$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "c854bb2dc3368c0127dc08a85bd902f8558a5149085af13d061c612cf06c2913"
+$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "372427e633f32cff6dd76020e8ed471ef825d38878bd9655308b6efea1051090"
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
 

@@ -3,7 +3,7 @@ set -ex
 
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
-NCCL_VERSION="2.12.12-1"
+NCCL_VERSION="2.14.3-1"
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp

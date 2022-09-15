@@ -1,27 +1,13 @@
 #!/bin/bash
 
 ##This script tests host to device bandwidth and device to host bandwidth using
-##the superbench gpu-copy benchmark. Users may pass a directory containing the
-##gpu-copy benchmar to the script. If no directory is passed a default 
-##location is used. If the gpu-copy benchmark has not installed succesfully
-##installationt can be done following these steps:
+##a script recorded within the test that tests host to device and device to 
+##host copy bandwidths between every combination of gpus and numa domains. The
+##test confirms that each GPU is hitting the expected bandwidths to at least
+##one of the numa domains.
 ##
-##Download the host to device and device to host test from superbench v0.5.
-#string="https://raw.githubusercontent.com/microsoft/superbenchmark/release/"\
-#	"0.5/superbench/benchmarks/micro_benchmarks/gpu_copy_performance/"\
-#	"gpu_copy.cu"
-#timeout 3m wget -q -o /dev/null $string
-#err_wget=$?
-#if [ $err_wget -ne 0 ]; then
-#	echo "wget exited with error code $err_wget"
-#	exit $err_wget;
-#fi
-#
-#
-##Compile the gpu-copy benchmark.
-#compile="nvcc -lnuma gpu_copy.cu -o gpu-copy"
-#error_nvcc="Fail: nvvc failed to compile gpu_copy.cu with error code"
-#catch_error "$compile" "$error_nvcc"
+##When this test is first run it will compile the gpu-copy benchmark if it is
+##not detected.
 
 
 #Catch error codes that may be thrown by the executable passed as the first
@@ -35,20 +21,80 @@ catch_error() {
 	fi
 }
 
+create_benchmark() {
+        file_dir="$1"
+
+        compile_bench="nvcc -lnuma $file_dir/gpu-copy.cu -o $file_dir/gpu-copy"
+        compile_error="Error when attempting to compile benchmark"
+        catch_error "$compile_bench" "$compile_error"
+}
+
+locate_file() {
+        file="$1"
+        exitOnFail=$2
+        pass=1
+	#File name we want to locate.
+        local file="$1"
+	#What should  happen if the file isn't located?
+        local exitOnFail=$2
+	#Write the directory containing the file here, if found.
+        local return_dir=$3
+        local pass=1
+
+	#Start by testing directory where the script is located
+        local DIR=$(cd `dirname $0` && pwd)
+        DIR=$(cd `dirname $0` && pwd)
+        if ! test -f "$DIR/$file"; then
+                pass=0
+        fi
+        #If file is located in script dir use that directory.
+        if [[ $pass -eq 1 ]]; then
+                CHECK_LOC=$DIR
+        fi
+	#Otherwise check the PWD (in case that is different).
+        if [[ $pass -eq 0 ]]; then
+                DIR=$PWD
+                pass=1
+                if test -f "$DIR/$file"; then
+                        CHECK_LOC=$DIR
+                else
+                        pass=0
+                fi
+        fi
+
+	#If we found the file pass that to return_dir. 
+	#Otherwise either just exit or also fail.
+        if [[ $exitOnFail -eq 0 ]]; then
+                if [[ $pass -eq 0 ]]; then
+                         DIR=$(cd `dirname $0` && pwd)
+                         CHECK_LOC=$DIR
+                fi
+        else
+                if [[ $pass -eq 0 ]]; then
+                        echo "Cannot find file $file."
+                        exit 1;
+                fi
+        fi
+	eval $return_dir="'$CHECK_LOC'"
+}
+
+
 echo "htod and dtoh bandwidth check:"
 
 #If no arguments are passed to the script assume the gpu-copy test is located
 #in the default location. Otherwise check if it the gpu-copy test is in the 
 #location indicated by the argument. 
 if [ "$#" -eq 0 ]; then
-	CHECK_DIR="/opt/azurehpc/test/health_checks/NDv4/"
+	locate_file "gpu-copy" 0 CHECK_DIR
+	locate_file "gpu-copy.cu" 1 CHECK_DIR
+        create_benchmark "$CHECK_DIR"
 else
 	pass=1
 	if test -f "$1/gpu-copy"; then
 		CHECK_DIR=$1
 	else
-		echo -e "\t **Fail** Directory $1 is missing the gpu-copy test."
-		exit 1;
+                create_benchmark $1
+                CHECK_DIR=$1
 	fi
 fi
 #Store output from calls passed to catch_error
@@ -63,7 +109,7 @@ lock_clocks="sudo nvidia-smi -lgc 1400"
 catch_error "$lock_clocks" "$error_smi"
 
 #Count the GPUs.
-gpu_list="sudo timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
+gpu_list="timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
 catch_error "$gpu_list" "$error_smi"
 ngpus=$(echo "$output" | wc -l)
 
@@ -71,8 +117,7 @@ ngpus=$(echo "$output" | wc -l)
 
 
 #Run the superbench device to host bandwidth test.
-exec_htod="timeout 3m $CHECK_DIR/gpu-copy --size 134217728 --num_warm_up 5"
-exec_htod+=" --num_loops 10 --htod --dma_copy"
+exec_htod="timeout 3m $CHECK_DIR/gpu-copy --size 134217728 --htod"
 
 error_htod="**Fail** The htod gpu_copy test failed to execute."
 error_htod+="It exited with error code"
@@ -81,8 +126,7 @@ catch_error "$exec_htod" "$error_htod"
 x_htod=$(echo "$output")
 
 #Run the superbench host to device bandwidth test.
-exec_dtoh="timeout 3m $CHECK_DIR/gpu-copy --size 134217728 --num_warm_up 5"
-exec_dtoh+=" --num_loops 10 --dtoh --dma_copy"
+exec_dtoh="timeout 3m $CHECK_DIR/gpu-copy --size 134217728 --dtoh"
 
 error_dtoh="**Fail** The dtoh gpu_copy test failed to execute."
 error_dtoh+="It exited with error code"
@@ -121,7 +165,7 @@ for i in $(seq 0 $((ngpus-1))); do
 	fi
 
 	#If the min bandwidth is too low the test has failed.
-	if [ $min_bw -lt 23 ]; then
+	if [ $min_bw -lt 24 ]; then
 		echo "Bandwidth is low on device $i. Reported bandwidth is"\
 			"$min_bw GB/s."
 		pass=0

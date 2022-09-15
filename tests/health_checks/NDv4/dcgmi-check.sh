@@ -20,7 +20,7 @@ echo "dcgmi diag tests:"
 
 
 #get the number of GPUs
-exec_names="timeout 3m sudo nvidia-smi --query-gpu=name --format=csv,noheader"
+exec_names="timeout 3m nvidia-smi --query-gpu=name --format=csv,noheader"
 catch_error "$exec_names" "$error_smi"
 ngpus=$(echo "$output" | wc -l)
 
@@ -51,7 +51,6 @@ fails=$(echo "$output" | grep "Fail" | wc -l)
 #Disable persistence mode on GPUs that started with it disabled.
 for i in $(seq 0 $((ngpus-1))); do
 	if [ ${pmvals[$i]} == "Disabled" ]; then
-	       #sudo nvidia-smi -i $i -pm 0 > /dev/null
 		exec_pm="timeout 3m sudo nvidia-smi -i $i -pm 0"
                 catch_error "$exec_pm" "$error_smi"
 	fi	       

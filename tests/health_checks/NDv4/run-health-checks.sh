@@ -7,16 +7,49 @@
 #Verify if an argument was passed to the script. Test if the argument is
 #a directory that contains all the expected health checks. If no arguments
 #are passed use the default directory.
+declare -a files=("check-hardware.sh" "dcgmi-check.sh" "ecc-errors.sh"\
+	   "test-bandwidth.sh" "test-ib.sh" "test-nccl.sh"\
+	   "test-MaxPayLoad.sh" "gpu-copy.cu")
+if [ "$#" -gt 1 ]; then
+	echo "Usage: run-health-checks.sh [DIRECTORY]"
+	echo "DIRECTORY is an optional argument that specifies the location of"
+	echo "the test scripts to run. It defaults to the install location of"
+	echo "this script."
+	exit 1;
+fi
 if [ "$#" -eq 0 ]; then
-	TEST_DIR="/opt/azurehpc/test/health_checks/NDv4/"
+	pass=1
+	DIR=$(cd `dirname $0` && pwd)
+	for file in "${files[@]}"; do
+		if ! test -f "$DIR/$file"; then
+			pass=0
+		fi
+	done
+	#if tests are located in script dir use those
+	if [[ $pass -eq 1 ]]; then
+		TEST_DIR=$DIR
+	fi
+	if [[ $pass -eq 0 ]]; then
+		DIR=$PWD
+		pass=1
+		for file in "${files[@]}"; do
+			if ! test -f "$DIR/$file"; then
+				pass=0
+			fi
+		done
+		if [[ $pass -eq 1 ]]; then
+			TEST_DIR=$DIR
+		fi
+	fi
+	if [[ $pass -eq 0 ]]; then
+		echo "Not all healch check files found in the working"\
+			"directory please specify where they can be found."
+		exit 1;
+	fi
 else
 	pass=1
-	declare -a files=("check-hardware.sh" "dcgmi-check.sh" "ecc-errors.sh"\
-	       	"test-bandwidth.sh" "test-ib.sh" "test-nccl.sh")
 	for file in "${files[@]}"; do
-		if test -f "$1/$file"; then
-			true
-		else
+		if ! test -f "$1/$file"; then
 			echo "Directory $1 is missing $file"
 			pass=0
 		fi
@@ -82,12 +115,21 @@ else
 	fi
         echo "$line"
 
+	$TEST_DIR/test-MaxPayLoad.sh
+	out=$?
+	if [ $out -ne 0 ]; then
+		pass=0
+	fi
+        echo "$line"
+
 	if [ $pass -ne 1 ]; then
-		echo "******************At least one health check failed."\
-			"********************"
+                message="******************At least one health check failed."
+                message+="*********************"
+                echo "$message"
 	else
-		echo "*********All health checks have passed, everything "\
-			"seems ok.***********"
+                message="********************All health checks have passed."
+                message+="**********************"
+                echo "$message"
 	fi
         echo "$line"
 fi

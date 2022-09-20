@@ -33,7 +33,6 @@ apt-get -y install numactl \
                    libnl-route-3-dev \
                    net-tools \
                    libsecret-1-0 \
-		   ansible \
 		   python3-pip \
                    dkms \
                    jq

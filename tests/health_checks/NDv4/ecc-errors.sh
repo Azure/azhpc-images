@@ -108,7 +108,7 @@ done
 #SRAM_ECC_THRESHOLD are observed, but don't fail. 
 correctableVS=$(echo "$ECC_errors"  | grep Volatile -A 4 \
 	| grep "SRAM Correctable" | cut -d: -f2)
-CorrectableVS_v=( ${correctableVS} )
+correctableVS_v=( ${correctableVS} )
 for i in $(seq 0 $((ngpus-1))); do
 	val=$((correctableVS_v[i]))
 	if [ $val -gt $SRAM_ECC_THRESHOLD ]; then

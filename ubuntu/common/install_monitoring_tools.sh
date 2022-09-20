@@ -15,6 +15,6 @@ rm /etc/apt/sources.list.d/cuda-ubuntu*.list 2> /dev/null
 
 pushd $MONITOR_DIR
 
-git clone https://github.com/Azure/Moneo  --branch v0.1.2
+git clone https://github.com/Azure/Moneo  --branch v0.2.0
 
 popd

@@ -25,7 +25,7 @@ create_benchmark() {
         file_dir="$1"
 
         compile_bench="nvcc -lnuma $file_dir/gpu-copy.cu -o $file_dir/gpu-copy"
-        compile_error="Error when attempting to compile benchmark"
+	compile_error="**Fail** Error when attempting to compile benchmark"
         catch_error "$compile_bench" "$compile_error"
 }
 

@@ -55,3 +55,10 @@ EOF
 systemctl enable sku_customizations
 systemctl start sku_customizations
 systemctl is-active --quiet sku_customizations
+
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "sku_customizations service Inactive!"
+    exit ${error_code}
+fi

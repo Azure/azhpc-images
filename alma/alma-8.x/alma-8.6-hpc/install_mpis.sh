@@ -42,6 +42,5 @@ ln -s /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION} /usr/share/Modules
 # Install platform independent MPIs
 $ALMA_COMMON_DIR/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}
 
-# cleanup downloaded tarballs
-rm -rf *.tbz *.tar.gz *offline.sh
-rm -rf -- */
+# cleanup downloaded tarball for HPC-x
+rm -rf *.tbz 

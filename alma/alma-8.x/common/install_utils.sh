@@ -72,3 +72,6 @@ popd
 
 # Allow execute permissions
 chmod +x /usr/bin/azcopy
+
+# remove tarball from azcopy
+rm -rf *.tar.gz

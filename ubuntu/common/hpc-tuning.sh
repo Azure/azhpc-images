@@ -53,6 +53,7 @@ Description=Set sunrpc tcp settings
 User=root
 Type=oneshot
 ExecStart=/usr/sbin/sunrpc_tcp_settings.sh
+RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
@@ -60,7 +61,14 @@ EOF
 
 systemctl enable sunrpc_tcp_settings
 systemctl start sunrpc_tcp_settings
+systemctl is-active --quiet sunrpc_tcp_settings
 
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "sunrpc_tcp_settings service inactive!"
+    exit ${error_code}
+fi
 
 # Install WALinuxAgent
 apt-get install python3-setuptools

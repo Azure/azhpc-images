@@ -27,12 +27,15 @@ case \$vmSize in
     *) echo "No SKU customization for \$vmSize";;
 esac
 
-## NVIDIA Fabric manager (only for NDv4)
 if [[ \$vmSize == Standard_ND96*v4 ]]
 then
+    ## NVIDIA Fabric manager (only for NDv4)
     systemctl enable nvidia-fabricmanager
     systemctl start nvidia-fabricmanager
     systemctl is-active --quiet nvidia-fabricmanager
+
+    ## load nvidia-peermem module
+    modprobe nvidia-peermem
 fi
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh

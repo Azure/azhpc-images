@@ -43,11 +43,11 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
-# Intel MPI 2021 (Update 6)
-IMPI_2021_VERSION="2021.6.0"
-IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18714/l_mpi_oneapi_p_2021.6.0.602_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "e85db63788c434d43c1378e5e2bf7927a75d11aee8e6b78ee0d933da920977a6"
-bash l_mpi_oneapi_p_2021.6.0.602_offline.sh -s -a -s --eula accept
+# Intel MPI 2021 (Update 7)
+IMPI_2021_VERSION="2021.7.0"
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18926/l_mpi_oneapi_p_${IMPI_2021_VERSION}.8711_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "4eb1e1487b67b98857bc9b7b37bcac4998e0aa6d1b892b2c87b003bf84fb38e9"
+bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.8711_offline.sh -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 

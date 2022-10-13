@@ -57,7 +57,7 @@ OMPI_VERSION_ALMA="4.1.3"
 OMPI_VERSION_UBUNTU="4.1.3"
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA="2021.7.0"
-IMPI_2021_VERSION_UBUNTU="2021.6.0"
+IMPI_2021_VERSION_UBUNTU="2021.7.0"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
@@ -99,7 +99,6 @@ CHECK_MVAPICH2=0
 CHECK_MVAPICH2X=0
 CHECK_CUDA=0
 CHECK_AOCL=1
-CHECK_NV_PMEM=0
 CHECK_NCCL=0
 CHECK_GCC=1
 
@@ -205,7 +204,6 @@ then
     MVAPICH2X_PATH=${MVAPICH2X_PATH_CENTOS}
     OPENMPI_PATH=${OPENMPI_PATH_CENTOS}
     CHECK_AOCL=1
-    CHECK_NV_PMEM=1
     CHECK_NCCL=1
 elif [[ $distro == "CentOS Linux 8.1.1911" ]]
 then
@@ -250,7 +248,6 @@ then
     MVAPICH2_PATH=${MVAPICH2_PATH_ALMA}
     OPENMPI_PATH=${OPENMPI_PATH_ALMA}
     CHECK_AOCL=1
-    CHECK_NV_PMEM=1
     CHECK_NCCL=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
@@ -269,12 +266,6 @@ then
     CHECK_AOCL=0
     CHECK_GCC=0
     CHECK_NCCL=1
-    if [ "${MOFED_LTS}" = true ]
-    then 
-        CHECK_NV_PMEM=0
-    else 
-        CHECK_NV_PMEM=1
-    fi
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
@@ -290,7 +281,6 @@ then
     MVAPICH2X_PATH=${MVAPICH2X_PATH_UBUNTU}
     OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
     CHECK_AOCL=0
-    CHECK_NV_PMEM=1
     CHECK_NCCL=1
     CHECK_GCC=0
 else
@@ -435,13 +425,6 @@ if [ $CHECK_CUDA -eq 1 ]
 then
     nvidia-smi
     check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
-fi
-
-# Check NV_Peer_Memory
-if [ $CHECK_NV_PMEM -eq 1 ]
-then
-    lsmod | grep nv
-    check_exit_code "NV Peer Memory Module" "Failed to locate Module"
 fi
 
 # Perform Single Node NCCL Test

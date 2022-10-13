@@ -50,10 +50,13 @@ else
 fi
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
+MVAPICH2_VERSION_ALMA="2.3.7"
 MVAPICH2_VERSION_UBUNTU="2.3.7"
 OMPI_VERSION_CENTOS="4.1.1"
+OMPI_VERSION_ALMA="4.1.3"
 OMPI_VERSION_UBUNTU="4.1.3"
 IMPI_2021_VERSION_CENTOS="2021.4.0"
+IMPI_2021_VERSION_ALMA="2021.7.0"
 IMPI_2021_VERSION_UBUNTU="2021.6.0"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
@@ -61,6 +64,8 @@ IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
 MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
+MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.6-2.0.9.0"
+
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
@@ -72,6 +77,12 @@ IMPI2021_PATH_CENTOS="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_CENTOS}"
 MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}"
 MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
+
+HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.11-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
+IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
+MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}"
+OPENMPI_PATH_ALMA="/opt/openmpi-${OMPI_VERSION_ALMA}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
 HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
@@ -99,6 +110,10 @@ find_distro() {
     then
         local centos_distro=`find_centos_distro`
         echo "${os} ${centos_distro}"
+    elif [[ $os == "AlmaLinux" ]]
+    then
+        local alma_distro=`find_alma_distro`
+        echo "${os} ${alma_distro}"
     elif [[ $os == "Ubuntu" ]]
     then
         local ubuntu_distro=`find_ubuntu_distro`
@@ -112,6 +127,11 @@ find_distro() {
 # Find CentOS distro
 find_centos_distro() {
     echo `cat /etc/redhat-release | awk '{print $4}'`
+}
+
+# Find Alma distro
+find_alma_distro() {
+    echo `cat /etc/redhat-release | awk '{print $3}'`
 }
 
 # Find Ubuntu distro
@@ -215,6 +235,23 @@ then
     MVAPICH2_PATH=${MVAPICH2_PATH_CENTOS}
     MVAPICH2X_PATH=${MVAPICH2X_PATH_CENTOS}
     OPENMPI_PATH=${OPENMPI_PATH_CENTOS}
+elif [[ $distro == "AlmaLinux 8.6" ]]
+then
+    HPCX_OMB_PATH=${HPCX_OMB_PATH_ALMA_86}
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_IMPI_2018=0
+    CHECK_OMPI=1
+    CHECK_MVAPICH2=1
+    CHECK_MVAPICH2X=0
+    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_ALMA}
+    MOFED_VERSION=${MOFED_VERSION_ALMA_86}
+    IMPI2021_PATH=${IMPI2021_PATH_ALMA}
+    MVAPICH2_PATH=${MVAPICH2_PATH_ALMA}
+    OPENMPI_PATH=${OPENMPI_PATH_ALMA}
+    CHECK_AOCL=1
+    CHECK_NV_PMEM=1
+    CHECK_NCCL=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_1804}

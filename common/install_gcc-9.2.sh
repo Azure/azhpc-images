@@ -47,3 +47,5 @@ setenv          CC              /opt/gcc-${GCC_VERSION}/bin/gcc
 setenv          GCC             /opt/gcc-${GCC_VERSION}/bin/gcc
 EOF
 
+# cleanup downloaded tarballs
+rm -rf *.tar.gz *tar.bz2

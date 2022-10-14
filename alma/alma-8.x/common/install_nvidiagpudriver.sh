@@ -40,15 +40,17 @@ yum install -y rpm-build
 rpmbuild --rebuild /tmp/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.src.rpm
 rpm -ivh ~/rpmbuild/RPMS/x86_64/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.x86_64.rpm
 echo "exclude=nvidia_peer_memory" | tee -a /etc/yum.conf
-modprobe nv_peer_mem
-lsmod | grep nv
 popd
 
-bash -c "cat > /etc/modules-load.d/nv_peer_mem.conf" <<'EOF'
-nv_peer_mem
-EOF
+# load the nvidia-peermem coming as a part of NVIDIA GPU driver
+# Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
+# Stop nv_peer_mem service
+service nv_peer_mem stop
+# load nvidia-peermem
+modprobe nvidia-peermem
+# verify if loaded
+lsmod | grep nvidia_peermem
 
-systemctl enable nv_peer_mem.service
 $COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
 
 # Install GDRCopy

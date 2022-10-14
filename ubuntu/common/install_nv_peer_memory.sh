@@ -18,7 +18,7 @@ pushd /tmp
 tar xzf /tmp/nvidia-peer-memory_${NV_PEER_MEMORY_VERSION_PREFIX}.orig.tar.gz
 pushd nvidia-peer-memory-${NV_PEER_MEMORY_VERSION_PREFIX}/
 # Fix for issue - https://github.com/Mellanox/nv_peer_memory/issues/106
-sed -i s/1.2-0/1.3-0/g ./debian/changelog
+sed -i s/1.2-0/${NV_PEER_MEMORY_VERSION}/g ./debian/changelog
 dpkg-buildpackage -us -uc 
 dpkg -i ../nvidia-peer-memory_${NV_PEER_MEMORY_VERSION}_all.deb 
 apt-mark hold nvidia-peer-memory

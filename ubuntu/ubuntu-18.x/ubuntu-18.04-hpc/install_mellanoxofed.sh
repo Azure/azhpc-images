@@ -14,3 +14,7 @@ $COMMON_DIR/write_component_version.sh "MOFED" $VERSION
 
 # Restarting openibd
 /etc/init.d/openibd restart
+
+## Fix for systemd-modules-load service failing on boot
+rm -rf /lib/modules/$(uname -r)/kernel/drivers/infiniband/ulp/iser/ib_iser.ko
+depmod

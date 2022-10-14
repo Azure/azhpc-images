@@ -36,11 +36,15 @@ popd
 # Build the nccl tests
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
-git clone https://github.com/NVIDIA/nccl-tests.git
-pushd nccl-tests
+NCCL_TESTS_VERSION="2.13.3"
+TARBALL="v${NCCL_TESTS_VERSION}.tar.gz"
+NCCL_TESTS_DOWNLOAD_URL="https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${TARBALL}"
+wget ${NCCL_TESTS_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
+pushd nccl-tests-${NCCL_TESTS_VERSION}
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
-mv nccl-tests /opt/.
+mv nccl-tests-${NCCL_TESTS_VERSION} /opt/nccl-tests
 module unload mpi/hpcx
 
 # Remove installation files

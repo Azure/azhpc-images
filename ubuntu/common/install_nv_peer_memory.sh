@@ -10,20 +10,22 @@ NV_PEER_MEM_DOWNLOAD_URL="https://github.com/Mellanox/nv_peer_memory/archive/ref
 wget ${NV_PEER_MEM_DOWNLOAD_URL}
 tar -xvf $TARBALL
 
-cd nv_peer_memory-${NV_PEER_MEMORY_VERSION}
-./build_module.sh 
-cd /tmp
+pushd nv_peer_memory-${NV_PEER_MEMORY_VERSION}
+./build_module.sh
+popd
+
+pushd /tmp
 tar xzf /tmp/nvidia-peer-memory_${NV_PEER_MEMORY_VERSION_PREFIX}.orig.tar.gz
-cd nvidia-peer-memory-${NV_PEER_MEMORY_VERSION_PREFIX}/
-
+pushd nvidia-peer-memory-${NV_PEER_MEMORY_VERSION_PREFIX}/
 # Fix for issue - https://github.com/Mellanox/nv_peer_memory/issues/106
-sed -i s/1.2-0/1.3-0/g ./debian/changelog
-
+sed -i s/1.2-0/${NV_PEER_MEMORY_VERSION}/g ./debian/changelog
 dpkg-buildpackage -us -uc 
 dpkg -i ../nvidia-peer-memory_${NV_PEER_MEMORY_VERSION}_all.deb 
 apt-mark hold nvidia-peer-memory
 dpkg -i ../nvidia-peer-memory-dkms_${NV_PEER_MEMORY_VERSION}_all.deb 
 apt-mark hold nvidia-peer-memory-dkms
+popd
+popd
 
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
 # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html

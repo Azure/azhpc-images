@@ -50,10 +50,12 @@ else
 fi
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
+MVAPICH2_VERSION_ALMA="2.3.7"
 MVAPICH2_VERSION_UBUNTU="2.3.7"
 MVAPICH2_VERSION_SUSE="2.3.6"
 
 OMPI_VERSION_CENTOS="4.1.1"
+OMPI_VERSION_ALMA="4.1.3"
 OMPI_VERSION_UBUNTU="4.1.3"
 OMPI_VERSION_SUSE="4.1.1"
 
@@ -157,6 +159,11 @@ find_distro() {
 find_centos_distro() {
     echo `cat /etc/redhat-release | awk '{print $4}'`
     # TODO - centos should have os-release too
+}
+
+# Find Alma distro
+find_alma_distro() {
+    echo `cat /etc/redhat-release | awk '{print $3}'`
 }
 
 # Find Ubuntu distro

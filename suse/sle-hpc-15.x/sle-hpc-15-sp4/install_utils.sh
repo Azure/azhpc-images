@@ -101,7 +101,11 @@ zypper install -y \
     python3-devel\
     patch \
     python-rpm-macros \
-    lshw
+    lshw \
+    autoconf \
+    automake \
+    libtool \
+    rdma-core-devel
 
 # the ibdev2netdev is only in the external mellanox package, so we do not have it with inbox drivers
 wget https://raw.githubusercontent.com/Mellanox/container_scripts/master/ibdev2netdev

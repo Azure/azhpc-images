@@ -25,13 +25,6 @@ echo 'ADD_EXTRA_GROUPS=1' | sudo tee -a /etc/adduser.conf
 echo 'EXTRA_GROUPS=video' | sudo tee -a /etc/adduser.conf
 echo 'EXTRA_GROUPS=render' | sudo tee -a /etc/adduser.conf
 
-#update grub settings
-string="GRUB_CMDLINE_LINUX_DEFAULT=\"panic=0 nowatchdog\""
-line=$(cat /etc/default/grub.d/50-cloudimg-settings.cfg | grep GRUB_CMDLINE_LINUX_DEFAULT=)
-cat /etc/default/grub.d/50-cloudimg-settings.cfg | sed -e "s/$line/$string/" > temp_file.txt
-sudo mv temp_file.txt /etc/default/grub.d/50-cloudimg-settings.cfg
-sudo update-grub
-
 #add nofile limits
 string_so="*               soft    nofile          1048576"
 line=$(cat /etc/security/limits.conf | grep "soft    nofile")

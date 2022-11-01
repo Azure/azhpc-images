@@ -5,7 +5,8 @@ set -ex
 yum history sync
 
 # Clear History
-rm -rf /var/log/*
+# Clear contents of log files
+for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
 rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant*

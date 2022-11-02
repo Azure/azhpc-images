@@ -11,6 +11,8 @@ rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf /tmp/tmp*
 rm -rf /run/cloud-init
 rm -rf /root/*
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
 
 # Empty machine information
 cat /dev/null > /etc/machine-id

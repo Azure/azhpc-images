@@ -14,6 +14,8 @@ rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /var/lib/systemd/random-seed /var/intel/ /var/cache/*
 rm -rf /run/cloud-init /var/lib/cloud/instances/*
 rm -rf /root/*
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
 
 # Empty machine information
 cat /dev/null > /etc/machine-id

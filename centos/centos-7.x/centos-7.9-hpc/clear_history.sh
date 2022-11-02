@@ -15,6 +15,8 @@ rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant*
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /run/cloud-init
 rm -rf /root/*
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
 
 # Empty machine information
 cat /dev/null > /etc/machine-id

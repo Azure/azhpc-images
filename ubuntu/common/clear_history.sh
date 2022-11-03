@@ -2,13 +2,17 @@
 set -ex
 
 # Remove logs, cache, temporary installation dir and other host info
-rm -rf /var/log/* /var/lib/systemd/random-seed
+# Clear contents of log files
+for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
+rm -rf /var/lib/systemd/random-seed
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
 rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/ssh/ssh_host_* /etc/sudoers.d/* /etc/*-
 rm -rf /tmp/*.gz /tmp/nvidia* /tmp/MLNX* /tmp/*.log* /tmp/ofed.conf /tmp/tmp*
 rm -rf /run/cloud-init
 rm -rf /root/*
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
 
 # Empty machine information
 cat /dev/null > /etc/machine-id

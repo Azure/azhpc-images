@@ -7,6 +7,7 @@ KERNEL=${KERNEL[-1]}
 yum install -y https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
+echo "exclude=kernel*" | tee -a /etc/yum.conf
 
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"

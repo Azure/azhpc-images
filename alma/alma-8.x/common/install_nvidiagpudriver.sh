@@ -39,7 +39,7 @@ yum install -y rpm-build
 ./build_module.sh 
 rpmbuild --rebuild /tmp/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.src.rpm
 rpm -ivh ~/rpmbuild/RPMS/x86_64/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.x86_64.rpm
-echo "exclude=nvidia_peer_memory" | tee -a /etc/yum.conf
+sed -i "$ s/$/ nvidia_peer_memory/" /etc/yum.conf
 popd
 
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
@@ -63,11 +63,9 @@ tar -xvf $TARBALL
 pushd gdrcopy-${GDRCOPY_VERSION}/packages/
 CUDA=/usr/local/cuda ./build-rpm-packages.sh
 rpm -Uvh gdrcopy-kmod-${GDRCOPY_VERSION}-1dkms.noarch.el8.rpm
-echo "exclude=gdrcopy-kmod.noarch" | tee -a /etc/yum.conf
 rpm -Uvh gdrcopy-${GDRCOPY_VERSION}-1.x86_64.el8.rpm
-echo "exclude=gdrcopy" | tee -a /etc/yum.conf
 rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}-1.noarch.el8.rpm
-echo "exclude=gdrcopy-devel.noarch" | tee -a /etc/yum.conf
+sed -i "$ s/$/ gdrcopy*/" /etc/yum.conf
 popd
 
 $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
@@ -77,7 +75,7 @@ NVIDIA_FABRIC_MANAGER_VERSION="510.85.02-1"
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
 $COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "7f8468e92deb78e427df8b4947c4b0fd7a7b5eedf1e3961e60436b4620b2fa1d"
 yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-echo "exclude=nvidia-fabric-manager" | tee -a /etc/yum.conf
+sed -i "$ s/$/ nvidia-fabric-manager/" /etc/yum.conf
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
 
 # cleanup downloaded files

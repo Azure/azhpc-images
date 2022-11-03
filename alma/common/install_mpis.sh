@@ -36,7 +36,7 @@ cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
 # exclude openmpi, perftest from updates
-echo "exclude=openmpi perftest" | tee -a /etc/yum.conf
+sed -i "$ s/$/ openmpi perftest/" /etc/yum.conf
 
 # Intel MPI 2021 (Update 7)
 IMPI_2021_VERSION="2021.7.0"

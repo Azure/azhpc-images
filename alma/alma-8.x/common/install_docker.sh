@@ -17,14 +17,11 @@ yum clean expire-cache
 # Install nvidia-docker package
 # Install NVIDIA container toolkit and mark NVIDIA packages on hold
 yum install -y nvidia-container-toolkit
-# Mark the installed packages on hold to disable updates
-echo "exclude=nvidia-container-toolkit" | tee -a /etc/yum.conf
-echo "exclude=libnvidia-container-tools" | tee -a /etc/yum.conf
-echo "exclude=libnvidia-container1" | tee -a /etc/yum.conf
 
 # Install NVIDIA container runtime and mark NVIDIA packages on hold
 yum install -y nvidia-container-runtime
-echo "exclude=nvidia-container-runtime" | tee -a /etc/yum.conf
+# Mark the installed packages on hold to disable updates
+sed -i "$ s/$/ *nvidia-container*/" /etc/yum.conf
 
 wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/nvidia-docker
 cp nvidia-docker /bin/

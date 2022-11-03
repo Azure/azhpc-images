@@ -22,7 +22,7 @@ $COMMON_DIR/download_and_verify.sh $IMPI_2018_DOWNLOAD_URL "a1114b3eb4149c2f1089
 tar -xvf l_mpi_${IMPI_VERSION}.tgz
 cd l_mpi_${IMPI_VERSION}
 # Unsupported OS -
-# TODO: Update the silent.cfg file to proceed with installation
+# Update the silent.cfg file to proceed with installation
 sed -i -e 's/ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg
 ./install.sh --silent ./silent.cfg
 cd ..

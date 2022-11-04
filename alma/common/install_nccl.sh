@@ -16,7 +16,7 @@ make pkg.redhat.build
 rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda11.6.x86_64.rpm
 rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda11.6.x86_64.rpm
 rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda11.6.x86_64.rpm
-sed -i "$ s/$/ libnccl*/" /etc/yum.conf
+sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 popd
 
 # Install the nccl rdma sharp plugin

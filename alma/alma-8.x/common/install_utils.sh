@@ -7,7 +7,6 @@ KERNEL=${KERNEL[-1]}
 yum install -y https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
-echo "exclude=kernel*" | tee -a /etc/yum.conf
 
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
@@ -43,6 +42,9 @@ yum install -y numactl \
     kernel-rpm-macros \
     tcsh \
     gcc-gfortran
+
+## Disable kernel updates
+echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
 
 ## Install dkms from the EPEL repository
 wget -r --no-parent -A "dkms-*.el8.noarch.rpm" https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/

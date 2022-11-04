@@ -21,7 +21,7 @@ yum install -y nvidia-container-toolkit
 # Install NVIDIA container runtime and mark NVIDIA packages on hold
 yum install -y nvidia-container-runtime
 # Mark the installed packages on hold to disable updates
-sed -i "$ s/$/ *nvidia-container*/" /etc/yum.conf
+sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
 
 wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/nvidia-docker
 cp nvidia-docker /bin/

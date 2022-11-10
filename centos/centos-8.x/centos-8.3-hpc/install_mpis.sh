@@ -11,16 +11,17 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.4
-HPCX_VERSION="v2.7.4"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.8.0-gcc-MLNX_OFED_LINUX-5.2-1.0.4.0-redhat8.3-x86_64.tbz
-TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
+# HPC-X v2.13
+HPCX_VERSION="v2.13"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.12-x86_64.tbz"
+HPCX_DOWNLOAD_URL="https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}"
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "ee1b0f3fe8d295ae662cd08794a890135b4014b9b3e8efa3f00aafe4678bae9c"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "87feba9fbc64e3dad92f5108a75302160203e5e4db3cc33caa8005545b74356d"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
+$COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # Enable Sharpd
 ${HPCX_PATH}/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd

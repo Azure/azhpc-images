@@ -38,7 +38,11 @@ $COMMON_DIR/../centos/common/network-config.sh
 $COMMON_DIR/copy_test_file.sh
 
 # install diagnostic script
-"$COMMON_DIR/install_hpcdiag.sh"
+$COMMON_DIR/install_hpcdiag.sh
 
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
+
+# clear history
+# Uncomment the line below if you are running this on a VM
+# ../../common/clear_history.sh

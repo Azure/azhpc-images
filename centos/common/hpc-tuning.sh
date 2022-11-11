@@ -57,6 +57,10 @@ then
     exit ${error_code}
 fi
 
+## Delete Azsec from the VM
+# Disable epel-azsec.repo
+EPEL_AZSEC_REPO="/etc/yum.repos.d/epel-azsec.repo"
+if [ -f ${EPEL_AZSEC_REPO} ]; then sed -i -e 's/enabled=1/enabled=0/g' ${EPEL_AZSEC_REPO}; fi
 # Remove auoms if exists - Prevent CPU utilization by auoms
 if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
 
@@ -74,5 +78,10 @@ OS.RootDeviceScsiTimeoutPeriod=300
 OS.MonitorDhcpClientRestartPeriod=60
 Provisioning.MonitorHostNamePeriod=60
 EOF
+
+## waagent service is based on /usr/bin/python
+ln -s /usr/bin/python3 /usr/bin/python
+
+## Restart waagent service to apply changes
 systemctl restart waagent
 $COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')

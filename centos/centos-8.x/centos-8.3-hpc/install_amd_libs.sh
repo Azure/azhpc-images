@@ -16,7 +16,7 @@ cp -r amd/${AOCL_VERSION}/* ${INSTALL_PREFIX}
 popd
 
 # Setup module files for AMD Libraries
-MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/amd
+MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/amd
 mkdir -p ${MODULE_FILES_DIRECTORY}
 
 # fftw

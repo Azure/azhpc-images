@@ -22,11 +22,6 @@ mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
-# Enable Sharpd
-${HPCX_PATH}/sharp/sbin/sharp_daemons_setup.sh -s -d sharpd
-systemctl enable sharpd
-systemctl start sharpd
-
 # MVAPICH2 2.3.7
 MV2_VERSION="2.3.7"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
@@ -58,7 +53,7 @@ mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INS
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 
 # Setup module files for MPIs
-MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi
+MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/mpi
 mkdir -p ${MODULE_FILES_DIRECTORY}
 
 # HPC-X

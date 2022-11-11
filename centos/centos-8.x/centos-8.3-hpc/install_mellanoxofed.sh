@@ -14,7 +14,8 @@ KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
 # Uncomment the lines below if you are running this on a VM
 # RELEASE=( $(cat /etc/centos-release | awk '{print $4}') )
 # yum install -y https://vault.centos.org/${RELEASE}/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm
-yum install -y kernel-devel-${KERNEL}
+# yum install -y https://vault.centos.org/${RELEASE}/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
+yum install -y kernel-devel-${KERNEL} kernel-modules-extra-${KERNEL}
 ./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo --skip-unsupported-devices-check --without-fw-update
 
 # Issue: Module mlx5_ib belong to a kernel which is not a part of MLNX
@@ -22,3 +23,12 @@ yum install -y kernel-devel-${KERNEL}
 # This causes openibd to ignore the kernel difference but relies on weak-updates
 # Restarting openibd
 /etc/init.d/openibd force-restart
+systemctl restart openibd
+systemctl is-active --quiet openibd
+
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "openibd service inactive/dead!"
+    exit ${error_code}
+fi

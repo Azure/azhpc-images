@@ -36,7 +36,8 @@ yum install -y numactl \
     cmake \
     libnl3-devel \
     libarchive \
-    libsecret
+    libsecret \
+    jq
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.

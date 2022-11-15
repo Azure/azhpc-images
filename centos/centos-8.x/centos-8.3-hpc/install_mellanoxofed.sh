@@ -32,3 +32,8 @@ then
     echo "openibd service inactive/dead!"
     exit ${error_code}
 fi
+
+# Disable kernel updates
+echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
+# exclude opensm from updates
+sed -i "$ s/$/ opensm*/" /etc/dnf/dnf.conf

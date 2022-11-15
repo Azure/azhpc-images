@@ -22,6 +22,9 @@ mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
+# exclude ucx from updates
+sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
+
 # MVAPICH2 2.3.7
 MV2_VERSION="2.3.7"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
@@ -43,6 +46,9 @@ UCX_PATH=${HPCX_PATH}/ucx
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 popd
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
+
+# exclude openmpi, perftest from updates
+sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 
 # Intel MPI 2021 (Update 7)
 IMPI_2021_VERSION="2021.7.0"

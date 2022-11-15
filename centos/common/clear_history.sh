@@ -5,7 +5,9 @@ set -ex
 yum history sync
 
 # Clear History
-# Clear contents of log files
+# Delete sensitive log files
+rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages
+# Clear contents of rest of systemd services related log files
 for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
 rm -rf /var/lib/systemd/random-seed 
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
@@ -15,6 +17,7 @@ rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant*
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /run/cloud-init
 rm -rf /root/*
+rm -rf /usr/tmp/dnf*
 # Clear contents of nccl.conf
 cat /dev/null > /etc/nccl.conf
 
@@ -22,7 +25,6 @@ cat /dev/null > /etc/nccl.conf
 cat /dev/null > /etc/machine-id
 
 yum clean all
-du -sh /var/cache/*
 
 # Zero out unused space to minimize actual disk usage
 for part in $(awk '$3 == "xfs" {print $2}' /proc/mounts)

@@ -65,11 +65,16 @@ rm -rf ./repo.almalinux.org/
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
-wget https://azhpcstor.blob.core.windows.net/azhpc-images-store/azcopy_linux_se_amd64_10.12.2.tar.gz
-tar -xvf azcopy_linux_se_amd64_10.12.2.tar.gz
+VERSION="10.16.2"
+RELEASE_TAG="release20221108"
+TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
+AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+wget ${AZCOPY_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
 
 # copy the azcopy to the bin path
-pushd azcopy_linux_se_amd64_10.12.2
+pushd azcopy_linux_amd64_${VERSION}
 cp azcopy /usr/bin/
 popd
 

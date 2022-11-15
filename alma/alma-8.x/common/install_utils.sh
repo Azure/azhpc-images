@@ -41,7 +41,8 @@ yum install -y numactl \
     lsof \
     kernel-rpm-macros \
     tcsh \
-    gcc-gfortran
+    gcc-gfortran \
+    perl
 
 ## Disable kernel updates
 echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf

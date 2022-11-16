@@ -67,4 +67,4 @@ $COMMON_DIR/copy_test_file.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM
-#./clear_history.sh
+# $COMMON_DIR/clear_history.sh

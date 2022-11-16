@@ -55,16 +55,13 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-## Only enable the service for image
 systemctl enable sku_customizations
+systemctl start sku_customizations
+systemctl is-active --quiet sku_customizations
 
-## Start the service if using only on current deployment
-# systemctl start sku_customizations
-# systemctl is-active --quiet sku_customizations
-
-# error_code=$?
-# if [ ${error_code} -ne 0 ]
-# then
-#     echo "sku_customizations service Inactive!"
-#     exit ${error_code}
-# fi
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "sku_customizations service Inactive!"
+    exit ${error_code}
+fi

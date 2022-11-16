@@ -64,8 +64,15 @@ rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
 
 sku_customization_service=$(systemctl is-active sku_customizations)
-if [[ $distro != "CentOS Linux 8.3.2011" ]] || [[ $sku_customization_service == "active" ]]
+if [[ $sku_customization_service == "active" ]]
 then
+    # Stop the sku_customizations service
+    systemctl stop sku_customizations
+    # Stop nvidia fabric manager
+    systemctl stop nvidia-fabricmanager
+    systemctl disable nvidia-fabricmanager
+    # Clear topo and graph files
+    rm -rf /opt/microsoft/
     # Clear contents of nccl.conf
     cat /dev/null > /etc/nccl.conf
 fi

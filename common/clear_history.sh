@@ -63,8 +63,7 @@ rm -rf /root/*
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
 
-sku_customization_service=$(systemctl is-active sku_customizations)
-if [[ $sku_customization_service == "active" ]]
+if systemctl is-active --quiet sku_customizations
 then
     # Stop the sku_customizations service
     systemctl stop sku_customizations

@@ -44,8 +44,8 @@ rm -rf *.tar.gz *_offline.sh *.rpm *.run
 # optimizations
 ./hpc-tuning.sh
 
-# SKU Customization
-$COMMON_DIR/setup_sku_customizations.sh
+# Network Optimization
+$COMMON_DIR/network-tuning.sh
 
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh

@@ -44,7 +44,7 @@ EOF
 
 # Link the NDv4 topology file into /opt/microsoft/ndv4/
 # Topology file in /opt/microsoft/ndv4-topo.xml will eventually be deleted
-ln -s /opt/microsoft/ndv4-topo.xml /opt/microsoft/ndv4/topo.xml
+ln -sf /opt/microsoft/ndv4-topo.xml /opt/microsoft/ndv4/topo.xml
 
 ## Set NCCL configuration file for NDv4
 bash -c "cat > /etc/nccl.conf" <<'EOF'

@@ -48,6 +48,7 @@ popd
 systemctl stop nv_peer_mem
 # Disable nv_peer_mem
 systemctl disable nv_peer_mem
+rmmod nv_peer_mem
 # load nvidia-peermem
 modprobe nvidia-peermem
 # verify if loaded

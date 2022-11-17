@@ -45,7 +45,9 @@ popd
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
 # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
 # Stop nv_peer_mem service
-service nv_peer_mem stop
+systemctl stop nv_peer_mem
+# Disable nv_peer_mem
+systemctl disable nv_peer_mem
 # load nvidia-peermem
 modprobe nvidia-peermem
 # verify if loaded

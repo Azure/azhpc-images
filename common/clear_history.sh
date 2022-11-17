@@ -48,7 +48,7 @@ fi
 
 # Clear History
 # Delete sensitive log files
-rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages
+rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Clear contents of rest of systemd services related log files
 for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
 

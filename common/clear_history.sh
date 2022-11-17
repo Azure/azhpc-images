@@ -47,6 +47,8 @@ then
 fi
 
 # Clear History
+# Stop rsyslog service
+systemctl stop rsyslog.service
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Clear contents of rest of systemd services related log files

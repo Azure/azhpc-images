@@ -80,8 +80,16 @@ Provisioning.MonitorHostNamePeriod=60
 EOF
 
 ## waagent service is based on /usr/bin/python
-ln -s /usr/bin/python3 /usr/bin/python
+ln -sf /usr/bin/python3 /usr/bin/python
 
 ## Restart waagent service to apply changes
 systemctl restart waagent
+systemctl is-active --quiet waagent
+
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "waagent service inactive/dead!"
+    exit ${error_code}
+fi
 $COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')

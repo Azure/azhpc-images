@@ -45,4 +45,4 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM
-# ../../common/clear_history.sh
+# $COMMON_DIR/clear_history.sh

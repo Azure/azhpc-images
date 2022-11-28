@@ -2,7 +2,6 @@
 set -ex
 
 VERSION="5.8-1.0.1.1"
-$COMMON_DIR/write_component_version.sh "MOFED" $VERSION
 TARBALL="MLNX_OFED_LINUX-$VERSION-rhel8.3-x86_64.tgz"
 MLNX_OFED_DOWNLOAD_URL=https://content.mellanox.com/ofed/MLNX_OFED-${VERSION}/$TARBALL
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
@@ -37,3 +36,4 @@ fi
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
 # exclude opensm from updates
 sed -i "$ s/$/ opensm*/" /etc/dnf/dnf.conf
+$COMMON_DIR/write_component_version.sh "MOFED" $VERSION

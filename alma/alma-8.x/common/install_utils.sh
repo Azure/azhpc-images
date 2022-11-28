@@ -3,10 +3,9 @@ set -ex
 
 # Install Kernel dependencies
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
-KERNEL=${KERNEL[-1]}
-yum install -y https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
+yum install -y https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
+    https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
+    https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
 
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
@@ -41,7 +40,11 @@ yum install -y numactl \
     lsof \
     kernel-rpm-macros \
     tcsh \
-    gcc-gfortran
+    gcc-gfortran \
+    perl
+
+## Disable kernel updates
+echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
 
 ## Install dkms from the EPEL repository
 wget -r --no-parent -A "dkms-*.el8.noarch.rpm" https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/
@@ -62,11 +65,16 @@ rm -rf ./repo.almalinux.org/
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
-wget https://azhpcstor.blob.core.windows.net/azhpc-images-store/azcopy_linux_se_amd64_10.12.2.tar.gz
-tar -xvf azcopy_linux_se_amd64_10.12.2.tar.gz
+VERSION="10.16.2"
+RELEASE_TAG="release20221108"
+TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
+AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+wget ${AZCOPY_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
 
 # copy the azcopy to the bin path
-pushd azcopy_linux_se_amd64_10.12.2
+pushd azcopy_linux_amd64_${VERSION}
 cp azcopy /usr/bin/
 popd
 

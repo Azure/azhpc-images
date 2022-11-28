@@ -17,14 +17,11 @@ yum clean expire-cache
 # Install nvidia-docker package
 # Install NVIDIA container toolkit and mark NVIDIA packages on hold
 yum install -y nvidia-container-toolkit
-# Mark the installed packages on hold to disable updates
-echo "exclude=nvidia-container-toolkit" | tee -a /etc/yum.conf
-echo "exclude=libnvidia-container-tools" | tee -a /etc/yum.conf
-echo "exclude=libnvidia-container1" | tee -a /etc/yum.conf
 
 # Install NVIDIA container runtime and mark NVIDIA packages on hold
 yum install -y nvidia-container-runtime
-echo "exclude=nvidia-container-runtime" | tee -a /etc/yum.conf
+# Mark the installed packages on hold to disable updates
+sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
 
 wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/nvidia-docker
 cp nvidia-docker /bin/
@@ -34,6 +31,18 @@ cp daemon.json /etc/docker/
 
 # Working setup can be tested by running a base CUDA container
 # nvidia-docker run -e NVIDIA_VISIBLE_DEVICES=all nvidia/cuda:11.0-base nvidia-smi
+
+# disabling aufs, btrfs, zfs and devmapper snapshotter plugins
+mkdir -p /etc/containerd
+cat << EOF | tee -a /etc/containerd/config.toml
+disabled_plugins = ["cri", "zfs", "aufs", "btrfs", "devmapper"]
+EOF
+
+# restart containerd service
+systemctl restart containerd
+
+# status of containerd snapshotter plugins
+ctr plugin ls
 
 # enable and restart the docker daemon to complete the installation
 systemctl enable docker

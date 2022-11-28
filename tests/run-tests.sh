@@ -108,6 +108,7 @@ CHECK_CUDA=0
 CHECK_AOCL=1
 CHECK_NCCL=0
 CHECK_GCC=1
+CHECK_DOCKER=0
 
 # Find distro
 find_distro() {
@@ -209,6 +210,7 @@ then
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=0
+    CHECK_DOCKER=1
     MODULE_FILES_ROOT=${MODULE_FILES_ROOT_CENTOS}
     MOFED_VERSION=${MOFED_VERSION_CENTOS_79}
     IMPI2021_PATH=${IMPI2021_PATH_CENTOS}
@@ -260,6 +262,7 @@ then
     OPENMPI_PATH=${OPENMPI_PATH_ALMA}
     CHECK_AOCL=1
     CHECK_NCCL=1
+    CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_1804}
@@ -277,6 +280,7 @@ then
     CHECK_AOCL=0
     CHECK_GCC=0
     CHECK_NCCL=1
+    CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
@@ -294,6 +298,7 @@ then
     CHECK_AOCL=0
     CHECK_NCCL=1
     CHECK_GCC=0
+    CHECK_DOCKER=1
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -362,6 +367,13 @@ then
 
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
+fi
+
+if [ $CHECK_DOCKER -eq 1 ] && [ "${MOFED_LTS}" = false ]
+then
+    sudo docker pull hello-world
+    sudo docker run hello-world
+    check_exit_code "Docker installed and working correctly!" "Problem with Docker!"
 fi
 
 # verify mpi installations and their modulefiles

@@ -20,6 +20,9 @@ KERNEL=${KERNEL[-1]}
 /etc/init.d/openibd force-restart
 $COMMON_DIR/write_component_version.sh "MOFED" $VERSION
 
+# exclude opensm from updates
+sed -i "$ s/$/ opensm*/" /etc/dnf/dnf.conf
+
 # cleanup downloaded files
 rm -rf *.tgz
 rm -rf -- */

@@ -55,4 +55,4 @@ $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM
-# $UBUNTU_COMMON_DIR/clear_history.sh
+# $COMMON_DIR/clear_history.sh

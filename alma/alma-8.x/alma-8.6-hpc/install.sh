@@ -53,7 +53,7 @@ $COMMON_DIR/../alma/common/network-config.sh
 $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
-$COMMON_DIR/install_monitoring_tools.sh
+$COMMON_DIR/../alma/common/install_monitoring_tools.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

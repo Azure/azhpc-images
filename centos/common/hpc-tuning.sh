@@ -79,8 +79,8 @@ OS.MonitorDhcpClientRestartPeriod=60
 Provisioning.MonitorHostNamePeriod=60
 EOF
 
-## waagent service is based on /usr/bin/python
-ln -sf /usr/bin/python3 /usr/bin/python
+## waagent service is based on /usr/bin/python for CentOS 8
+# ln -sf /usr/bin/python3 /usr/bin/python
 
 ## Restart waagent service to apply changes
 systemctl restart waagent

@@ -11,9 +11,9 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.13
-HPCX_VERSION="v2.13"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-ubuntu${RELEASE_VERSION}-cuda11-gdrcopy2-nccl2.12-x86_64.tbz"
+# HPC-X v2.11
+HPCX_VERSION="v2.11"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-ubuntu${RELEASE_VERSION}-cuda11-gdrcopy2-nccl2.11-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

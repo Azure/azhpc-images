@@ -17,4 +17,6 @@ pushd $MONITOR_DIR
 
 git clone https://github.com/Azure/Moneo  --branch v0.2.3
 
+chmod 777 Moneo
+
 popd

@@ -327,7 +327,7 @@ lspci | grep "Infiniband controller\|Network controller"
 check_exit_code "IB device is listed" "IB device not found"
 
 # verify IB device is up
-ibstat | grep "LinkUp"
+ibstatus | grep "LinkUp"
 check_exit_code "IB device state: LinkUp" "IB link not up"
 
 # verify GCC modulefile

@@ -13,9 +13,6 @@ consistency, and reliability. This image consists of the following HPC tools and
   - Libfabric
   - OpenUCX
 - Optimized librares
-  - AMD Blis
-  - AMD FFTW
-  - AMD Flame
   - Intel MKL
 - GPU Drivers
   - Nvidia GPU Driver

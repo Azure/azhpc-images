@@ -93,15 +93,3 @@ echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
 echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
 systemctl daemon-reload
 systemctl restart walinuxagent
-
-# Configure NFS read-ahead limits
-# Reference: https://learn.microsoft.com/en-us/azure/azure-netapp-files/performance-linux-nfs-read-ahead
-cat > /etc/udev/rules.d/90-nfs-readahead.rules <<EOF
-SUBSYSTEM=="bdi", \ 
-ACTION=="add", \ 
-PROGRAM="/usr/bin/awk -v bdi=$kernel 'BEGIN{ret=1} {if ($4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \ 
-ATTR{read_ahead_kb}="16384"
-EOF
-
-# Apply the udev rule
-udevadm control --reload

@@ -35,8 +35,7 @@ apt-get -y install numactl \
                    libsecret-1-0 \
 		   python3-pip \
                    dkms \
-                   jq \
-                   nfs-common
+                   jq
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.

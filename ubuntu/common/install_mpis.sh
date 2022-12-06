@@ -36,7 +36,7 @@ $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 # OpenMPI 4.1.4
 OMPI_VERSION="4.1.4"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "3186b4d7e1c67e1bae78f6a45aa04d9b30a7801c8aa24435b47f96b48971e116"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "e166dbe876e13a50c2882e11193fecbc4362e89e6e7b6deeb69bf095c0f4fc4c"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
@@ -47,7 +47,7 @@ $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 IMPI_2021_VERSION="2021.7.1"
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/19010/l_mpi_oneapi_p_${IMPI_2021_VERSION}.16815_offline.sh
 $COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "90e7804f2367d457cd4cbf7aa29f1c5676287aa9b34f93e7c9a19e4b8583fff7"
-bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.8711_offline.sh -s -a -s --eula accept
+bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.16815_offline.sh -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 

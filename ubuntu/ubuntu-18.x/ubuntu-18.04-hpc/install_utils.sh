@@ -33,5 +33,6 @@ apt-get install -y software-properties-common
 ln -sf  /usr/lib/python3/dist-packages/_dbus_glib_bindings.cpython-36m-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/_dbus_glib_bindings.so
 ln -sf  /usr/lib/python3/dist-packages/_dbus_bindings.cpython-36m-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/_dbus_bindings.so
 apt-get -y install libglib2.0-dev libdbus-1-3 libdbus-1-dev
+
 sudo python3 -m  pip install meson ninja
 sudo python3 -m pip install pgi dbus-python 

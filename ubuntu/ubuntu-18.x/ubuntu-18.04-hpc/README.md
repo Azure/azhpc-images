@@ -27,6 +27,8 @@ consistency, and reliability. This image consists of the following HPC tools and
 - Azure HPC Diagnostics Tool
 - Moby
 - NVIDIA-Docker
+- Moneo (Distributed HPC/AI system monitor)
+
 
 This Image is compliant with the Linux Kernel 5.4.0-1043-azure.
 

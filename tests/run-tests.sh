@@ -41,12 +41,16 @@ then
     MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-3.1.5.0"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+    IMPI_2021_VERSION_UBUNTU="2021.7.0"
+    OMPI_VERSION_UBUNTU="4.1.3"
 else
     HPCX_VERSION_CENTOS="v2.9.0"
-    HPCX_VERSION_UBUNTU="v2.13"
+    HPCX_VERSION_UBUNTU="v2.13.1"
     MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.8-1.0.1.1"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+    IMPI_2021_VERSION_UBUNTU="2021.7.1"
+    OMPI_VERSION_UBUNTU="4.1.4"
 fi
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
@@ -54,10 +58,8 @@ MVAPICH2_VERSION_ALMA="2.3.7"
 MVAPICH2_VERSION_UBUNTU="2.3.7"
 OMPI_VERSION_CENTOS="4.1.1"
 OMPI_VERSION_ALMA="4.1.3"
-OMPI_VERSION_UBUNTU="4.1.3"
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA="2021.7.0"
-IMPI_2021_VERSION_UBUNTU="2021.7.0"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
@@ -327,7 +329,7 @@ lspci | grep "Infiniband controller\|Network controller"
 check_exit_code "IB device is listed" "IB device not found"
 
 # verify IB device is up
-ibstat | grep "LinkUp"
+ibstatus | grep "LinkUp"
 check_exit_code "IB device state: LinkUp" "IB link not up"
 
 # verify GCC modulefile

@@ -34,7 +34,3 @@ NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "372427e633f32cff6dd76020e8ed471ef825d38878bd9655308b6efea1051090"
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
-
-# remove keyring and repo files
-rm -rf /usr/share/keyrings/cuda-archive-keyring.gpg
-rm -rf /etc/apt/preferences.d/cuda-repository-pin-600

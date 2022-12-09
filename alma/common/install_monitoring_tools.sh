@@ -2,6 +2,8 @@
 
 set -e
 
+MONEO_VERSION=v0.2.3
+
 # Dependencies 
 python3 -m pip install --upgrade pip
 python3 -m pip install ansible
@@ -15,8 +17,10 @@ mkdir -p $MONITOR_DIR
 
 pushd $MONITOR_DIR
 
-git clone https://github.com/Azure/Moneo  --branch v0.2.3
+git clone https://github.com/Azure/Moneo  --branch $MONEO_VERSION
 
 chmod 777 Moneo
 
 popd
+
+$COMMON_DIR/write_component_version.sh "MONEO" ${MONEO_VERSION}

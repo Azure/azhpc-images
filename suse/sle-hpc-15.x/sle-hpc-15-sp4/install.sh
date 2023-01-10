@@ -13,9 +13,6 @@ source ./set_properties.sh
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
-# copy test file
-$COMMON_DIR/copy_test_file.sh
-
 # install mpi libraries
 ./install_mpis.sh
 

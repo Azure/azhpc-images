@@ -109,22 +109,21 @@ zypper install -y \
 
 # Install azcopy tool
 # To copy blobs or files to or from a storage account.
-# actual is 10.16.1
-AZCOPY_VERSION="10.16.1"
-AZCOPY_URL="https://aka.ms/downloadazcopy-v10-linux"
+VERSION="10.16.2"
+RELEASE_TAG="release20221108"
+TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
+AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+wget ${AZCOPY_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
 
-# not accessible anymore at this blob - its private now
-# wget https://azcopyvnextrelease.blob.core.windows.net/release20210920/azcopy_linux_se_amd64_10.12.2.tar.gz
-
-# public download
-wget -O azcopy_linux_amd64_${AZCOPY_VERSION}.tar.gz ${AZCOPY_URL}
-tar -xvf azcopy_linux_amd64_${AZCOPY_VERSION}.tar.gz
-
-# copy the azcopy to the bin path - better would be /usr/local/bin
-pushd azcopy_linux_amd64_${AZCOPY_VERSION}
-cp azcopy /usr/local/bin/
+# copy the azcopy to the bin path
+pushd azcopy_linux_amd64_${VERSION}
+cp azcopy /usr/bin/
 popd
 
 # Allow execute permissions
-chmod +x /usr/local/bin/azcopy
-$COMMON_DIR/write_component_version.sh "azcopy" ${AZCOPY_VERSION}
+chmod +x /usr/bin/azcopy
+
+# remove tarball from azcopy
+rm -rf *.tar.gz

@@ -320,6 +320,7 @@ then
     CHECK_AOCL=0
     CHECK_NCCL=1
     CHECK_GCC=0
+    CHECK_DOCKER=1
 elif [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then
     MKL_VERSION="2022.2.0"

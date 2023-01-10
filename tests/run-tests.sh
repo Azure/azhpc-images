@@ -169,7 +169,6 @@ find_alma_distro() {
 # Find Ubuntu distro
 find_ubuntu_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
-    #TODO - check if this is right, as the code below needs name *and* version
 }
 
 # Find SUSE Linux Enterprise HPC distro
@@ -290,7 +289,6 @@ then
     CHECK_NCCL=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
-#TODO - check if this path get reached as the function above does only return the version
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_1804}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
@@ -308,7 +306,6 @@ then
     CHECK_NCCL=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
-#TODO - check if this path get reached as the function above does only return the version
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
@@ -349,7 +346,7 @@ then
 
     CHECK_AOCL=1
     CHECK_NV_PMEM=0
-    CHECK_NCCL=0
+    CHECK_NCCL=1
 else
     echo "*** Error - invalid distro!"
     exit -1

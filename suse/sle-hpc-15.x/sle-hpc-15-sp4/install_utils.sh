@@ -107,11 +107,6 @@ zypper install -y \
     libtool \
     rdma-core-devel
 
-# the ibdev2netdev is only in the external mellanox package, so we do not have it with inbox drivers
-wget https://raw.githubusercontent.com/Mellanox/container_scripts/master/ibdev2netdev
-mv ibdev2netdev /usr/local/bin
-chmod +x /usr/local/bin/ibdev2netdev
-
 # Install azcopy tool
 # To copy blobs or files to or from a storage account.
 # actual is 10.16.1

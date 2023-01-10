@@ -8,9 +8,6 @@ DOCKER_VERSION=$(rpm -q --qf="%{VERSION}" docker)
 # Ensure the Docker service is running
 systemctl --now enable docker
 
-# Test to run the hw container
-# docker run --rm hello-world
-
 # if experimental is needed
 #zypper modifyrepo --enable libnvidia-container-experimental
 

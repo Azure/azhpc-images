@@ -1,5 +1,11 @@
 # SUSE Linux Enterprise HPC 15 SP4 Image
 
+SUSE Linux Enterprise HPC is a SUSE maintained commercial product for the HPC market.
+
+SUSE provides images in the Azure Marketplace as PayAsYouGo or BringYourOwnSubscription model
+
+The setup here is build with the PAYG image, as it provides easy access without any registration to all SUSE provided software packages.
+
 The SLE HPC 15 SP4 includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability.
 As an enterprise distribution, we provide stable long term support and many certifications with vendors.

@@ -24,6 +24,8 @@ apt-get -y install numactl \
                    libnl-3-dev \
                    libnl-route-3-dev \
                    libnl-3-200 \
+                   libnl-genl-3-dev \
+                   libnl-genl-3-200 \
                    bison \
                    libnl-route-3-200 \
                    gfortran \
@@ -32,9 +34,15 @@ apt-get -y install numactl \
                    libnl-route-3-dev \
                    net-tools \
                    libsecret-1-0 \
-		   python3-pip \
+                   python3-pip \
                    dkms \
-                   jq
+                   jq \
+                   curl \
+                   libyaml-dev \
+                   libreadline-dev \
+                   libkeyutils1 \
+                   libkeyutils-dev \
+                   libmount-dev
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 

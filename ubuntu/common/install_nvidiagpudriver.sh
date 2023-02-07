@@ -9,12 +9,8 @@ CHECKSUM=$2
 # Install Cuda
 NVIDIA_VERSION="510.85.02"
 if [ ${RELEASE_VERSION} == "1804" ]; then CUDA_VERSION="11.6"; else CUDA_VERSION="11-6"; fi
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}-keyring.gpg 
-mv cuda-ubuntu${RELEASE_VERSION}-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
-
-echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/ /" | sudo tee /etc/apt/sources.list.d/cuda-ubuntu${RELEASE_VERSION}-x86_64.list
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-ubuntu${RELEASE_VERSION}.pin
-mv cuda-ubuntu${RELEASE_VERSION}.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${RELEASE_VERSION}/x86_64/cuda-keyring_1.0-1_all.deb
+dpkg -i ./cuda-keyring_1.0-1_all.deb
 
 apt-get update
 apt install -y cuda-toolkit-${CUDA_VERSION}
@@ -38,7 +34,3 @@ NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "372427e633f32cff6dd76020e8ed471ef825d38878bd9655308b6efea1051090"
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
-
-# remove keyring and repo files
-rm -rf /usr/share/keyrings/cuda-archive-keyring.gpg
-rm -rf /etc/apt/preferences.d/cuda-repository-pin-600

@@ -24,9 +24,9 @@ set -ex
 # cuda-libraries-11-8 	    Installs all runtime CUDA Library packages.
 # cuda-libraries-dev-11-8 	Installs all development CUDA Library packages.
 # cuda-drivers 	            Installs all Driver packages. Handles upgrading to the next version of the Driver packages when they're released.
-zypper install -y -l cuda cuda-drivers
+zypper install -y -l --no-recommends cuda-11-8 cuda-drivers
 
-CUDA_VERSION=$(rpm -q --qf="%{VERSION}" cuda)
+CUDA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-11-8)
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 
 NVIDIA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-drivers)

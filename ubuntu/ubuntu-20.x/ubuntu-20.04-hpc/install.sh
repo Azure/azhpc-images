@@ -27,7 +27,7 @@ rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
 
 # Install DCGM
-$UBUNTU_COMMON_DIR/install_dcgm.sh 2004
+$UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh

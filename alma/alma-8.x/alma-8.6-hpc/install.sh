@@ -52,6 +52,9 @@ $COMMON_DIR/../alma/common/network-config.sh
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
 
+#install monitoring tools
+$COMMON_DIR/../alma/common/install_monitoring_tools.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
@@ -60,4 +63,4 @@ $COMMON_DIR/copy_test_file.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM
-#../../common/clear_history.sh
+# $COMMON_DIR/clear_history.sh

@@ -41,12 +41,16 @@ then
     MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-3.1.5.0"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
+    IMPI_2021_VERSION_UBUNTU="2021.7.0"
+    OMPI_VERSION_UBUNTU="4.1.3"
 else
     HPCX_VERSION_CENTOS="v2.9.0"
-    HPCX_VERSION_UBUNTU="v2.11"
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.6-1.0.3.3"
+    HPCX_VERSION_UBUNTU="v2.13.1"
+    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.8-1.0.1.1"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+    IMPI_2021_VERSION_UBUNTU="2021.7.1"
+    OMPI_VERSION_UBUNTU="4.1.4"
 fi
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
@@ -54,17 +58,15 @@ MVAPICH2_VERSION_ALMA="2.3.7"
 MVAPICH2_VERSION_UBUNTU="2.3.7"
 OMPI_VERSION_CENTOS="4.1.1"
 OMPI_VERSION_ALMA="4.1.3"
-OMPI_VERSION_UBUNTU="4.1.3"
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA="2021.7.0"
-IMPI_2021_VERSION_UBUNTU="2021.7.0"
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
 MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
-MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.6-2.0.9.0"
+MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
 
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
@@ -78,14 +80,14 @@ MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}"
 MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
-HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.11-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.13-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}"
 OPENMPI_PATH_ALMA="/opt/openmpi-${OMPI_VERSION_ALMA}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.11-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
@@ -101,6 +103,7 @@ CHECK_CUDA=0
 CHECK_AOCL=1
 CHECK_NCCL=0
 CHECK_GCC=1
+CHECK_DOCKER=0
 
 # Find distro
 find_distro() {
@@ -197,6 +200,7 @@ then
     CHECK_OMPI=1
     CHECK_MVAPICH2=1
     CHECK_MVAPICH2X=0
+    CHECK_DOCKER=1
     MODULE_FILES_ROOT=${MODULE_FILES_ROOT_CENTOS}
     MOFED_VERSION=${MOFED_VERSION_CENTOS_79}
     IMPI2021_PATH=${IMPI2021_PATH_CENTOS}
@@ -249,6 +253,7 @@ then
     OPENMPI_PATH=${OPENMPI_PATH_ALMA}
     CHECK_AOCL=1
     CHECK_NCCL=1
+    CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_1804}
@@ -266,6 +271,7 @@ then
     CHECK_AOCL=0
     CHECK_GCC=0
     CHECK_NCCL=1
+    CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
@@ -283,6 +289,7 @@ then
     CHECK_AOCL=0
     CHECK_NCCL=1
     CHECK_GCC=0
+    CHECK_DOCKER=1
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -322,7 +329,7 @@ lspci | grep "Infiniband controller\|Network controller"
 check_exit_code "IB device is listed" "IB device not found"
 
 # verify IB device is up
-ibstat | grep "LinkUp"
+ibstatus | grep "LinkUp"
 check_exit_code "IB device state: LinkUp" "IB link not up"
 
 # verify GCC modulefile
@@ -351,6 +358,13 @@ then
 
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
+fi
+
+if [ $CHECK_DOCKER -eq 1 ] && [ "${MOFED_LTS}" = false ]
+then
+    sudo docker pull hello-world
+    sudo docker run hello-world
+    check_exit_code "Docker installed and working correctly!" "Problem with Docker!"
 fi
 
 # verify mpi installations and their modulefiles

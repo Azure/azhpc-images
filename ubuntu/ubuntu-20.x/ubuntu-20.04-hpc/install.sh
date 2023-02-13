@@ -54,6 +54,9 @@ $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
+# Disable Predictive Network interface renaming
+./disable_predictive_interface_renaming.sh
+
 # clear history
 # Uncomment the line below if you are running this on a VM
-# $UBUNTU_COMMON_DIR/clear_history.sh
+# $COMMON_DIR/clear_history.sh

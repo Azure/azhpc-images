@@ -30,7 +30,7 @@ rm -Rf -- */
 $UBUNTU_COMMON_DIR/install_dcgm.sh 2004
 
 # install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh 2004
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

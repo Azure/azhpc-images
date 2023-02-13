@@ -16,6 +16,9 @@ source ./set_properties.sh
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# Install nvidia fabric manager (required for ND96asr_v4)
+./install_nvidia_fabric_manager.sh 1804
+
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
 

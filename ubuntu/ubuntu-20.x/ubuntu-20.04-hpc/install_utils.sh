@@ -11,4 +11,5 @@ curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microso
 cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
 
 #apt-get install packages
-$UBUNTU_COMMON_DIR/install_utils.sh
+AZCOPY_VERSION="10.17.0"
+$UBUNTU_COMMON_DIR/install_utils.sh ${AZCOPY_VERSION}

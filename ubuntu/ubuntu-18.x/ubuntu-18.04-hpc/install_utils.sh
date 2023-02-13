@@ -11,7 +11,8 @@ curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microso
 cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
 
 #install apt pckages
-$UBUNTU_COMMON_DIR/install_utils.sh
+AZCOPY_VERSION="10.16.2"
+$UBUNTU_COMMON_DIR/install_utils.sh ${AZCOPY_VERSION} 
 
 apt-get update
 apt-get install -y python3.8

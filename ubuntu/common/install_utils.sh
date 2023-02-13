@@ -39,16 +39,16 @@ apt-get -y install numactl \
 
 # Install azcopy tool
 # To copy blobs or files to or from a storage account.
-VERSION="10.17.0"
+AZCOPY_VERSION=$1
 RELEASE_TAG="release20230123"
-TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
+TARBALL="azcopy_linux_amd64_${AZCOPY_VERSION}.tar.gz"
 AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
 AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
 wget ${AZCOPY_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 # copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${VERSION}
+pushd azcopy_linux_amd64_${AZCOPY_VERSION}
 cp azcopy /usr/bin/
 popd
 

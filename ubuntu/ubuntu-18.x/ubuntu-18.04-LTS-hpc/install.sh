@@ -5,7 +5,7 @@ set -ex
 source ./set_properties.sh
 
 # install utils
-$UBUNTU_COMMON_DIR/install_utils.sh
+./install_utils.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh

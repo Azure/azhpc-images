@@ -17,7 +17,7 @@ source ./set_properties.sh
 ./install_nvidiagpudriver.sh
 
 # Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
+$UBUNTU_COMMON_DIR/install_nccl.sh 2004
 
 # Install NVIDIA docker container
 $UBUNTU_COMMON_DIR/install_docker.sh
@@ -27,10 +27,10 @@ rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
 
 # Install DCGM
-$UBUNTU_COMMON_DIR/install_dcgm.sh 2004
+$UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
+$UBUNTU_COMMON_DIR/install_intel_libs.sh 2004
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

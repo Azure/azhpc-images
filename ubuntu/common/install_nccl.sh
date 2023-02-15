@@ -3,8 +3,18 @@ set -ex
 
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
-NCCL_VERSION="2.15.1-1"
-CUDA_VERSION="11.8"
+
+#PARAMETER
+VERSION=$1
+
+case ${VERSION} in
+    1804) NCCL_VERSION="2.15.1-1"; 
+        CUDA_VERSION="11.8";;
+    2004) NCCL_VERSION="2.16.5-1"; 
+        CUDA_VERSION="12.0";;
+    *) ;;
+esac
+
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp

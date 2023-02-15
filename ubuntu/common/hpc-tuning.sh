@@ -71,7 +71,7 @@ then
 fi
 
 # Install WALinuxAgent
-apt-get install python3-setuptools
+apt-get install -y python3-setuptools
 pip3 install distro
 WAAGENT_VERSION=2.5.0.2
 $COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}

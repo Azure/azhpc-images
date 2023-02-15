@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh 2004 "f1b48828dc3233e769a5bb1518e8d8d120de5d8dd336bccc1f547b8c05887ebd"
+$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh 2004
 $UBUNTU_COMMON_DIR/install_nv_peer_memory.sh
 
 # Install gdrcopy

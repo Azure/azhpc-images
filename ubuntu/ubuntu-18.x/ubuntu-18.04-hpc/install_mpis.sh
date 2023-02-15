@@ -9,7 +9,7 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.13.1
 HPCX_VERSION="v2.13.1"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64.tbz"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-${DISTRIBUTION}-cuda11-gdrcopy2-nccl2.12-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

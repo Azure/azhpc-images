@@ -2,8 +2,7 @@
 set -ex
 
 # Parameters
-RELEASE_VERSION=$1
-HPCX_CHECKSUM=$2
+HPCX_CHECKSUM=$1
 
 # Load gcc
 set CC=/usr/bin/gcc
@@ -13,7 +12,7 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.14
 HPCX_VERSION="v2.14"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-ubuntu${RELEASE_VERSION}-cuda11-gdrcopy2-nccl2.16-x86_64.tbz"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-$DISTRIBUTION-cuda11-gdrcopy2-nccl2.16-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

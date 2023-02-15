@@ -1,7 +1,6 @@
-# Ubuntu 20.04 HPC Image
+# Ubuntu 22.04 HPC Image
 
-The Ubuntu 20.04 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
-consistency, and reliability. This image consists of the following HPC tools and libraries:
+The Ubuntu 22.04 HPC Image includes optimizations and recommended configurations to deliver optimal performance, consistency, and reliability. This image consists of the following HPC tools and libraries:
 
 - Mellanox OFED
 - Pre-configured IPoIB (IP-over-InfiniBand)
@@ -29,7 +28,7 @@ consistency, and reliability. This image consists of the following HPC tools and
 - NVIDIA-Docker
 - Moneo (Distributed HPC/AI system monitor)
 
-This Image is compliant with the Linux Kernel 5.4.0-1046-azure.
+This Image is compliant with the Linux Kernel 5.15.0-1031-azure.
 
 Software packages (MPI / HPC libraries) are configured as environment modules. Users can select preferred MPI or software packages as follows:
 

@@ -31,7 +31,7 @@ cd mvapich2-${MV2_VERSION}
 # Error exclusive to Ubuntu 22.04
 # configure: error: The Fortran compiler gfortran will not compile files that call
 # the same routine with arguments of different types.
-./configure if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 

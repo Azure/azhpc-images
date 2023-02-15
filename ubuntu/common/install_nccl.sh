@@ -12,6 +12,8 @@ case ${VERSION} in
         CUDA_VERSION="11.8";;
     2004) NCCL_VERSION="2.16.5-1"; 
         CUDA_VERSION="12.0";;
+    2004) NCCL_VERSION="2.16.5-1"; 
+        CUDA_VERSION="12.0";;
     *) ;;
 esac
 

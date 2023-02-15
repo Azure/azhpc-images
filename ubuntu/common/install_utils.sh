@@ -36,6 +36,9 @@ apt-get -y install numactl \
                    dkms \
                    jq
 
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+if [[ $distribution != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
+
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
 # Parameters - Version, Release Tag

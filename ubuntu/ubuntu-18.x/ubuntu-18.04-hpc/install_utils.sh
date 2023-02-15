@@ -16,7 +16,6 @@ AZCOPY_RELEASE_TAG="release20221108"
 $UBUNTU_COMMON_DIR/install_utils.sh ${AZCOPY_VERSION} ${AZCOPY_RELEASE_TAG}
 
 apt-get update
-apt-get -y install python-dev
 apt-get install -y python3.8
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
 apt-get -y remove python3-apt

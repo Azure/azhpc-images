@@ -17,7 +17,7 @@ source ./set_properties.sh
 ./install_nvidiagpudriver.sh
 
 # Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh 2004
+$UBUNTU_COMMON_DIR/install_nccl.sh
 
 # Install NVIDIA docker container
 $UBUNTU_COMMON_DIR/install_docker.sh

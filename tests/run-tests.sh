@@ -91,6 +91,9 @@ else
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.14";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.6.0";
             IMPI_2021_VERSION_UBUNTU="2021.8.0";;
+        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.14";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.6.0";
+            IMPI_2021_VERSION_UBUNTU="2021.8.0";;
         *) ;;
     esac   
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
@@ -132,6 +135,7 @@ OPENMPI_PATH_ALMA="/opt/openmpi-${OMPI_VERSION_ALMA}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
 HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
@@ -152,7 +156,7 @@ CHECK_DOCKER=0
 if [[ $distro == *"CentOS Linux"* ]]
 then 
     MKL_VERSION="2021.1.1"
-elif [[ $distro == "Ubuntu 20.04" ]]
+elif [[ $distro == "Ubuntu 2"* ]]
 then
     MKL_VERSION="2023.0.0"
 else
@@ -288,6 +292,24 @@ then
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_MVAPICH2=1
+    CHECK_OMPI=1
+    CHECK_BLIS_MT=1
+    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_UBUNTU}
+    MOFED_VERSION=${MOFED_VERSION_UBUNTU}
+    IMPI2021_PATH=${IMPI2021_PATH_UBUNTU}
+    MVAPICH2_PATH=${MVAPICH2_PATH_UBUNTU}
+    MVAPICH2X_PATH=${MVAPICH2X_PATH_UBUNTU}
+    OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
+    CHECK_AOCL=0
+    CHECK_NCCL=1
+    CHECK_GCC=0
+    CHECK_DOCKER=1
+elif [[ $distro == "Ubuntu 22.04" ]]
+then
+    HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2204}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
     CHECK_MVAPICH2=1

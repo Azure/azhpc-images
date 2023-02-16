@@ -1,15 +1,15 @@
 #!/bin/bash
 set -ex
 
-# PARAMETER
-VERSION=$1
-
 # Intel® oneAPI Math Kernel Library
-case ${VERSION} in
-    1804) INTEL_MKL_VERSION="2022.1.0.223";
+case ${DISTRIBUTION} in
+    "ubuntu18.04") INTEL_MKL_VERSION="2022.1.0.223";
         RELEASE_VERSION="18721";
         CHECKSUM="4b325a3c4c56e52f4ce6c8fbb55d7684adc16425000afc860464c0f29ea4563e";; 
-    2004) INTEL_MKL_VERSION="2023.0.0.25398";
+    "ubuntu20.04") INTEL_MKL_VERSION="2023.0.0.25398";
+        RELEASE_VERSION="19138";
+        CHECKSUM="0d61188e91a57bdb575782eb47a05ae99ea8eebefee6b2dfe20c6708e16e9927";;
+    "ubuntu22.04") INTEL_MKL_VERSION="2023.0.0.25398";
         RELEASE_VERSION="19138";
         CHECKSUM="0d61188e91a57bdb575782eb47a05ae99ea8eebefee6b2dfe20c6708e16e9927";;
     *) ;;

@@ -11,7 +11,6 @@ apt-get -y install numactl \
                    libxml2-dev \
                    m4 \
                    byacc \
-                   python-dev \
                    python-setuptools \
                    tcl \
                    environment-modules \
@@ -36,6 +35,8 @@ apt-get -y install numactl \
 		   python3-pip \
                    dkms \
                    jq
+
+if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.

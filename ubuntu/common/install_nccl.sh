@@ -4,13 +4,12 @@ set -ex
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
 
-#PARAMETER
-VERSION=$1
-
-case ${VERSION} in
-    1804) NCCL_VERSION="2.15.1-1"; 
+case ${DISTRIBUTION} in
+    "ubuntu18.04") NCCL_VERSION="2.15.1-1"; 
         CUDA_VERSION="11.8";;
-    2004) NCCL_VERSION="2.16.5-1"; 
+    "ubuntu20.04") NCCL_VERSION="2.16.5-1"; 
+        CUDA_VERSION="12.0";;
+    "ubuntu22.04") NCCL_VERSION="2.16.5-1"; 
         CUDA_VERSION="12.0";;
     *) ;;
 esac

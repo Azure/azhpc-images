@@ -4,6 +4,8 @@ set -ex
 # Install NCCL
 # Optimized primitives for inter-GPU communication.
 NCCL_VERSION="2.15.1-1" # for cuda-11.8
+#NCCL_VERSION="2.16.51-1" # for cuda-11.8
+
 
 zypper install -y -l rpm-build rpmdevtools git
 

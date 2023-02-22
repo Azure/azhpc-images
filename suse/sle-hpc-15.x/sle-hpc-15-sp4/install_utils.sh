@@ -67,6 +67,9 @@ zypper install -y --type pattern hpc_libraries
 zypper install lua-lmod
 source /usr/share/lmod/lmod/init/bash
 
+# we need the right devel packages for the running kernel - SLE HPC has kernel-azure by default
+KERNEL_VERSION=$(basename $(uname -r) -azure)
+
 #
 zypper install -y \
     numactl \
@@ -77,10 +80,9 @@ zypper install -y \
     tcsh \
     gcc-fortran \
     elfutils \
-    kernel-macros \
     binutils \
-    kernel-headers \
-    kernel-source \
+    kernel-azure-devel = ${KERNEL_VERSION} \
+    kernel-source-azure = ${KERNEL_VERSION} \
     nfs-utils \
     fuse \
     cmake \

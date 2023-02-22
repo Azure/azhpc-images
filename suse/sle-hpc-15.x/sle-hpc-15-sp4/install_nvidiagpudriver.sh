@@ -6,8 +6,8 @@ set -ex
 #
 
 # Install Cuda
-#NVIDIA_VERSION="520.61"
-#CUDA_VERSION="11.8.0"
+DRIVER_BRANCH_VERSION="525"  # branch is like version
+CUDA_VERSION="11-8"          # need to be "-" and not "."
 
 # to check whats all available in the repo
 # zypper se --repo cuda-sles15-x86_64
@@ -22,16 +22,19 @@ set -ex
 # cuda-runtime-11-8      	Installs all CUDA Toolkit packages required to run CUDA applications, as well as the Driver packages.
 # cuda-compiler-11-8    	Installs all CUDA compiler packages.
 # cuda-libraries-11-8 	    Installs all runtime CUDA Library packages.
-# cuda-libraries-dev-11-8 	Installs all development CUDA Library packages.
+# cuda-libraries-devel-11-8 	Installs all development CUDA Library packages.
 # cuda-drivers 	            Installs all Driver packages. Handles upgrading to the next version of the Driver packages when they're released.
-zypper install -y -l --no-recommends cuda-11-8 cuda-drivers
+
+# due to NVIDIA bug in post-install of the nvidia-drivers for kernel-azure, we need to select and install nvidia-gfxG05-kmp-azure manually
+# The cuda dependencies select packages with "-default" and then the (wrong) modules for kernel-default instead of kernel-azure got installed
+zypper install -y -l --no-recommends cuda-toolkit-${CUDA_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager nvidia-gfxG05-kmp-azure
 
 CUDA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-11-8)
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 
 NVIDIA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-drivers)
-$COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
+$COMMON_DIR/write_component_version.sh "NVIDIA" ${DRIVER_BRANCH_VERSION}
 
-# Post-install tasks (version its set through 'alternatives')
+#post-install tasks (version its set through 'alternatives')
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc.local
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc.local

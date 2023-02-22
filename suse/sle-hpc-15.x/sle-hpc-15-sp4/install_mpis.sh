@@ -57,9 +57,11 @@ OMPI_VERSION=$(rpm -q  --qf="%{VERSION}" openmpi4-gnu-hpc)
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
 # Intel MPI 2021
-# IMPI_2021_VERSION="2021.7.0"
-zypper install -y -l intel-oneapi-mpi
-IMPI_2021_VERSION=$(rpm -q  --qf="%{VERSION}" intel-oneapi-mpi)
+# as there are move versions in the repos we need to select one
+# instead of always get he newest
+IMPI_2021_VERSION="2021.7.0"
+zypper install -y -l intel-oneapi-mpi = $IMPI_2021_VERSION
+
 # Create modulesfiles
 /opt/intel/oneapi/modulefiles-setup.sh
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}

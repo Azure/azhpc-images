@@ -5,5 +5,4 @@
 # the default is gnu/7 within package gnu-compilers-hpc, gcc11 is in gnu11-compilers-hpc
 # MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
 
-zypper in gnu-compilers-hpc
-module load gnu/7
+zypper in gnu11-compilers-hpc

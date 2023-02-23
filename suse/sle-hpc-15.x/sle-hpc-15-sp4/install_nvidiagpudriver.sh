@@ -29,10 +29,8 @@ CUDA_VERSION="11-8"          # need to be "-" and not "."
 # The cuda dependencies select packages with "-default" and then the (wrong) modules for kernel-default instead of kernel-azure got installed
 zypper install -y -l --no-recommends cuda-toolkit-${CUDA_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager nvidia-gfxG05-kmp-azure
 
-CUDA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-11-8)
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 
-NVIDIA_VERSION=$(rpm -q --qf="%{VERSION}" cuda-drivers)
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${DRIVER_BRANCH_VERSION}
 
 #post-install tasks (version its set through 'alternatives')

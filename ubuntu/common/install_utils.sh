@@ -46,7 +46,7 @@ apt-get -y install numactl \
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 
-# Install azcopy tool 
+# Install azcopy tool
 # To copy blobs or files to or from a storage account.
 # Parameters - Version, Release Tag
 VERSION=$1

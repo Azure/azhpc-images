@@ -6,7 +6,8 @@ set -ex
 #
 
 # Install Cuda
-DRIVER_BRANCH_VERSION="525"  # branch is like version
+NVIDIA_VERSION="525.85.12"
+DRIVER_BRANCH_VERSION=${NVIDIA_VERSION%.*.*} # branch is like main version
 CUDA_VERSION="11-8"          # need to be "-" and not "."
 
 # to check whats all available in the repo
@@ -27,7 +28,7 @@ CUDA_VERSION="11-8"          # need to be "-" and not "."
 
 # due to NVIDIA bug in post-install of the nvidia-drivers for kernel-azure, we need to select and install nvidia-gfxG05-kmp-azure manually
 # The cuda dependencies select packages with "-default" and then the (wrong) modules for kernel-default instead of kernel-azure got installed
-zypper install -y -l --no-recommends cuda-toolkit-${CUDA_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager nvidia-gfxG05-kmp-azure
+zypper install -y -l --no-recommends cuda-toolkit-${CUDA_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager = $NVIDIA_VERSION nvidia-gfxG05-kmp-azure = $NVIDIA_VERSION
 
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 

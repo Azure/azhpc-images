@@ -11,7 +11,7 @@ INSTALL_PREFIX=/opt
 # HPC-X v2.7.0
 MLNX_OFED_VERSION="4.7-1.0.0.1"
 HPCX_VERSION="v2.7.0"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-ubuntu18.04-x86_64.tbz"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-${DISTRIBUTION}-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

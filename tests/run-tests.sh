@@ -128,7 +128,7 @@ MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}"
 MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
-HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.13-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}"

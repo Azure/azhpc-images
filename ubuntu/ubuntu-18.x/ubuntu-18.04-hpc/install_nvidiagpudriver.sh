@@ -2,7 +2,6 @@
 set -ex
 
 $UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh 1804
-$UBUNTU_COMMON_DIR/install_nv_peer_memory.sh
 
 # Install gdrcopy
 sudo apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms

@@ -86,9 +86,9 @@ else
     OMPI_VERSION_UBUNTU="4.1.4"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     case ${distro} in
-        "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.13.1"; 
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.8-1.0.1.1";
-            IMPI_2021_VERSION_UBUNTU="2021.7.1";; 
+        "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.14"; 
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.6.0";
+            IMPI_2021_VERSION_UBUNTU="2021.8.0";; 
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.14";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.6.0";
             IMPI_2021_VERSION_UBUNTU="2021.8.0";;
@@ -97,7 +97,7 @@ else
             IMPI_2021_VERSION_UBUNTU="2021.8.0";;
         *) ;;
     esac   
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 fi
 
 HPCX_VERSION_CENTOS="v2.9.0"
@@ -128,7 +128,7 @@ MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}"
 MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
-HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.13-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}"
@@ -157,7 +157,7 @@ CHECK_DOCKER=0
 if [[ $distro == *"CentOS Linux"* ]]
 then 
     MKL_VERSION="2021.1.1"
-elif [[ $distro == "Ubuntu 2"* ]]
+elif [[ $distro == "Ubuntu"* ]]
 then
     MKL_VERSION="2023.0.0"
 else

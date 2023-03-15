@@ -12,22 +12,23 @@ cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU
 case \$vmSize in
-    Standard_NC*ads_A100_v4)
+    standard_nc*ads_a100_v4)
         /opt/azurehpc/customizations/ncv4.sh;;
     
-    Standard_ND96*v4)
+    standard_nd96*v4)
         /opt/azurehpc/customizations/ndv4.sh;;
         
-    Standard_ND40rs_v2)
+    standard_nd40rs_v2)
         /opt/azurehpc/customizations/ndv2.sh;;
 
     *) echo "No SKU customization for \$vmSize";;
 esac
 
-if [[ \$vmSize == Standard_ND96*v4 ]]
+if [[ \$vmSize == standard_nd96*v4 ]]
 then
     ## NVIDIA Fabric manager (only for NDv4)
     systemctl enable nvidia-fabricmanager

@@ -21,6 +21,7 @@ MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
 # Load gcc
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
+COMPILER_VERSION=11
 
 #
 INSTALL_PREFIX=/opt
@@ -90,7 +91,7 @@ EOF
 # MVAPICH2 -> already provided by suse package
 # /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6
 #
-ln -s /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6 ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION}
+ln -s /usr/share/lmod/moduledeps/gnu-${COMPILER_VERSION}/mvapich2/2.3.6 ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION}
 #cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION}
 ##%Module 1.0
 ##
@@ -108,7 +109,7 @@ ln -s /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6 ${MODULE_FILES_DIRECTORY}/
 #EOF
 
 # OpenMPI -> already provided by suse package
-ln -s /usr/share/lmod/moduledeps/gnu-7/openmpi/4.1.1 ${MODULE_FILES_DIRECTORY}/mpi/openmpi-${OMPI_VERSION}
+ln -s /usr/share/lmod/moduledeps/gnu-${COMPILER_VERSION}/openmpi/4.1.1 ${MODULE_FILES_DIRECTORY}/mpi/openmpi-${OMPI_VERSION}
 #
 #cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 ##%Module 1.0

@@ -4,5 +4,6 @@
 # and requires lua-lmod to supply environment module support.
 # the default is gnu/7 within package gnu-compilers-hpc, gcc11 is in gnu11-compilers-hpc
 # MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
+COMPILER_VERSION=11
 
-zypper in gnu11-compilers-hpc
+zypper in gnu${COMPILER_VERSION}-compilers-hpc

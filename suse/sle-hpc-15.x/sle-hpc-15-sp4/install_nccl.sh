@@ -36,7 +36,7 @@ popd
 popd
 
 # Build the nccl tests
-source /usr/share/lmod/lmod/init/bash
+source /etc/profile.d/lmod.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git
 pushd nccl-tests

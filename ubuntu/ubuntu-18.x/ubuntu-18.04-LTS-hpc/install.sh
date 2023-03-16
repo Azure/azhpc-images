@@ -5,7 +5,10 @@ set -ex
 source ./set_properties.sh
 
 # install utils
-$UBUNTU_COMMON_DIR/install_utils.sh
+./install_utils.sh
+
+# install Lustre client
+$UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
@@ -24,7 +27,7 @@ rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -Rf -- */
 
 # Install DCGM
-$UBUNTU_COMMON_DIR/install_dcgm.sh 1804
+$UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh

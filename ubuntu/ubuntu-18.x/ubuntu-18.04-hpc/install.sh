@@ -7,6 +7,9 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
+# install Lustre client
+$UBUNTU_COMMON_DIR/install_lustre_client.sh
+
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
@@ -22,12 +25,14 @@ $UBUNTU_COMMON_DIR/install_nccl.sh
 # Install NVIDIA docker container
 $UBUNTU_COMMON_DIR/install_docker.sh
 
-# cleanup downloaded tarballs
+# cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
 # Install DCGM
-$UBUNTU_COMMON_DIR/install_dcgm.sh 1804
+$UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh

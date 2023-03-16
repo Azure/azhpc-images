@@ -3,7 +3,7 @@ set -ex
 
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
-curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > ./microsoft-prod.list
+curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > ./microsoft-prod.list
 # Copy the generated list to the sources.list.d directory
 cp ./microsoft-prod.list /etc/apt/sources.list.d/
 # Install the Microsoft GPG public key

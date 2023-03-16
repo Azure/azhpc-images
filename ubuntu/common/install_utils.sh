@@ -11,7 +11,6 @@ apt-get -y install numactl \
                    libxml2-dev \
                    m4 \
                    byacc \
-                   python-dev \
                    python-setuptools \
                    tcl \
                    environment-modules \
@@ -25,6 +24,8 @@ apt-get -y install numactl \
                    libnl-3-dev \
                    libnl-route-3-dev \
                    libnl-3-200 \
+                   libnl-genl-3-dev \
+                   libnl-genl-3-200 \
                    bison \
                    libnl-route-3-200 \
                    gfortran \
@@ -33,14 +34,23 @@ apt-get -y install numactl \
                    libnl-route-3-dev \
                    net-tools \
                    libsecret-1-0 \
-		   python3-pip \
+                   python3-pip \
                    dkms \
-                   jq
+                   jq \
+                   curl \
+                   libyaml-dev \
+                   libreadline-dev \
+                   libkeyutils1 \
+                   libkeyutils-dev \
+                   libmount-dev
 
-# Install azcopy tool 
+if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
+
+# Install azcopy tool
 # To copy blobs or files to or from a storage account.
-VERSION="10.16.2"
-RELEASE_TAG="release20221108"
+# Parameters - Version, Release Tag
+VERSION=$1
+RELEASE_TAG=$2
 TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
 AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
 AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)

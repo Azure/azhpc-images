@@ -118,4 +118,4 @@ NCCL_GRAPH_FILE=/opt/microsoft/ncv4/graph.xml
 EOF
 
 ## Setup NVME devices
-$COMMON_DIR/setup_nvme.sh
+/opt/azurehpc/customizations/setup_nvme.sh

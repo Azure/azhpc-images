@@ -68,4 +68,4 @@ fi
 modprobe nvidia-peermem
 
 ## Setup NVME devices
-$COMMON_DIR/setup_nvme.sh
+/opt/azurehpc/customizations/setup_nvme.sh

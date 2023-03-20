@@ -25,6 +25,9 @@ case \$vmSize in
     standard_nd40rs_v2)
         /opt/azurehpc/customizations/ndv2.sh;;
 
+    standard_hb176*v4)
+        /opt/azurehpc/customizations/hbv4.sh;;
+
     *) echo "No SKU customization for \$vmSize";;
 esac
 

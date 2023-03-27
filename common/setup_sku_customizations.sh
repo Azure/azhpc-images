@@ -25,19 +25,12 @@ case \$vmSize in
     standard_nd40rs_v2)
         /opt/azurehpc/customizations/ndv2.sh;;
 
+    standard_hb176*v4)
+        /opt/azurehpc/customizations/hbv4.sh;;
+
     *) echo "No SKU customization for \$vmSize";;
 esac
 
-if [[ \$vmSize == standard_nd96*v4 ]]
-then
-    ## NVIDIA Fabric manager (only for NDv4)
-    systemctl enable nvidia-fabricmanager
-    systemctl start nvidia-fabricmanager
-    systemctl is-active --quiet nvidia-fabricmanager
-
-    ## load nvidia-peermem module
-    modprobe nvidia-peermem
-fi
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh
 

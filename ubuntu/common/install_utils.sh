@@ -42,7 +42,8 @@ apt-get -y install numactl \
                    libreadline-dev \
                    libkeyutils1 \
                    libkeyutils-dev \
-                   libmount-dev
+                   libmount-dev \
+                   nfs-common
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 

@@ -6,4 +6,4 @@
 # MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
 COMPILER_VERSION=11
 
-zypper in gnu${COMPILER_VERSION}-compilers-hpc
+zypper in -y gnu${COMPILER_VERSION}-compilers-hpc

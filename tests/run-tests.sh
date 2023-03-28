@@ -265,14 +265,11 @@ CHECK_DOCKER=0
 
 if [[ $distro == *"CentOS Linux"* ]]
 then
-    LSPCI="/usr/sbin/lspci"
     MKL_VERSION="2021.1.1"
 elif [[ $distro == "Ubuntu"* ]]
 then
-    LSPCI="/usr/bin/lspci"
     MKL_VERSION="2023.0.0"
 else
-    LSPCI="/usr/sbin/lspci"
     MKL_VERSION="2022.1.0"
 fi
 
@@ -440,7 +437,9 @@ then
     CHECK_DOCKER=1
 elif [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then
-    LSPCI="/sbin/lspci"
+    # add /sbin and /usr/sbin to the path to allow lscpi and ibstatus called without path
+    # as only UID=0 get it by default
+    export PATH=$PATH:/sbin:/usr/sbin
     MKL_VERSION="2022.2.0"
     #
     CHECK_GCC=0
@@ -505,7 +504,7 @@ else
 fi
 
 # verify IB device is listed
-$LSPCI | grep "Infiniband controller\|Network controller"
+lspci | grep "Infiniband controller\|Network controller"
 check_exit_code "IB device is listed" "IB device not found"
 
 # verify IB device is up

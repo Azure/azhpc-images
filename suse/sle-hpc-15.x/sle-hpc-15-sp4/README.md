@@ -61,3 +61,5 @@ This image consists of the following HPC tools and libraries:
 Software packages are configured as environment modules (lmod). Users can select preferred MPI or software packages as follows:
 `module load <package-name>`
 
+Don't forget to set the group "video" for your user running nvidia cmds
+sudo usermod -a -G video <youruser>

@@ -437,6 +437,9 @@ then
     CHECK_DOCKER=1
 elif [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then
+    # add /sbin and /usr/sbin to the path to allow lscpi and ibstatus called without path
+    # as only UID=0 get it by default
+    export PATH=$PATH:/sbin:/usr/sbin
     MKL_VERSION="2022.2.0"
     #
     CHECK_GCC=0

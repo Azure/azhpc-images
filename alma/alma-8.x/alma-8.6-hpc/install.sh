@@ -41,9 +41,6 @@ $COMMON_DIR/../alma/alma-8.x/common/install_docker.sh
 # optimizations
 ./hpc-tuning.sh
 
-# SKU Customization
-$COMMON_DIR/setup_sku_customizations.sh
-
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
@@ -64,6 +61,9 @@ $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
 ./disable_cloudinit.sh
+
+# SKU Customization
+$COMMON_DIR/setup_sku_customizations.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM

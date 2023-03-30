@@ -1,8 +1,13 @@
 {
     "SPACK": {
+        "ubuntu18.04": {
+            "branch": "releases/v0.19"
+        },
+        "ubuntu20.04": {
+            "branch": "releases/v0.19"
+        },
         "ubuntu22.04": {
-            "version": "0.19.1",
-            "branch": "develop"
+            "branch": "releases/v0.19"
         }        
     },
     "MOFED": {

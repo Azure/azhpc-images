@@ -5,7 +5,7 @@ set -ex
 spack add cmake
 
 # Install azcopy tool
-# To copy blobs or files to or from a storage account.
+# To copy blobs or files to or from a storage account
 azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' $TOP_DIR/requirements.json)
 azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
 azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)

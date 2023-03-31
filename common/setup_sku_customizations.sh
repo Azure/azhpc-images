@@ -2,8 +2,8 @@
 set -ex
 
 ## Copy customization scripts to /opt/azurehpc/customizations
-mkdir -p /opt/azurehpc/customizations
-cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
+mkdir -p $HPC_ENV/customizations
+cp $COMMON_DIR/../customizations/* $HPC_ENV/customizations
 
 
 ## Systemd service for setting up appropriate customizations based on SKU

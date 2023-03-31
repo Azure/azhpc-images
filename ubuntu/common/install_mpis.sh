@@ -39,7 +39,7 @@ spack install
 # Set the installation directories
 mvapich2_path=$(spack location -i mvapich2@$mvapich2_version)
 ompi_path=$(spack location -i openmpi@$ompi_version)
-impi_2021_path=$(spack location -i intel-oneapi-mpi@$impi_2021_version)
+impi_2021_path=$(spack location -i intel-oneapi-mpi@$impi_2021_version)/mpi/$impi_2021_version
 mv $(echo $impi_2021_path)/modulefiles/mpi $(echo $impi_2021_path)/modulefiles/impi
 
 # Module Files
@@ -97,12 +97,12 @@ cat << EOF >> $module_files_directory/impi_$impi_2021_version
 #  Intel MPI $impi_2021_version
 #
 conflict        mpi
-module load $(echo $impi_2021_version)/modulefiles/impi
-setenv          MPI_BIN         $(echo $impi_2021_version)/bin
-setenv          MPI_INCLUDE     $(echo $impi_2021_version)/include
-setenv          MPI_LIB         $(echo $impi_2021_version)/lib
-setenv          MPI_MAN         $(echo $impi_2021_version)/man
-setenv          MPI_HOME        $(echo $impi_2021_version)
+module load $(echo $impi_2021_path)/modulefiles/impi
+setenv          MPI_BIN         $(echo $impi_2021_path)/bin
+setenv          MPI_INCLUDE     $(echo $impi_2021_path)/include
+setenv          MPI_LIB         $(echo $impi_2021_path)/lib
+setenv          MPI_MAN         $(echo $impi_2021_path)/man
+setenv          MPI_HOME        $(echo $impi_2021_path)
 EOF
 
 # Softlinks

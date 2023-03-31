@@ -13,7 +13,7 @@ monitor_path=$HPC_ENV/tools
 mkdir -p $monitor_path
 
 pushd $monitor_path
-git clone https://github.com/Azure/Moneo  --branch $moneo_version
+git clone https://github.com/Azure/Moneo  --branch v$moneo_version
 chmod 777 Moneo
 popd
 

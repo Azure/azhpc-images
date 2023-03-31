@@ -85,6 +85,12 @@
             "version": "2.16.2-1"
         }
     },
+    "dcgm": {
+        "ubuntu22.04": {
+            "version": "3.1.6",
+            "distribution": "ubuntu2204"
+        }
+    },
     "intel_one_mkl": {
         "ubuntu22.04": {
             "version": "2023.0.0"

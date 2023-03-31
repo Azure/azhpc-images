@@ -18,6 +18,19 @@ apt-get update
 apt-get install -y libnuma-dev \
     python3-pip \
     net-tools \
+    libnl-3-dev \
+    libnl-route-3-dev \
+    libnl-3-200 \
+    libnl-genl-3-dev \
+    libnl-genl-3-200 \
+    libnl-route-3-200 \
+    libnl-3-dev \
+    libnl-route-3-dev \
+    libyaml-dev \
+    libreadline-dev \
+    libkeyutils1 \
+    libkeyutils-dev \
+    libmount-dev \
     nfs-common
 
 # Install Ubuntu specific component dependencies

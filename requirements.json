@@ -1,5 +1,5 @@
 {
-    "SPACK": {
+    "spack": {
         "ubuntu18.04": {
             "branch": "releases/v0.19"
         },
@@ -10,7 +10,14 @@
             "branch": "releases/v0.19"
         }        
     },
-    "MOFED": {
+    "azcopy": {
+        "ubuntu22.04": {
+            "version": "10.17.0",
+            "release": "release20230123",
+            "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"
+        }
+    },
+    "mofed": {
         "ubuntu18.04": {
             "mofedlts": {},
             "others": {}
@@ -21,32 +28,32 @@
             "sha256": "67b9fe26769c196fc9c7482d7453c75a0ffe700f17884a0173c4b8acacc04bcc"
         }
     },
-    "HPCX": {
+    "hpcx": {
         "ubuntu22.04": {
             "version": "2.14",
             "sha256": "aaf1d64294a85515108356172b19a873bf37a79701aceb346dd379f46a0455ae"
         }
     },
-    "MVAPICH2": {
+    "mvapich2": {
         "ubuntu22.04": {
             "version": "2.3.7",
             "sha256": "c39a4492f4be50df6100785748ba2894e23ce450a94128181d516da5757751ae"
         }
     },
-    "OMPI": {
+    "ompi": {
         "ubuntu22.04": {
             "version": "4.1.4",
             "sha256": "e166dbe876e13a50c2882e11193fecbc4362e89e6e7b6deeb69bf095c0f4fc4c"   
         }
     },
-    "IMPI_2021": {
+    "impi_2021": {
         "ubuntu22.04": {
             "version": "2021.8.0",
             "release": "19131",
             "sha256": "0fcb1171fc42fd4b2d863ae474c0b0f656b0fa1fdc1df435aa851ccd6d1eaaf7"   
         }
     },
-    "NVIDIA": {
+    "nvidia": {
         "ubuntu22.04": {
             "driver": {
                 "version": "525.85.12",
@@ -59,7 +66,7 @@
             }   
         }
     },
-    "CUDA": {
+    "cuda": {
         "ubuntu22.04": {
             "driver": {
                 "version": "12-0",
@@ -71,32 +78,32 @@
             }   
         }
     },
-    "GDRCOPY": {
+    "gdrcopy": {
         "ubuntu22.04": {
             "version": "2.3",
             "sha256": ""
         }
     },
-    "NCCL": {
+    "nccl": {
         "ubuntu22.04": {
             "version": "2.16.5-1",
             "sha256": ""   
         }
     },
-    "INTEL_ONE_MKL": {
+    "intel_one_mkl": {
         "ubuntu22.04": {
             "release": "19138",
             "version": "2023.0.0.25398",
             "sha256": "0d61188e91a57bdb575782eb47a05ae99ea8eebefee6b2dfe20c6708e16e9927"
         }
     },
-    "WAAGENT": {
+    "waagent": {
         "ubuntu22.04": {
             "version": "2.5.0.2",
             "sha256": ""
         }
     },
-    "MONEO": {
+    "moneo": {
         "ubuntu22.04": {
             "version": "0.2.3",
             "sha256": ""

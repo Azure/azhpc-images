@@ -82,8 +82,7 @@
     },
     "nccl": {
         "ubuntu22.04": {
-            "version": "2.16.5-1",
-            "sha256": ""   
+            "version": "2.16.2-1"
         }
     },
     "intel_one_mkl": {

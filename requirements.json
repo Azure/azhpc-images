@@ -98,8 +98,7 @@
     },
     "moneo": {
         "ubuntu22.04": {
-            "version": "0.2.3",
-            "sha256": ""
+            "version": "0.2.3"
         }
     }
 }

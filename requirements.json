@@ -87,9 +87,7 @@
     },
     "intel_one_mkl": {
         "ubuntu22.04": {
-            "release": "19138",
-            "version": "2023.0.0.25398",
-            "sha256": "0d61188e91a57bdb575782eb47a05ae99ea8eebefee6b2dfe20c6708e16e9927"
+            "version": "2023.0.0"
         }
     },
     "waagent": {

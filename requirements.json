@@ -93,7 +93,7 @@
     "waagent": {
         "ubuntu22.04": {
             "version": "2.5.0.2",
-            "sha256": ""
+            "sha256": "3411c3b2d4721f42ee90af140266b553ba80c8e1a379b087892cb5af9733a12e"
         }
     },
     "moneo": {

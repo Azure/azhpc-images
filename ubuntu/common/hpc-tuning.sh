@@ -73,26 +73,32 @@ fi
 # Install WALinuxAgent
 apt-get install -y python3-setuptools
 pip3 install distro
-WAAGENT_VERSION=2.5.0.2
-$COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
-DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
-wget ${DOWNLOAD_URL}
-tar -xvf $(basename ${DOWNLOAD_URL})
-pushd WALinuxAgent-${WAAGENT_VERSION}/
+
+# Set waagent version and sha256
+waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' $TOP_DIR/requirements.json)
+waagent_version=$(jq -r '.version' <<< $waagent_metadata)
+waagent_sha256=$(jq -r '.sha256' <<< $waagent_metadata)
+waagent_download_url=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v$waagent_version.tar.gz
+
+$COMMON_DIR/download_and_verify.sh $waagent_download_url $waagent_sha256
+tar -xvf $(basename $waagent_download_url)
+pushd WALinuxAgent-$waagent_version/
 python3 setup.py install --register-service
 popd
 
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
-echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
-echo "Extensions.InitialGoalStatePeriod=6" | sudo tee -a /etc/waagent.conf
-echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
-echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
+echo "Extensions.GoalStatePeriod=300" | tee -a /etc/waagent.conf
+echo "Extensions.InitialGoalStatePeriod=6" | tee -a /etc/waagent.conf
+echo "OS.EnableFirewallPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.RemovePersistentNetRulesPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.RootDeviceScsiTimeoutPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.MonitorDhcpClientRestartPeriod=60" | tee -a /etc/waagent.conf
+echo "Provisioning.MonitorHostNamePeriod=60" | tee -a /etc/waagent.conf
 systemctl daemon-reload
 systemctl restart walinuxagent
+
+$COMMON_DIR/write_component_version.sh "waagent" $waagent_version
 
 # Setting Linux NFS read-ahead limits
 # Reference: 

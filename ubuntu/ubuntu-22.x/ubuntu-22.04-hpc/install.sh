@@ -37,6 +37,10 @@ rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
+# Cleanup cache from Spack
+spack gc -y
+spack clean -a
+
 # Install DCGM
 $UBUNTU_COMMON_DIR/install_dcgm.sh
 

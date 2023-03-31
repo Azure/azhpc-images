@@ -1,26 +1,15 @@
 #!/bin/bash
 set -ex
 
-# Parameter
-# Ubuntu Version
-VERSION=$1
+# Set NVIDIA fabricmanager version
+nvidia_fabricmanager_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".fabricmanager' $TOP_DIR/requirements.json)
+nvidia_fabricmanager_prefix=$(jq -r '.prefix' <<< $nvidia_fabricmanager_metadata)
+nvidia_fabricmanager_distribution=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
+nvidia_fabricmanager_version=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
+nvidia_fabricmanager_sha256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
 
-# Install nvidia fabric manager
-case ${VERSION} in
-    1804) NVIDIA_FABRIC_MANAGER_VERSION="525_525.85.12-1"; 
-        CHECKSUM="77e2f8768e4901114c35582b530b10fe6bd3b924862a929f96fc83aee078b12c";
-        VERSION_PREFIX="525";; 
-    2004) NVIDIA_FABRIC_MANAGER_VERSION="525_525.85.12-1"; 
-        CHECKSUM="77e2f8768e4901114c35582b530b10fe6bd3b924862a929f96fc83aee078b12c";
-        VERSION_PREFIX="525";;
-    2204) NVIDIA_FABRIC_MANAGER_VERSION="525_525.85.12-1"; 
-        CHECKSUM="77e2f8768e4901114c35582b530b10fe6bd3b924862a929f96fc83aee078b12c";
-        VERSION_PREFIX="525";;
-    *) ;;
-esac
-
-NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}_amd64.deb
-$COMMON_DIR/download_and_verify.sh $NVIDIA_FABRIC_MNGR_URL ${CHECKSUM}
-apt install -y ./nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}_amd64.deb
-apt-mark hold nvidia-fabricmanager-${VERSION_PREFIX}
-$COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
+nvidia_fabricmanager_download_url=http://developer.download.nvidia.com/compute/cuda/repos/$nvidia_fabricmanager_distribution/x86_64/nvidia-fabricmanager-${nvidia_fabricmanager_version}_amd64.deb
+$COMMON_DIR/download_and_verify.sh $nvidia_fabricmanager_download_url $nvidia_fabricmanager_sha256
+apt install -y ./nvidia-fabricmanager-${nvidia_fabricmanager_version}_amd64.deb
+apt-mark hold nvidia-fabricmanager-$nvidia_fabricmanager_prefix
+$COMMON_DIR/write_component_version.sh "nvidia_fabricmanager" $nvidia_fabricmanager_version

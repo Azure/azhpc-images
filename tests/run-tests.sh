@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -e
 
 # check if the file is present
 function check_exists {
@@ -43,61 +43,77 @@ function verify_ib_device_status {
 }
 
 function verify_hpcx_installation {
-    echo "HPC-x: "$hpcx
     check_exists "$MODULE_FILES_ROOT/mpi/hpcx"
     
     module load mpi/hpcx
     local hpcx_omb_path=$MPI_HOME/tests/osu-micro-benchmarks-5.8
     mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc $hpcx_omb_path/osu_latency
-    check_exit_code "HPC-X" "Failed to run HPC-X"
+    check_exit_code "HPC-X $hpcx" "Failed to run HPC-X"
     module unload mpi/hpcx
     module purge
 }
 
 function verify_mvapich2_installation {
-    echo "MVAPICH2: "$mvapich2
     check_exists "$MODULE_FILES_ROOT/mpi/mvapich2"
 
     module load mpi/mvapich2
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     local mvapich2_omb_path=$MPI_HOME/libexec/osu-micro-benchmarks/mpi/pt2pt
     mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  $mvapich2_omb_path/osu_latency
-    check_exit_code "MVAPICH2" "Failed to run MVAPICH2"
+    check_exit_code "MVAPICH2 $mvapich2" "Failed to run MVAPICH2"
     module unload mpi/mvapich2
 }
 
 function verify_impi_2021_installation {
-    echo "Intel oneapi MPI 2021: "$impi_2021
     check_exists "$MODULE_FILES_ROOT/mpi/impi-2021"
     
     module load mpi/impi-2021
     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 $MPI_BIN/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2021" "Failed to run Intel MPI 2021"
+    check_exit_code "Intel MPI 2021 $impi_2021" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
 
 function verify_impi_2018_installation {
-    echo "Intel oneapi MPI 2018: "$impi_2018
     # This needs modification
     check_exists "$MODULE_FILES_ROOT/mpi/impi"
 
     module load mpi/impi
     mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa ${IMPI2018_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2018" "Failed to run Intel MPI 2018"
+    check_exit_code "Intel MPI 2018: $impi_2018" "Failed to run Intel MPI 2018"
     module unload mpi/impi
+}
+
+function verify_ompi_installation {
+    check_exists "$MODULE_FILES_ROOT/mpi/openmpi"
+    openmpi_path=$(spack location -i openmpi@$ompi)
+    check_exists $openmpi_path
+    check_exit_code "Open MPI $ompi" "Failed to run Open MPI"
+}
+
+function verify_cuda_installation {
+    nvidia-smi
+    check_exit_code "Nvidia Driver $nvidia" "Failed to run Nvidia SMI"
+    nvcc --version
+    check_exit_code "CUDA Driver $cuda" "CUDA not installed"
+    check_exists "/usr/local/cuda/"
+    /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    check_exit_code "CUDA Samples $cuda" "Failed to perform merge sort using CUDA Samples"
 }
 
 function test_component {
     component_index=$1
-    #####################################################
-    # 0: mofed, 1: hpcx, 2: mvapich2, 3: impi_2021, 4: impi_2018
-    #####################################################
+    #######################################################################
+    # 0: mofed, 1: hpcx, 2: mvapich2, 3: impi_2021, 4: impi_2018. 5: ompi #
+    # 6: cuda
+    #######################################################################
     case $component_index in
     0) verify_mofed_installation; verify_ib_device_status;;
     1) verify_hpcx_installation;;
     2) verify_mvapich2_installation;;
     3) verify_impi_2021_installation;;
     4) verify_impi_2018_installation;;
+    5) verify_ompi_installation;;
+    6) verify_cuda_installation;;
     * ) ;;
 esac
 }
@@ -118,8 +134,8 @@ function initiate_test_suite {
 function set_test_matrix {
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
     declare -A distro_values=(
-        # ["distribution"]="check_mofed check_hpcx check_mvapich2 check_impi_2021 check_impi_2018"
-        ["ubuntu22.04"]="1 1 1 1 0"
+        # ["distribution"]="check_mofed check_hpcx check_mvapich2 check_impi_2021 check_impi_2018 check_ompi check_cuda"
+        ["ubuntu22.04"]="1 1 1 1 0 1 1"
         # Add more distro mappings here
     )
 

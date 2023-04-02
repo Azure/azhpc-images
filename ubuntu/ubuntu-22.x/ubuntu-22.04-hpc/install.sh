@@ -7,6 +7,9 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
+# install Lustre client
+$UBUNTU_COMMON_DIR/install_lustre_client.sh
+
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
@@ -43,9 +46,6 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
-# SKU Customization
-$COMMON_DIR/setup_sku_customizations.sh
-
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
@@ -58,6 +58,9 @@ $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
 # Disable Predictive Network interface renaming
 $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
+
+# SKU Customization
+$COMMON_DIR/setup_sku_customizations.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM

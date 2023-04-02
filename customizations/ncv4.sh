@@ -116,3 +116,6 @@ bash -c "cat > /etc/nccl.conf" <<'EOF'
 NCCL_TOPO_FILE=/opt/microsoft/ncv4/topo.xml
 NCCL_GRAPH_FILE=/opt/microsoft/ncv4/graph.xml
 EOF
+
+## Setup NVME devices
+/opt/azurehpc/customizations/setup_nvme.sh

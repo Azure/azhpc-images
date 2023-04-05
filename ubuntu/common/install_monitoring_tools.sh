@@ -2,7 +2,7 @@
 
 set -e
 
-MONEO_VERSION=v0.2.4.1
+MONEO_VERSION=v0.2.4.2
 MDM_DOCKER_VERSION=2.2023.316.006-5d91fa-20230316t1622
 MONITOR_DIR=/opt/azurehpc/tools
 
@@ -23,7 +23,7 @@ chmod 777 Moneo
 echo '{ 
     "AccountName": "moneo", 
     "MDMEndPoint": "https://ppe2.ppe.microsoftmetrics.com", 
-    "UmiObjectId": "ec68530e-9f0e-4bb0-bb63-c2f6690dd154" 
+    "UmiObjectId": "<object ID>" 
 }' >  Moneo/src/worker/publisher/config/geneva_config.json
 
 # configure geneva agent
@@ -32,7 +32,7 @@ echo '{
     "common_config": {
         "metrics_ports": "8000,8001,8002",
         "metrics_namespace": "MoneoH100_pilot",
-        "interval": "20"
+        "interval": "30"
     },
     "geneva_agent_config": {
         "metrics_account": "moneo"

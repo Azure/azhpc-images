@@ -2,4 +2,4 @@
 set -ex
 
 # Install common MPIs for Ubuntu
-$UBUNTU_COMMON_DIR/install_mpis.sh "9e7f86154fccf78883d62da3886c4b1e70cf2699f46842125fa5f52b5aabb02f"
+$UBUNTU_COMMON_DIR/install_mpis.sh "e16f77fb3104917c6bc451a58742cda134eb10251d6a5326e30aff30b7fa1524"

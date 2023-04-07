@@ -100,11 +100,18 @@ function verify_cuda_installation {
     check_exit_code "CUDA Samples $cuda" "Failed to perform merge sort using CUDA Samples"
 }
 
+function verify_nccl_installation {
+    module load mpi/hpcx
+    # Check the type of Mellanox card in use
+    # Run NCCL test based on Mellanox card
+    module unlaod mpi/hpcx
+}
+
 function test_component {
     component_index=$1
     #######################################################################
     # 0: mofed, 1: hpcx, 2: mvapich2, 3: impi_2021, 4: impi_2018. 5: ompi #
-    # 6: cuda
+    # 6: cuda, 7: NCCL
     #######################################################################
     case $component_index in
     0) verify_mofed_installation; verify_ib_device_status;;
@@ -114,6 +121,7 @@ function test_component {
     4) verify_impi_2018_installation;;
     5) verify_ompi_installation;;
     6) verify_cuda_installation;;
+    7) verify_nccl_installation;;
     * ) ;;
 esac
 }
@@ -134,8 +142,8 @@ function initiate_test_suite {
 function set_test_matrix {
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
     declare -A distro_values=(
-        # ["distribution"]="check_mofed check_hpcx check_mvapich2 check_impi_2021 check_impi_2018 check_ompi check_cuda"
-        ["ubuntu22.04"]="1 1 1 1 0 1 1"
+        # ["distribution"]="check_mofed check_hpcx check_mvapich2 check_impi_2021 check_impi_2018 check_ompi check_cuda check_nccl"
+        ["ubuntu22.04"]="1 1 1 1 0 1 1 1"
         # Add more distro mappings here
     )
 

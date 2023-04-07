@@ -159,7 +159,7 @@ then
     MKL_VERSION="2021.1.1"
 elif [[ $distro == "Ubuntu"* ]]
 then
-    MKL_VERSION="2023.0.0"
+    MKL_VERSION="2023.1.0"
 else
     MKL_VERSION="2022.1.0"
 fi

@@ -7,7 +7,7 @@ nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $metadata)
 cuda_driver_version=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $metadata)
 
 spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
-spack install
+spack install -y
 
 nccl_home=$(spack location -i nccl@$nccl_version)
 export_nccl_ld="export LD_LIBRARY_PATH=$(echo $nccl_home)/lib:$LD_LIBRARY_PATH"

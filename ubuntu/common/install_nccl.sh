@@ -28,6 +28,7 @@ popd
 popd
 
 # Build the nccl tests
+export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git

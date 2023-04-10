@@ -34,7 +34,7 @@ esac
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh
 
-cat <<EOF >/etc/systemd/system/sku_customizations.service
+cat <<EOF >/etc/systemd/system/sku-customizations.service
 [Unit]
 Description=Customizations based on SKU
 After=network.target
@@ -49,13 +49,13 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-systemctl enable sku_customizations
-systemctl start sku_customizations
-systemctl is-active --quiet sku_customizations
+systemctl enable sku-customizations
+systemctl start sku-customizations
+systemctl is-active --quiet sku-customizations
 
 error_code=$?
 if [ ${error_code} -ne 0 ]
 then
-    echo "sku_customizations service Inactive!"
+    echo "SKU Customizations service Inactive!"
     exit ${error_code}
 fi

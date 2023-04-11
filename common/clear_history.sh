@@ -72,6 +72,9 @@ then
     # Stop nvidia fabric manager
     systemctl stop nvidia-fabricmanager
     systemctl disable nvidia-fabricmanager
+    # Stop nvme-raid service
+    systemctl stop nvme-raid
+    systemctl disable nvme-raid
     # Clear topo and graph files
     rm -rf /opt/microsoft/
     # Clear contents of nccl.conf

@@ -102,28 +102,67 @@ function verify_cuda_installation {
 
 function verify_nccl_installation {
     module load mpi/hpcx
+
     # Check the type of Mellanox card in use
+    mellanox_card=$(lspci -nn | grep -m 1 Mellanox | awk '{print $9 " " $10}' | sed 's/\[//' | sed 's/\]//')
+    
     # Run NCCL test based on Mellanox card
-    module unlaod mpi/hpcx
+    case $mellanox_card in
+        "ConnectX-3/ConnectX-3 Pro") mpirun -np 4 \
+            -x LD_LIBRARY_PATH \
+            --allow-run-as-root \
+            --map-by ppr:4:node \
+            -mca coll_hcoll_enable 0 \
+            -x UCX_TLS=tcp \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        * ) mpirun -np 8 \
+            --allow-run-as-root \
+            --map-by ppr:8:node \
+            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -mca coll_hcoll_enable 0 \
+            -x UCX_TLS=tcp \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            -x NCCL_NET_GDR_LEVEL=5 \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+    esac
+    check_exit_code "NCCL $nccl" "Failed to run NCCL all reduce perf"
+    
+    module unload mpi/hpcx
+}
+
+function verify_spack_installation {
+    spack --version
+    check_exit_code "Spack $spack" "Failed to install Spack"
+}
+
+function verify_azcopy_installation {
+    azcopy --version
+    check_exit_code "azcopy $azcopy" "Failed to install azcopy"
 }
 
 function test_component {
+    echo "----------------------------------------------------------------"
     component_index=$1
     #######################################################################
     # 0: mofed, 1: hpcx, 2: mvapich2, 3: impi_2021, 4: impi_2018. 5: ompi #
     # 6: cuda, 7: NCCL
     #######################################################################
     case $component_index in
-    0) verify_mofed_installation; verify_ib_device_status;;
-    1) verify_hpcx_installation;;
-    2) verify_mvapich2_installation;;
-    3) verify_impi_2021_installation;;
-    4) verify_impi_2018_installation;;
-    5) verify_ompi_installation;;
-    6) verify_cuda_installation;;
-    7) verify_nccl_installation;;
-    * ) ;;
-esac
+        0) verify_mofed_installation; verify_ib_device_status;;
+        1) verify_hpcx_installation;;
+        2) verify_mvapich2_installation;;
+        3) verify_impi_2021_installation;;
+        4) verify_impi_2018_installation;;
+        5) verify_ompi_installation;;
+        6) verify_cuda_installation;;
+        7) verify_nccl_installation;;
+        * ) ;;
+    esac
 }
 
 function initiate_test_suite {
@@ -191,3 +230,5 @@ set_component_versions
 set_test_matrix
 # Initiate test suite
 initiate_test_suite
+
+echo "ALL OK!"

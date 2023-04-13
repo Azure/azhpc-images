@@ -30,9 +30,41 @@ case \$vmSize in
 
     *) echo "No SKU customization for \$vmSize";;
 esac
-
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh
+
+## Systemd service for removing SKU based customizations
+cat <<EOF >/usr/sbin/remove_sku_customizations.sh
+#!/bin/bash
+
+# Stop nvidia fabric manager
+if systemctl is-active --quiet nvidia-fabricmanager
+then
+    systemctl stop nvidia-fabricmanager
+    systemctl disable nvidia-fabricmanager
+fi
+
+# Stop nvme raid service
+if systemctl is-active --quiet nvme-raid
+then
+    systemctl stop nvme-raid
+    systemctl disable nvme-raid
+fi
+
+# Remove NVIDIA peer memory module
+if lsmod | grep nvidia_peermem &> /dev/null
+then 
+    rmmod nvidia_peermem
+fi
+
+# Clear topo and graph files
+rm -rf /opt/microsoft/
+
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
+
+EOF
+chmod 755 /usr/sbin/remove_sku_customizations.sh
 
 cat <<EOF >/etc/systemd/system/sku-customizations.service
 [Unit]
@@ -42,6 +74,7 @@ After=network.target
 [Service]
 Type=oneshot
 ExecStart=/usr/sbin/setup_sku_customizations.sh
+ExecStop=/usr/sbin/remove_sku_customizations.sh
 RemainAfterExit=true
 StandardOutput=journal
 

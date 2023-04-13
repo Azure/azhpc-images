@@ -40,6 +40,7 @@ uuid_md128=\$(mdadm --detail /dev/md128 | grep UUID | awk '{print \$3}')
 
 # Check if mdadm config already has /dev/md128 UUID info
 # replace if it does and append if not
+[ ! -f /etc/mdadm/mdadm.conf ] && touch /etc/mdadm/mdadm.conf
 if grep -q '^UUID=' /etc/mdadm/mdadm.conf
 then
     sed -i '/^UUID=[0-9a-f:]* \/dev\/md128/s/.*/UUID='"\$uuid_md128"' \/dev\/md128/' /etc/mdadm/mdadm.conf

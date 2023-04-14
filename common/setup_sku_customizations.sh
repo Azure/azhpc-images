@@ -45,11 +45,11 @@ then
 fi
 
 # Stop nvme raid service
-if systemctl is-active --quiet nvme-raid
-then
-    systemctl stop nvme-raid
-    systemctl disable nvme-raid
-fi
+# if systemctl is-active --quiet nvme-raid
+# then
+#     systemctl stop nvme-raid
+#     systemctl disable nvme-raid
+# fi
 
 # Remove NVIDIA peer memory module
 if lsmod | grep nvidia_peermem &> /dev/null

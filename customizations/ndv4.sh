@@ -67,19 +67,19 @@ fi
 ## load nvidia-peermem module
 modprobe nvidia-peermem
 
-## Setup NVME devices
-if [ ! -f /etc/systemd/system/nvme-raid.service ]; then
-    /opt/azurehpc/customizations/setup_nvme.sh
-fi
+# ## Setup NVME devices
+# if [ ! -f /etc/systemd/system/nvme-raid.service ]; then
+#     /opt/azurehpc/customizations/setup_nvme.sh
+# fi
 
-## NVME raid service
-systemctl enable nvme-raid
-systemctl start nvme-raid
-systemctl is-active --quiet nvme-raid
+# ## NVME raid service
+# systemctl enable nvme-raid
+# systemctl start nvme-raid
+# systemctl is-active --quiet nvme-raid
 
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "Failed to setup/ mount NVMe devices!"
-    exit ${error_code}
-fi
+# error_code=$?
+# if [ ${error_code} -ne 0 ]
+# then
+#     echo "Failed to setup/ mount NVMe devices!"
+#     exit ${error_code}
+# fi

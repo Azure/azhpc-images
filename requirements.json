@@ -98,8 +98,8 @@
     },
     "waagent": {
         "ubuntu22.04": {
-            "version": "2.5.0.2",
-            "sha256": "3411c3b2d4721f42ee90af140266b553ba80c8e1a379b087892cb5af9733a12e"
+            "version": "2.9.0.4",
+            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
         }
     },
     "moneo": {

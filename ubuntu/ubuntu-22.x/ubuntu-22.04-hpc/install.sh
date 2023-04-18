@@ -22,14 +22,11 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 # install mpi libraries
 ./install_mpis.sh
 
+# install Intel libraries
+$UBUNTU_COMMON_DIR/install_intel_libs.sh
+
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
-
-# Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
-
-# Install NVIDIA docker container
-$UBUNTU_COMMON_DIR/install_docker.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -41,11 +38,14 @@ rm -Rf -- */
 spack gc -y
 spack clean -a
 
+# Install NCCL
+$UBUNTU_COMMON_DIR/install_nccl.sh
+
+# Install NVIDIA docker container
+$UBUNTU_COMMON_DIR/install_docker.sh
+
 # Install DCGM
 $UBUNTU_COMMON_DIR/install_dcgm.sh
-
-# install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

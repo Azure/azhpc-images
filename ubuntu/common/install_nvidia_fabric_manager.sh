@@ -2,7 +2,7 @@
 set -ex
 
 # Set NVIDIA fabricmanager version
-nvidia_fabricmanager_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".fabricmanager' $COMPONENT_VERSIONS)
+nvidia_fabricmanager_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".fabricmanager' <<< $COMPONENT_VERSIONS)
 nvidia_fabricmanager_prefix=$(jq -r '.prefix' <<< $nvidia_fabricmanager_metadata)
 nvidia_fabricmanager_distribution=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
 nvidia_fabricmanager_version=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)

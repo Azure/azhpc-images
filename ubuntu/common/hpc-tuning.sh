@@ -75,7 +75,7 @@ apt-get install -y python3-setuptools
 pip3 install distro
 
 # Set waagent version and sha256
-waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' $COMPONENT_VERSIONS)
+waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 waagent_version=$(jq -r '.version' <<< $waagent_metadata)
 waagent_sha256=$(jq -r '.sha256' <<< $waagent_metadata)
 waagent_download_url=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v$waagent_version.tar.gz

@@ -2,8 +2,7 @@
 set -ex
 
 # Set the driver versions
-metadata=$(jq -r . $TOP_DIR/requirements.json)
-cuda_metadata=$(jq -r '.cuda."'"$DISTRIBUTION"'"' <<< $metadata)
+cuda_metadata=$(jq -r '.cuda."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 cuda_driver_version=$(jq -r '.driver.version' <<< $cuda_metadata)
 cuda_samples_version=$(jq -r '.samples.version' <<< $cuda_metadata)
 cuda_samples_sha256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
@@ -29,7 +28,7 @@ mv ./Samples/ /usr/local/cuda/samples
 popd
 
 # Install NVIDIA driver
-nvidia_driver_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".driver' <<< $metadata)
+nvidia_driver_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".driver' <<< $COMPONENT_VERSIONS)
 nvidia_driver_version=$(jq -r '.version' <<< $nvidia_driver_metadata)
 nvidia_driver_sha256=$(jq -r '.sha256' <<< $nvidia_driver_metadata)
 nvidia_driver_download_url=https://us.download.nvidia.com/tesla/$nvidia_driver_version/NVIDIA-Linux-x86_64-$nvidia_driver_version.run

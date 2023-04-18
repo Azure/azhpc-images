@@ -27,7 +27,7 @@ mkdir -p $HPC_ENV
 
 # Clone Spack into HPC Directory
 git clone -c feature.manyFiles=true https://github.com/spack/spack.git $HPC_ENV/spack
-spack_branch=$(jq -r '.spack."'"$DISTRIBUTION"'".branch' $TOP_DIR/requirements.json)
+spack_branch=$(jq -r '.spack."'"$DISTRIBUTION"'".branch' $COMPONENT_VERSIONS)
 pushd $HPC_ENV/spack
 git checkout $spack_branch
 popd

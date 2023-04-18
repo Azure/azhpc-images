@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-mofed_metadata=$(jq -r '.mofed."'"$DISTRIBUTION"'"' $TOP_DIR/requirements.json)
+mofed_metadata=$(jq -r '.mofed."'"$DISTRIBUTION"'"' $COMPONENT_VERSIONS)
 mofed_version=$(jq -r '.version' <<< $mofed_metadata)
 mofed_sha256=$(jq -r '.sha256' <<< $mofed_metadata)
 tarball="MLNX_OFED_LINUX-$mofed_version-$DISTRIBUTION-x86_64.tgz"

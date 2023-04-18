@@ -8,7 +8,7 @@ set GCC=/usr/bin/gcc
 install_prefix=/opt
 
 # Install HPC-x
-hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' $TOP_DIR/requirements.json)
+hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' $COMPONENT_VERSIONS)
 hpcx_version=$(jq -r '.version' <<< $hpcx_metadata)
 hpcx_sha256=$(jq -r '.sha256' <<< $hpcx_metadata)
 hpcx_download_url=$(jq -r '.url' <<< $hpcx_metadata)
@@ -22,15 +22,15 @@ hpcx_path=$install_prefix/$hpcx_folder
 
 # Add the MPIs to the environment
 # Install MVAPICH2
-mvapich2_version=$(jq -r '.mvapich2."'"$DISTRIBUTION"'".version' $TOP_DIR/requirements.json)
+mvapich2_version=$(jq -r '.mvapich2."'"$DISTRIBUTION"'".version' $COMPONENT_VERSIONS)
 spack add mvapich2@$mvapich2_version
 
 # Install Open MPI
-ompi_version=$(jq -r '.ompi."'"$DISTRIBUTION"'".version' $TOP_DIR/requirements.json)
+ompi_version=$(jq -r '.ompi."'"$DISTRIBUTION"'".version' $COMPONENT_VERSIONS)
 spack add openmpi@$ompi_version
 
 # Install Intel MPI 2021
-impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' $TOP_DIR/requirements.json)
+impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' $COMPONENT_VERSIONS)
 spack add intel-oneapi-mpi@$impi_2021_version
 
 # Install the MPIs

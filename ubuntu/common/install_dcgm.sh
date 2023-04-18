@@ -2,7 +2,7 @@
 set -ex
 
 # Set DCGM version info
-dcgm_metadata=$(jq -r '.dcgm."'"$DISTRIBUTION"'"' $TOP_DIR/requirements.json)
+dcgm_metadata=$(jq -r '.dcgm."'"$DISTRIBUTION"'"' $COMPONENT_VERSIONS)
 dcgm_version=$(jq -r '.version' <<< $dcgm_metadata)
 dcgm_distribution=$(jq -r '.distribution' <<< $dcgm_metadata)
 

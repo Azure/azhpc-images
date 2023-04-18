@@ -2,9 +2,8 @@
 set -ex
 
 # Set NCCL and CUDA driver versions
-metadata=$(jq -r . $TOP_DIR/requirements.json)
-nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $metadata)
-cuda_driver_version=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $metadata)
+nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+cuda_driver_version=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
 spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
 spack install -y

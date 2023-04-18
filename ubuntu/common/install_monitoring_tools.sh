@@ -3,7 +3,7 @@
 set -e
 
 # Set moneo metadata
-moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' $TOP_DIR/requirements.json)
+moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' $COMPONENT_VERSIONS)
 
 # Dependencies 
 python3 -m pip install --upgrade pip

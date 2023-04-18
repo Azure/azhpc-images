@@ -2,7 +2,7 @@
 set -ex
 
 # Set Intel® oneAPI Math Kernel Library version
-intel_one_mkl_version=$(jq -r '.intel_one_mkl."'"$DISTRIBUTION"'".version' $TOP_DIR/requirements.json)
+intel_one_mkl_version=$(jq -r '.intel_one_mkl."'"$DISTRIBUTION"'".version' $COMPONENT_VERSIONS)
 
 spack add intel-oneapi-mkl@$intel_one_mkl_version
 # If there is a space crunch use spack gc (this performs garbage collection)

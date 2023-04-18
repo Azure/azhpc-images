@@ -6,7 +6,7 @@ nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS
 cuda_driver_version=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
 spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
-spack install -y
+spack install --no-checksum
 
 nccl_home=$(spack location -i nccl@$nccl_version)
 export_nccl_ld="export LD_LIBRARY_PATH=$(echo $nccl_home)/lib:$LD_LIBRARY_PATH"
@@ -28,6 +28,7 @@ popd
 
 # Build the nccl tests
 export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
+eval $export_modulepath
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git

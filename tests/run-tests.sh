@@ -91,11 +91,20 @@ function verify_ompi_installation {
 }
 
 function verify_cuda_installation {
+    # Verify NVIDIA Driver installation
     nvidia-smi
     check_exit_code "Nvidia Driver $nvidia" "Failed to run Nvidia SMI"
+    
+    # Verify if NVIDIA peer memory module is inserted
+    lsmod | grep nvidia_peermem
+    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+
+    # Verify if CUDA is installed
     nvcc --version
     check_exit_code "CUDA Driver $cuda" "CUDA not installed"
     check_exists "/usr/local/cuda/"
+    
+    # Verify the compilation of CUDA samples
     /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
     check_exit_code "CUDA Samples $cuda" "Failed to perform merge sort using CUDA Samples"
 }
@@ -141,31 +150,109 @@ function verify_spack_installation {
 }
 
 function verify_azcopy_installation {
-    azcopy --version
+    sudo azcopy --version
     check_exit_code "azcopy $azcopy" "Failed to install azcopy"
 }
 
+function verify_mkl_installation {
+    intelmkl_path=$(spack location -i intel-oneapi-mkl@$intel_one_mkl)
+    check_exists $intelmkl_path
+    check_exit_code "Intel Oneapi MKL $intel_one_mkl" "Intel Oneapi MKL installation not found!"
+}
+
+function verify_hpcdiag_installation {
+    hpcdiag_path="$HPC_ENV/diagnostics/gather_azhpc_vm_diagnostics.sh"
+    check_exists $hpcdiag_path
+}
+
+# Internal/ external installation of GCC
+function verify_gcc_installation {
+    gcc --version
+    check_exit_code "GCC is installed" "GCC doesn't exist!"
+}
+
+# Check module file for the explicit installations
+function verify_gcc_modulefile {
+    # Verify GCC Software installation path
+    check_exists "/opt/gcc-$gcc_version/"
+    # Verify GCC module file path
+    check_exists "$MODULE_FILES_ROOT/gcc-$gcc_version"
+}
+
+function verify_aocl_installation {
+    # verify AMD modulefiles
+    check_exists "$MODULE_FILES_ROOT/amd/aocl"
+    check_exists "/opt/amd/lib/"
+    check_exists "/opt/amd/include/"
+}
+
+function verify_docker_installation {
+    sudo docker pull hello-world
+    sudo docker run hello-world
+    check_exit_code "NVIDIA Docker $nvidia_docker" "Problem with Docker!"
+}
+
+function verify_ipoib_status {
+    # Check if the module ib_ipoib is inserted
+    lsmod | grep ib_ipoib
+    check_exit_code "ib_ipoib module is inserted" "ip_ipoib module not inserted!"
+
+    # Check if ib devices are listed
+    ifconfig | grep ib
+    check_exit_code "IPoIB is working" "IPoIB is not working!"
+}
+
+function verify_dcgm_installation {
+    # Verify DCGM package installation
+    dpkg -l | grep datacenter-gpu-manager
+    check_exit_code "DCGM Installed" "DCGM not installed!"
+
+    # Check if the NVIDIA DCGM service is active
+    systemctl is-active --quiet nvidia-dcgm
+    check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive!"
+}
+
 function test_component {
-    echo "----------------------------------------------------------------"
+    # Print divider
+    # echo "----------------------------------------------------------------"
     component_index=$1
     #######################################################################
-    # 0: mofed, 1: hpcx, 2: mvapich2, 3: impi_2021, 4: impi_2018. 5: ompi #
-    # 6: cuda, 7: NCCL
+    # 0: Intel MPI 2021, 1: Intel MPI 2018, 2: NVIDIA and CUDA, 3: NCCL   #
+    # 4: GCC module, 5: AOCL, 6: Docker, 7: DCGM
     #######################################################################
     case $component_index in
-        0) verify_mofed_installation; verify_ib_device_status;;
-        1) verify_hpcx_installation;;
-        2) verify_mvapich2_installation;;
-        3) verify_impi_2021_installation;;
-        4) verify_impi_2018_installation;;
-        5) verify_ompi_installation;;
-        6) verify_cuda_installation;;
-        7) verify_nccl_installation;;
+        0) verify_impi_2021_installation;;
+        1) verify_impi_2018_installation;;
+        2) verify_cuda_installation;;
+        3) verify_nccl_installation;;
+        4) verify_gcc_modulefile;;
+        5) verify_aocl_installation;;
+        6) verify_docker_installation;;
+        7) verify_dcgm_installation;;
         * ) ;;
     esac
 }
 
+# Verify common component installations accross all distros
+function verify_common_components {
+    verify_spack_installation;
+    verify_gcc_installation;
+    verify_azcopy_installation;
+    verify_mofed_installation;
+    verify_ib_device_status;
+    verify_hpcx_installation;
+    verify_mvapich2_installation;
+    verify_ompi_installation;
+    verify_mkl_installation;
+    verify_hpcdiag_installation;
+    verify_ipoib_status;
+}
+
 function initiate_test_suite {
+    # Run the common component tests
+    verify_common_components
+
+    # Read the variable component matrix
     readarray -d ' ' -t TEST_MATRIX <<<"${TEST_MATRIX[0]}"
     for index in "${!TEST_MATRIX[@]}"; do
         # the component is represented by the index
@@ -181,8 +268,8 @@ function initiate_test_suite {
 function set_test_matrix {
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
     declare -A distro_values=(
-        # ["distribution"]="check_mofed check_hpcx check_mvapich2 check_impi_2021 check_impi_2018 check_ompi check_cuda check_nccl"
-        ["ubuntu22.04"]="1 1 1 1 0 1 1 1"
+        # ["distribution"]="check_impi_2021 check_impi_2018 check_cuda check_nccl check_gcc check_aocl check_docker check_dcgm"
+        ["ubuntu22.04"]="1 0 1 1 0 0 1 1"
         # Add more distro mappings here
     )
 

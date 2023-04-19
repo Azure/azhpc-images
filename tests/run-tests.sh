@@ -209,7 +209,31 @@ function verify_dcgm_installation {
 
     # Check if the NVIDIA DCGM service is active
     systemctl is-active --quiet nvidia-dcgm
-    check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive!"
+    check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
+}
+
+function verify_sku_customization_service {
+    # Check if the SKU customization service is active
+    systemctl is-active --quiet sku-customizations
+    check_exit_code "SKU Customization is active" "SKU Customization is inactive/dead!"
+}
+
+function verify_nvidia_fabricmanager_service {
+    # Check if the SKU customization service is active
+    systemctl is-active --quiet nvidia-fabricmanager
+    check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
+}
+
+function test_service {
+    service_index=$1
+    #######################################################################
+    # 0: SKU Customization, 1: NVIDIA Fabricmanager
+    #######################################################################
+    case $service_index in
+        0) verify_sku_customization_service;;
+        1) verify_nvidia_fabricmanager_service;;
+        *) ;;
+    esac
 }
 
 function test_component {
@@ -252,24 +276,52 @@ function initiate_test_suite {
     # Run the common component tests
     verify_common_components
 
-    # Read the variable component matrix
-    readarray -d ' ' -t TEST_MATRIX <<<"${TEST_MATRIX[0]}"
-    for index in "${!TEST_MATRIX[@]}"; do
+    # Read the variable component test matrix
+    components=$(echo ${TEST_MATRIX[0]} | jq -r '.components')
+    readarray -d ' ' -t components <<<"${components[0]}"
+    for index in "${!components[@]}"; do
         # the component is represented by the index
-        # value represents whether to test the component or not
-        component=${TEST_MATRIX[$index]}
+        # value represents whether to test the component or not (0/1)
+        component=${components[$index]}
         # echo "Index: $i, Value: ${TEST_MATRIX[$i]}"
         if [[ $component -eq 1 ]]; then
             test_component $index
+        fi
+    done
+
+    # Read the variable service test matrix
+    services=$(echo ${TEST_MATRIX[0]} | jq -r '.services')
+    readarray -d ' ' -t services <<<"${services[0]}"
+    for index in "${!services[@]}"; do
+        # the service is represented by the index
+        # value represents whether to test the service or not (0/1)
+        service=${services[$index]}
+        # echo "Index: $i, Value: ${TEST_MATRIX[$i]}"
+        if [[ $service -eq 1 ]]; then
+            test_service $index
         fi
     done
 }
 
 function set_test_matrix {
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
+    # declare -A distro_values=(
+    #     # ["distribution"]="check_impi_2021 check_impi_2018 check_cuda check_nccl check_gcc check_aocl check_docker check_dcgm"
+    #     ["ubuntu22.04"]="1 0 1 1 0 0 1 1"
+    #     # Add more distro mappings here
+    # )
+
     declare -A distro_values=(
-        # ["distribution"]="check_impi_2021 check_impi_2018 check_cuda check_nccl check_gcc check_aocl check_docker check_dcgm"
-        ["ubuntu22.04"]="1 0 1 1 0 0 1 1"
+        
+        # ["distribution"]='{
+        #   "components": "check_impi_2021 check_impi_2018 check_cuda check_nccl check_gcc check_aocl check_docker check_dcgm"
+        #   "services": "check_sku_customization check_nvidia_fabricmanager"
+        #}'
+
+        ["ubuntu22.04"]='{
+            "components": "1 0 1 1 0 0 1 1", 
+            "services": "1 1"
+        }'
         # Add more distro mappings here
     )
 

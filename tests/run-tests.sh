@@ -85,7 +85,7 @@ function verify_impi_2018_installation {
 
 function verify_ompi_installation {
     check_exists "$MODULE_FILES_ROOT/mpi/openmpi"
-    openmpi_path=$(spack location -i openmpi@$ompi)
+    local openmpi_path=$(spack location -i openmpi@$ompi)
     check_exists $openmpi_path
     check_exit_code "Open MPI $ompi" "Failed to run Open MPI"
 }
@@ -110,14 +110,19 @@ function verify_cuda_installation {
 }
 
 function verify_nccl_installation {
+    # Print nccl.conf if it exists
+    if test -f /etc/nccl.conf; then
+        cat /etc/nccl.conf
+    fi
+
     module load mpi/hpcx
 
     # Check the type of Mellanox card in use
-    mellanox_card=$(lspci -nn | grep -m 1 Mellanox | awk '{print $9 " " $10}' | sed 's/\[//' | sed 's/\]//')
+    # mellanox_card=$(lspci -nn | grep -m 1 Mellanox | awk '{print $9 " " $10}' | sed 's/\[//' | sed 's/\]//')
     
     # Run NCCL test based on Mellanox card
-    case $mellanox_card in
-        "ConnectX-3/ConnectX-3 Pro") mpirun -np 4 \
+    case $VMSIZE in
+        standard_nc24rs_v3) mpirun -np 4 \
             -x LD_LIBRARY_PATH \
             --allow-run-as-root \
             --map-by ppr:4:node \
@@ -127,7 +132,7 @@ function verify_nccl_installation {
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
-        * ) mpirun -np 8 \
+        standard_nd40rs_v2 | standard_nd96*v4 | standard_nc*ads_a100_v4) mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
             -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
@@ -138,6 +143,7 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        *) ;;
     esac
     check_exit_code "NCCL $nccl" "Failed to run NCCL all reduce perf"
     
@@ -155,13 +161,13 @@ function verify_azcopy_installation {
 }
 
 function verify_mkl_installation {
-    intelmkl_path=$(spack location -i intel-oneapi-mkl@$intel_one_mkl)
+    local intelmkl_path=$(spack location -i intel-oneapi-mkl@$intel_one_mkl)
     check_exists $intelmkl_path
     check_exit_code "Intel Oneapi MKL $intel_one_mkl" "Intel Oneapi MKL installation not found!"
 }
 
 function verify_hpcdiag_installation {
-    hpcdiag_path="$HPC_ENV/diagnostics/gather_azhpc_vm_diagnostics.sh"
+    local hpcdiag_path="$HPC_ENV/diagnostics/gather_azhpc_vm_diagnostics.sh"
     check_exists $hpcdiag_path
 }
 
@@ -214,24 +220,48 @@ function verify_dcgm_installation {
 
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
-    systemctl is-active --quiet sku-customizations
-    check_exit_code "SKU Customization is active" "SKU Customization is inactive/dead!"
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5"
+    if [[ "$VMSIZE" =~ ^($valid_sizes)$ ]]
+    then
+        systemctl is-active --quiet sku-customizations
+        check_exit_code "SKU Customization is active" "SKU Customization is inactive/dead!"
+    fi
 }
 
 function verify_nvidia_fabricmanager_service {
-    # Check if the SKU customization service is active
-    systemctl is-active --quiet nvidia-fabricmanager
-    check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
+    # Check if the NVIDIA Fabricmanager service is active
+    local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
+    if [[ "$VMSIZE" =~ ^($valid_sizes)$ ]]
+    then
+        systemctl is-active --quiet nvidia-fabricmanager
+        check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
+    fi
+}
+
+function verify_sunrpc_tcp_settings_service {
+    # Check if the sunrpc TCP settings service is active
+    systemctl is-active --quiet sunrpc_tcp_settings
+    check_exit_code "sunrpc TCP settings service is active" "sunrpc TCP settings service is inactive/dead!"
+}
+
+function verify_apt_yum_update {
+    case $ID in
+        ubuntu) sudo apt-get -q --assume-no update;;
+        centos | almalinux) sudo yum update -n;;
+        * ) ;;
+    esac
+    check_exit_code "Package update works" "Package update fails!"
 }
 
 function test_service {
-    service_index=$1
+    local service_index=$1
     #######################################################################
-    # 0: SKU Customization, 1: NVIDIA Fabricmanager
+    # 0: SKU Customization, 1: NVIDIA Fabricmanager, 2: TCP settings
     #######################################################################
     case $service_index in
         0) verify_sku_customization_service;;
         1) verify_nvidia_fabricmanager_service;;
+        2) verify_sunrpc_tcp_settings_service;;
         *) ;;
     esac
 }
@@ -239,7 +269,7 @@ function test_service {
 function test_component {
     # Print divider
     # echo "----------------------------------------------------------------"
-    component_index=$1
+    local component_index=$1
     #######################################################################
     # 0: Intel MPI 2021, 1: Intel MPI 2018, 2: NVIDIA and CUDA, 3: NCCL   #
     # 4: GCC module, 5: AOCL, 6: Docker, 7: DCGM
@@ -270,6 +300,8 @@ function verify_common_components {
     verify_mkl_installation;
     verify_hpcdiag_installation;
     verify_ipoib_status;
+    # Perform miscellaneous checks
+    verify_apt_yum_update;
 }
 
 function initiate_test_suite {
@@ -315,12 +347,12 @@ function set_test_matrix {
         
         # ["distribution"]='{
         #   "components": "check_impi_2021 check_impi_2018 check_cuda check_nccl check_gcc check_aocl check_docker check_dcgm"
-        #   "services": "check_sku_customization check_nvidia_fabricmanager"
+        #   "services": "check_sku_customization check_nvidia_fabricmanager check_sunrpc_tcp_settings"
         #}'
 
         ["ubuntu22.04"]='{
             "components": "1 0 1 1 0 0 1 1", 
-            "services": "1 1"
+            "services": "1 1 1"
         }'
         # Add more distro mappings here
     )
@@ -333,9 +365,9 @@ function set_test_matrix {
 }
 
 function set_sku_configuration {
-    metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
-    vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
-    export VMSIZE=$(echo "$vmSize" | awk '{print tolower($0)}')
+    local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
+    local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
+    export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
 }
 
 # Function to set component versions from JSON file
@@ -353,7 +385,6 @@ function set_component_versions {
 }
 
 function set_module_files_path {
-    . /etc/os-release
     case $ID in
     ubuntu)
         export MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
@@ -368,6 +399,7 @@ esac
 # Set HPC environment
 HPC_ENV=/opt/azurehpc
 # Set module files directory
+. /etc/os-release
 set_module_files_path
 # Set component versions
 set_component_versions

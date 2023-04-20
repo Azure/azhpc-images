@@ -332,6 +332,12 @@ function set_test_matrix {
     export TEST_MATRIX=("${distro_values[$distro]}")
 }
 
+function set_sku_configuration {
+    metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
+    vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
+    export VMSIZE=$(echo "$vmSize" | awk '{print tolower($0)}')
+}
+
 # Function to set component versions from JSON file
 function set_component_versions {
     local component_versions_file=$HPC_ENV/component_versions.json
@@ -365,6 +371,8 @@ HPC_ENV=/opt/azurehpc
 set_module_files_path
 # Set component versions
 set_component_versions
+# Set current SKU
+set_sku_configuration
 # Set test matrix
 set_test_matrix
 # Initiate test suite

@@ -15,7 +15,7 @@ pushd azurehpc-health-checks
 NHC_VERSION=1.4.3
 echo "Installed NHC verison $NHC_VERSION"
 
-wget -O nhc-$NHC_VERSION.tar.xz https://github.com/mej/nhc/releases/download/1.4.3/lbnl-nhc-1.4.3.tar.xz
+wget -O nhc-$NHC_VERSION.tar.xz https://github.com/mej/nhc/releases/download/${NHC_VERSION}/lbnl-nhc-${NHC_VERSION}.tar.xz
 tar -xf nhc-$NHC_VERSION.tar.xz
 
 pushd lbnl-nhc-$NHC_VERSION
@@ -29,7 +29,6 @@ popd
 echo -e "\nRunning set up script for custom tests"
 pushd customTests/
 ./custom-test-setup.sh
-popd
 popd
 
 $COMMON_DIR/write_component_version.sh "MONEO" ${AZHC_VERSION}

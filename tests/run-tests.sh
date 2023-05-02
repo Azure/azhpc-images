@@ -34,108 +34,8 @@ source /etc/profile
 
 GCC_VERSION="9.2.0"
 
-if [ "${MOFED_LTS}" = true ]
-then
-    HPCX_VERSION_UBUNTU="v2.7.0"
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-3.1.5.0"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-    IMPI_2021_VERSION_UBUNTU="2021.7.0"
-    OMPI_VERSION_UBUNTU="4.1.3"
-else
-    HPCX_VERSION_CENTOS="v2.9.0"
-    HPCX_VERSION_UBUNTU="v2.13.1"
-    HPCX_VERSION_SUSE="2.12"  # remove the v for version so we can use the variable better
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.8-1.0.1.1"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-    IMPI_2021_VERSION_UBUNTU="2021.7.1"
-    OMPI_VERSION_UBUNTU="4.1.4"
-fi
-
-MVAPICH2_VERSION_CENTOS="2.3.6"
-MVAPICH2_VERSION_ALMA="2.3.7"
-MVAPICH2_VERSION_UBUNTU="2.3.7"
-MVAPICH2_VERSION_SUSE="2.3.6"
-
-OMPI_VERSION_CENTOS="4.1.1"
-OMPI_VERSION_ALMA="4.1.3"
-OMPI_VERSION_SUSE="4.1.1"
-
-IMPI_2021_VERSION_CENTOS="2021.4.0"
-IMPI_2021_VERSION_ALMA="2021.7.0"
-IMPI_2021_VERSION_SUSE="2021.7.0"
-
-MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
-IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
-
-MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
-MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
-MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
-MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
-MOFED_VERSION_SUSE="MLNX_OFED_INBOX_5.14.21-4.0.0"
-#MOFED_VERSION_SUSE="MLNX_OFED-5.7-1.0.2.0"
-
-
-HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_78="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.8-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_79="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${HPCX_MOFED_INTEGRATION_VERSION}-redhat7.9-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat8.1-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${MOFED_VERSION_CENTOS_83}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-MODULE_FILES_ROOT_CENTOS="/usr/share/Modules/modulefiles"
-IMPI2021_PATH_CENTOS="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_CENTOS}"
-# added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
-MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}/libexec"
-MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
-OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
-
-HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.13-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
-IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
-# added "libexec" to the path, as rh+clones and ubuntu use "libexec", but SUSE only "lib"
-MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
-OPENMPI_PATH_ALMA="/opt/openmpi-${OMPI_VERSION_ALMA}"
-
-MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda11-gdrcopy2-nccl2.12-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
-# added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
-MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
-MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
-OPENMPI_PATH_UBUNTU="/opt/openmpi-${OMPI_VERSION_UBUNTU}"
-
-MODULE_FILES_ROOT_SUSE="/usr/share/lmod/modulefiles"
-HPCX_OMB_PATH_SUSE="/opt/hpcx-v${HPCX_VERSION_SUSE}-gcc-inbox-suse15.4-cuda11-gdrcopy2-nccl${HPCX_VERSION_SUSE}-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-IMPI2021_PATH_SUSE="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_SUSE}"
-MVAPICH2_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/mvapich2-psm2/2.3.6/lib"
-MVAPICH2X_PATH_SUSE=""
-OPENMPI_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/openmpi/4.1.1"
-
-CHECK_HPCX=0
-CHECK_IMPI_2021=0
-CHECK_IMPI_2018=0
-CHECK_OMPI=0
-CHECK_MVAPICH2=0
-CHECK_MVAPICH2X=0
-CHECK_CUDA=0
-CHECK_AOCL=1
-CHECK_NV_PMEM=0
-CHECK_NCCL=0
-CHECK_GCC=1
-CHECK_DOCKER=0
-
 # Find distro
 find_distro() {
-#TODO - the function and usage is quite strange as it does only work for special setups and not in general, so a rewrite would be a good suggestion
-# a) use always os-release and only as fallback *-release
-# b) use ID and VERSION_ID instead of NAME
-# like
-# awk '/^ID=/' $1 | awk -F'=' '{ print tolower($2) }'
-# awk '/^VERSION_ID=/' $1 | awk -F'=' '{ print tolower($2) }'
-# c) no second funtion is needed
-
-    # /etc/os-release is the standart for newer distros
     local os=`cat /etc/os-release | awk 'match($0, /^NAME="(.*)"/, result) { print result[1] }'`
     if [[ $os == "CentOS Linux" ]]
     then
@@ -162,7 +62,6 @@ find_distro() {
 # Find CentOS distro
 find_centos_distro() {
     echo `cat /etc/redhat-release | awk '{print $4}'`
-    # TODO - centos should have os-release too
 }
 
 # Find Alma distro
@@ -210,13 +109,20 @@ else
 fi
 
 HPCX_VERSION_CENTOS="v2.9.0"
+
 MVAPICH2_VERSION_CENTOS="2.3.6"
 MVAPICH2_VERSION_ALMA="2.3.7"
 MVAPICH2_VERSION_UBUNTU="2.3.7"
+MVAPICH2_VERSION_SUSE="2.3.6"
+
 OMPI_VERSION_CENTOS="4.1.1"
 OMPI_VERSION_ALMA="4.1.3"
+OMPI_VERSION_SUSE="4.1.1"
+
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA="2021.7.0"
+IMPI_2021_VERSION_SUSE="2021.7.0"
+
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
@@ -224,6 +130,8 @@ MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
 MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
 MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
+MOFED_VERSION_SUSE="MLNX_OFED_INBOX_5.14.21-4.0.0"
+#MOFED_VERSION_SUSE="MLNX_OFED-5.7-1.0.2.0"
 
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
@@ -233,23 +141,34 @@ HPCX_OMB_PATH_CENTOS_81="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MO
 HPCX_OMB_PATH_CENTOS_83="/opt/hpcx-v2.8.0-gcc-${MOFED_VERSION_CENTOS_83}-redhat8.3-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 MODULE_FILES_ROOT_CENTOS="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_CENTOS="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_CENTOS}"
-MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}"
+# added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
+MVAPICH2_PATH_CENTOS="/opt/mvapich2-${MVAPICH2_VERSION_CENTOS}/libexec"
 MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azure-xpmem/mpirun"
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
 HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA}"
-MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}"
+# added "libexec" to the path, as rh+clones and ubuntu use "libexec", but SUSE only "lib"
+MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
 OPENMPI_PATH_ALMA="/opt/openmpi-${OMPI_VERSION_ALMA}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
 HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu20.04-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
-MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}"
+# added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
+MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 OPENMPI_PATH_UBUNTU="/opt/openmpi-${OMPI_VERSION_UBUNTU}"
+
+MODULE_FILES_ROOT_SUSE="/usr/share/lmod/modulefiles"
+HPCX_OMB_PATH_SUSE="/opt/hpcx-v${HPCX_VERSION_SUSE}-gcc-inbox-suse15.4-cuda11-gdrcopy2-nccl${HPCX_VERSION_SUSE}-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+IMPI2021_PATH_SUSE="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_SUSE}"
+# SUSE use lib instead of libexec
+MVAPICH2_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/mvapich2-psm2/2.3.6/lib"
+MVAPICH2X_PATH_SUSE=""
+OPENMPI_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/openmpi/4.1.1"
 
 CHECK_HPCX=0
 CHECK_IMPI_2021=0

@@ -28,13 +28,48 @@ case \$vmSize in
     standard_hb176*v4)
         /opt/azurehpc/customizations/hbv4.sh;;
 
+    standard_nd96is*_h100_v5)
+        /opt/azurehpc/customizations/ndv5.sh;;
+
     *) echo "No SKU customization for \$vmSize";;
 esac
-
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh
 
-cat <<EOF >/etc/systemd/system/sku_customizations.service
+## Systemd service for removing SKU based customizations
+cat <<EOF >/usr/sbin/remove_sku_customizations.sh
+#!/bin/bash
+
+# Stop nvidia fabric manager
+if systemctl is-active --quiet nvidia-fabricmanager
+then
+    systemctl stop nvidia-fabricmanager
+    systemctl disable nvidia-fabricmanager
+fi
+
+# Stop nvme raid service
+# if systemctl is-active --quiet nvme-raid
+# then
+#     systemctl stop nvme-raid
+#     systemctl disable nvme-raid
+# fi
+
+# Remove NVIDIA peer memory module
+if lsmod | grep nvidia_peermem &> /dev/null
+then 
+    rmmod nvidia_peermem
+fi
+
+# Clear topo and graph files
+rm -rf /opt/microsoft/
+
+# Clear contents of nccl.conf
+cat /dev/null > /etc/nccl.conf
+
+EOF
+chmod 755 /usr/sbin/remove_sku_customizations.sh
+
+cat <<EOF >/etc/systemd/system/sku-customizations.service
 [Unit]
 Description=Customizations based on SKU
 After=network.target
@@ -42,6 +77,7 @@ After=network.target
 [Service]
 Type=oneshot
 ExecStart=/usr/sbin/setup_sku_customizations.sh
+ExecStop=/usr/sbin/remove_sku_customizations.sh
 RemainAfterExit=true
 StandardOutput=journal
 
@@ -49,13 +85,13 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-systemctl enable sku_customizations
-systemctl start sku_customizations
-systemctl is-active --quiet sku_customizations
+systemctl enable sku-customizations
+systemctl start sku-customizations
+systemctl is-active --quiet sku-customizations
 
 error_code=$?
 if [ ${error_code} -ne 0 ]
 then
-    echo "sku_customizations service Inactive!"
+    echo "SKU Customizations service Inactive!"
     exit ${error_code}
 fi

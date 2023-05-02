@@ -4,8 +4,8 @@ set -ex
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
-apt-get install -y datacenter-gpu-manager
-DCGM_VERSION=$(apt list --installed | grep datacenter-gpu-manager | awk '{print $2}' | awk -F ':' '{print $2}')
+DCGM_VERSION=3.1.6
+apt-get install -y datacenter-gpu-manager=1:${DCGM_VERSION}
 $COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
 
 # Enable the dcgm service

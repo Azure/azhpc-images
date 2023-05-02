@@ -65,17 +65,10 @@ rm -rf /root/*
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
 
-if systemctl is-active --quiet sku_customizations
+if systemctl is-active --quiet sku-customizations
 then
-    # Stop the sku_customizations service
-    systemctl stop sku_customizations
-    # Stop nvidia fabric manager
-    systemctl stop nvidia-fabricmanager
-    systemctl disable nvidia-fabricmanager
-    # Clear topo and graph files
-    rm -rf /opt/microsoft/
-    # Clear contents of nccl.conf
-    cat /dev/null > /etc/nccl.conf
+    # Stop the sku-customizations service
+    systemctl stop sku-customizations
 fi
 
 # Empty machine information

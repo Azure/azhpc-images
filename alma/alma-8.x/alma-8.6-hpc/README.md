@@ -34,3 +34,8 @@ consistency, and reliability. This image consists of the following HPC tools and
 Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
 
 `module load <package-name>`
+
+## Azure Managed Lustre
+Users that wish to use [Azure Managed Lustre Filesystem](https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-overview) offering on virtual machine images with the following Azure Marketplace URN: `almalinux:almalinux-hpc:8_6-hpc-gen2:xxxxx` will need to install the amlfs client.<br>
+
+Please refer to the [AlmaLinux HPC 8.6 installation instructions](https://learn.microsoft.com/en-us/azure/azure-managed-lustre/install-hpc-alma-86) for specific instructions.

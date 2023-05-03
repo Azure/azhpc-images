@@ -30,5 +30,7 @@ echo -e "\nRunning set up script for custom tests"
 pushd customTests/
 ./custom-test-setup.sh
 popd
+popd
+popd
 
 $COMMON_DIR/write_component_version.sh "MONEO" ${AZHC_VERSION}

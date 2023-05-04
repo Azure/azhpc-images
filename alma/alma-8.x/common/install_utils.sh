@@ -3,9 +3,9 @@ set -ex
 
 # Install Kernel dependencies
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
-yum install -y https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/8.6/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
+yum install -y https://repo.almalinux.org/almalinux/8.7/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
+    https://repo.almalinux.org/almalinux/8.7/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
+    https://repo.almalinux.org/almalinux/8.7/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
 
 # Install Python 3.8
 yum install -y python3.8
@@ -69,8 +69,8 @@ rm -rf ./repo.almalinux.org/
 
 # Install azcopy tool 
 # To copy blobs or files to or from a storage account.
-VERSION="10.16.2"
-RELEASE_TAG="release20221108"
+VERSION="10.17.0"
+RELEASE_TAG="release20230123"
 TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
 AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
 AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)

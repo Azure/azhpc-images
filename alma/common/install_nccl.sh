@@ -1,9 +1,18 @@
 #!/bin/bash
 set -ex
 
+case ${DISTRIBUTION} in
+    "almalinux8.6") NCCL_VERSION="2.14.3-1";
+        CUDA_VERSION="11.6";
+        ;;
+    "almalinux8.7") NCCL_VERSION="2.14.3-1";
+        CUDA_VERSION="12.1";
+        ;;
+    *) ;;
+esac
+
 # Install NCCL
 yum install -y rpm-build rpmdevtools
-NCCL_VERSION="2.14.3-1"
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp
@@ -13,9 +22,9 @@ tar -xvf ${TARBALL}
 pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda11.6.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda11.6.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda11.6.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
 sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 popd
 

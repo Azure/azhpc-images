@@ -1,38 +1,41 @@
 #!/bin/bash
 set -ex
 
+# set configuration
+source ./config
+
 # set properties
 source ./set_properties.sh
 
 # install utils
-./install_utils.sh
+../common/install_utils.sh
 
 # install compilers
-./install_gcc.sh
+../common/install_gcc.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
 # install mpi libraries
-./install_mpis.sh
+../common/install_mpis.sh
 
 # install nvidia gpu driver
-./install_nvidiagpudriver.sh
+../common/install_nvidiagpudriver.sh
 
 # Install NCCL
-./install_nccl.sh
+../common/install_nccl.sh
 
 # install AMD tuned libraries
-./install_amd_libs.sh
+../common/install_amd_libs.sh
 
 # install Intel libraries
-./install_intel_libs.sh
+../common/install_intel_libs.sh
 
 # Install NVIDIA docker container
-./install_docker.sh
+../common/install_docker.sh
 
 # Install Nvidia Datacenter GPU Manager (DCGM)
-./install_dcgm.sh
+../common/install_dcgm.sh
 
 # optimizations
 ../common/hpc-tuning.sh

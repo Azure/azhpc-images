@@ -34,23 +34,18 @@ wget ${CUDA_SAMPLES_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)
-cp -r ./Samples/* /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples/
+mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_CHECKSUM}
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
+dkms install --no-depmod -m nvidia -v ${NVIDIA_VERSION} -k `uname -r` --force
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
 
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
 # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
-# Stop nv_peer_mem service
-systemctl stop nv_peer_mem
-# Disable nv_peer_mem
-systemctl disable nv_peer_mem
-rmmod nv_peer_mem
-# load nvidia-peermem
 modprobe nvidia-peermem
 # verify if loaded
 lsmod | grep nvidia_peermem

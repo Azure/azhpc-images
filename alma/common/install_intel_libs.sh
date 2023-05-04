@@ -16,7 +16,7 @@ case ${DISTRIBUTION} in
 esac
 
 # Intel® oneAPI Math Kernel Library
-ONE_MKL_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/${IDENTIFIER}/${RELEASE_VERSION/l_onemkl_p_${INTEL_MKL_VERSION}_offline.sh
+ONE_MKL_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/${IDENTIFIER}/${RELEASE_VERSION}/l_onemkl_p_${INTEL_MKL_VERSION}_offline.sh
 $COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" ${INTEL_MKL_VERSION}
 $COMMON_DIR/download_and_verify.sh ${ONE_MKL_DOWNLOAD_URL} ${CHECKSUM}
 sh ./l_onemkl_p_${INTEL_MKL_VERSION}_offline.sh -s -a -s --eula accept

@@ -29,6 +29,12 @@ source ./set_properties.sh
 # install Intel libraries
 ./install_intel_libs.sh
 
+# cleanup downloaded tarballs - clear some space
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+rm -rf /var/intel/ /var/cache/*
+rm -Rf -- */
+
 # Install NCCL
 ./install_nccl.sh
 
@@ -60,7 +66,7 @@ $COMMON_DIR/../alma/common/install_monitoring_tools.sh
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-./disable_cloudinit.sh
+$ALMA_COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

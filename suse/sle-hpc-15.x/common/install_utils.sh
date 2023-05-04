@@ -13,11 +13,13 @@ set -ex
 # https://www.intel.com/content/www/us/en/develop/documentation/installation-guide-for-intel-oneapi-toolkits-linux/top/installation/install-using-package-managers/yum-dnf-zypper.html
 
 # import package signing keys
-rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+rpm --import $INTEL_PUBKEY_URI
 # add repository
-zypper -n addrepo -f -g https://yum.repos.intel.com/oneapi oneAPI
+zypper -n addrepo -f -g $INTEL_REPO_URI oneAPI
 # fetch key
-zypper --non-interactive --gpg-auto-import-keys refresh
+zypper --non-interactive --gpg-auto-import-keys refresh oneAPI
+# disable auto-refresh for the repo (mr -F)
+zypper --non-interactive modifyrepo --no-refresh oneAPI
 
 # list all packages
 # sudo -E zypper pa -ir oneAPI
@@ -27,72 +29,62 @@ zypper --non-interactive --gpg-auto-import-keys refresh
 # Nvidia provide certified packages for SLES 15, so we only need to add the repositories and install the packages
 #-------------------------------------------------------------------
 # import cuda signing key
-rpm --import https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/D42D0685.pub
-
+rpm --import $CUDA_PUBKEY_URI
 # CUDA driver (nvidia provides a repo file)
-zypper addrepo -f -g https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo
+zypper addrepo -f -g $CUDA_REPO_URI
 # fetch key
-zypper --non-interactive --gpg-auto-import-keys refresh
+zypper --non-interactive --gpg-auto-import-keys refresh cuda-sles${SLE_MAJOR}-x86_64
 
 #-------------------------------------------------------------------
 # Container Repository
 #-------------------------------------------------------------------
 # Docker is shipped with SLES by default
 # with SLES HPC we need to enable the Container repository
-SUSEConnect -p sle-module-containers/15.4/x86_64
+SUSEConnect -p sle-module-containers/${SLE_DOTV}/x86_64
 
 #-------------------------------------------------------------------
 # nvidia container repo
 #-------------------------------------------------------------------
 # see https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Check https://nvidia.github.io/libnvidia-container
-zypper addrepo -f -g https://nvidia.github.io/libnvidia-container/sles15.3/libnvidia-container.repo
+zypper addrepo -f -g $NVIDIA_CONTAINER_REPO_URI
 # fetch key
-zypper --non-interactive --gpg-auto-import-keys refresh
+zypper --non-interactive --gpg-auto-import-keys refresh libnvidia-container
 
 #-------------------------------------------------------------------
 # Add SUSE Package Hub
 # byacc is only in packagehub
-SUSEConnect -p PackageHub/15.4/x86_64
+SUSEConnect -p PackageHub/${SLE_DOTV}/x86_64
 #-------------------------------------------------------------------
 
 #
 ## SLES HPC ship with many HPC packages already, so no need to build it - simple install is enough
 #
-# as the default cloud image does only install parts of the HPC toolchain we use the pattern
-zypper install -y --type pattern hpc_libraries
+# Install base compiler (this will pull in Lmod as well)
+zypper in -y gnu-compilers-hpc
 
 ## Lmod is an advanced environment module system that allows the installation of multiple versions of a program or shared library, and helps configure the system environment for the use of a specific version.
 ## the modulefile path is /usr/share/lmod/modulefiles
-zypper install lua-lmod
 source /usr/share/lmod/lmod/init/bash
 
-# we need the right devel packages for the running kernel - SLE HPC has kernel-azure by default
-KERNEL_VERSION=$(basename $(uname -r) -azure)
-
+#
+# If you run kernel-default remove "-azure" from the kernel package names below
 #
 zypper install -y \
     numactl \
     byacc \
-    gtk2 \
     atk \
     m4 \
-    tcsh \
-    gcc-fortran \
-    elfutils \
     binutils \
     kernel-azure-devel = ${KERNEL_VERSION} \
     kernel-source-azure = ${KERNEL_VERSION} \
-    nfs-utils \
     fuse \
     cmake \
     libarchive13 \
     libsecret-1-0 \
     libnuma-devel \
     libibverbs-utils \
-    rdma-core \
     ibutils \
-    infiniband-diags \
     perftest \
     mstflint \
     bzip2 \
@@ -107,25 +99,17 @@ zypper install -y \
     autoconf \
     automake \
     libtool \
-    rdma-core-devel
+    nfs-client \
+    jq
 
 # Install azcopy tool
-# To copy blobs or files to or from a storage account.
-VERSION="10.16.2"
-RELEASE_TAG="release20221108"
-TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
-AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+## To copy blobs or files to or from a storage account.
 wget ${AZCOPY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-
-# copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${VERSION}
-cp azcopy /usr/bin/
+tar -xvf ${AZTARBALL}
+## copy the azcopy to the bin path - better would be ${LOCALBIN}
+pushd azcopy_linux_amd64_${AZVERSION}
+mv azcopy ${LOCALBIN}
 popd
-
-# Allow execute permissions
-chmod +x /usr/bin/azcopy
-
-# remove tarball from azcopy
+chmod +x ${LOCALBIN}/azcopy
+## remove azcopy tarball
 rm -rf *.tar.gz

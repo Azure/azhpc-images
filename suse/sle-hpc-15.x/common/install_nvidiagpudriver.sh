@@ -4,11 +4,8 @@ set -ex
 #
 ## Nvidia provide certified packages for SLES 15 SP4, so we only need to add the repositories and install the packages
 #
-
-# Install Cuda
-NVIDIA_VERSION="525.85.12"
-DRIVER_BRANCH_VERSION=${NVIDIA_VERSION%.*.*} # branch is like main version
-CUDA_VERSION="11-8"          # need to be "-" and not "."
+DRIVER_BRANCH_VERSION=${NVIDIA_VERSION%.*.*} # branch is like main version e.g. 525 from 525.85.12
+CUDA_DASH_VERSION=${CUDA_VERSION/./-}
 
 # to check whats all available in the repo
 # zypper se --repo cuda-sles15-x86_64
@@ -28,13 +25,12 @@ CUDA_VERSION="11-8"          # need to be "-" and not "."
 
 # due to NVIDIA bug in post-install of the nvidia-drivers for kernel-azure, we need to select and install nvidia-gfxG05-kmp-azure manually
 # The cuda dependencies select packages with "-default" and then the (wrong) modules for kernel-default instead of kernel-azure got installed
-zypper install -y -l --no-recommends cuda-toolkit-${CUDA_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager = $NVIDIA_VERSION nvidia-gfxG05-kmp-azure = $NVIDIA_VERSION
+zypper install -y -l --no-recommends cuda-toolkit-${CUDA_DASH_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} nvidia-fabricmanager = ${NVIDIA_VERSION} nvidia-gfxG05-kmp-azure = ${NVIDIA_VERSION}
 
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
+$COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
 
-$COMMON_DIR/write_component_version.sh "NVIDIA" ${DRIVER_BRANCH_VERSION}
-
-#post-install tasks (version its set through 'alternatives')
+# Post-install tasks (version its set through 'alternatives')
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc.local
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc.local
 

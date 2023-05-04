@@ -21,20 +21,16 @@ MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
 # Load gcc
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
-COMPILER_VERSION=11
 
 #
 INSTALL_PREFIX=/opt
+
 #
-# HPC-X v2.12
-HPCX_VERSION="v2.12"
-# pls accept the EULA
-HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/v2.12/hpcx-v2.12-gcc-inbox-suse15.4-cuda11-gdrcopy2-nccl2.12-x86_64.tbz
+# HPC-X
 TARBALL=$(basename ${HPCX_DOWNLOAD_URL})
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
-
 # the web page said checksum is md5 but in reality is sha256
-$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} "bc315d3b485d13c97cd174ef5c9cba5c2fa1fbc3e5175f96f1a406a6c0699bdb"
+$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} ${HPCX_CHKSUM}
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
@@ -46,26 +42,24 @@ $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 #systemctl start sharpd
 
 # MVAPICH2
+# shipped with SLE HPC
 # MV2_VERSION="2.3.6"
-zypper install mvapich2-gnu-hpc
+zypper install -y mvapich2-gnu-hpc
 MV2_VERSION=$(rpm -q  --qf="%{VERSION}" mvapich2-gnu-hpc)
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 
 # OpenMPI 4
+# shipped with SLE HPC
 # OMPI_VERSION="4.1.1"
-zypper install openmpi4-gnu-hpc  libopenmpi4-gnu-hpc
-OMPI_VERSION=$(rpm -q  --qf="%{VERSION}" openmpi4-gnu-hpc)
+zypper install -y ${OMPI}-gnu-hpc  lib${OMPI}-gnu-hpc
+OMPI_VERSION=$(rpm -q  --qf="%{VERSION}" ${OMPI}-gnu-hpc)
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
-# Intel MPI 2021
-# as there are move versions in the repos we need to select one
-# instead of always get he newest
-IMPI_2021_VERSION="2021.7.0"
-zypper install -y -l intel-oneapi-mpi = $IMPI_2021_VERSION
-
+# Intel MPI
+zypper install -y -l intel-oneapi-mpi = ${INTEL_ONE_MPI_VERSION}
 # Create modulesfiles
 /opt/intel/oneapi/modulefiles-setup.sh
-$COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
+$COMMON_DIR/write_component_version.sh "IMPI_${IMPI_MAJOR}" ${INTEL_ONE_MPI_VERSION}
 
 #
 # # Setup module files for MPIs
@@ -88,66 +82,24 @@ module use ${HPCX_PATH}/modulefiles
 module load hpcx
 EOF
 
-# MVAPICH2 -> already provided by suse package
-# /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6
+# MVAPICH2 -> already provided by suse package, build with gcc7
+# e.g. /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6
 #
-ln -s /usr/share/lmod/moduledeps/gnu-${COMPILER_VERSION}/mvapich2/2.3.6 ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION}
-#cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION}
-##%Module 1.0
-##
-##  MVAPICH2 ${MV2_VERSION}
-##
-#conflict        mpi
-#prepend-path    PATH            /opt/mvapich2-${MV2_VERSION}/bin
-#prepend-path    LD_LIBRARY_PATH /opt/mvapich2-${MV2_VERSION}/lib
-#prepend-path    MANPATH         /opt/mvapich2-${MV2_VERSION}/share/man
-#setenv          MPI_BIN         /opt/mvapich2-${MV2_VERSION}/bin
-#setenv          MPI_INCLUDE     /opt/mvapich2-${MV2_VERSION}/include
-#setenv          MPI_LIB         /opt/mvapich2-${MV2_VERSION}/lib
-#setenv          MPI_MAN         /opt/mvapich2-${MV2_VERSION}/share/man
-#setenv          MPI_HOME        /opt/mvapich2-${MV2_VERSION}
-#EOF
+ln -s /usr/share/lmod/moduledeps/gnu-7/mvapich2/${MV2_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION}
 
-# OpenMPI -> already provided by suse package
-ln -s /usr/share/lmod/moduledeps/gnu-${COMPILER_VERSION}/openmpi/4.1.1 ${MODULE_FILES_DIRECTORY}/mpi/openmpi-${OMPI_VERSION}
-#
-#cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
-##%Module 1.0
-##
-##  OpenMPI ${OMPI_VERSION}
-##
-#conflict        mpi
-#prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
-#prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib
-#prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
-#setenv          MPI_BIN         /opt/openmpi-${OMPI_VERSION}/bin
-#setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include
-#setenv          MPI_LIB         /opt/openmpi-${OMPI_VERSION}/lib
-#setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
-#setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
-#EOF
+# OpenMPI -> already provided by suse package, build with gcc7
+ln -s /usr/share/lmod/moduledeps/gnu-7/openmpi/${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/openmpi-${OMPI_VERSION}
 
-# Intel 2021
-# the oneapi has its own modulefiles
-#
-#cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION}
-##%Module 1.0
-##
-##  Intel MPI ${IMPI_2021_VERSION}
-##
-#conflict        mpi
-#module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
-#setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/bin
-#setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/include
-#setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/lib
-#setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/man
-#setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}
-#EOF
+# Intel oneAPI
+# the oneapi provides its own modulefiles
+ln -s $INTELLIBS/mpi/${INTEL_ONE_MPI_VERSION}/modulefiles/mpi ${MODULE_FILES_DIRECTORY}/mpi/impi-${IMPI_MAJOR}
 
-#
+
 # # Create symlinks for modulefiles
 ln -s ${MODULE_FILES_DIRECTORY}/mpi/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/hpcx
 ln -s ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/mvapich2
 ln -s ${MODULE_FILES_DIRECTORY}/mpi/openmpi-${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/openmpi
-# add the intel genereated modulefiles to the path
-ln -s /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${MODULE_FILES_DIRECTORY}/mpi/impi-2021
+
+# cleanup downloaded tarballs and other installation files/folders
+rm -rf *.tar.gz *offline.sh
+rm -rf -- */

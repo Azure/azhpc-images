@@ -3,24 +3,36 @@ set -ex
 
 # Install NCCL
 # Optimized primitives for inter-GPU communication.
-NCCL_VERSION="2.15.1-1" # for cuda-11.8
-#NCCL_VERSION="2.16.51-1" # for cuda-11.8
 
-
+# add rpm build tools
 zypper install -y -l rpm-build rpmdevtools git
 
-TARBALL="v${NCCL_VERSION}.tar.gz"
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
+tar -xvf $(basename ${NCCL_DOWNLOAD_URL})
 
 pushd nccl-${NCCL_VERSION}
+
+CUDA_MAJOR=${CUDA_VERSION} | cut -d "." -f 1
+CUDA_MINOR=${CUDA_VERSION} | cut -d "." -f 2
+
+# if you need to limit the number of parallel runs on smaller machines
+#mem=$(cat /proc/meminfo | head -1 | sed -e "s/^[^ ]\+[ ]\+\([^ ]\+\)[ ]\+.*/\\1/")
+#core=$(cat /proc/cpuinfo | grep processor | wc -l)
+#cnt=$(( a=mem/(512*1024), a < core ? a : core ))
+#make -j $cnt src.build NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80"
+
+# You should define NVCC_GENCODE in your environment to the minimal set
+# of archs to reduce compile time.
+#make -j src.build NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80"
+
 make -j src.build
+
+# build rpm packages
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda11.8.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda11.8.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda11.8.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_MINOR}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_MINOR}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_MINOR}.x86_64.rpm
 popd
 
 # Install the nccl rdma sharp plugin

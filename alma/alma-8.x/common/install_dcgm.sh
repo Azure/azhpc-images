@@ -2,28 +2,21 @@
 set -ex
 
 # Install DCGM
-DCGM_VERSION=2.4.4
-DCGM_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm
-$COMMON_DIR/download_and_verify.sh $DCGM_URL "1d8fbe97797fada8048a7832bfac4bc7d3ad661bb24163d21324965ae7e7817d"
-rpm -i datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm
-sed -i "$ s/$/ datacenter-gpu-manager/" /etc/dnf/dnf.conf
-rm -f datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm
+# Reference: https://developer.nvidia.com/dcgm#Downloads
+# the repo is already added during nvidia/ cuda installations
+DCGM_VERSION=3.1.6
+dnf clean expire-cache
+dnf install -y datacenter-gpu-manager=1:${DCGM_VERSION}
 $COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
 
-# Create service for dcgm to launch on bootup
-bash -c "cat > /etc/systemd/system/dcgm.service" <<'EOF'
-[Unit]
-Description=DCGM service
-
-[Service]
-User=root
-PrivateTmp=false
-ExecStart=/usr/bin/nv-hostengine -n
-Restart=on-abort
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl enable dcgm
-systemctl start dcgm
+# Enable the dcgm service
+systemctl --now enable nvidia-dcgm
+systemctl start nvidia-dcgm
+# Check if the service is active
+systemctl is-active --quiet nvidia-dcgm
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "DCGM is inactive!"
+    exit ${error_code}
+fi

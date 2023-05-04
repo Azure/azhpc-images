@@ -1,12 +1,12 @@
 #!/bin/bash
 set -ex
 
-VERSION="5.8-1.0.1.1"
-TARBALL="MLNX_OFED_LINUX-$VERSION-rhel8.6-x86_64.tgz"
+VERSION="5.9-0.5.9.0"
+TARBALL="MLNX_OFED_LINUX-$VERSION-rhel8.7-x86_64.tgz"
 MLNX_OFED_DOWNLOAD_URL=https://content.mellanox.com/ofed/MLNX_OFED-${VERSION}/$TARBALL
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 
-$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "f340317047cc815b0f41c3f3c52d2d83ddc7d81b29d9fff91abb859850f77945"
+$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "91e8622b1a70f051f7200ce1650f7276ea796095ce4250d9e81e2b1fa06872dc"
 tar zxvf ${TARBALL}
 
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )

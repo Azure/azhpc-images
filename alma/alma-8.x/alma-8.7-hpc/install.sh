@@ -8,7 +8,8 @@ source ./set_properties.sh
 ./install_utils.sh
 
 # install Lustre client
-$ALMA_COMMON_DIR/install_lustre_client.sh "8"
+# Disable until testing is performed.
+#./install_lustre_client.sh
 
 # install compilers
 ./install_gcc.sh
@@ -27,6 +28,12 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 
 # install Intel libraries
 ./install_intel_libs.sh
+
+# cleanup downloaded tarballs - clear some space
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+rm -rf /var/intel/ /var/cache/*
+rm -Rf -- */
 
 # Install NCCL
 ./install_nccl.sh

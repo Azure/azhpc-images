@@ -1,60 +1,54 @@
 #!/bin/bash
 set -ex
 
+case ${DISTRIBUTION} in
+    "almalinux8.6") NVIDIA_VERSION="510.85.02"; 
+        CUDA_VERSION="11-6"; 
+        CUDA_SAMPLES_VERSION="11.6";
+        NVIDIA_DRIVER_CHECKSUM="372427e633f32cff6dd76020e8ed471ef825d38878bd9655308b6efea1051090";
+        NVIDIA_FABRIC_MANAGER_VERSION="510.85.02-1";
+        NVIDIA_FABRIC_MANAGER_CHECKSUM="7f8468e92deb78e427df8b4947c4b0fd7a7b5eedf1e3961e60436b4620b2fa1d";
+        ;;
+    "almalinux8.7") NVIDIA_VERSION="525.85.12"; 
+        CUDA_VERSION="12-1"; 
+        CUDA_SAMPLES_VERSION="12.1";
+        NVIDIA_DRIVER_CHECKSUM="423b1d078e6385182f48c6e201e834b2eea193a622e04d613aa2259fce6e2266";
+        NVIDIA_FABRIC_MANAGER_VERSION="525.85.12-1";
+        NVIDIA_FABRIC_MANAGER_CHECKSUM="77e2f8768e4901114c35582b530b10fe6bd3b924862a929f96fc83aee078b12c";
+        ;;
+    *) ;;
+esac
+
 # Install Cuda
-NVIDIA_VERSION="510.85.02"
-CUDA_VERSION="11-6"
 dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
 dnf clean expire-cache
-dnf install cuda-toolkit-11-6 -y
+dnf install cuda-toolkit-${CUDA_VERSION} -y
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 
 # Download CUDA samples
-CUDA_SAMPLES_VERSION="11.6"
 TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
 CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
 wget ${CUDA_SAMPLES_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)
-cp -r ./Samples/* /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples/
+mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
-$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL "372427e633f32cff6dd76020e8ed471ef825d38878bd9655308b6efea1051090"
+$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_CHECKSUM}
 bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
+dkms install --no-depmod -m nvidia -v ${NVIDIA_VERSION} -k `uname -r` --force
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
-
-# Install NV Peer Memory (GPU Direct RDMA)
-NV_PEER_MEMORY_VERSION="1.3-0"
-TARBALL="${NV_PEER_MEMORY_VERSION}.tar.gz"
-NV_PEER_MEMORY_DOWNLOAD_URL=https://github.com/Mellanox/nv_peer_memory/archive/refs/tags/${TARBALL}
-wget ${NV_PEER_MEMORY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-pushd ./nv_peer_memory-${NV_PEER_MEMORY_VERSION}
-yum install -y rpm-build
-./build_module.sh 
-rpmbuild --rebuild /tmp/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.src.rpm
-rpm -ivh ~/rpmbuild/RPMS/x86_64/nvidia_peer_memory-${NV_PEER_MEMORY_VERSION}.x86_64.rpm
-sed -i "$ s/$/ nvidia_peer_memory/" /etc/dnf/dnf.conf
-popd
 
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
 # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
-# Stop nv_peer_mem service
-systemctl stop nv_peer_mem
-# Disable nv_peer_mem
-systemctl disable nv_peer_mem
-rmmod nv_peer_mem
-# load nvidia-peermem
 modprobe nvidia-peermem
 # verify if loaded
 lsmod | grep nvidia_peermem
-
-$COMMON_DIR/write_component_version.sh "NV_PEER_MEMORY" ${NV_PEER_MEMORY_VERSION}
 
 # Install GDRCopy
 GDRCOPY_VERSION="2.3"
@@ -74,9 +68,8 @@ popd
 $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
 
 # Install Fabric Manager
-NVIDIA_FABRIC_MANAGER_VERSION="510.85.02-1"
 NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} "7f8468e92deb78e427df8b4947c4b0fd7a7b5eedf1e3961e60436b4620b2fa1d"
+$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} ${NVIDIA_FABRIC_MANAGER_CHECKSUM}
 yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRIC_MANAGER_VERSION}.x86_64.rpm
 sed -i "$ s/$/ nvidia-fabric-manager/" /etc/dnf/dnf.conf
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}

@@ -13,11 +13,11 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.14
 HPCX_VERSION="v2.14"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64.tbz"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "126d7dfd71a8e7095baea200c8be9ff9318ee41018fbef9ec6733a54023d6c60"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "e201b01d511a39524cc42a90e2f9b0ab233095546ecccd74b891bd57dc08a6c9"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

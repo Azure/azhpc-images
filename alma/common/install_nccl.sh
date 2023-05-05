@@ -5,7 +5,7 @@ case ${DISTRIBUTION} in
     "almalinux8.6") NCCL_VERSION="2.14.3-1";
         CUDA_VERSION="11.6";
         ;;
-    "almalinux8.7") NCCL_VERSION="2.14.3-1";
+    "almalinux8.7") NCCL_VERSION="2.17.1-1";
         CUDA_VERSION="12.1";
         ;;
     *) ;;

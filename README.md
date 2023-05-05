@@ -2,7 +2,6 @@
 
 |OS Version|Status Badge|
 |----------|------------|
-|CentOS 7.9|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20centos7.9)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
 |Ubuntu 18.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
 |Ubuntu 18.04 LTS Gen1|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04_LTS_gen1)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
 |Ubuntu 18.04 LTS Gen2|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04_LTS_gen2)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|

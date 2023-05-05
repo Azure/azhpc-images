@@ -8,8 +8,7 @@ source ./set_properties.sh
 ./install_utils.sh
 
 # install Lustre client
-# Disable until testing is performed.
-#./install_lustre_client.sh
+$ALMA_COMMON_DIR/install_lustre_client.sh "8"
 
 # install compilers
 ./install_gcc.sh

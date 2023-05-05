@@ -7,10 +7,6 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
-# install Lustre client
-# Disable until testing is performed.
-#./install_lustre_client.sh
-
 # install compilers
 ./install_gcc.sh
 

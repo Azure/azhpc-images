@@ -121,7 +121,7 @@ $COMMON_DIR/write_component_version.sh "impi_2021" $impi_2021_version
 export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
 eval $export_modulepath
 # Preserve module path on reboots
-echo $export_modulepath | tee -a /etc/bash.bashrc
+echo $export_modulepath | tee -a /etc/profile
 
 # Remove Stale files
 rm -rf /tmp/tmp*

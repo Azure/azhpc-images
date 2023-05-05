@@ -29,10 +29,8 @@ $UBUNTU_COMMON_DIR/install_intel_libs.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
+rm -rf /root/intel/
 rm -Rf -- */
-
-# Cleanup cache from Spack
-spack gc -y
 spack clean -a
 
 # install nvidia gpu driver
@@ -40,6 +38,10 @@ spack clean -a
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
+
+# Cleanup cache from Spack
+spack gc -y
+spack clean -a
 
 # Install NVIDIA docker container
 $UBUNTU_COMMON_DIR/install_docker.sh

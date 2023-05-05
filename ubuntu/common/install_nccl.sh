@@ -11,7 +11,7 @@ spack install --no-checksum
 nccl_home=$(spack location -i nccl@$nccl_version)
 export_nccl_ld="export LD_LIBRARY_PATH=$(echo $nccl_home)/lib:$LD_LIBRARY_PATH"
 eval $export_nccl_ld
-echo $export_nccl_ld | tee -a /etc/bash.bashrc
+echo $export_nccl_ld | tee -a /etc/profile
 
 # Install the nccl rdma sharp plugin
 mkdir -p /usr/local/nccl-rdma-sharp-plugins

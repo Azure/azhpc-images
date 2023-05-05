@@ -36,7 +36,7 @@ popd
 source_spack_env=". $HPC_ENV/spack/share/spack/setup-env.sh"
 eval $source_spack_env
 # Preserve Spack environment on reboots
-echo $source_spack_env | tee -a /etc/bash.bashrc
+echo $source_spack_env | tee -a /etc/profile
 
 # Write spack to component versions
 spack_version=$(spack --version | cut -d ' ' -f 1)
@@ -44,3 +44,4 @@ $COMMON_DIR/write_component_version.sh "spack" $spack_version
 
 # Create an environment/ container in /opt
 spack env create -d $HPC_ENV
+echo "spack env activate $HPC_ENV" | tee -a /etc/profile

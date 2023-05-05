@@ -11,8 +11,8 @@ cuda_samples_sha256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # If there is a space crunch for cuda installation clear /tmp/tmp*, /tmp/MLNX* and /tmp/ofed.conf
 spack add cuda@$cuda_driver_version
 spack install
-echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
+echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/profile
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile
 
 $COMMON_DIR/write_component_version.sh "cuda" $cuda_driver_version
 

@@ -15,8 +15,6 @@ set -ex
 # https://docs.nvidia.com/networking/category/hpcx
 # https://docs.nvidia.com/networking/display/HPCXv28
 
-# SUSE uses lmod
-MODULE_FILES_DIRECTORY=/usr/share/lmod/modulefiles
 
 # Load gcc
 set CC=/usr/bin/gcc
@@ -43,19 +41,19 @@ $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # MVAPICH2
 # shipped with SLE HPC
-# MV2_VERSION="2.3.6"
 zypper install -y mvapich2-gnu-hpc
 MV2_VERSION=$(rpm -q  --qf="%{VERSION}" mvapich2-gnu-hpc)
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 
 # OpenMPI 4
 # shipped with SLE HPC
-# OMPI_VERSION="4.1.1"
 zypper install -y ${OMPI}-gnu-hpc  lib${OMPI}-gnu-hpc
 OMPI_VERSION=$(rpm -q  --qf="%{VERSION}" ${OMPI}-gnu-hpc)
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
 # Intel MPI
+# as there are more versions in the repos we need to select one
+# instead of always get the newest
 zypper install -y -l intel-oneapi-mpi = ${INTEL_ONE_MPI_VERSION}
 # Create modulesfiles
 /opt/intel/oneapi/modulefiles-setup.sh
@@ -84,6 +82,7 @@ EOF
 
 # MVAPICH2 -> already provided by suse package, build with gcc7
 # e.g. /usr/share/lmod/moduledeps/gnu-7/mvapich2/2.3.6
+# libraries are build against gnu-7 and not gnu-11, so we need to have the path hardcoded to gnu-7
 #
 ln -s /usr/share/lmod/moduledeps/gnu-7/mvapich2/${MV2_VERSION} ${MODULE_FILES_DIRECTORY}/mpi/mvapich2-${MV2_VERSION}
 

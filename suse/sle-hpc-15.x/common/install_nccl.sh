@@ -11,10 +11,10 @@ pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
 tar -xvf $(basename ${NCCL_DOWNLOAD_URL})
 
-pushd nccl-${NCCL_VERSION}
-
 CUDA_MAJOR=${CUDA_VERSION} | cut -d "." -f 1
 CUDA_MINOR=${CUDA_VERSION} | cut -d "." -f 2
+
+pushd nccl-${NCCL_VERSION}
 
 # if you need to limit the number of parallel runs on smaller machines
 #mem=$(cat /proc/meminfo | head -1 | sed -e "s/^[^ ]\+[ ]\+\([^ ]\+\)[ ]\+.*/\\1/")

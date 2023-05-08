@@ -21,12 +21,12 @@ set -ex
 INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 
-TARBALL="aocl-linux-aocc-${AOCL_VERSION}.tar.gz"
+TARBALL=$(basename $AOCL_DOWNLOAD_URL)
 
 # TODO: this seems a workaround to accept the licence prior download
 # should be fixed in readme and made be more general e.g. prior download of the rpm and not the tarball
 $COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL $AOCL_CHKSUM
-tar -xvf $(basename $AOCL_DOWNLOAD_URL)
+tar -xvf ${TARBALL}
 
 cd aocl-linux-aocc-${AOCL_VERSION}
 ./install.sh -t amd -l blis fftw libflame -i lp64

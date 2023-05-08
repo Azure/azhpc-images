@@ -7,12 +7,14 @@ set -ex
 # add rpm build tools
 zypper install -y -l rpm-build rpmdevtools git
 
-export CUDA_MAJOR=$( echo ${CUDA_VERSION} | cut -d "." -f 1)
-export CUDA_MINOR=$( echo ${CUDA_VERSION} | cut -d "." -f 2)
+CUDA_MAJOR=$( echo ${CUDA_VERSION} | cut -d "." -f 1)
+CUDA_MINOR=$( echo ${CUDA_VERSION} | cut -d "." -f 2)
+
+TARBALL=$(basename ${NCCL_DOWNLOAD_URL})
 
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
-tar -xvf $(basename ${NCCL_DOWNLOAD_URL})
+tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
 

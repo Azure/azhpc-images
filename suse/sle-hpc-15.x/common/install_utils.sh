@@ -84,7 +84,6 @@ zypper install -y \
     libsecret-1-0 \
     libnuma-devel \
     libibverbs-utils \
-    ibutils \
     perftest \
     mstflint \
     bzip2 \

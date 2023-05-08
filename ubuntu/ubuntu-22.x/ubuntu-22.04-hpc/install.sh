@@ -19,11 +19,17 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
-# install mpi libraries
-./install_mpis.sh
+# install nvidia gpu driver
+./install_nvidiagpudriver.sh
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh
+
+# install mpi libraries
+./install_mpis.sh
+
+# Install NCCL
+$UBUNTU_COMMON_DIR/install_nccl.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -32,16 +38,7 @@ rm -rf /var/intel/ /var/cache/*
 rm -rf /root/intel/
 rm -Rf -- */
 spack clean -a
-
-# install nvidia gpu driver
-./install_nvidiagpudriver.sh
-
-# Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
-
-# Cleanup cache from Spack
 spack gc -y
-spack clean -a
 
 # Install NVIDIA docker container
 $UBUNTU_COMMON_DIR/install_docker.sh

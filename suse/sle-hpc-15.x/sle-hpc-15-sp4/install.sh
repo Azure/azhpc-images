@@ -14,7 +14,7 @@ source ./set_properties.sh
 ../common/install_gcc.sh
 
 # install mellanox ofed
-..common/install_mellanoxofed.sh
+../common/install_mellanoxofed.sh
 
 # install mpi libraries
 ../common/install_mpis.sh

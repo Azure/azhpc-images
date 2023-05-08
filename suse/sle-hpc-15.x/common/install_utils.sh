@@ -39,11 +39,11 @@ zypper --non-interactive --gpg-auto-import-keys refresh cuda-sles${SLE_MAJOR}-x8
 # Container Repository
 #-------------------------------------------------------------------
 # Docker is shipped with SLES by default
-# with SLES HPC we need to enable the Container repository
+# with SLE HPC we need to enable the Container repository
 SUSEConnect -p sle-module-containers/${SLE_DOTV}/x86_64
 
 #-------------------------------------------------------------------
-# nvidia container repo
+# Nvidia container repo
 #-------------------------------------------------------------------
 # see https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Check https://nvidia.github.io/libnvidia-container
@@ -60,7 +60,7 @@ SUSEConnect -p PackageHub/${SLE_DOTV}/x86_64
 #
 ## SLES HPC ship with many HPC packages already, so no need to build it - simple install is enough
 #
-# Install base compiler (this will pull in Lmod as well)
+# Install base compiler (this will pull in packages for HPC and Lmod as well)
 zypper in -y gnu-compilers-hpc
 
 ## Lmod is an advanced environment module system that allows the installation of multiple versions of a program or shared library, and helps configure the system environment for the use of a specific version.

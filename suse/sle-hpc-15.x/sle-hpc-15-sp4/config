@@ -2,7 +2,8 @@
 
 # SLE Version
 # it can be generated, but better is to go through this file
-# manual an set the right version
+# manual and set the right versions as some have dependencies like nvidia and cuda
+
 # #source /etc/os-release
 # #export SLE_DOTV=${VERSION_ID}
 # #export SLE_MAJOR=${VERSION_ID%.*}
@@ -11,7 +12,7 @@ export SLE_MAJOR=15
 
 # we need the running kernel version to get the right -devel packages
 # PAYG SLES and SLE HPC use kernel-azure by default
-# BYOS has kernel-default by default, so pls. replace name below
+# BYOS has kernel-default by default, so pls. replace name below if you use BYOS images
 export KERNEL_VERSION=$(rpm -q  --qf="%{VERSION}-%{RELEASE}" kernel-azure)
 
 # GNU compiler version

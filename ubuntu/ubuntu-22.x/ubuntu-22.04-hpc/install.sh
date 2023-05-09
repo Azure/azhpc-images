@@ -22,6 +22,13 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# cleanup downloaded tarballs - clear some space
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+rm -rf /var/intel/ /var/cache/*
+rm -rf /root/intel/
+rm -Rf -- */
+
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh
 
@@ -31,12 +38,6 @@ $UBUNTU_COMMON_DIR/install_intel_libs.sh
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
 
-# cleanup downloaded tarballs - clear some space
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
-rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -rf /root/intel/
-rm -Rf -- */
 spack clean -a
 spack gc -y
 

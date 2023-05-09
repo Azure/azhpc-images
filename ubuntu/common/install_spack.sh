@@ -45,3 +45,4 @@ $COMMON_DIR/write_component_version.sh "spack" $spack_version
 # Create an environment/ container in /opt
 spack env create -d $HPC_ENV
 echo "spack env activate $HPC_ENV" | tee -a /etc/profile
+source /etc/profile

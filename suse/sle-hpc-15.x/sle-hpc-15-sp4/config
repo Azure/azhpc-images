@@ -2,7 +2,7 @@
 
 # SLE Version
 # it can be generated, but better is to go through this file
-# manual and set the right versions as some have dependencies like nvidia and cuda
+# manual and set the right versions as some have dependencies like nvidia, cuda and nccl
 
 # #source /etc/os-release
 # #export SLE_DOTV=${VERSION_ID}

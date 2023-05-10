@@ -86,9 +86,31 @@ export INTEL_PUBKEY_URI=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-I
 export INTEL_REPO_URI=https://yum.repos.intel.com/oneapi
 export INTELLIBS=/opt/intel/oneapi
 
-## Intel MPI
+## Intel MPI - to check whats available with: zypper se -s --repo oneAPI
+# intel-oneapi-mpi-2021.1.1
+# intel-oneapi-mpi-2021.2.0
+# intel-oneapi-mpi-2021.3.0
+# intel-oneapi-mpi-2021.3.1
+# intel-oneapi-mpi-2021.4.0
+# intel-oneapi-mpi-2021.5.0
+# intel-oneapi-mpi-2021.5.1
+# intel-oneapi-mpi-2021.6.0
+## intel-oneapi-mpi-2021.7.0
+# intel-oneapi-mpi-2021.7.1
+# intel-oneapi-mpi-2021.8.0
+# intel-oneapi-mpi-2021.9.0
 export INTEL_ONE_MPI_VERSION="2021.7.0"
 export IMPI_MAJOR=${INTEL_ONE_MPI_VERSION%.*.*}
 
-## Intel MKL (Math Kernel Library)
+## Intel MKL (Math Kernel Library) - to check whats available with: zypper se -s --repo oneAPI
+# intel-oneapi-mkl-2021.1.1
+# intel-oneapi-mkl-2021.2.0
+# intel-oneapi-mkl-2021.3.0
+# intel-oneapi-mkl-2021.4.0
+# intel-oneapi-mkl-2022.0.1
+# intel-oneapi-mkl-2022.0.2
+# intel-oneapi-mkl-2022.1.0
+## intel-oneapi-mkl-2022.2.0
+# intel-oneapi-mkl-2023.0.0
+# intel-oneapi-mkl-2023.1.0
 export INTEL_ONE_MKL_VERSION="2022.2.0"

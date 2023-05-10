@@ -54,7 +54,13 @@ $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 # Intel MPI
 # as there are more versions in the repos we need to select one
 # instead of always get the newest
-zypper install -y -l intel-oneapi-mpi = ${INTEL_ONE_MPI_VERSION}
+# workaround for wrong multi-version repos of intel.
+# instead of use the version for a package search and install
+# we need to provide a fixed name including the version
+# so instead of
+# zypper install -y -l intel-oneapi-mpi = $INTEL_ONE_MKL_VERSION
+# we forced to use
+zypper install -y -l intel-oneapi-mpi-${INTEL_ONE_MPI_VERSION}
 # Create modulesfiles
 /opt/intel/oneapi/modulefiles-setup.sh
 $COMMON_DIR/write_component_version.sh "IMPI_${IMPI_MAJOR}" ${INTEL_ONE_MPI_VERSION}

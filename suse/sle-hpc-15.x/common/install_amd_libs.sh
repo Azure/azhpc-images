@@ -1,14 +1,8 @@
 #!/bin/bash
 set -ex
-#
-## changelog
-#
-# 20220809 - ps - adopt suse lmod
-#                 hints to use RPM or spack instead of tarball
-#                 hint to actual version
-#
 
-## AMD provides RPM packages, so no need to use tarballs
+## AMD provides RPM packages, so in theory no need to use tarballs,
+## but there is no way to get around the licence section at the website
 ## https://developer.amd.com/amd-aocl/#downloads
 ## there are two options, gcc 11.1 or AOCC3.2
 ## aocl-linux-aocc- 3.1.0-1.x86_64.rpm

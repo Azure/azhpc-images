@@ -73,9 +73,9 @@ export NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/v${NCC
 export IBDEV2NETDEV_BINARY_SOURCE=https://raw.githubusercontent.com/Mellanox/container_scripts/master/ibdev2netdev
 
 # AMD
-export AOCL_VERSION="3.1.0"
+export AOCL_VERSION="4.0"
 export AOCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/aocl-linux-aocc-${AOCL_VERSION}.tar.gz
-export AOCL_CHKSUM=1881ea77e3addff90a064ff300f15a611a0f1208ceedea39aba328de7ed2c8e7
+export AOCL_CHKSUM="c8000a66aaa2a257252cbb307732b4e66758b72b08f43b3723f4eb5404ba28c8"
 
 # OpenMPI 4
 export OMPI=openmpi4

@@ -6,8 +6,7 @@ see https://www.suse.com/products/server/hpc/
 SUSE provides images in the Azure Marketplace as PayAsYouGo (PAYG) or BringYourOwnSubscription (BYOS) model
 
 The SLE HPC 15 SP4 includes optimizations and recommended configurations to deliver optimal performance,
-consistency, and reliability.
-As an enterprise distribution, SUSE provides stable long term support and many certifications with vendors.
+consistency, and reliability. As an enterprise distribution, SUSE provides stable long term support and many certifications with vendors.
 
 Many components come per default with the distribution like slurm, genders, pdsh, munge, hwloc, conman, numpy, scipy, PLlx,openblas, hdf5, openmpi, mvapich2, mpich, imb, papi, mpiP, spack, dolly, lmod.
 
@@ -15,7 +14,7 @@ See documentation at https://documentation.suse.com/sle-hpc/15-SP4/
 
 This setup here is build on top of **the PAYG image**, as it provides easy access without any registration to all SUSE provided software packages.
 
-The azhpc-images script will in addition add modules and libraries which are NOT supported by SUSE.
+The azhpc-images script will in addition add modules and libraries which are NOT supported by SUSE and could not delivered by SUSE. You need to own the subscriptions/licences and agree to the respective EULAs from the vendors by yourself.
 
 ## Enhancements
 This image consists of the following additional HPC tools and libraries:

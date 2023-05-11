@@ -22,6 +22,8 @@ pushd azurehpc-health-checks
 ./install-nhc.sh
 
 popd
+popd
+popd
 
 $COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}
 $COMMON_DIR/write_component_version.sh "MONEO" ${AZHC_VERSION}

@@ -3,7 +3,7 @@
 
 set -e
 
-AZHC_VERSION=v0.2.0
+AZHC_VERSION=v0.2.1
 AOCC_VERSION=4.0.0_1
 
 # install dependency
@@ -21,7 +21,6 @@ pushd azurehpc-health-checks
 # install NHC
 ./install-nhc.sh
 
-popd
 popd
 popd
 

@@ -3,7 +3,7 @@
 
 set -e
 
-AZHC_VERSION=v0.2.0
+AZHC_VERSION=v0.2.1
 AOCC_VERSION=4.0.0-1
 
 # install dependency
@@ -12,7 +12,7 @@ dnf install -y ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
 
 rm ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
 
-pushd /opt/azurehpc/test/git status
+pushd /opt/azurehpc/test/
 
 git clone https://github.com/Azure/azurehpc-health-checks.git --branch $AZHC_VERSION
 
@@ -21,6 +21,7 @@ pushd azurehpc-health-checks
 # install NHC
 ./install-nhc.sh
 
+popd
 popd
 
 $COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}

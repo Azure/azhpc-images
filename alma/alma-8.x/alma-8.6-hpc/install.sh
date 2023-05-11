@@ -7,10 +7,6 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
-# install Lustre client
-# Disable until testing is performed.
-#./install_lustre_client.sh
-
 # install compilers
 ./install_gcc.sh
 
@@ -63,7 +59,7 @@ $UBUNTU_COMMON_DIR/install_health_checks.sh
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-./disable_cloudinit.sh
+$ALMA_COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

@@ -12,8 +12,11 @@ set -ex
 # see: man useradd
 # bug reported to Nvidia
 serviceUser="nvidia-dcgm"
-useradd -r -M -U -s /usr/sbin/nologin ${serviceUser}
 
+#check if user exists, if not create it
+if ! id $serviceUser &>/dev/null; then
+   useradd -r -M -U -s /usr/sbin/nologin ${serviceUser}
+fi
 zypper install -y -l datacenter-gpu-manager = ${DCGM_VERSION}
 
 systemctl --now enable nvidia-dcgm

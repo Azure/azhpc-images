@@ -61,7 +61,7 @@ export NVIDIA_VERSION="525.85.12"
 export NVIDIA_CONTAINER_REPO_URI=https://nvidia.github.io/libnvidia-container/sles15.3/libnvidia-container.repo
 
 ## NVIDIA DATACENTER MGR
-DCGM_VERSION="1:3.1.6"
+export DCGM_VERSION="1:3.1.6"
 
 # NCCL
 # actual is v2.17.1-1 (march 2023)

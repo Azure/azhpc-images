@@ -94,15 +94,18 @@ else
     OMPI_VERSION_UBUNTU="4.1.5"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     case ${distro} in
-        "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.14";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.9.0";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";;
-        "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.14";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.9.0";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";;
-        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.14";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-5.9-0.5.9.0";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";;
+        "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.15";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
+            ;;
+        "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.15";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
+            ;;
+        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.15";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
+            ;;
         *) ;;
     esac
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
@@ -133,7 +136,7 @@ MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
 MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
 MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
-MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-5.9-0.5.9.0"
+MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-23.04-0.5.3.3"
 MOFED_VERSION_SUSE="MLNX_OFED_INBOX_5.14.21-4.0.0"
 #MOFED_VERSION_SUSE="MLNX_OFED-5.7-1.0.2.0"
 
@@ -151,7 +154,7 @@ MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azu
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
 HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.15-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA_86="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_86}"
 IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"

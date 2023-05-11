@@ -4,15 +4,15 @@
 set -e
 
 AZHC_VERSION=v0.2.0
-AOCC_VERSION=4.0.0_1
+AOCC_VERSION=4.0.0-1
 
 # install dependency
-wget https://download.amd.com/developer/eula/aocc-compiler/aocc-compiler-${AOCC_VERSION}_amd64.deb
-apt install -y ./aocc-compiler-${AOCC_VERSION}_amd64.deb
+wget https://download.amd.com/developer/eula/aocc-compiler/aocc-compiler-${AOCC_VERSION}.x86_64.rpm
+dnf install -y ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
 
-rm aocc-compiler-${AOCC_VERSION}_amd64.deb 
+rm ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
 
-pushd /opt/azurehpc/test/
+pushd /opt/azurehpc/test/git status
 
 git clone https://github.com/Azure/azurehpc-health-checks.git --branch $AZHC_VERSION
 

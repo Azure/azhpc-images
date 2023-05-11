@@ -56,6 +56,9 @@ $COMMON_DIR/install_hpcdiag.sh
 #install monitoring tools
 $COMMON_DIR/../alma/common/install_monitoring_tools.sh
 
+# install Azure/NHC Health Checks
+$UBUNTU_COMMON_DIR/install_health_checks.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 

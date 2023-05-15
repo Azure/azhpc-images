@@ -1,65 +1,62 @@
-# SUSE Linux Enterprise HPC 15 SP4 Image
+# SUSE Linux Enterprise HPC 15 SP4 enhanced image
 
-SUSE Linux Enterprise HPC is a SUSE maintained commercial product for the HPC market.
+SUSE Linux Enterprise HPC is a SUSE maintained and supported commercial product for the HPC market.
+see https://www.suse.com/products/server/hpc/
 
-SUSE provides images in the Azure Marketplace as PayAsYouGo or BringYourOwnSubscription model
-
-The setup here is build with the PAYG image, as it provides easy access without any registration to all SUSE provided software packages.
+SUSE provides images in the Azure Marketplace as PayAsYouGo (PAYG) or BringYourOwnSubscription (BYOS) model
 
 The SLE HPC 15 SP4 includes optimizations and recommended configurations to deliver optimal performance,
-consistency, and reliability.
-As an enterprise distribution, we provide stable long term support and many certifications with vendors.
+consistency, and reliability. As an enterprise distribution, SUSE provides stable long term support and many certifications with vendors.
+
+Many components come per default with the distribution like slurm, genders, pdsh, munge, hwloc, conman, numpy, scipy, PLlx,openblas, hdf5, openmpi, mvapich2, mpich, imb, papi, mpiP, spack, dolly, lmod.
 
 See documentation at https://documentation.suse.com/sle-hpc/15-SP4/
 
-The environment module Lmod is installed for all roles.
-It is required at build time and runtime of the system.
-For more information, Section 7.1, “Lmod - Lua-based environment modules” within the documentation.
+This setup here is build on top of **the PAYG image**, as it provides easy access without any registration to all SUSE provided software packages.
 
-Many components come per default with the distribution,
-but some are added like in the CentOS and Ubuntu images.
+The azhpc-images script will in addition add modules and libraries which are NOT supported by SUSE and could not delivered by SUSE. You need to own the subscriptions/licences and agree to the respective EULAs from the vendors by yourself.
 
-All libraries specifically built for HPC are installed under /usr/lib/hpc.
-They are not part of the standard search path, so the Lmod environment module system is required.
+## Enhancements
+This image consists of the following additional HPC tools and libraries:
 
-This image consists of the following HPC tools and libraries:
+- *(S) provided and supported by SUSE*
+- *(E) external sources, added by the script - not supported by SUSE*
 
-- Mellanox OFED (inbox drivers)
-- Pre-configured IPoIB (IP-over-InfiniBand)
-- Popular InfiniBand based MPI Libraries
+### Infiniband
 
-  - HPC-X v.2.12
-  - IntelMPI (via Intel oneAPI) v2021.7.0
-  - MVAPICH2
-  - MPICH 4
-  - OpenMPI (v3 and v4)
+- (S) - Mellanox OFED (inbox drivers)
+- (S) - Pre-configured IPoIB (IP-over-InfiniBand)
 
-<!--
-- Communication Runtimes
-  - Libfabric
-  - OpenUCX
--->
-- Optimized librares
+### Popular InfiniBand based MPI Libraries
 
-  - AMD (via tarball AOCL 3.1.0)
-      Blis
-      FFTW
-      Flame
+- (E) - HPC-X
+- (E) - IntelMPI (via Intel oneAPI)
+- (S) - MVAPICH2
+- (S) - MPICH 4
+- (S) - OpenMPI (v3 and v4)
 
-  - Intel MKL (Intel oneAPI via intel-oneapi-repo)
-    v2022.2.0
+### Optimized librares
 
-  - Nvida drivers 520.61
-  - CUDA 11.8
+- (E) - AMD (via tarball AOCL )
+  - Blis
+  - FFTW
+  - Flame
 
-- Data Center GPU Manager 3.0.4
-- Azure HPC Diagnostics Tool
+- (E) - Intel MKL (Intel oneAPI via intel-oneapi-repo)
 
-- Docker
-- NVIDIA Docker 20.10.17_ce
+- (E) - Nvida drivers
+- (E) - CUDA
+- (E) - NCCL
+
+- (E) - Data Center GPU Manager
+- (E) - Azure HPC Diagnostics Tool
+
+- (S) - Docker
+- (E) - NVIDIA Docker
 
 Software packages are configured as environment modules (lmod). Users can select preferred MPI or software packages as follows:
 `module load <package-name>`
 
 Don't forget to set the group "video" for your user running nvidia cmds
-sudo usermod -a -G video <youruser>
+
+`sudo usermod -a -G video <youruser>`

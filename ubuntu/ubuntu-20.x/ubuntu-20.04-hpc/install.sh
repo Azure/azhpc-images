@@ -56,7 +56,7 @@ $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
 $UBUNTU_COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
-$UBUNTU_COMMON_DIR/install_health_checks.sh
+$COMMON_DIR/install_health_checks.sh
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

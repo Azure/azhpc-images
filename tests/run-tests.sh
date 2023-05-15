@@ -112,6 +112,7 @@ else
 fi
 
 HPCX_VERSION_CENTOS="v2.9.0"
+HPCX_VERSION_SUSE="2.12"
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
 MVAPICH2_VERSION_ALMA="2.3.7"
@@ -126,7 +127,7 @@ OMPI_VERSION_SUSE="4.1.1"
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA_86="2021.7.0"
 IMPI_2021_VERSION_ALMA_87="2021.9.0"
-IMPI_2021_VERSION_SUSE="2021.7.0"
+IMPI_2021_VERSION_SUSE="2021.9.0"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
@@ -388,7 +389,7 @@ then
     # add /sbin and /usr/sbin to the path to allow lscpi and ibstatus called without path
     # as only UID=0 get it by default
     export PATH=$PATH:/sbin:/usr/sbin
-    MKL_VERSION="2022.2.0"
+    MKL_VERSION="2023.1.0"
     #
     CHECK_GCC=0
     CHECK_ONEAPI=1

@@ -2,8 +2,6 @@
 set -ex
 
 # Install DCGM
-# actual version is 3.0.4, older are in the repo too
-DCGM_VERSION="1:3.0.4"
 
 # workaround to create group for serviceUser=nvidia-dcgm
 # as the package expects that the variable "USERGROUPS_ENAB" in /etc/login.defs is set to yes
@@ -14,11 +12,23 @@ DCGM_VERSION="1:3.0.4"
 # see: man useradd
 # bug reported to Nvidia
 serviceUser="nvidia-dcgm"
-useradd -r -M -U -s /usr/sbin/nologin ${serviceUser}
 
+#check if user exists, if not create it
+if ! id $serviceUser &>/dev/null; then
+   useradd -r -M -U -s /usr/sbin/nologin ${serviceUser}
+fi
 zypper install -y -l datacenter-gpu-manager = ${DCGM_VERSION}
 
 systemctl --now enable nvidia-dcgm
+
+# Check if the service is active
+systemctl is-active --quiet nvidia-dcgm
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "DCGM is inactive!"
+    exit ${error_code}
+fi
 
 # to verify the installation we can query the system
 # You should see a listing of all supported GPUs (and any NVSwitches) found in the system:

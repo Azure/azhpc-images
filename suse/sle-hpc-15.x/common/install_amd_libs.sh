@@ -1,14 +1,8 @@
 #!/bin/bash
 set -ex
-#
-## changelog
-#
-# 20220809 - ps - adopt suse lmod
-#                 hints to use RPM or spack instead of tarball
-#                 hint to actual version
-#
 
-## AMD provides RPM packages, so no need to use tarballs
+## AMD provides RPM packages, so in theory no need to use tarballs,
+## but there is no way to get around the licence section at the website
 ## https://developer.amd.com/amd-aocl/#downloads
 ## there are two options, gcc 11.1 or AOCC3.2
 ## aocl-linux-aocc- 3.1.0-1.x86_64.rpm
@@ -21,15 +15,11 @@ set -ex
 INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 
-AOCL_VERSION="3.1.0"
-# actual AOCL_VERSION="3.2.0"
-
-TARBALL="aocl-linux-aocc-${AOCL_VERSION}.tar.gz"
+TARBALL=$(basename $AOCL_DOWNLOAD_URL)
 
 # TODO: this seems a workaround to accept the licence prior download
 # should be fixed in readme and made be more general e.g. prior download of the rpm and not the tarball
-AOCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
-$COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL "1881ea77e3addff90a064ff300f15a611a0f1208ceedea39aba328de7ed2c8e7"
+$COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL $AOCL_CHKSUM
 tar -xvf ${TARBALL}
 
 cd aocl-linux-aocc-${AOCL_VERSION}
@@ -41,10 +31,11 @@ $COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
 
 # Setup module files for AMD Libraries
 # SUSE HPC uses lmod by default
-mkdir -p /usr/share/lmod/modulefiles/amd/
+mkdir -p ${MODULE_FILES_DIRECTORY}/amd/
 
 # fftw
-cat << EOF >> /usr/share/lmod/modulefiles/amd/aocl-${AOCL_VERSION}
+mkdir -p ${MODULE_FILES_DIRECTORY}/amd/aocl
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/amd/aocl/${AOCL_VERSION}
 #%Module 1.0
 #
 #  AOCL
@@ -54,5 +45,4 @@ setenv          AMD_FFTW_INCLUDE  ${INSTALL_PREFIX}/include
 EOF
 
 # Create symlinks for modulefiles
-ln -s /usr/share/lmod/modulefiles/amd/aocl-${AOCL_VERSION} /usr/share/lmod/modulefiles/amd/aocl
-$COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
+ln -s ${MODULE_FILES_DIRECTORY}/amd/aocl-${AOCL_VERSION} ${MODULE_FILES_DIRECTORY}/amd/aocl

@@ -49,6 +49,9 @@ $UBUNTU_COMMON_DIR/hpc-tuning.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh
+
 # install monitor tools
 $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
 

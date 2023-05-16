@@ -44,6 +44,9 @@ $COMMON_DIR/setup_sku_customizations.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh
+
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 

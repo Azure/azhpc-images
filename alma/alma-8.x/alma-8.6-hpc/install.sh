@@ -61,6 +61,9 @@ $COMMON_DIR/install_health_checks.sh
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh
+
 # disable cloud-init
 $ALMA_COMMON_DIR/disable_cloudinit.sh
 

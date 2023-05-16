@@ -24,15 +24,15 @@
         },
         "ubuntu20.04": {},
         "ubuntu22.04": {
-            "version": "5.8-2.0.3.0",
-            "sha256": "6ec0e1b6a8de6fbcc6d6bceaedf853f801003b0ee854f3b660e53bd2f73ef79a"
+            "version": "23.04-0.5.3.3",
+            "sha256": "d18058146e1e09fc3f847a80e777533bc3c769c376a9944128668855c1623a23"
         }
     },
     "hpcx": {
         "ubuntu22.04": {
-            "version": "2.14",
-            "sha256": "e16f77fb3104917c6bc451a58742cda134eb10251d6a5326e30aff30b7fa1524",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.14/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+            "version": "2.15",
+            "sha256": "c718d0d5339ed60a6479a52054ca9b0718253cadf528ce63ce35b4aced42797c",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.15/hpcx-v2.15-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
         }
     },
     "mvapich2": {
@@ -53,25 +53,25 @@
     "nvidia": {
         "ubuntu22.04": {
             "driver": {
-                "version": "525.85.12",
-                "sha256": "423b1d078e6385182f48c6e201e834b2eea193a622e04d613aa2259fce6e2266"
+                "version": "525.105.17",
+                "sha256": "c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a"
             },
             "fabricmanager": {
                 "prefix": "525",
                 "distribution": "ubuntu2204",
-                "version": "525_525.85.12-1",
-                "sha256": "77e2f8768e4901114c35582b530b10fe6bd3b924862a929f96fc83aee078b12c"        
+                "version": "525_525.105.17-1",
+                "sha256": "b487db5923194ba9f4d7c34891f4f8513a3f633a22a0c9f51fba3ef971681977"        
             }   
         }
     },
     "cuda": {
         "ubuntu22.04": {
             "driver": {
-                "version": "12.0.0"
+                "version": "12.1.0"
             },
             "samples": {
-                "version": "12.0",
-                "sha256": "6f332ea74d6f9c6322057bd4fac6f3ed6eac380d116c17bcbdc9132a3272eb71"
+                "version": "12.1",
+                "sha256": "97e486b888933792ba9d3bc242e0023d271037a6371322e507512db130ae350a"
             }   
         }
     },
@@ -82,12 +82,12 @@
     },
     "nccl": {
         "ubuntu22.04": {
-            "version": "2.16.2-1"
+            "version": "2.18.1-1"
         }
     },
     "dcgm": {
         "ubuntu22.04": {
-            "version": "3.1.6",
+            "version": "3.1.8",
             "distribution": "ubuntu2204"
         }
     },

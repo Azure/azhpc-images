@@ -7,10 +7,6 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
-# install Lustre client
-# Disable until testing is performed.
-#./install_lustre_client.sh
-
 # install compilers
 ./install_gcc.sh
 
@@ -56,11 +52,17 @@ $COMMON_DIR/install_hpcdiag.sh
 #install monitoring tools
 $COMMON_DIR/../alma/common/install_monitoring_tools.sh
 
+# install AMD libs
+$COMMON_DIR/../alma/common/install_amd_libs.sh
+
+# install Azure/NHC Health Checks
+$COMMON_DIR/install_health_checks.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-./disable_cloudinit.sh
+$ALMA_COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

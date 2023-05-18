@@ -118,4 +118,18 @@ NCCL_GRAPH_FILE=/opt/microsoft/ncv4/graph.xml
 EOF
 
 ## Setup NVME devices
-#/opt/azurehpc/customizations/setup_nvme.sh
+# if [ ! -f /etc/systemd/system/nvme-raid.service ]; then
+#     /opt/azurehpc/customizations/setup_nvme.sh
+# fi
+
+# ## NVME raid service
+# systemctl enable nvme-raid
+# systemctl start nvme-raid
+# systemctl is-active --quiet nvme-raid
+
+# error_code=$?
+# if [ ${error_code} -ne 0 ]
+# then
+#     echo "Failed to setup/ mount NVMe devices!"
+#     exit ${error_code}
+# fi

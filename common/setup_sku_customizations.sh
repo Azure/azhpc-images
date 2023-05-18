@@ -24,6 +24,10 @@ case \$vmSize in
         /opt/azurehpc/customizations/ndv2.sh;;
     standard_hb176*v4)
         /opt/azurehpc/customizations/hbv4.sh;;
+
+    standard_nd96is*_h100_v5)
+        /opt/azurehpc/customizations/ndv5.sh;;
+
     *) echo "No SKU customization for \$vmSize";;
 esac
 EOF
@@ -41,11 +45,11 @@ then
 fi
 
 # Stop nvme raid service
-#if systemctl is-active --quiet nvme-raid
-#then
-#    systemctl stop nvme-raid
-#   systemctl disable nvme-raid
-#fi
+# if systemctl is-active --quiet nvme-raid
+# then
+#     systemctl stop nvme-raid
+#     systemctl disable nvme-raid
+# fi
 
 # Remove NVIDIA peer memory module
 if lsmod | grep nvidia_peermem &> /dev/null

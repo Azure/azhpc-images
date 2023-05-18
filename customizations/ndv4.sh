@@ -67,7 +67,7 @@ fi
 ## load nvidia-peermem module
 modprobe nvidia-peermem
 
-## Setup NVME devices
+# ## Setup NVME devices
 # if [ ! -f /etc/systemd/system/nvme-raid.service ]; then
 #     /opt/azurehpc/customizations/setup_nvme.sh
 # fi

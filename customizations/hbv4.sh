@@ -2,4 +2,4 @@
 set -ex
 
 ## Setup NVME devices
-#/opt/azurehpc/customizations/setup_nvme.sh
+# /opt/azurehpc/customizations/setup_nvme.sh

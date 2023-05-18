@@ -443,10 +443,13 @@ check_exit_code() {
     fi
 }
 
-# verify that yum is updated
+# verify that yum is correctly updated 
 case ${distro} in
     Ubuntu*) sudo apt-get -q --assume-no update;;
-    CentOS* | AlmaLinux*) sudo yum update -n;;
+    CentOS* | AlmaLinux*) 
+        yum update -y --setopt tsflags=test
+        yum clean packages
+    ;;
     * ) ;;
 esac
 check_exit_code "Package update works" "Package update fails!"

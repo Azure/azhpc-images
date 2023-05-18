@@ -18,8 +18,7 @@ $UBUNTU_COMMON_DIR/install_utils.sh ${AZCOPY_VERSION} ${AZCOPY_RELEASE_TAG}
 apt-get update
 apt-get install -y python3.8
 update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
-apt-get -y remove python3-apt
-apt-get -y install python3-apt
+apt-get -y install --reinstall python3-apt
 
 apt-get -y install python3-pip
 DISTPACK=/usr/lib/python3/dist-packages

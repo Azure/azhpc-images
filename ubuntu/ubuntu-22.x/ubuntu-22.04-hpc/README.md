@@ -28,7 +28,7 @@ The Ubuntu 22.04 HPC Image includes optimizations and recommended configurations
 - NVIDIA-Docker
 - Moneo (Distributed HPC/AI system monitor)
 
-This Image is compliant with the Linux Kernel 5.15.0-1031-azure.
+This Image is compliant with the Linux Kernel 5.15.0-1037-azure.
 
 Software packages (MPI / HPC libraries) are configured as environment modules. Users can select preferred MPI or software packages as follows:
 

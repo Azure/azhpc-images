@@ -84,6 +84,7 @@ popd
 
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
+sed -i -e 's/Provisioning.MonitorHostName=n/Provisioning.MonitorHostName=y/g' /etc/waagent.conf
 echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
 echo "Extensions.InitialGoalStatePeriod=6" | sudo tee -a /etc/waagent.conf
 echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf

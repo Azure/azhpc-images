@@ -11,13 +11,13 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.14
-HPCX_VERSION="v2.14"
+# HPC-X v2.15
+HPCX_VERSION="v2.15"
 TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "e201b01d511a39524cc42a90e2f9b0ab233095546ecccd74b891bd57dc08a6c9"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "952fa25cd3503373011e04d7a372f5aa79381d72914fc9cffc3de6b4b21dadf0"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

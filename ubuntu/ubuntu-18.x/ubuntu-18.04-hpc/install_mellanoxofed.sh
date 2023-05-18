@@ -1,12 +1,12 @@
 #!/bin/bash
 set -ex
 
-VERSION="5.9-0.5.9.0"
+VERSION="23.04-0.5.3.3"
 TARBALL="MLNX_OFED_LINUX-$VERSION-ubuntu18.04-x86_64.tgz"
 MLNX_OFED_DOWNLOAD_URL=https://content.mellanox.com/ofed/MLNX_OFED-${VERSION}/$TARBALL
 MOFED_FOLDER=$(basename ${MLNX_OFED_DOWNLOAD_URL} .tgz)
 
-$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "2d773d682c4899ca6b9e77ab93886abecf0afb1049cad93d15a1a5dc9cbf0c30"
+$COMMON_DIR/download_and_verify.sh $MLNX_OFED_DOWNLOAD_URL "f7cbd64171650019eae27191895719ed0c0dc79164736db844f867a5a0fa4e02"
 tar zxvf ${TARBALL}
 
 ./${MOFED_FOLDER}/mlnxofedinstall --add-kernel-support --skip-unsupported-devices-check --without-fw-update

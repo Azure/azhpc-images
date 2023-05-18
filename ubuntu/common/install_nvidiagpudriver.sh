@@ -5,18 +5,18 @@ set -ex
 VERSION=$1
 
 case ${VERSION} in
-    1804) NVIDIA_VERSION="525.85.12"; 
-        CUDA_VERSION="12-0"; 
-        CUDA_SAMPLES_VERSION="12.0";
-        CHECKSUM="423b1d078e6385182f48c6e201e834b2eea193a622e04d613aa2259fce6e2266";; 
-    2004) NVIDIA_VERSION="525.85.12"; 
-        CUDA_VERSION="12-0"; 
-        CUDA_SAMPLES_VERSION="12.0";
-        CHECKSUM="423b1d078e6385182f48c6e201e834b2eea193a622e04d613aa2259fce6e2266";;
-    2204) NVIDIA_VERSION="525.85.12"; 
-        CUDA_VERSION="12-0"; 
-        CUDA_SAMPLES_VERSION="12.0";
-        CHECKSUM="423b1d078e6385182f48c6e201e834b2eea193a622e04d613aa2259fce6e2266";;
+    1804) NVIDIA_VERSION="525.105.17"; 
+        CUDA_VERSION="12-1"; 
+        CUDA_SAMPLES_VERSION="12.1";
+        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";; 
+    2004) NVIDIA_VERSION="525.105.17"; 
+        CUDA_VERSION="12-1"; 
+        CUDA_SAMPLES_VERSION="12.1";
+        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";;
+    2204) NVIDIA_VERSION="525.105.17"; 
+        CUDA_VERSION="12-1"; 
+        CUDA_SAMPLES_VERSION="12.1";
+        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";;
     *) ;;
 esac
 
@@ -38,8 +38,7 @@ wget ${CUDA_SAMPLES_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make
-mv ./Samples/ /usr/local/cuda-${CUDA_SAMPLES_VERSION}/
-ln -s /usr/local/cuda-${CUDA_SAMPLES_VERSION}/Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
+mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 
 # Nvidia driver

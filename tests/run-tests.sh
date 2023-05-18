@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 function test_service {
     local service=$1

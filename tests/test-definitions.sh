@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # check if the file is present
 function check_exists {
@@ -247,7 +246,8 @@ function verify_sunrpc_tcp_settings_service {
 function verify_apt_yum_update {
     case $ID in
         ubuntu) sudo apt-get -q --assume-no update;;
-        centos | almalinux) sudo yum update -n;;
+        centos | almalinux) sudo yum update -y --setopt tsflags=test;
+            sudo yum clean packages;;
         * ) ;;
     esac
     check_exit_code "Package update works" "Package update fails!"

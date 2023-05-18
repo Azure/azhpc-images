@@ -8,11 +8,10 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.0
-MLNX_OFED_VERSION="4.7-1.0.0.1"
-HPCX_VERSION="v2.7.0"
-# TEMP: hardcode to 18.04 until 20.04 is supported
-TARBALL="hpcx-v2.7.0-gcc-MLNX_OFED_LINUX-4.7-1.0.0.1-ubuntu18.04-x86_64.tbz"
+# HPC-X v2.7.2
+MLNX_OFED_VERSION="5.1-2.4.6.0"
+HPCX_VERSION="v2.7.2"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-${DISTRIBUTION}-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

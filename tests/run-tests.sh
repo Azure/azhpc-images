@@ -446,10 +446,7 @@ check_exit_code() {
 # verify if package updates work
 case ${distro} in
     Ubuntu*) sudo apt-get -q --assume-no update;;
-    CentOS* | AlmaLinux*) 
-        sudo yum update -y --setopt tsflags=test
-        sudo yum clean packages
-    ;;
+    CentOS* | AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
     * ) ;;
 esac
 check_exit_code "Package update works" "Package update fails!"

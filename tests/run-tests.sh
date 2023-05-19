@@ -443,6 +443,14 @@ check_exit_code() {
     fi
 }
 
+# verify if package updates work
+case ${distro} in
+    Ubuntu*) sudo apt-get -q --assume-no update;;
+    CentOS* | AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
+    * ) ;;
+esac
+check_exit_code "Package update works" "Package update fails!"
+
 # verify MOFED installation
 if [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then

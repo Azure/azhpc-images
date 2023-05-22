@@ -85,7 +85,7 @@ echo "Detected distro: ${distro}"
 if [ "${MOFED_LTS}" = true ]
 then
     HPCX_VERSION_UBUNTU="v2.7.0"
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-3.1.5.0"
+    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-6.0.6.0"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
     IMPI_2021_VERSION_UBUNTU="2021.7.0"
@@ -442,6 +442,14 @@ check_exit_code() {
         exit -1
     fi
 }
+
+# verify if package updates work
+case ${distro} in
+    Ubuntu*) sudo apt-get -q --assume-no update;;
+    CentOS* | AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
+    * ) ;;
+esac
+check_exit_code "Package update works" "Package update fails!"
 
 # verify MOFED installation
 if [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]

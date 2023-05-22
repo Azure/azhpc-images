@@ -87,3 +87,6 @@ chmod +x /usr/bin/azcopy
 
 # remove tarball from azcopy
 rm -rf *.tar.gz
+
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh

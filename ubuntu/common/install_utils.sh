@@ -43,7 +43,8 @@ apt-get -y install numactl \
                    libkeyutils1 \
                    libkeyutils-dev \
                    libmount-dev \
-                   nfs-common
+                   nfs-common \
+                   slurm-wlm
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 

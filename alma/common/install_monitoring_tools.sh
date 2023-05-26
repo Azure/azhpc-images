@@ -4,6 +4,9 @@ set -e
 
 MONEO_VERSION=v0.2.3
 
+# Set the default python3 to python3.8
+alternatives --set python3 /usr/bin/python3.8
+
 # Dependencies 
 python3 -m pip install --upgrade pip
 python3 -m pip install ansible

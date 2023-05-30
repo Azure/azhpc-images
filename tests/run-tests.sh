@@ -191,6 +191,7 @@ CHECK_AOCL=1
 CHECK_NCCL=0
 CHECK_GCC=1
 CHECK_DOCKER=0
+CHECK_SLURM=0
 
 if [[ $distro == *"CentOS Linux"* ]]
 then
@@ -348,6 +349,7 @@ then
     CHECK_GCC=0
     CHECK_NCCL=1
     CHECK_DOCKER=1
+    CHECK_SLURM=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
@@ -366,6 +368,7 @@ then
     CHECK_NCCL=1
     CHECK_GCC=0
     CHECK_DOCKER=1
+    CHECK_SLURM=1
 elif [[ $distro == "Ubuntu 22.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2204}
@@ -384,6 +387,7 @@ then
     CHECK_NCCL=1
     CHECK_GCC=0
     CHECK_DOCKER=1
+    CHECK_SLURM=1
 elif [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then
     # add /sbin and /usr/sbin to the path to allow lscpi and ibstatus called without path
@@ -617,6 +621,12 @@ then
     check_exit_code "Single Node NCCL Test" "Failed"
 
     module unload mpi/hpcx
+fi
+
+# verify slurm is installed
+if [ $CHECK_SLURM -eq 1 ]
+then
+    check_exists "/usr/sbin/slurmd-wlm"
 fi
 
 echo "ALL OK!"

@@ -314,6 +314,7 @@ then
     CHECK_AOCL=1
     CHECK_NCCL=1
     CHECK_DOCKER=1
+    CHECK_SLURM=1
 elif [[ $distro == "AlmaLinux 8.7" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_ALMA_87}
@@ -331,6 +332,7 @@ then
     CHECK_AOCL=1
     CHECK_NCCL=1
     CHECK_DOCKER=1
+    CHECK_SLURM=1
 elif [[ $distro == "Ubuntu 18.04" ]]
 then
     HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_1804}

@@ -45,8 +45,7 @@ yum install -y numactl \
     kernel-rpm-macros \
     tcsh \
     gcc-gfortran \
-    perl\
-    slurm-wlm
+    perl
 
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

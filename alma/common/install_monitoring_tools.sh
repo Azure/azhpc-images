@@ -8,7 +8,7 @@ MONEO_VERSION=v0.3.0
 python3 -m pip install --upgrade pip
 
 # Adding path to sudo user
-sed -i 's/.*secure_path.*/Defaults    secure_path="\/usr\/local\/sbin:\/usr\/local\/bin:\/sbin:\/bin:\/usr\/sbin:\/usr\/bin\//"' /etc/sudoers
+sed -i 's/.*secure_path.*/Defaults    secure_path = "\/usr\/local\/sbin:\/usr\/local\/bin:\/sbin:\/bin:\/usr\/sbin:\/usr\/bin\/"/' /etc/sudoers
 
 MONITOR_DIR=/opt/azurehpc/tools
 
@@ -25,8 +25,8 @@ pushd $MONITOR_DIR
 popd
 
 # add an slias for Moneo
-if ! grep -qxF "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" /etc/bash.bashrc; then
-    echo "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" >> /etc/bash.bashrc
+if ! grep -qxF "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" /etc/bashrc; then
+    echo "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" >> /etc/bashrc
 fi
 
 $COMMON_DIR/write_component_version.sh "MONEO" ${MONEO_VERSION}

@@ -11,6 +11,10 @@ yum install -y https://repo.almalinux.org/almalinux/8.7/BaseOS/x86_64/os/Package
 yum install -y python3.8
 ln -fs /usr/bin/python3.8 /usr/bin/python3
 
+# Install epel repo  
+yum install -y epel-release
+yum update
+
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
 yum install -y numactl \
@@ -45,7 +49,8 @@ yum install -y numactl \
     kernel-rpm-macros \
     tcsh \
     gcc-gfortran \
-    perl
+    perl \
+    pssh
 
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

@@ -17,7 +17,7 @@ serviceUser="nvidia-dcgm"
 if ! id $serviceUser &>/dev/null; then
    useradd -r -M -U -s /usr/sbin/nologin ${serviceUser}
 fi
-zypper install -y -l datacenter-gpu-manager = ${DCGM_VERSION}
+zypper --non-interactive install -y -l datacenter-gpu-manager = ${DCGM_VERSION}
 
 systemctl --now enable nvidia-dcgm
 

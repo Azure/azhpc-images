@@ -627,7 +627,6 @@ fi
 if [ $CHECK_SLURM -eq 1 ]
 then
     check_exists "/usr/sbin/slurmd-wlm"
-    sinfo
 fi
 
 echo "ALL OK!"

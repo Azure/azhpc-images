@@ -44,6 +44,7 @@ apt-get -y install numactl \
                    libkeyutils-dev \
                    libmount-dev \
                    nfs-common \
+                   pssh \
                    slurm-wlm
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi

@@ -14,11 +14,13 @@ function check_exists {
 
 # check exit code
 function check_exit_code {
-    if [ $? -eq 0 ]
+    exit_code=$?
+    if [ $exit_code -eq 0 ]
     then
         echo "[OK] : $1"
     else
         echo "*** Error - $2!" >&2
+        echo "*** Failed with exit code - $exit_code" >&2
         exit -1
     fi
 }
@@ -116,10 +118,6 @@ function verify_nccl_installation {
 
     module load mpi/hpcx
 
-    # Check the type of Mellanox card in use
-    # mellanox_card=$(lspci -nn | grep -m 1 Mellanox | awk '{print $9 " " $10}' | sed 's/\[//' | sed 's/\]//')
-    
-    # Run NCCL test based on Mellanox card
     case $VMSIZE in
         standard_nc24rs_v3) mpirun -np 4 \
             -x LD_LIBRARY_PATH \

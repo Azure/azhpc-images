@@ -1,6 +1,12 @@
 #!/bin/bash
 set -ex
 
+if [ $# -ne 2 ]
+then
+    echo "*** Error - Invalid inputs!"
+    exit -1
+fi
+
 # Parameters
 download_url=$1
 downloaded_file_name=$(basename $1)
@@ -16,12 +22,6 @@ verify_checksum() {
     fi
     echo "Checksum verified!"
 }
-
-if [ $# -ne 2 ]
-then
-    echo "*** Error - Invalid inputs!"
-    exit -1
-fi
 
 wget --retry-connrefused --tries=3 --waitretry=5 $download_url
 verify_checksum $(readlink -f $downloaded_file_name) $file_checksum

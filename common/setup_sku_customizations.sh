@@ -12,6 +12,7 @@ cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
 vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
+
 ## Topo file setup based on SKU
 case \$vmSize in
     standard_nc*ads_a100_v4)

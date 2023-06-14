@@ -5,11 +5,11 @@ set -ex
 apt install -y build-essential devscripts debhelper fakeroot
 
 case ${DISTRIBUTION} in
-    "ubuntu18.04") NCCL_VERSION="2.18.1-1"; 
+    "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.1";;
-    "ubuntu20.04") NCCL_VERSION="2.18.1-1"; 
+    "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.1";;
-    "ubuntu22.04") NCCL_VERSION="2.18.1-1"; 
+    "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.1";;
     *) ;;
 esac

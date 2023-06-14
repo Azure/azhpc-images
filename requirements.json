@@ -1,0 +1,110 @@
+{
+    "spack": {
+        "ubuntu18.04": {
+            "branch": "releases/v0.19"
+        },
+        "ubuntu20.04": {
+            "branch": "releases/v0.19"
+        },
+        "ubuntu22.04": {
+            "branch": "develop"
+        }        
+    },
+    "azcopy": {
+        "ubuntu22.04": {
+            "version": "10.17.0",
+            "release": "release20230123",
+            "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"
+        }
+    },
+    "mofed": {
+        "ubuntu18.04": {
+            "mofedlts": {},
+            "others": {}
+        },
+        "ubuntu20.04": {},
+        "ubuntu22.04": {
+            "version": "23.04-1.1.3.0",
+            "sha256": "8e50a0716081e13a7251d14543a0ea40481d0b3d7e82dda1ed1fc789ce6241cc"
+        }
+    },
+    "hpcx": {
+        "ubuntu22.04": {
+            "version": "2.15",
+            "sha256": "c718d0d5339ed60a6479a52054ca9b0718253cadf528ce63ce35b4aced42797c",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.15/hpcx-v2.15-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+        }
+    },
+    "mvapich2": {
+        "ubuntu22.04": {
+            "version": "2.3.7-1"
+        }
+    },
+    "ompi": {
+        "ubuntu22.04": {
+            "version": "4.1.5"
+        }
+    },
+    "impi_2021": {
+        "ubuntu22.04": {
+            "version": "2021.9.0"
+        }
+    },
+    "nvidia": {
+        "ubuntu22.04": {
+            "driver": {
+                "version": "525.105.17",
+                "sha256": "c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a"
+            },
+            "fabricmanager": {
+                "prefix": "525",
+                "distribution": "ubuntu2204",
+                "version": "525_525.105.17-1",
+                "sha256": "b487db5923194ba9f4d7c34891f4f8513a3f633a22a0c9f51fba3ef971681977"        
+            }   
+        }
+    },
+    "cuda": {
+        "ubuntu22.04": {
+            "driver": {
+                "version": "12.1.0"
+            },
+            "samples": {
+                "version": "12.1",
+                "sha256": "97e486b888933792ba9d3bc242e0023d271037a6371322e507512db130ae350a"
+            }   
+        }
+    },
+    "gdrcopy": {
+        "ubuntu22.04": {
+            "version": "2.3"
+        }
+    },
+    "nccl": {
+        "ubuntu22.04": {
+            "version": "2.18.3-1"
+        }
+    },
+    "dcgm": {
+        "ubuntu22.04": {
+            "version": "3.1.8",
+            "distribution": "ubuntu2204"
+        }
+    },
+    "intel_one_mkl": {
+        "ubuntu22.04": {
+            "version": "2023.1.0"
+        }
+    },
+    "waagent": {
+        "ubuntu22.04": {
+            "version": "2.9.0.4",
+            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
+        }
+    },
+    "moneo": {
+        "ubuntu22.04": {
+            "version": "0.3.1"
+        }
+    }
+}

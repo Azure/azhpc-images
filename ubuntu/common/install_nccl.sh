@@ -1,39 +1,22 @@
 #!/bin/bash
 set -ex
 
-# Install NCCL
-apt install -y build-essential devscripts debhelper fakeroot
+# Set NCCL and CUDA driver versions
+nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+cuda_driver_version=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
-case ${DISTRIBUTION} in
-    "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
-    "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
-    "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
-    *) ;;
-esac
+spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
+spack install --no-checksum
 
-TARBALL="v${NCCL_VERSION}.tar.gz"
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
-pushd /tmp
-wget ${NCCL_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-
-pushd nccl-${NCCL_VERSION}
-make -j src.build
-make pkg.debian.build
-pushd build/pkg/deb/
-dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
-sudo apt-mark hold libnccl2
-dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
-sudo apt-mark hold libnccl-dev
-popd
-popd
+nccl_home=$(spack location -i nccl@$nccl_version)
+export_nccl_ld="export LD_LIBRARY_PATH=$(echo $nccl_home)/lib:$LD_LIBRARY_PATH"
+eval $export_nccl_ld
+echo $export_nccl_ld | tee -a /etc/profile
 
 # Install the nccl rdma sharp plugin
 mkdir -p /usr/local/nccl-rdma-sharp-plugins
 apt install -y zlib1g-dev
+pushd $nccl_home
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
 ./autogen.sh
@@ -44,17 +27,15 @@ popd
 popd
 
 # Build the nccl tests
+export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
+eval $export_modulepath
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git
 pushd nccl-tests
-make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
+make MPI=1 MPI_HOME=$MPI_HOME CUDA_HOME=/usr/local/cuda NCCL_HOME=$(echo $nccl_home)
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
 
-$COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
-
-# Remove installation files
-rm -rf /tmp/${TARBALL}
-rm -rf /tmp/nccl-${NCCL_VERSION}
+$COMMON_DIR/write_component_version.sh "nccl" $nccl_version

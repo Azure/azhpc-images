@@ -8,9 +8,9 @@ apt-get install -y moby-engine
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add - \
-&& curl -s -L https://nvidia.github.io/nvidia-docker/${DISTRIBUTION}/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list
+&& curl -s -L https://nvidia.github.io/nvidia-docker/$DISTRIBUTION/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list
 # MIG Capability on A100
-curl -s -L https://nvidia.github.io/nvidia-container-runtime/experimental/${DISTRIBUTION}/nvidia-container-runtime.list | tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+curl -s -L https://nvidia.github.io/nvidia-container-runtime/experimental/$DISTRIBUTION/nvidia-container-runtime.list | tee /etc/apt/sources.list.d/nvidia-container-runtime.list
 
 apt-get update
 # Install nvidia-docker package
@@ -52,8 +52,8 @@ systemctl restart docker
 # Write the docker version to components file
 moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')
 docker_version=$(nvidia-docker --version | awk -F' ' '{print $3}')
-$COMMON_DIR/write_component_version.sh "MOBY-ENGINE" ${moby_version}
-$COMMON_DIR/write_component_version.sh "NVIDIA-DOCKER" ${docker_version::-1}
+$COMMON_DIR/write_component_version.sh "moby" $moby_version
+$COMMON_DIR/write_component_version.sh "nvidia_docker" ${docker_version::-1}
 
 # Remove unwanted repos
 rm -f /etc/apt/sources.list.d/nvidia*

@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
 
-DEST_TEST_DIR=/opt/azurehpc/test
+destination_test_path=$HPC_ENV/test
 
-mkdir -p $DEST_TEST_DIR
+mkdir -p $destination_test_path
 
-cp $TEST_DIR/run-tests.sh $DEST_TEST_DIR
+cp $TEST_DIR/run-tests.sh $destination_test_path
+cp $TEST_DIR/test-definitions.sh $destination_test_path
+cp $TEST_DIR/test-matrix.json $destination_test_path
 
 #Test if nvcc is installed and if so install gpu-copy test.
 if test -f "/usr/local/cuda/bin/nvcc"; then
@@ -24,6 +26,6 @@ if test -f "/usr/local/cuda/bin/nvcc"; then
 			-lnuma $cufile -o $outfile
 	fi
 fi
-cp -r $TEST_DIR/health_checks $DEST_TEST_DIR
+cp -r $TEST_DIR/health_checks $destination_test_path
 
 exit 0

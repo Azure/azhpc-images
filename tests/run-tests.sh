@@ -95,15 +95,15 @@ else
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     case ${distro} in
         "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         *) ;;

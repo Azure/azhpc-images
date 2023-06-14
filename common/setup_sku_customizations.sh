@@ -9,7 +9,6 @@ cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
 ## Systemd service for setting up appropriate customizations based on SKU
 cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 #!/bin/bash
-
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
 vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
@@ -24,7 +23,6 @@ case \$vmSize in
         
     standard_nd40rs_v2)
         /opt/azurehpc/customizations/ndv2.sh;;
-
     standard_hb176*v4)
         /opt/azurehpc/customizations/hbv4.sh;;
 

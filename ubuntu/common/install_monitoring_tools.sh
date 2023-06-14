@@ -2,22 +2,19 @@
 
 set -e
 
-MONEO_VERSION=v0.2.3
+# Set moneo metadata
+moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 # Dependencies 
 python3 -m pip install --upgrade pip
 python3 -m pip install ansible
 
-MONITOR_DIR=/opt/azurehpc/tools
+monitor_path=$HPC_ENV/tools
+mkdir -p $monitor_path
 
-mkdir -p $MONITOR_DIR
-
-pushd $MONITOR_DIR
-
-git clone https://github.com/Azure/Moneo  --branch $MONEO_VERSION
-
+pushd $monitor_path
+git clone https://github.com/Azure/Moneo  --branch v$moneo_version
 chmod 777 Moneo
-
 popd
 
-$COMMON_DIR/write_component_version.sh "MONEO" ${MONEO_VERSION}
+$COMMON_DIR/write_component_version.sh "moneo" $moneo_version

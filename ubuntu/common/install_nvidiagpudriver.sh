@@ -1,48 +1,37 @@
 #!/bin/bash
 set -ex
 
-# Parameters
-VERSION=$1
+# Set the driver versions
+cuda_metadata=$(jq -r '.cuda."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+cuda_driver_version=$(jq -r '.driver.version' <<< $cuda_metadata)
+cuda_samples_version=$(jq -r '.samples.version' <<< $cuda_metadata)
+cuda_samples_sha256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 
-case ${VERSION} in
-    1804) NVIDIA_VERSION="525.105.17"; 
-        CUDA_VERSION="12-1"; 
-        CUDA_SAMPLES_VERSION="12.1";
-        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";; 
-    2004) NVIDIA_VERSION="525.105.17"; 
-        CUDA_VERSION="12-1"; 
-        CUDA_SAMPLES_VERSION="12.1";
-        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";;
-    2204) NVIDIA_VERSION="525.105.17"; 
-        CUDA_VERSION="12-1"; 
-        CUDA_SAMPLES_VERSION="12.1";
-        CHECKSUM="c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a";;
-    *) ;;
-esac
+# Install CUDA using spack
+# If there is a space crunch for cuda installation clear /tmp/tmp*, /tmp/MLNX* and /tmp/ofed.conf
+spack add cuda@$cuda_driver_version
+spack install
+echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/profile
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile
 
-# Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
-# Install Cuda
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION}/x86_64/cuda-keyring_1.0-1_all.deb
-dpkg -i ./cuda-keyring_1.0-1_all.deb
+$COMMON_DIR/write_component_version.sh "cuda" $cuda_driver_version
 
-apt-get update
-apt install -y cuda-toolkit-${CUDA_VERSION}
-echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
-$COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
+# Install CUDA samples
+tarball="v$cuda_samples_version.tar.gz"
+cuda_samples_download_url=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/$tarball
+$COMMON_DIR/download_and_verify.sh $cuda_samples_download_url $cuda_samples_sha256
 
-# Download CUDA samples
-TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
-CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-wget ${CUDA_SAMPLES_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
+tar -xvf $tarball
+pushd ./cuda-samples-$cuda_samples_version
 make
 mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 
-# Nvidia driver
-NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
-$COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${CHECKSUM}
-bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms
-$COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
+# Install NVIDIA driver
+nvidia_driver_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".driver' <<< $COMPONENT_VERSIONS)
+nvidia_driver_version=$(jq -r '.version' <<< $nvidia_driver_metadata)
+nvidia_driver_sha256=$(jq -r '.sha256' <<< $nvidia_driver_metadata)
+nvidia_driver_download_url=https://us.download.nvidia.com/tesla/$nvidia_driver_version/NVIDIA-Linux-x86_64-$nvidia_driver_version.run
+$COMMON_DIR/download_and_verify.sh $nvidia_driver_download_url $nvidia_driver_sha256
+bash NVIDIA-Linux-x86_64-$nvidia_driver_version.run --silent --dkms
+$COMMON_DIR/write_component_version.sh "nvidia" $nvidia_driver_version

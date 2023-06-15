@@ -2,7 +2,7 @@
 
 set -e
 
-MONEO_VERSION=v0.3.0
+MONEO_VERSION=v0.3.1
 
 # Dependencies 
 python3 -m pip install --upgrade pip

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-LUSTRE_VERSION=2.15.1-24-gbaa21ca
+LUSTRE_VERSION=2.15.1-29-gbae0abe
 
 source $UBUNTU_COMMON_DIR/setup_lustre_repo.sh
 

@@ -32,9 +32,9 @@ cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 
 # OpenMPI 4.1.3
-OMPI_VERSION="4.1.3"
+OMPI_VERSION="4.1.5"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "9c0fd1f78fc90ca9b69ae4ab704687d5544220005ccd7678bf58cc13135e67e0"
+$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "c018b127619d2a2a30c1931f316fc8a245926d0f5b4ebed4711f9695e7f70925"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
 # disable OpenSHMEM build
@@ -45,10 +45,10 @@ cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
 # Intel MPI 2021 (Update 7)
-IMPI_2021_VERSION="2021.7.0"
-IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/18926/l_mpi_oneapi_p_${IMPI_2021_VERSION}.8711_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "4eb1e1487b67b98857bc9b7b37bcac4998e0aa6d1b892b2c87b003bf84fb38e9"
-bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.8711_offline.sh -s -a -s --eula accept
+IMPI_2021_VERSION="2021.9.0"
+IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8"
+bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 

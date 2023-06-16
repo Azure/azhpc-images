@@ -24,7 +24,7 @@ $COMMON_DIR/download_and_verify.sh $cuda_samples_download_url $cuda_samples_sha2
 tar -xvf $tarball
 pushd ./cuda-samples-$cuda_samples_version
 make
-mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
+mv -vT ./Samples /usr/local/cuda/samples
 popd
 
 # Install NVIDIA driver

@@ -57,7 +57,7 @@ spack add mvapich2@$mvapich2_version
 #     buildable: false
 
 # MODULEPATH only refers to spack's reference of modules
-export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
+export_modulepath="export MODULEPATH=/usr/share/modules/modulefiles:$MODULEPATH"
 eval $export_modulepath
 # Preserve module path on reboots
 echo $export_modulepath | tee -a /etc/profile

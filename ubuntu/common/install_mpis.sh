@@ -22,10 +22,10 @@ mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
-# MVAPICH2 2.3.7
-MV2_VERSION="2.3.7"
+# MVAPICH2 2.3.7-1
+MV2_VERSION="2.3.7-1"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "c39a4492f4be50df6100785748ba2894e23ce450a94128181d516da5757751ae"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 # Error exclusive to Ubuntu 22.04

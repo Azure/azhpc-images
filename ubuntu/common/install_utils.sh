@@ -31,7 +31,8 @@ apt-get install -y libnuma-dev \
     libkeyutils1 \
     libkeyutils-dev \
     libmount-dev \
-    nfs-common
+    nfs-common \
+    libiberty-dev
 
 # Install Ubuntu specific component dependencies
 spack add numactl \

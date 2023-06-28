@@ -8,7 +8,10 @@
         },
         "ubuntu22.04": {
             "branch": "develop"
-        }        
+        },
+        "almalinux8.7": {
+            "branch": "develop"
+        }     
     },
     "azcopy": {
         "ubuntu22.04": {

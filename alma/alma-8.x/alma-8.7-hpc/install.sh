@@ -4,6 +4,12 @@ set -ex
 # set properties
 source ./set_properties.sh
 
+# install spack
+$ALMA_COMMON_DIR/install_spack.sh
+# Activate the environment/ container
+source $HPC_ENV/spack/share/spack/setup-env.sh
+spack env activate $HPC_ENV
+
 # install utils
 ./install_utils.sh
 

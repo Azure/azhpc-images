@@ -40,3 +40,6 @@ spack add numactl \
     tcl
 
 spack install
+
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh

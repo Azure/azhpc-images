@@ -5,6 +5,9 @@ set -ex
 mkdir -p /opt/azurehpc/customizations
 cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
 
+## Copy topology files to /opt/microsoft
+mkdir -p /opt/microsoft
+cp $COMMON_DIR/../topology/* /opt/microsoft
 
 ## Systemd service for setting up appropriate customizations based on SKU
 cat <<EOF >/usr/sbin/setup_sku_customizations.sh
@@ -59,7 +62,10 @@ then
 fi
 
 # Clear topo and graph files
-rm -rf /opt/microsoft/
+rm -rf /opt/microsoft/ncv4
+rm -rf /opt/microsoft/ndv2
+rm -rf /opt/microsoft/ndv4
+rm -rf /opt/microsoft/ndv5
 
 # Clear contents of nccl.conf
 cat /dev/null > /etc/nccl.conf

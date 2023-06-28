@@ -543,13 +543,7 @@ fi
 if [ $CHECK_MVAPICH2 -eq 1 ]
 then
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
-    # SUSE module load gnu/7 mvapich2
-    if [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
-    then
-        module load gnu/7 mvapich2
-    else
     module load mpi/mvapich2
-    fi
 
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  ${MVAPICH2_PATH}/osu-micro-benchmarks/mpi/pt2pt/osu_latency

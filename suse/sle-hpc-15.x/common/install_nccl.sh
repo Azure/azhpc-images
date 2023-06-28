@@ -36,6 +36,7 @@ rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_M
 rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_MINOR}.x86_64.rpm
 rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_MAJOR}.${CUDA_MINOR}.x86_64.rpm
 popd
+rm -rf nccl-${NCCL_VERSION} $TARBALL
 
 # Install the nccl rdma sharp plugin
 # we need the packages: autoconf automake libtool rdma-core-devel
@@ -47,7 +48,8 @@ pushd nccl-rdma-sharp-plugins
 make
 make install
 popd
-popd
+rm -rf nccl-rdma-sharp-plugins
+
 
 # Build the nccl tests
 source /etc/profile.d/lmod.sh
@@ -57,7 +59,9 @@ pushd nccl-tests
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt
-module unload mpi/hpcx
+module purge
+popd
+
 
 $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 

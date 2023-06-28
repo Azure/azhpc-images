@@ -25,14 +25,19 @@ CUDA_DASH_VERSION=${CUDA_VERSION/./-}
 
 # due to NVIDIA bug in post-install of the nvidia-drivers for kernel-azure, we need to select and install nvidia-gfxG05-kmp-azure manually
 # The cuda dependencies select packages with "-default" and then the (wrong) modules for kernel-default instead of kernel-azure got installed
-zypper install -y -l --no-recommends cuda-toolkit-${CUDA_DASH_VERSION} cuda-drivers-${DRIVER_BRANCH_VERSION} = ${NVIDIA_VERSION} nvidia-fabricmanager = ${NVIDIA_VERSION} nvidia-gfxG05-kmp-azure = ${NVIDIA_VERSION}
+#
+# Don't install cuda-drivers: this introduces X11 and Wayland - instead install nvidia-computeGXX
+# Don't install cuda-toolkit: this introduces visualization tools
+# - instead install cuda-compilers, cuda-command-line-tools, gds-tools and cuda_libraries
+zypper -n install -y -l --no-recommends cuda-toolkit-${CUDA_DASH_VERSION} cuda-compiler-${CUDA_DASH_VERSION} cuda-command-line-tools-${CUDA_DASH_VERSION} gds-tools-${CUDA_DASH_VERSION} cuda-libraries-${CUDA_DASH_VERSION}  nvidia-fabricmanager = ${NVIDIA_VERSION} "nvidia-gfxG05-kmp-azure = ${NVIDIA_VERSION}" "nvidia-computeG05 = ${NVIDIA_VERSION}"
+
 
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_VERSION}
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
 
 # Post-install tasks (version its set through 'alternatives')
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc.local
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc.local
+echo '/usr/local/cuda/lib64' | tee /etc/ld.so.conf.d/cuda.conf
 
 # start the fabricmanager - needed for run-tests on ND96asr_v4
 # systemctl start nvidia-fabricmanager.service

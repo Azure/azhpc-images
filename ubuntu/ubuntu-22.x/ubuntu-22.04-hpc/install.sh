@@ -29,7 +29,7 @@ rm -rf /var/cache/*
 rm -Rf -- */
 
 # install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
+$COMMON_DIR/install_intel_libs.sh
 
 # install mpi libraries
 ./install_mpis.sh

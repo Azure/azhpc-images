@@ -31,14 +31,14 @@ rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/cache/*
 rm -Rf -- */
 
+# install Intel libraries
+$COMMON_DIR/install_intel_libs.sh
+
 # install mpi libraries
 ./install_mpis.sh
 
 # install AMD tuned libraries
 ./install_amd_libs.sh
-
-# install Intel libraries
-./install_intel_libs.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh

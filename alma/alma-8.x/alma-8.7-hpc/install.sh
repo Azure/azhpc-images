@@ -22,11 +22,11 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
-# install mpi libraries
-./install_mpis.sh
-
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
+
+# install mpi libraries
+./install_mpis.sh
 
 # install AMD tuned libraries
 ./install_amd_libs.sh

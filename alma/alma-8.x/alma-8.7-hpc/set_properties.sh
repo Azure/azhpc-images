@@ -12,3 +12,6 @@ export HPC_ENV=/opt/azurehpc
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/requirements.json)
+
+# Kernel
+export KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )

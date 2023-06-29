@@ -39,6 +39,10 @@
         "ubuntu22.04": {
             "version": "23.04-1.1.3.0",
             "sha256": "8e50a0716081e13a7251d14543a0ea40481d0b3d7e82dda1ed1fc789ce6241cc"
+        },
+        "almalinux8.7": {
+            "version": "23.04-1.1.3.0",
+            "sha256": "7cd5bf25ec6b0fa3aa7979ab7856f400e708172b73eaa452da70c76d6ffe5147"
         }
     },
     "hpcx": {

@@ -22,21 +22,17 @@ dnf install -y  pssh-$pssh_version.el8.noarch.rpm
 rm -f pssh-$pssh_version.el8.noarch.rpm
 
 # Install pre-reqs and development tools
-spack add libxml2 \
-    byacc \
+spack add byacc \
     environment-modules \
     atk \
     cairo \
-    tk \
-    m4 \
     binutils \
     nfs-utils \
     libpciaccess \
     libsecret \
     check \
     lsof \
-    tcsh \
-    perl
+    tcsh
 
 dnf install -y python3-devel \
     gtk2 \
@@ -48,6 +44,7 @@ dnf install -y python3-devel \
     rpm-build \
     make \
     kernel-rpm-macros \
+    tk
     
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

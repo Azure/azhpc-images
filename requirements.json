@@ -137,7 +137,10 @@
     },
     "nccl": {
         "ubuntu22.04": {
-            "version": "2.18.3-1"
+            "version": "2.18.1-1"
+        },
+        "almalinux8.7": {
+            "version": "2.18.1-1"
         }
     },
     "dcgm": {

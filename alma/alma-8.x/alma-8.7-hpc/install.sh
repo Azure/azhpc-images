@@ -40,14 +40,11 @@ $COMMON_DIR/install_intel_libs.sh
 # install AMD tuned libraries
 $ALMA_COMMON_DIR/install_amd_libs.sh
 
-# cleanup downloaded tarballs - clear some space
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
-rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -Rf -- */
-
 # Install NCCL
-./install_nccl.sh
+$ALMA_COMMON_DIR/install_nccl.sh
+
+spack clean -a
+spack gc -y
 
 # Install NVIDIA docker container
 $COMMON_DIR/../alma/alma-8.x/common/install_docker.sh

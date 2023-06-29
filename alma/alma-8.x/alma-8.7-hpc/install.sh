@@ -10,14 +10,14 @@ $ALMA_COMMON_DIR/install_spack.sh
 source $HPC_ENV/spack/share/spack/setup-env.sh
 spack env activate $HPC_ENV
 
+# install compilers
+./install_gcc.sh
+
 # install utils
 ./install_utils.sh
 
 # install Lustre client
 $ALMA_COMMON_DIR/install_lustre_client.sh "8"
-
-# install compilers
-./install_gcc.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh

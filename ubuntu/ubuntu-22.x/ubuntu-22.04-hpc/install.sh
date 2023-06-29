@@ -23,10 +23,9 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 ./install_nvidiagpudriver.sh
 
 # cleanup downloaded tarballs - clear some space
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -rf /root/intel/
+rm -rf /var/cache/*
 rm -Rf -- */
 
 # install Intel libraries

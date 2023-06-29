@@ -25,6 +25,12 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
+# cleanup downloaded tarballs - clear some space
+rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb
+rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+rm -rf /var/cache/*
+rm -Rf -- */
+
 # install mpi libraries
 ./install_mpis.sh
 

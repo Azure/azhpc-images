@@ -38,7 +38,7 @@ $COMMON_DIR/install_intel_libs.sh
 ./install_mpis.sh
 
 # install AMD tuned libraries
-./install_amd_libs.sh
+$ALMA_COMMON_DIR/install_amd_libs.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh

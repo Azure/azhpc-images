@@ -18,6 +18,11 @@
             "version": "10.17.0",
             "release": "release20230123",
             "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"
+        },
+        "almalinux8.7": {
+            "version": "10.19.0",
+            "release": "release20230530",
+            "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
     "mofed": {
@@ -108,6 +113,12 @@
     "moneo": {
         "ubuntu22.04": {
             "version": "0.3.1"
+        }
+    },
+    "pssh": {
+        "almalinux8.7": {
+            "version": "2.3.1-29",
+            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
         }
     }
 }

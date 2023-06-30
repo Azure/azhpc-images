@@ -59,16 +59,16 @@ $COMMON_DIR/../alma/alma-8.x/common/install_docker.sh
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # add udev rule
-$COMMON_DIR/../alma/common/add-udev-rules.sh
+$ALMA_COMMON_DIR/add-udev-rules.sh
 
 # add interface rules
-$COMMON_DIR/../alma/common/network-config.sh
+$ALMA_COMMON_DIR/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
-$COMMON_DIR/../alma/common/install_monitoring_tools.sh
+$ALMA_COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

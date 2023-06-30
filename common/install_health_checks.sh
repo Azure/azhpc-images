@@ -1,25 +1,24 @@
 #!/bin/bash
+set -ex
 
+# Set the azhc version
+azhc_version=$(jq -r '.azhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
-set -e
+dest_test_dir=$HPC_ENV/test
+azhc_dir=$HPC_ENV/test/azurehpc-health-checks
 
-AZHC_VERSION=v0.2.3
+mkdir -p $dest_test_dir
 
-DEST_TEST_DIR=/opt/azurehpc/test
-AZHC_DIR=/opt/azurehpc/test/azurehpc-health-checks
+pushd $dest_test_dir
+wget https://github.com/Azure/azurehpc-health-checks/archive/refs/tags/v$azhc_version.tar.gz
+tar -xvf ./v$azhc_version.tar.gz
 
-mkdir -p $DEST_TEST_DIR
-
-pushd $DEST_TEST_DIR
-
-git clone https://github.com/Azure/azurehpc-health-checks.git --branch $AZHC_VERSION
-
-pushd azurehpc-health-checks
-
+pushd azurehpc-health-checks-$azhc_version
 # install NHC
 ./install-nhc.sh
-
-popd
 popd
 
-$COMMON_DIR/write_component_version.sh "AZ_HEALTH_CHECKS" ${AZHC_VERSION}
+rm -rf ./v$azhc_version.tar.gz
+popd
+
+$COMMON_DIR/write_component_version.sh "az_health_checks" $azhc_version

@@ -170,6 +170,9 @@
     "moneo": {
         "ubuntu22.04": {
             "version": "0.3.1"
+        },
+        "almalinux8.7": {
+            "version": "0.3.1"
         }
     },
     "pssh": {
@@ -194,6 +197,14 @@
         },
         "ubuntu22.04": {
             "version": "2.15.1-29-gbae0abe"
+        }
+    },
+    "azhc": {
+        "almalinux8.7": {
+            "version": "0.2.3"
+        },
+        "ubuntu22.04": {
+            "version": "0.2.3"
         }
     }
 }

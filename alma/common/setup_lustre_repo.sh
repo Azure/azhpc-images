@@ -5,13 +5,13 @@ set -ex
 # $1 = the major version of the distro. "8" for RHEL/Alma8, "9" for RHEL/Alma9.
 
 DISTRIB_CODENAME="el$1"
-REPO_PATH=/etc/yum.repos.d/amlfs.repo
+repo_path=/etc/yum.repos.d/amlfs.repo
 
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 
-echo -e "[amlfs]" > ${REPO_PATH}
-echo -e "name=Azure Lustre Packages" >> ${REPO_PATH}
-echo -e "baseurl=https://packages.microsoft.com/yumrepos/amlfs-${DISTRIB_CODENAME}" >> ${REPO_PATH}
-echo -e "enabled=1" >> ${REPO_PATH}
-echo -e "gpgcheck=1" >> ${REPO_PATH}
-echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
+echo -e "[amlfs]" > $repo_path
+echo -e "name=Azure Lustre Packages" >> $repo_path
+echo -e "baseurl=https://packages.microsoft.com/yumrepos/amlfs-${DISTRIB_CODENAME}" >> $repo_path
+echo -e "enabled=1" >> $repo_path
+echo -e "gpgcheck=1" >> $repo_path
+echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> $repo_path

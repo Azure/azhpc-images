@@ -183,5 +183,13 @@
                 "version": "4.0.0"
             } 
         }
+    },
+    "lustre": {
+        "almalinux8.7": {
+            "version": "2.15.1_24_gbaa21ca"
+        },
+        "ubuntu22.04": {
+            "version": "2.15.1-29-gbae0abe"
+        }
     }
 }

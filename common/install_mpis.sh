@@ -105,9 +105,11 @@ impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' <<< $COMPONEN
 spack add intel-oneapi-mpi@$impi_2021_version
 
 # Install the MPIs
+spack concretize -f
 spack install
 
 # Set the installation directories
+gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 mvapich2_path=$(spack location -i mvapich2@$mvapich2_version)
 ompi_path=$(spack location -i openmpi@$ompi_version)
 impi_2021_path=$(spack location -i intel-oneapi-mpi@$impi_2021_version)/mpi/$impi_2021_version
@@ -120,10 +122,12 @@ cat << EOF >> $module_files_directory/mvapich2-$mvapich2_version
 #  MVAPICH2 $mvapich2_version
 #
 conflict        mpi
-if [[ $DISTRIBUTION == "almalinux8.7" ]]; then
-    gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
+if { "$DISTRIBUTION" == "almalinux8.7" } {
+    setenv gcc_version $gcc_version
     module load gcc-$gcc_version
-fi
+}
+
 prepend-path    PATH            $(echo $mvapich2_path)/bin
 prepend-path    LD_LIBRARY_PATH $(echo $mvapich2_path)/lib
 prepend-path    MANPATH         $(echo $mvapich2_path)/share/man
@@ -141,10 +145,12 @@ cat << EOF >> $module_files_directory/openmpi-$ompi_version
 #  OpenMPI $ompi_version
 #
 conflict        mpi
-if [[ $DISTRIBUTION == "almalinux8.7" ]]; then
-    gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
+if { "$DISTRIBUTION" == "almalinux8.7" } {
+    setenv gcc_version $gcc_version
     module load gcc-$gcc_version
-fi
+}
+
 prepend-path    PATH            $(echo $ompi_path)/bin
 prepend-path    LD_LIBRARY_PATH $(echo $ompi_path)/lib
 prepend-path    MANPATH         $(echo $ompi_path)/share/man

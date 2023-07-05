@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 module_files_directory=/usr/share/Modules/modulefiles
 mkdir -p ${module_files_directory}
@@ -22,3 +23,6 @@ prepend-path    LD_LIBRARY_PATH $gcc_home/lib64
 setenv          CC              $gcc_home/bin/gcc
 setenv          GCC             $gcc_home/bin/gcc
 EOF
+
+# set gcc version as the default compiler version
+sed -i "s/spec: gcc@=[0-9.]\+/spec: gcc@=$gcc_version/g" "$HPC_ENV/spack.yaml"

@@ -6,9 +6,14 @@ amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 aocc_version=$(jq -r '.aocc.version' <<< $amd_metadata)
 aocl_version=$(jq -r '.aocl.version' <<< $amd_metadata)
 
+# Set the GCC version
+gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
 # Install AOCC
-spack add aocc@$aocc_version
+spack add aocc@$aocc_version +license-agreed
 spack add amd-aocl@$aocl_version
+spack config add concretizer:unify:when_possible
+spack concretize -f
 spack install
 
 $COMMON_DIR/write_component_version.sh "aocc" $aocc_version

@@ -43,7 +43,10 @@ dnf install -y python3-devel \
     rpm-build \
     make \
     kernel-rpm-macros \
-    tk
+    tk \
+    binutils-devel \
+    munge \
+    numactl-devel
     
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

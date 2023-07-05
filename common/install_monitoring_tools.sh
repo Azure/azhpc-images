@@ -7,11 +7,14 @@ moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIO
 
 monitor_dir=$HPC_ENV/tools
 
+# Adding path to sudo user
+sed -i 's/.*secure_path.*/Defaults    secure_path = "\/usr\/local\/sbin:\/usr\/local\/bin:\/sbin:\/bin:\/usr\/sbin:\/usr\/bin\/"/' /etc/sudoers
+
 mkdir -p $monitor_dir
 
 pushd $monitor_dir
 
-    git clone https://github.com/Azure/Moneo  --branch $moneo_version
+    git clone https://github.com/Azure/Moneo  --branch v$moneo_version
 
     chmod 777 Moneo
 

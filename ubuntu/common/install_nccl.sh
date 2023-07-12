@@ -8,9 +8,9 @@ case ${DISTRIBUTION} in
     "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.1";;
     "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
+        CUDA_VERSION="12.2";;
     "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
+        CUDA_VERSION="12.2";;
     *) ;;
 esac
 

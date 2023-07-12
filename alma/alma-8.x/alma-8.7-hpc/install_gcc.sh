@@ -25,4 +25,4 @@ setenv          GCC             $gcc_home/bin/gcc
 EOF
 
 # set gcc version as the default compiler version
-sed -i "s/spec: gcc@=[0-9.]\+/spec: gcc@=$gcc_version/g" "$HPC_ENV/spack.yaml"
+spack compiler find # Adds 9.2.0 to the list

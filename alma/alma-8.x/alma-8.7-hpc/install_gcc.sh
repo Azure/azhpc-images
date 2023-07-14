@@ -7,6 +7,11 @@ mkdir -p ${module_files_directory}
 # Set the GCC version
 gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
+# deactivate existing environment
+despacktivate
+spack env create -d /opt/gcc-$gcc_version
+spack env activate /opt/gcc-$gcc_version
+
 spack add gcc@$gcc_version
 spack install
 
@@ -24,5 +29,9 @@ setenv          CC              $gcc_home/bin/gcc
 setenv          GCC             $gcc_home/bin/gcc
 EOF
 
-# set gcc version as the default compiler version
-spack compiler find # Adds 9.2.0 to the list
+# return to the old environment
+despacktivate
+spack env activate -d $HPC_ENV
+
+# Adds 9.2.0 to the list of compilers of old environment
+spack compiler add $gcc_home

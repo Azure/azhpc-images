@@ -5,6 +5,7 @@ module_files_directory=$1
 install_prefix=/opt
 
 # Install HPC-x
+gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 hpcx_version=$(jq -r '.version' <<< $hpcx_metadata)
 hpcx_sha256=$(jq -r '.sha256' <<< $hpcx_metadata)
@@ -36,7 +37,7 @@ ln -s $module_files_directory/hpcx-$hpcx_version $module_files_directory/hpcx
 # Add the MPIs to the environment
 # Install MVAPICH2
 mvapich2_version=$(jq -r '.mvapich2."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add mvapich2@$mvapich2_version
+spack add mvapich2@$mvapich2_version %gcc@$gcc_version
 
 # Add UCX, HCOLL as externals for Open MPI installation
 # /opt/azurehpc/spack/etc/spack/defaults/packages.yaml
@@ -98,18 +99,17 @@ EOF
 
 # Install Open MPI
 ompi_version=$(jq -r '.ompi."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add openmpi@$ompi_version fabrics=ucx,hcoll ^ucx@$ucx_version ^hcoll@$hcoll_version
+spack add openmpi@$ompi_version fabrics=ucx,hcoll ^ucx@$ucx_version ^hcoll@$hcoll_version %gcc@$gcc_version
 
 # Install Intel MPI 2021
 impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add intel-oneapi-mpi@$impi_2021_version
+spack add intel-oneapi-mpi@$impi_2021_version %gcc@$gcc_version
 
 # Install the MPIs
 spack concretize -f
 spack install
 
 # Set the installation directories
-gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 mvapich2_path=$(spack location -i mvapich2@$mvapich2_version)
 ompi_path=$(spack location -i openmpi@$ompi_version)
 impi_2021_path=$(spack location -i intel-oneapi-mpi@$impi_2021_version)/mpi/$impi_2021_version

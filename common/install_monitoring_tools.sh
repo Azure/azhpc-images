@@ -7,9 +7,6 @@ moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIO
 
 monitor_dir=$HPC_ENV/tools
 
-# Adding path to sudo user
-sed -i 's/.*secure_path.*/Defaults    secure_path = "\/usr\/local\/sbin:\/usr\/local\/bin:\/sbin:\/bin:\/usr\/sbin:\/usr\/bin\/"/' /etc/sudoers
-
 mkdir -p $monitor_dir
 
 pushd $monitor_dir

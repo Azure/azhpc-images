@@ -46,7 +46,8 @@ dnf install -y python3-devel \
     tk \
     binutils-devel \
     munge \
-    numactl-devel
+    numactl-devel \
+    environment-modules
     
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

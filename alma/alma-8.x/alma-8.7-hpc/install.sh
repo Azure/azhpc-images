@@ -13,6 +13,9 @@ export PATH="/sbin:/bin:/usr/sbin:/usr/bin:$PATH"
 # install compilers
 ./install_gcc.sh
 
+# install AMD tuned libraries
+$ALMA_COMMON_DIR/install_amd_libs.sh
+
 # install utils
 ./install_utils.sh
 
@@ -36,9 +39,6 @@ rm -Rf -- */
 
 # install Intel libraries
 $COMMON_DIR/install_intel_libs.sh
-
-# install AMD tuned libraries
-$ALMA_COMMON_DIR/install_amd_libs.sh
 
 # Install NCCL
 $ALMA_COMMON_DIR/install_nccl.sh

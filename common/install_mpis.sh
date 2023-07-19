@@ -54,10 +54,10 @@ spack add mvapich2@$mvapich2_version %gcc@$gcc_version
 #     buildable: false
 
 # MODULEPATH only refers to spack's reference of modules
-export_modulepath="export MODULEPATH=$module_files_directory:$MODULEPATH"
-eval $export_modulepath
-# Preserve module path on reboots
-echo $export_modulepath | tee -a /etc/profile
+# export_modulepath="export MODULEPATH=/usr/share/modules/modulefiles:$MODULEPATH"
+# eval $export_modulepath
+# # Preserve module path on reboots
+# echo $export_modulepath | tee -a /etc/profile
 
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
@@ -103,7 +103,7 @@ spack add openmpi@$ompi_version fabrics=ucx,hcoll ^ucx@$ucx_version ^hcoll@$hcol
 
 # Install Intel MPI 2021
 impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add intel-oneapi-mpi@$impi_2021_version %gcc@$gcc_version
+spack add intel-oneapi-mpi@$impi_2021_version
 
 # Install the MPIs
 spack concretize -f

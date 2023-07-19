@@ -20,19 +20,6 @@ $COMMON_DIR/download_and_verify.sh $pssh_download_url $pssh_sha256
 dnf install -y  pssh-$pssh_version.el8.noarch.rpm
 rm -f pssh-$pssh_version.el8.noarch.rpm
 
-# Install pre-reqs and development tools
-spack add byacc \
-    environment-modules \
-    atk \
-    cairo \
-    binutils \
-    nfs-utils \
-    libpciaccess \
-    libsecret \
-    check \
-    lsof \
-    tcsh
-
 dnf install -y python3-devel \
     gtk2 \
     glibc-devel \

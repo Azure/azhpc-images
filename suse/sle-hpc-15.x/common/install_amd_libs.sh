@@ -25,7 +25,7 @@ tar -xvf ${TARBALL}
 cd aocl-linux-aocc-${AOCL_VERSION}
 ./install.sh -t amd -l blis fftw libflame -i lp64
 cp -r amd/${AOCL_VERSION}/* ${INSTALL_PREFIX}
-cd .. && rm -rf aocl-linux-aocc-${AOCL_VERSION}
+cd .. && rm -rf aocl-linux-aocc-${AOCL_VERSION} ${TARBALL}
 
 $COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
 
@@ -33,9 +33,8 @@ $COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
 # SUSE HPC uses lmod by default
 mkdir -p ${MODULE_FILES_DIRECTORY}/amd/
 
-# fftw
-mkdir -p ${MODULE_FILES_DIRECTORY}/amd/aocl
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/amd/aocl/${AOCL_VERSION}
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/amd/aocl-${AOCL_VERSION}
+
 #%Module 1.0
 #
 #  AOCL
@@ -45,4 +44,5 @@ setenv          AMD_FFTW_INCLUDE  ${INSTALL_PREFIX}/include
 EOF
 
 # Create symlinks for modulefiles
-ln -s ${MODULE_FILES_DIRECTORY}/amd/aocl-${AOCL_VERSION} ${MODULE_FILES_DIRECTORY}/amd/aocl
+ln -sf $(readlink --canonicalize ${MODULE_FILES_DIRECTORY}/amd/aocl-${AOCL_VERSION}) ${MODULE_FILES_DIRECTORY}/amd/aocl
+

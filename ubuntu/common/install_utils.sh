@@ -43,7 +43,8 @@ apt-get -y install numactl \
                    libkeyutils1 \
                    libkeyutils-dev \
                    libmount-dev \
-                   nfs-common
+                   nfs-common \
+                   pssh
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 
@@ -68,3 +69,6 @@ chmod +x /usr/bin/azcopy
 
 # remove tarball from azcopy
 rm -rf *.tar.gz
+
+# copy kvp client file
+$COMMON_DIR/copy_kvp_client.sh

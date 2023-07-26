@@ -13,6 +13,6 @@ set -ex
 # so instead of
 # zypper install -y -l intel-oneapi-mkl = $INTEL_ONE_MKL_VERSION
 # we forced to use
-zypper install -y -l intel-oneapi-mkl-$INTEL_ONE_MKL_VERSION
+zypper --non-interactive install -y -l intel-oneapi-mkl-$INTEL_ONE_MKL_VERSION
 
 $COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" $INTEL_ONE_MKL_VERSION

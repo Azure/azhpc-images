@@ -7,6 +7,9 @@ source ./config
 # set properties
 source ./set_properties.sh
 
+# SLE version specific fixes
+./fixes.sh
+
 # install utils
 ../common/install_utils.sh
 

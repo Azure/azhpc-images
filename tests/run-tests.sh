@@ -88,22 +88,22 @@ then
     MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-6.0.6.0"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-    IMPI_2021_VERSION_UBUNTU="2021.7.0"
-    OMPI_VERSION_UBUNTU="4.1.3"
+    IMPI_2021_VERSION_UBUNTU="2021.9.0"
+    OMPI_VERSION_UBUNTU="4.1.5"
 else
     OMPI_VERSION_UBUNTU="4.1.5"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     case ${distro} in
         "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-0.5.3.3";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         *) ;;
@@ -116,7 +116,7 @@ HPCX_VERSION_SUSE="2.12"
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
 MVAPICH2_VERSION_ALMA="2.3.7"
-MVAPICH2_VERSION_UBUNTU="2.3.7"
+MVAPICH2_VERSION_UBUNTU="2.3.7-1"
 MVAPICH2_VERSION_SUSE="2.3.6"
 
 OMPI_VERSION_CENTOS="4.1.1"
@@ -443,6 +443,14 @@ check_exit_code() {
     fi
 }
 
+# verify if package updates work
+case ${distro} in
+    Ubuntu*) sudo apt-get -q --assume-no update;;
+    CentOS* | AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
+    * ) ;;
+esac
+check_exit_code "Package update works" "Package update fails!"
+
 # verify MOFED installation
 if [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
 then
@@ -535,13 +543,7 @@ fi
 if [ $CHECK_MVAPICH2 -eq 1 ]
 then
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
-    # SUSE module load gnu/7 mvapich2
-    if [[ $distro == "SUSE Linux Enterprise High Performance Computing 15 SP4" ]]
-    then
-        module load gnu/7 mvapich2
-    else
     module load mpi/mvapich2
-    fi
 
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  ${MVAPICH2_PATH}/osu-micro-benchmarks/mpi/pt2pt/osu_latency

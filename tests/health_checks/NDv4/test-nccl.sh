@@ -33,7 +33,7 @@ mpi_text="mpirun -np 8 --bind-to numa --map-by ppr:8:node -x LD_LIBRARY_PATH="
 mpi_text+="/usr/local/nccl-rdma-sharp-plugins/lib:\$LD_LIBRARY_PATH"
 mpi_text+=" -mca coll_hcoll_enable 0 -x NCCL_IB_PCI_RELAXED_ORDERING=1"
 
-exec_text="/opt/nccl-tests/build/all_reduce_perf -c 1 -b1G -f2 -g1 -e 1G"
+exec_text="/opt/nccl-tests/build/all_reduce_perf -c 1 -b4G -f2 -g1 -e 4G"
 
 exec_nvlink="timeout 3m $mpi_text -x UCX_TLS=tcp -x UCX_NET_DEVICES=eth0"
 exec_nvlink+=" -x CUDA_DEVICE_ORDER=PCI_BUS_ID -x NCCL_SOCKET_IFNAME=eth0 -x"

@@ -3,7 +3,7 @@
 
 set -e
 
-AZHC_VERSION=v0.2.3
+AZHC_VERSION=v0.2.4
 
 DEST_TEST_DIR=/opt/azurehpc/test
 AZHC_DIR=/opt/azurehpc/test/azurehpc-health-checks

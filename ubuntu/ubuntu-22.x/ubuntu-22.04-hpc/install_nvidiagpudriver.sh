@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
+$COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install gdrcopy
 gdrcopy_version=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)

@@ -207,7 +207,11 @@ function verify_ipoib_status {
 
 function verify_dcgm_installation {
     # Verify DCGM package installation
-    dpkg -l | grep datacenter-gpu-manager
+    case $ID in
+        ubuntu) dpkg -l | grep datacenter-gpu-manager;;
+        centos | almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        * ) ;;
+    esac
     check_exit_code "DCGM Installed" "DCGM not installed!"
 
     # Check if the NVIDIA DCGM service is active

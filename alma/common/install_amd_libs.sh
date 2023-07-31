@@ -1,11 +1,56 @@
 #!/bin/bash
+set -ex
 
-AOCC_VERSION=4.0.0-1
+source /etc/profile
 
-# install dependency
-wget https://download.amd.com/developer/eula/aocc-compiler/aocc-compiler-${AOCC_VERSION}.x86_64.rpm
-dnf install -y ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
+# Set AOCC and AOCL versions
+amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+aocc_version=$(jq -r '.aocc.version' <<< $amd_metadata)
+aocl_version=$(jq -r '.aocl.version' <<< $amd_metadata)
 
-rm ./aocc-compiler-${AOCC_VERSION}.x86_64.rpm
+# Set the GCC version
+gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+spack env activate /opt/gcc-$gcc_version
+gcc_home=$(spack location -i gcc@$gcc_version)
 
-$COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}
+# Create an environment for amd related packages
+spack env create -d /opt/amd
+spack env activate /opt/amd
+
+# Add GCC 9.2.0 to the list of compiler in the amd env
+spack compiler add $gcc_home
+
+# Install AOCC
+spack add aocc@$aocc_version +license-agreed
+spack add amd-aocl@$aocl_version %gcc@9.2.0
+spack concretize -f
+spack install
+
+$COMMON_DIR/write_component_version.sh "aocc" $aocc_version
+$COMMON_DIR/write_component_version.sh "aocl" $aocl_version
+
+# Setup module files for AMD Libraries
+module_files_directory=/usr/share/Modules/modulefiles
+amd_module_directory=$module_files_directory/amd
+mkdir -p $amd_module_directory
+
+aocl_home=$(spack location -i amd-aocl@$aocl_version)
+
+# fftw
+cat << EOF >> $amd_module_directory/aocl-$aocl_version
+#%Module 1.0
+#
+#  AOCL
+#
+prepend-path    LD_LIBRARY_PATH   $aocl_home/lib
+setenv          AMD_FFTW_INCLUDE  $aocl_home/include
+EOF
+
+spack gc -y
+# return to the old environment
+# deactivate existing environment
+# despacktivate
+spack env activate -d $HPC_ENV
+
+# Create symlinks for modulefiles
+ln -s $amd_module_directory/aocl-$aocl_version $amd_module_directory/aocl

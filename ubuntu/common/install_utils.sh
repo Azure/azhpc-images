@@ -34,12 +34,5 @@ apt-get install -y libnuma-dev \
     nfs-common \
     libiberty-dev
 
-# Install Ubuntu specific component dependencies
-spack add numactl \
-    bison \
-    tcl
-
-spack install
-
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

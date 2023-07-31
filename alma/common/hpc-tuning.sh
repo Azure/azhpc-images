@@ -87,7 +87,7 @@ update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"
 update_waagent_conf "Provisioning.MonitorHostNamePeriod" "60"
 
 systemctl restart waagent
-$COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
+$COMMON_DIR/write_component_version.sh "waagent" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
 
 # Setting Linux NFS read-ahead limits
 # Reference: 

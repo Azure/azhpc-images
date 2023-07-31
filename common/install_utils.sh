@@ -2,7 +2,13 @@
 set -ex
 
 # Install common dependencies
-spack add cmake
+spack add cmake \
+    numactl \
+    bison \
+    tcl \
+    slurm
+
+spack install
 
 # Install azcopy tool
 # To copy blobs or files to or from a storage account

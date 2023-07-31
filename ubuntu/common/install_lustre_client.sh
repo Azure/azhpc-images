@@ -1,7 +1,8 @@
 #!/bin/bash
 set -ex
 
-LUSTRE_VERSION=2.15.1-29-gbae0abe
+# Set Lustre version
+lustre_version=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 source $UBUNTU_COMMON_DIR/setup_lustre_repo.sh
 

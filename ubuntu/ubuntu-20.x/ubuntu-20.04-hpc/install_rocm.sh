@@ -9,10 +9,10 @@ pack="linux-modules-extra-$ver"
 sudo apt install -y $pack
 
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-amddeb="https://repo.radeon.com/amdgpu-install/5.4.3/ubuntu/focal/"
-amddeb+="amdgpu-install_5.4.50403-1_all.deb"
+amddeb="https://repo.radeon.com/amdgpu-install/5.6/ubuntu/focal/"
+amddeb+="amdgpu-install_5.6.50600-1_all.deb"
 wget $amddeb
-sudo apt-get install -y ./amdgpu-install_5.4.50403-1_all.deb
+sudo apt-get install -y ./amdgpu-install_5.6.50600-1_all.deb
 sudo amdgpu-install -y --usecase=rocm
 
 

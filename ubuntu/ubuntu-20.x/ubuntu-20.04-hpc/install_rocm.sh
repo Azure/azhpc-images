@@ -9,10 +9,10 @@ pack="linux-modules-extra-$ver"
 sudo apt install -y $pack
 
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-amddeb="https://repo.radeon.com/amdgpu-install/5.3/ubuntu/focal/"
-amddeb+="amdgpu-install_5.3.50300-1_all.deb"
+amddeb="https://repo.radeon.com/amdgpu-install/5.4.3/ubuntu/focal/"
+amddeb+="amdgpu-install_5.4.50403-1_all.deb"
 wget $amddeb
-sudo apt-get install -y ./amdgpu-install_5.3.50300-1_all.deb
+sudo apt-get install -y ./amdgpu-install_5.4.50403-1_all.deb
 sudo amdgpu-install -y --usecase=rocm
 
 
@@ -35,6 +35,9 @@ line=$(cat /etc/security/limits.conf | grep "hard    nofile")
 cat /etc/security/limits.conf | sed -e "s/$line/$string_ha/" > temp_file.txt
 sudo mv temp_file.txt /etc/security/limits.conf
 
+echo blacklist amdgpu | sudo tee -a /etc/modprobe.d/blacklist.conf
+sudo update-initramfs -c -k $(uname -r)
+
 echo "Writing gpu mode probe in init.d"
 bprefix="#!"
 echo "$bprefix/bin/sh" > /tmp/tempinit.sh
@@ -44,6 +47,7 @@ echo "do" >> /tmp/tempinit.sh
 echo '    if [ $(lspci -d 1002:740c | wc -l) -eq 16 ]; then' >> /tmp/tempinit.sh
 echo '       echo Required 16 GPU found' >> /tmp/tempinit.sh
 echo '       at_count=91' >> /tmp/tempinit.sh
+echo '       sleep 120s' >> /tmp/tempinit.sh
 echo '       echo doing Modprobe for amdgpu' >> /tmp/tempinit.sh
 echo "       sudo modprobe amdgpu" >> /tmp/tempinit.sh
 echo '    else' >> /tmp/tempinit.sh

@@ -7,15 +7,24 @@ apt install -y build-essential devscripts debhelper fakeroot
 case ${DISTRIBUTION} in
     "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.1";;
-    "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
+    "ubuntu20.04") NCCL_VERSION="master"; 
         CUDA_VERSION="12.2";;
-    "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
+    "ubuntu22.04") NCCL_VERSION="master"; 
         CUDA_VERSION="12.2";;
     *) ;;
 esac
 
-TARBALL="v${NCCL_VERSION}.tar.gz"
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
+version_re = '^[0-9.-]+$'
+if [[ $NCCL_VERSION =~ $version_re ]] ; then
+    # Download a tagged version
+    TARBALL="v${NCCL_VERSION}.tar.gz"
+    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
+else
+    # Download latest in a named branch
+    TARBALL="v${NCCL_VERSION}.zip"
+    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/heads/${TARBALL}
+fi
+
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}

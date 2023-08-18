@@ -195,9 +195,12 @@ CHECK_DOCKER=0
 if [[ $distro == *"CentOS Linux"* ]]
 then
     MKL_VERSION="2021.1.1"
-elif [[ $distro == "Ubuntu"* ]]
+elif [[ $distro == "Ubuntu 18.04" ]]
 then
     MKL_VERSION="2023.1.0"
+elif [[ $distro == "Ubuntu"* ]]
+then
+    MKL_VERSION="2023.2.0"
 elif [[ $distro == "AlmaLinux 8.6" ]]
 then
     MKL_VERSION="2022.1.0"

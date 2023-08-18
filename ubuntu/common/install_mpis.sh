@@ -12,7 +12,7 @@ INSTALL_PREFIX=/opt
 
 # HPC-X v2.15
 HPCX_VERSION="v2.16"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-mlnx_ofed-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 

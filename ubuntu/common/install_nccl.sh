@@ -14,20 +14,24 @@ case ${DISTRIBUTION} in
     *) ;;
 esac
 
-version_re = '^[0-9.-]+$'
+version_re='^[0-9.-]+$'
 if [[ $NCCL_VERSION =~ $version_re ]] ; then
     # Download a tagged version
     TARBALL="v${NCCL_VERSION}.tar.gz"
     NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
+
+    pushd /tmp
+    wget ${NCCL_DOWNLOAD_URL}
+    tar -xvf ${TARBALL}
 else
     # Download latest in a named branch
-    TARBALL="v${NCCL_VERSION}.zip"
+    TARBALL="${NCCL_VERSION}.zip"
     NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/heads/${TARBALL}
-fi
 
-pushd /tmp
-wget ${NCCL_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
+    pushd /tmp
+    wget ${NCCL_DOWNLOAD_URL}
+    unzip ${TARBALL}
+fi
 
 pushd nccl-${NCCL_VERSION}
 make -j src.build

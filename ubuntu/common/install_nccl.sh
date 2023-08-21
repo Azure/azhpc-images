@@ -6,37 +6,25 @@ apt install -y build-essential devscripts debhelper fakeroot
 
 case ${DISTRIBUTION} in
     "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
+        CUDA_VERSION="12.1";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};;
     "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.2";
-        NCCL_BRANCH="master";;
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL};;
     "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
         CUDA_VERSION="12.2";
-        NCCL_BRANCH="master";;
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL};;
     *) ;;
 esac
 
-if [[ -n $NCCL_BRANCH ]] ; then
-    # Download latest in a named branch
-    TARBALL="${NCCL_BRANCH}.zip"
-    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/heads/${TARBALL}
-    NCCL_DIR="nccl-${NCCL_BRANCH}"
+pushd /tmp
+wget ${NCCL_DOWNLOAD_URL}
+tar -xvf ${TARBALL}
 
-    pushd /tmp
-    wget ${NCCL_DOWNLOAD_URL}
-    unzip ${TARBALL}
-else
-    # Download a tagged version
-    TARBALL="v${NCCL_VERSION}.tar.gz"
-    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
-    NCCL_DIR="nccl-${NCCL_VERSION}"
-
-    pushd /tmp
-    wget ${NCCL_DOWNLOAD_URL}
-    tar -xvf ${TARBALL}
-fi
-
-pushd ${NCCL_DIR}
+pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.debian.build
 pushd build/pkg/deb/

@@ -100,11 +100,11 @@ else
             ;;
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.0.0";
-            IMPI_2021_VERSION_UBUNTU="2021.10.0";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.0.0";
-            IMPI_2021_VERSION_UBUNTU="2021.10.0";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         *) ;;
     esac

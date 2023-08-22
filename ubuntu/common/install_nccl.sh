@@ -61,4 +61,3 @@ $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 
 # Remove installation files
 rm -rf /tmp/${TARBALL}
-rm -rf /tmp/${NCCL_DIR}

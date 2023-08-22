@@ -100,11 +100,11 @@ else
             ;;
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.0.0";
-            IMPI_2021_VERSION_UBUNTU="2021.10.0";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.0.0";
-            IMPI_2021_VERSION_UBUNTU="2021.10.0";
+            IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
         *) ;;
     esac
@@ -164,8 +164,8 @@ OPENMPI_PATH_ALMA_86="/opt/openmpi-${OMPI_VERSION_ALMA_86}"
 OPENMPI_PATH_ALMA_87="/opt/openmpi-${OMPI_VERSION_ALMA_87}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED-ubuntu20.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED-ubuntu22.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 # added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
@@ -195,9 +195,12 @@ CHECK_DOCKER=0
 if [[ $distro == *"CentOS Linux"* ]]
 then
     MKL_VERSION="2021.1.1"
-elif [[ $distro == "Ubuntu"* ]]
+elif [[ $distro == "Ubuntu 18.04" ]]
 then
     MKL_VERSION="2023.1.0"
+elif [[ $distro == "Ubuntu"* ]]
+then
+    MKL_VERSION="2023.2.0"
 elif [[ $distro == "AlmaLinux 8.6" ]]
 then
     MKL_VERSION="2022.1.0"

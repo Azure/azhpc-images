@@ -6,24 +6,19 @@ apt install -y build-essential devscripts debhelper fakeroot
 
 case ${DISTRIBUTION} in
     "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
-    "ubuntu20.04") NCCL_VERSION="master"; 
-        CUDA_VERSION="12.2";;
-    "ubuntu22.04") NCCL_VERSION="master"; 
-        CUDA_VERSION="12.2";;
+        CUDA_VERSION="12.1";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};;
+    "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
+        CUDA_VERSION="12.2";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL};;
+    "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
+        CUDA_VERSION="12.2";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL};;
     *) ;;
 esac
-
-version_re = '^[0-9.-]+$'
-if [[ $NCCL_VERSION =~ $version_re ]] ; then
-    # Download a tagged version
-    TARBALL="v${NCCL_VERSION}.tar.gz"
-    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
-else
-    # Download latest in a named branch
-    TARBALL="v${NCCL_VERSION}.zip"
-    NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/heads/${TARBALL}
-fi
 
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
@@ -66,4 +61,3 @@ $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 
 # Remove installation files
 rm -rf /tmp/${TARBALL}
-rm -rf /tmp/nccl-${NCCL_VERSION}

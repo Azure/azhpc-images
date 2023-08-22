@@ -10,9 +10,9 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.15
+# HPC-X v2.16
 HPCX_VERSION="v2.16"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-mlnx_ofed-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
@@ -45,10 +45,10 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
-# Intel MPI 2021 (Update 10)
-IMPI_2021_VERSION="2021.10.0"
+# Intel MPI 2021 (Update 9)
+IMPI_2021_VERSION="2021.9.0"
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "ab2e97d87b139201a2e7dab9a61ac6e8927b7783b459358c4ad69a1b1c064f40"
+$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8"
 bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}

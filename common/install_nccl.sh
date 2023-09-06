@@ -3,6 +3,7 @@ set -ex
 
 # Set NCCL versions
 nccl_version=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+nccl_rdma_sharp_commit=$(jq -r '.nccl."'"$DISTRIBUTION"'".rdmasharpplugins.commit' <<< $COMPONENT_VERSIONS)
 
 spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
 spack install --no-checksum
@@ -17,6 +18,7 @@ mkdir -p /usr/local/nccl-rdma-sharp-plugins
 pushd $nccl_home
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
+git checkout ${nccl_rdma_sharp_commit}
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

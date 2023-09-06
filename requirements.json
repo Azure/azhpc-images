@@ -137,10 +137,16 @@
     },
     "nccl": {
         "ubuntu22.04": {
-            "version": "2.18.5-1"
+            "version": "2.18.5-1",
+            "rdmasharpplugins": {
+                "commit": "575c1e0"
+            }
         },
         "almalinux8.7": {
-            "version": "2.18.1-1"
+            "version": "2.18.1-1",
+            "rdmasharpplugins": {
+                "commit": "575c1e0"
+            }
         }
     },
     "dcgm": {

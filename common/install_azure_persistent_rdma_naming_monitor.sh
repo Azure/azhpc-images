@@ -18,8 +18,8 @@ while true; do
         link_layer=\$(ibv_devinfo -d \$device | sed -n 's/^[\ \t]*link_layer:[\ \t]*\([a-zA-Z]*\)\$/\1/p')
 
         if [[ \$device != *"an"* && \$device != *"ib"* ]]; then 
-            sudo systemctl enable azure_persistent_rdma_naming.service
-            sudo systemctl restart azure_persistent_rdma_naming.service
+            systemctl enable azure_persistent_rdma_naming.service
+            systemctl restart azure_persistent_rdma_naming.service
             sleep 60
             break
         fi

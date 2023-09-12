@@ -70,4 +70,4 @@ EOF
 systemctl enable azure_persistent_rdma_naming.service
 systemctl start azure_persistent_rdma_naming.service
 
-sudo ./install_azure_persistent_rdma_naming_monitor.sh      
+./install_azure_persistent_rdma_naming_monitor.sh      

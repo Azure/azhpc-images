@@ -12,6 +12,7 @@ tar zxvf ${TARBALL}
 #KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
 #KERNEL=${KERNEL[-1]}
 KERNEL=$(uname -r)
+echo "%_unpackaged_files_terminate_build 0" >> ~/.rpmmacros
 ./${MOFED_FOLDER}/mlnxofedinstall --kernel $KERNEL --kernel-sources /usr/src/kernels/${KERNEL} --add-kernel-support --skip-repo --skip-unsupported-devices-check --without-fw-update --distro rhel8.6
 
 # Issue: Module mlx5_ib belong to a kernel which is not a part of MLNX

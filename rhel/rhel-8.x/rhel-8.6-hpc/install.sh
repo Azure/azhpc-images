@@ -7,7 +7,7 @@ source ./set_properties.sh
 # extend homedir to something usefull
 lvextend -L 10GB /dev/rootvg/homelv || echo "continuing...."
 lvextend -L 4GB /dev/rootvg/tmplv || echo "continuing...."
-lvextend -L 12GB /dev/rootvg/rootlv || echo "continuing...."
+lvextend -L 14GB /dev/rootvg/rootlv || echo "continuing...."
 xfs_growfs /dev/rootvg/homelv
 xfs_growfs /dev/rootvg/tmplv
 xfs_growfs /dev/rootvg/rootlv

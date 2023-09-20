@@ -1,3 +1,3 @@
 #!/bin/bash
 
-$COMMON_DIR/../common/install_nvidiagpudriver.sh
+../common/install_nvidiagpudriver.sh

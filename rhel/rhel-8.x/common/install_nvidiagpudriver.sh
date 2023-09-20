@@ -34,7 +34,7 @@ wget ${CUDA_SAMPLES_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)
-mv -vTf ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
+mv -vT ./Samples/* /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples/
 popd
 
 # Nvidia driver

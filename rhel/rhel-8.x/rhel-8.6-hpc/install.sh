@@ -5,7 +5,7 @@ set -ex
 source ./set_properties.sh
 
 # extend homedir to something usefull
-lvextend -L 10GB /dev/rootvg/homelv
+lvextend -L 10GB /dev/rootvg/homelv || echo "continuing...."
 xfs_growfs /dev/rootvg/homelv
 
 # install utils

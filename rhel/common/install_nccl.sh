@@ -2,10 +2,10 @@
 set -ex
 
 case ${DISTRIBUTION} in
-    "almalinux8.6") NCCL_VERSION="2.14.3-1";
+    "rhel8.6") NCCL_VERSION="2.14.3-1";
         CUDA_VERSION="11.6";
         ;;
-    "almalinux8.7") NCCL_VERSION="2.18.1-1";
+    "rhel8.7") NCCL_VERSION="2.18.1-1";
         CUDA_VERSION="12.1";
         ;;
     *) ;;

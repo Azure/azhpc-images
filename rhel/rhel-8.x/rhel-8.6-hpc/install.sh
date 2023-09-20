@@ -7,8 +7,10 @@ source ./set_properties.sh
 # extend homedir to something usefull
 lvextend -L 10GB /dev/rootvg/homelv || echo "continuing...."
 lvextend -L 4GB /dev/rootvg/tmplv || echo "continuing...."
+lvextend -L 4GB /dev/rootvg/rootlv || echo "continuing...."
 xfs_growfs /dev/rootvg/homelv
 xfs_growfs /dev/rootvg/tmplv
+xfs_growfs /dev/rootvg/rootlv
 
 # install utils
 ./install_utils.sh

@@ -28,3 +28,4 @@ sed -i "$ s/$/ opensm*/" /etc/dnf/dnf.conf
 # cleanup downloaded files
 rm -rf *.tgz
 rm -rf -- */
+rm -rf /tmp/MLNX_OFED_LINUX*

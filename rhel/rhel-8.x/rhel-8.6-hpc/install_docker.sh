@@ -34,6 +34,7 @@ wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/nvidia-docker
 cp nvidia-docker /bin/
 chmod +x /bin/nvidia-docker
 wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/daemon.json
+mkdir -p /etc/docker
 cp daemon.json /etc/docker/
 
 # Working setup can be tested by running a base CUDA container

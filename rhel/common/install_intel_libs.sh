@@ -2,12 +2,12 @@
 set -ex
 
 case ${DISTRIBUTION} in
-    "almalinux8.6") INTEL_MKL_VERSION="2022.1.0.223";
+    "rhel8.6") INTEL_MKL_VERSION="2022.1.0.223";
         RELEASE_VERSION="18721";
         CHECKSUM="4b325a3c4c56e52f4ce6c8fbb55d7684adc16425000afc860464c0f29ea4563e";
         IDENTIFIER="irc_nas";
         ;;
-    "almalinux8.7") INTEL_MKL_VERSION="2023.1.0.46342";
+    "rhel8.7") INTEL_MKL_VERSION="2023.1.0.46342";
         RELEASE_VERSION="cd17b7fe-500e-4305-a89b-bd5b42bfd9f8";
         CHECKSUM="cc28c94cab23c185520b93c5a04f3979d8da6b4c90cee8c0681dd89819d76167";
         IDENTIFIER="IRC_NAS";

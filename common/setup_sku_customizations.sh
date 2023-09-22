@@ -21,7 +21,7 @@ case \$vmSize in
     standard_nc*ads_a100_v4)
         /opt/azurehpc/customizations/ncv4.sh;;
     
-    standard_nd96*v4)
+    standard_nd*v4)
         /opt/azurehpc/customizations/ndv4.sh;;
         
     standard_nd40rs_v2)

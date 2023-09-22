@@ -1,18 +1,16 @@
-[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)
+[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 |OS Version|Status Badge|
 |----------|------------|
-|Ubuntu 18.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
-|Ubuntu 18.04 LTS Gen1|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04_LTS_gen1)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
-|Ubuntu 18.04 LTS Gen2|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_18.04_LTS_gen2)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)|
-|Ubuntu 20.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_20.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)
-|Ubuntu 22.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_22.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)
-|AlmaLinux 8.7|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=release-monthly&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.7)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=release-monthly)
+|Ubuntu 20.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_20.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|Ubuntu 22.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_22.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|AlmaLinux 8.7|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.7)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 # Azhpc Images
 
-This repository contains installation scripts for HPC images in Azure Marketplace, specifically [CentOS-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/openlogic.centos-hpc) and [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc).
+This repository contains installation scripts for HPC images in Azure Marketplace, specifically [CentOS-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/openlogic.centos-hpc), [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) and [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc)
 
+Note: CentOS 7 is currently the only supported CentOS version, which will continue to receive community security patches and bug fix updates until June 2024. Therefore, we are not releasing any new CentOS HPC images to Azure marketplace. You can still use our CentOS HPC images, but it is suggested to consider moving to our AlmaLinux HPC images alternatives in Azure marketplace.
 
 # Contributing
 

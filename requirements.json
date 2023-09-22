@@ -47,9 +47,9 @@
     },
     "hpcx": {
         "ubuntu22.04": {
-            "version": "2.15",
-            "sha256": "c718d0d5339ed60a6479a52054ca9b0718253cadf528ce63ce35b4aced42797c",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.15/hpcx-v2.15-gcc-MLNX_OFED_LINUX-5-ubuntu22.04-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+            "version": "2.16",
+            "sha256": "97eac5555d54f5fd8da1c354222a1aff2e85eb017682441e06287971a5b95772",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.16/hpcx-v2.16-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
         },
         "almalinux8.7": {
             "version": "2.15",
@@ -84,14 +84,14 @@
     "nvidia": {
         "ubuntu22.04": {
             "driver": {
-                "version": "525.105.17",
-                "sha256": "c635a21a282c9b53485f19ebb64a0f4b536a968b94d4d97629e0bc547a58142a"
+                "version": "535.86.10",
+                "sha256": "cec37fd9317091a01fd0380309400a14284769790651fe021e1d5aaa2327a370"
             },
             "fabricmanager": {
-                "prefix": "525",
+                "prefix": "535",
                 "distribution": "ubuntu2204",
-                "version": "525_525.105.17-1",
-                "sha256": "b487db5923194ba9f4d7c34891f4f8513a3f633a22a0c9f51fba3ef971681977"        
+                "version": "535_535.86.10-1",
+                "sha256": "d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29"        
             }   
         },
         "almalinux8.7": {
@@ -161,7 +161,7 @@
     },
     "intel_one_mkl": {
         "ubuntu22.04": {
-            "version": "2023.1.0"
+            "version": "2023.2.0"
         },
         "almalinux8.7": {
             "version": "2023.1.0"
@@ -175,10 +175,10 @@
     },
     "moneo": {
         "ubuntu22.04": {
-            "version": "0.3.1"
+            "version": "0.3.2"
         },
         "almalinux8.7": {
-            "version": "0.3.1"
+            "version": "0.3.2"
         }
     },
     "pssh": {
@@ -207,10 +207,10 @@
     },
     "azhc": {
         "almalinux8.7": {
-            "version": "0.2.3"
+            "version": "0.2.4"
         },
         "ubuntu22.04": {
-            "version": "0.2.3"
+            "version": "0.2.4"
         }
     }
 }

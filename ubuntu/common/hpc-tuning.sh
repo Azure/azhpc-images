@@ -71,7 +71,7 @@ then
 fi
 
 # Install WALinuxAgent
-apt-get install -y python3-setuptools
+apt-get install -y python-setuptools
 pip3 install distro
 
 # Set waagent version and sha256

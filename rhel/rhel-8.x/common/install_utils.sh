@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-yum install -y rhui*
+#yum install -y rhui*
 
 # Install Kernel dependencies
 #KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
@@ -29,8 +29,8 @@ yum install -y numactl \
     libxml2-devel \
     byacc \
     environment-modules \
-    python3-devel \
-    python3-setuptools \
+    python38-devel \
+    python38-setuptools \
     gtk2 \
     atk \
     cairo \

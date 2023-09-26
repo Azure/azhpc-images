@@ -29,7 +29,9 @@ yum install -y numactl \
     libxml2-devel \
     byacc \
     environment-modules \
+    python36-devel \
     python38-devel \
+    python36-setuptools \
     python38-setuptools \
     gtk2 \
     atk \

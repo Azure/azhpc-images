@@ -41,7 +41,7 @@ function verify_common_components {
     verify_ompi_installation;
     verify_mkl_installation;
     verify_hpcdiag_installation;
-    # verify_ipoib_status;
+    verify_ipoib_status;
     # Perform miscellaneous checks
     verify_apt_yum_update;
 }
@@ -106,6 +106,8 @@ function set_module_files_path {
 esac
 }
 
+# Load profile
+. /etc/profile
 # Set HPC environment
 HPC_ENV=/opt/azurehpc
 # Set test definitions

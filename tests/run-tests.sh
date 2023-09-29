@@ -106,6 +106,8 @@ function set_module_files_path {
 esac
 }
 
+# Load profile
+. /etc/profile
 # Set HPC environment
 HPC_ENV=/opt/azurehpc
 # Set test definitions

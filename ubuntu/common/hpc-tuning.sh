@@ -83,7 +83,7 @@ waagent_download_url=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v$w
 $COMMON_DIR/download_and_verify.sh $waagent_download_url $waagent_sha256
 tar -xvf $(basename $waagent_download_url)
 pushd WALinuxAgent-$waagent_version/
-python3 setup.py install --register-service
+/usr/bin/python3 setup.py install --register-service
 popd
 
 # Configure WALinuxAgent

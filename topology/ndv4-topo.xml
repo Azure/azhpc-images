@@ -21,7 +21,6 @@
       <pci busid="0107:00:00.0" class="0x020700" link_speed="16 GT/s" link_width="16"/>
       <pci busid="000e:00:00.0" class="0x030200" link_speed="16 GT/s" link_width="16"/>
       <pci busid="0108:00:00.0" class="0x020700" link_speed="16 GT/s" link_width="16"/>
-
     </pci>
   </cpu>
   <cpu numaid="3" affinity="0000ffff,0000ffff" arch="x86_64" vendor="AuthenticAMD" familyid="23" modelid="49">

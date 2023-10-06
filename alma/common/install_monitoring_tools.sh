@@ -20,7 +20,7 @@ pushd $MONITOR_DIR
     chmod 777 Moneo
 
     pushd Moneo/linux_service
-        ./configure_service.sh $MONITOR_DIR/Moneo       
+        ./configure_service.sh    
     popd
 popd
 

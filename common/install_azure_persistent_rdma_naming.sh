@@ -6,14 +6,17 @@ set -ex
 # install rdma_rename monitor
 #
 
-pushd /tmp
-rdma_core_branch=stable-v34
-git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
-pushd rdma-core
+rdma_core_version=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
+wget https://github.com/linux-rdma/rdma-core/archive/refs/tags/v$rdma_core_version.tar.gz
+tar -xvf ./v$rdma_core_version.tar.gz
+
+pushd rdma-core-$rdma_core_version
 bash build.sh
-cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_branch
+cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_version
 popd
-rm -rf rdma-core
+
+rm -rf ./v$rdma_core_version.tar.gz
 popd
 
 #
@@ -23,7 +26,7 @@ popd
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
-rdma_rename=/usr/sbin/rdma_rename_${rdma_core_branch}
+rdma_rename=/usr/sbin/rdma_rename_${rdma_core_version}
 
 an_index=0
 ib_index=0

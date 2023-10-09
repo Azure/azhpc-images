@@ -215,5 +215,13 @@
         "ubuntu22.04": {
             "version": "0.2.4"
         }
+    },
+    "rdma_core": {
+        "almalinux8.7": {
+            "version": "34.10"
+        },
+        "ubuntu22.04": {
+            "version": "34.10"
+        }
     }
 }

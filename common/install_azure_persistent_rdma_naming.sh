@@ -24,7 +24,7 @@ popd
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
-rdma_rename=/usr/sbin/rdma_rename_${rdma_core_version}
+rdma_rename=/usr/sbin/rdma_rename_${rdma_core_branch}
 
 an_index=0
 ib_index=0

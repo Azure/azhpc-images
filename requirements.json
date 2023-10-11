@@ -218,10 +218,10 @@
     },
     "rdma_core": {
         "almalinux8.7": {
-            "branch": "stable-v34"
+            "branch": "stable-v48"
         },
         "ubuntu22.04": {
-            "branch": "stable-v34"
+            "branch": "stable-v48"
         }
     }
 }

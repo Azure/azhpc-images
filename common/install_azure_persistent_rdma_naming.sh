@@ -6,17 +6,15 @@ set -ex
 # install rdma_rename monitor
 #
 
-rdma_core_version=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+rdma_core_branch=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".branch' <<< $COMPONENT_VERSIONS)
 
-wget https://github.com/linux-rdma/rdma-core/archive/refs/tags/v$rdma_core_version.tar.gz
-tar -xvf ./v$rdma_core_version.tar.gz
-
-pushd rdma-core-$rdma_core_version
+pushd /tmp
+git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
+pushd rdma-core
 bash build.sh
-cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_version
+cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_branch
 popd
-
-rm -rf ./v$rdma_core_version.tar.gz
+rm -rf rdma-core
 popd
 
 #

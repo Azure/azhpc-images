@@ -6,8 +6,9 @@ set -ex
 # install rdma_rename monitor
 #
 
+rdma_core_branch=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".branch' <<< $COMPONENT_VERSIONS)
+
 pushd /tmp
-rdma_core_branch=stable-v34
 git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
 pushd rdma-core
 bash build.sh

@@ -215,5 +215,13 @@
         "ubuntu22.04": {
             "version": "0.2.4"
         }
+    },
+    "rdma_core": {
+        "almalinux8.7": {
+            "branch": "stable-v48"
+        },
+        "ubuntu22.04": {
+            "branch": "stable-v48"
+        }
     }
 }

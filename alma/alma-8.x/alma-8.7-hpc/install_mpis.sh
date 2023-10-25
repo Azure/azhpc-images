@@ -12,12 +12,12 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 INSTALL_PREFIX=/opt
 
 # HPC-X v2.15
-HPCX_VERSION="v2.15"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
+HPCX_VERSION="v2.16"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-mlnx_ofed-redhat8-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
+HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "0ca27ef0d6fa3d6be176f461977875030bc8cc130a784e216b1c23259c733e41"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "4efbf25559561cac191fac4ac68a2a468c66ba4f659d4389607f98a697308cf3"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

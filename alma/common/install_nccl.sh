@@ -4,10 +4,10 @@ set -ex
 case ${DISTRIBUTION} in
     "almalinux8.6") NCCL_VERSION="2.14.3-1";
         CUDA_VERSION="11.6";
-        ;;
-    "almalinux8.7") NCCL_VERSION="2.18.1-1";
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
+    "almalinux8.7") NCCL_VERSION="2.19.3-1";
         CUDA_VERSION="12.1";
-        ;;
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
     *) ;;
 esac
 
@@ -32,6 +32,7 @@ popd
 mkdir -p /usr/local/nccl-rdma-sharp-plugins
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
+git checkout ${NCCL_RDMA_SHARP_COMMIT}
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

@@ -10,12 +10,12 @@ case ${DISTRIBUTION} in
         TARBALL="v${NCCL_VERSION}.tar.gz";
         NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
         NCCL_RDMA_SHARP_COMMIT="575c1e0";;
-    "ubuntu20.04") NCCL_VERSION="2.18.5-1"; 
+    "ubuntu20.04") NCCL_VERSION="2.19.3-1"; 
         CUDA_VERSION="12.2";
         TARBALL="v${NCCL_VERSION}.tar.gz";
         NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
         NCCL_RDMA_SHARP_COMMIT="575c1e0";;
-    "ubuntu22.04") NCCL_VERSION="2.18.5-1"; 
+    "ubuntu22.04") NCCL_VERSION="2.19.3-1"; 
         CUDA_VERSION="12.2";
         TARBALL="v${NCCL_VERSION}.tar.gz";
         NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};

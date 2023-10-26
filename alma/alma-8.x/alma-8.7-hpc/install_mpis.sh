@@ -17,7 +17,7 @@ TARBALL="hpcx-${HPCX_VERSION}-gcc-mlnx_ofed-redhat8-cuda12-gdrcopy2-nccl2.18-x86
 HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "4efbf25559561cac191fac4ac68a2a468c66ba4f659d4389607f98a697308cf3"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "78dc6bc152489decc8a4191121c7f070adadf657b0c90d8713dd8feb7e5e968e"
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

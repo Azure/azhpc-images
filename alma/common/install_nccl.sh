@@ -4,14 +4,10 @@ set -ex
 case ${DISTRIBUTION} in
     "almalinux8.6") NCCL_VERSION="2.14.3-1";
         CUDA_VERSION="11.6";
-        NCCL_RDMA_SHARP_COMMIT="575c1e0";
-        NCCL_RPM_DIRECTORY="./build/pkg/rpm/x86_64";
-        ;;
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
     "almalinux8.7") NCCL_VERSION="2.19.3-1";
         CUDA_VERSION="12.1";
-        NCCL_RDMA_SHARP_COMMIT="575c1e0";
-        NCCL_RPM_DIRECTORY="/tmp/nccl-2.19.3-1/build/pkg/rpm/x86_64"
-        ;;
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
     *) ;;
 esac
 
@@ -26,9 +22,9 @@ tar -xvf ${TARBALL}
 pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.redhat.build
-rpm -i ${NCCL_RPM_DIRECTORY}/libnccl-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ${NCCL_RPM_DIRECTORY}/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ${NCCL_RPM_DIRECTORY}/libnccl-static-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
 sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 popd
 

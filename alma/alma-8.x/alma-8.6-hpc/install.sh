@@ -29,7 +29,7 @@ source ./set_properties.sh
 ./install_nccl.sh
 
 # Install NVIDIA docker container
-$COMMON_DIR/../alma/alma-8.x/common/install_docker.sh
+./install_docker.sh
 
 # Install DCGM
 ./install_dcgm.sh

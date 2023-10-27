@@ -29,22 +29,14 @@ nvidia-ctk runtime configure --runtime=docker
 systemctl enable docker
 systemctl restart docker
 
-# wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/nvidia-docker
-# cp nvidia-docker /bin/
-# chmod +x /bin/nvidia-docker
-# wget https://raw.githubusercontent.com/NVIDIA/nvidia-docker/master/daemon.json
-# cp daemon.json /etc/docker/
-
 # Working setup can be tested by running a base CUDA container
 # nvidia-docker run -e NVIDIA_VISIBLE_DEVICES=all nvidia/cuda:11.0-base nvidia-smi
 
 # disabling aufs, btrfs, zfs and devmapper snapshotter plugins
-# mkdir -p /etc/containerd
-# cat << EOF | tee -a /etc/containerd/config.toml
+mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+sed -i 's/runtime = "runc"/runtime = "nvidia-container-runtime"/g' /etc/containerd/config.toml
 # disabled_plugins = ["cri", "zfs", "aufs", "btrfs", "devmapper"]
-# EOF
-
-nvidia-ctk runtime configure --runtime=containerd
 
 # restart containerd service
 systemctl restart containerd

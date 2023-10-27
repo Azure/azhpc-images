@@ -204,6 +204,9 @@ then
 elif [[ $distro == "AlmaLinux 8.6" ]]
 then
     MKL_VERSION="2022.1.0"
+elif [[ $distro == "AlmaLinux 8.7" ]]
+then
+    MKL_VERSION="2023.2.0"
 else
     MKL_VERSION="2023.1.0"
 fi

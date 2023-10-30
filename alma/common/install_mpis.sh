@@ -14,10 +14,10 @@ export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
 set CC=/opt/${GCC_VERSION}/bin/gcc
 set GCC=/opt/${GCC_VERSION}/bin/gcc
 
-# MVAPICH2 2.3.7
-MV2_VERSION="2.3.7"
+# MVAPICH2 2.3.7-1
+MV2_VERSION="2.3.7-1"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "c39a4492f4be50df6100785748ba2894e23ce450a94128181d516da5757751ae"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install

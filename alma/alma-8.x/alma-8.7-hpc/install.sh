@@ -46,9 +46,6 @@ $COMMON_DIR/../alma/alma-8.x/common/install_docker.sh
 # optimizations
 ./hpc-tuning.sh
 
-# security patch of CVE issue for AlmaLinux 8.7 only
-./disable_user_namespaces.sh
-
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
@@ -79,3 +76,6 @@ $COMMON_DIR/setup_sku_customizations.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh
+
+# security patch of CVE issue for AlmaLinux 8.7 only
+./disable_user_namespaces.sh

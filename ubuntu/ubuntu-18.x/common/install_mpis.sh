@@ -1,18 +1,26 @@
 #!/bin/bash
-set -e
+set -ex
 
-GCC_VERSION=$1
-HPCX_PATH=$2
-
-HCOLL_PATH=${HPCX_PATH}/hcoll
-UCX_PATH=${HPCX_PATH}/ucx
-INSTALL_PREFIX=/opt
+# Parameters
+HPCX_CHECKSUM=$1
 
 # Load gcc
-export PATH=/opt/${GCC_VERSION}/bin:$PATH
-export LD_LIBRARY_PATH=/opt/${GCC_VERSION}/lib64:$LD_LIBRARY_PATH
-set CC=/opt/${GCC_VERSION}/bin/gcc
-set GCC=/opt/${GCC_VERSION}/bin/gcc
+set CC=/usr/bin/gcc
+set GCC=/usr/bin/gcc
+
+INSTALL_PREFIX=/opt
+
+# HPC-X v2.15
+HPCX_VERSION="v2.15"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
+HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
+
+$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} ${HPCX_CHECKSUM}
+tar -xvf ${TARBALL}
+mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
+HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
+$COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # MVAPICH2 2.3.7-1
 MV2_VERSION="2.3.7-1"
@@ -20,10 +28,12 @@ MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2
 $COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
-./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+# Error exclusive to Ubuntu 22.04
+# configure: error: The Fortran compiler gfortran will not compile files that call
+# the same routine with arguments of different types.
+./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
-
 
 # OpenMPI 4.1.5
 OMPI_VERSION="4.1.5"
@@ -35,9 +45,6 @@ cd openmpi-${OMPI_VERSION}
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
-# exclude openmpi, perftest from updates
-sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
-
 # Intel MPI 2021 (Update 9)
 IMPI_2021_VERSION="2021.9.0"
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh
@@ -46,17 +53,27 @@ bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
 
-# Setup module files for MPIs
-mkdir -p /usr/share/Modules/modulefiles/mpi/
+# Module Files
+MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi
+mkdir -p ${MODULE_FILES_DIRECTORY}
+
+# HPC-X
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
+#%Module 1.0
+#
+#  HPCx ${HPCX_VERSION}
+#
+conflict        mpi
+module load ${HPCX_PATH}/modulefiles/hpcx
+EOF
 
 # MVAPICH2
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION}
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION}
 #%Module 1.0
 #
 #  MVAPICH2 ${MV2_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/mvapich2-${MV2_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/mvapich2-${MV2_VERSION}/lib
 prepend-path    MANPATH         /opt/mvapich2-${MV2_VERSION}/share/man
@@ -68,13 +85,12 @@ setenv          MPI_HOME        /opt/mvapich2-${MV2_VERSION}
 EOF
 
 # OpenMPI
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION}
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #%Module 1.0
 #
 #  OpenMPI ${OMPI_VERSION}
 #
 conflict        mpi
-module load ${GCC_VERSION}
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
 prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
@@ -85,8 +101,8 @@ setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
-#IntelMPI-v2021
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION}
+# Intel 2021
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION}
 #%Module 1.0
 #
 #  Intel MPI ${IMPI_2021_VERSION}
@@ -100,11 +116,8 @@ setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/man
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}
 EOF
 
-# Create symlinks for modulefiles
-ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MV2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
-ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
-ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
-
-# cleanup downloaded tarballs and other installation files/folders
-rm -rf *.tar.gz *offline.sh
-rm -rf -- */
+# Softlinks
+ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MODULE_FILES_DIRECTORY}/mvapich2-${MV2_VERSION} ${MODULE_FILES_DIRECTORY}/mvapich2
+ln -s ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/openmpi
+ln -s ${MODULE_FILES_DIRECTORY}/impi_${IMPI_2021_VERSION} ${MODULE_FILES_DIRECTORY}/impi-2021

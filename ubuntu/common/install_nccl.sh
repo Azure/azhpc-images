@@ -6,16 +6,23 @@ apt install -y build-essential devscripts debhelper fakeroot
 
 case ${DISTRIBUTION} in
     "ubuntu18.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.1";;
-    "ubuntu20.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.2";;
-    "ubuntu22.04") NCCL_VERSION="2.18.3-1"; 
-        CUDA_VERSION="12.2";;
+        CUDA_VERSION="12.1";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
+    "ubuntu20.04") NCCL_VERSION="2.19.3-1"; 
+        CUDA_VERSION="12.2";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
+    "ubuntu22.04") NCCL_VERSION="2.19.3-1"; 
+        CUDA_VERSION="12.2";
+        TARBALL="v${NCCL_VERSION}.tar.gz";
+        NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
+        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
     *) ;;
 esac
 
-TARBALL="v${NCCL_VERSION}.tar.gz"
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
@@ -36,6 +43,7 @@ mkdir -p /usr/local/nccl-rdma-sharp-plugins
 apt install -y zlib1g-dev
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
+git checkout ${NCCL_RDMA_SHARP_COMMIT} 
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

@@ -25,10 +25,10 @@ sysctl -p
 # if you have problems psl. look at https://www.suse.com/support/kb/doc/?id=000019178
 
 # Remove auoms if exists - Prevent CPU utilization by auoms
-if zypper se --installed-only azsec-monitor >/dev/null 2>&1; then zypper remove -y azsec-monitor; fi
+if zypper se --installed-only azsec-monitor >/dev/null 2>&1; then zypper --non-interactive remove -y azsec-monitor; fi
 
 # Update WALinuxAgent - for IPoIB
-zypper update -y python-azure-agent
+zypper --non-interactive update -y python-azure-agent
 
 # Configure WALinuxAgent
 # EnableRDMA=y is already set by default within the SLE HPC image

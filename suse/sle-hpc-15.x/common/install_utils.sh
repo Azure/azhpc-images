@@ -1,6 +1,25 @@
 #!/bin/bash
 set -ex
 
+#-------------------------------------------------------------------
+# Container Repository
+#-------------------------------------------------------------------
+# Docker is shipped with SLES by default
+# with SLE HPC we need to enable the Container repository
+SUSEConnect -p sle-module-containers/${SLE_DOTV}/x86_64
+
+#-------------------------------------------------------------------
+# Add SUSE Package Hub
+# byacc is only in packagehub
+SUSEConnect -p PackageHub/${SLE_DOTV}/x86_64
+#-------------------------------------------------------------------
+
+#-------------------------------------------------------------------
+# Nvidia provide certified packages for SLES 15, so we only need to add the repositories and install the packages
+# add the repo key separately beforehand.
+SUSEConnect -p sle-module-NVIDIA-compute/${SLE_MAJOR}/x86_64 --gpg-auto-import-keys
+#-------------------------------------------------------------------
+
 # Install pre-reqs and development tools
 #
 
@@ -14,6 +33,8 @@ set -ex
 
 # import package signing keys
 rpm --import $INTEL_PUBKEY_URI
+# delete if exists
+zypper -n rr oneAPI &>/dev/null || :
 # add repository
 zypper -n addrepo -f -g $INTEL_REPO_URI oneAPI
 # fetch key
@@ -26,27 +47,11 @@ zypper --non-interactive modifyrepo --no-refresh oneAPI
 #-------------------------------------------------------------------
 
 #-------------------------------------------------------------------
-# Nvidia provide certified packages for SLES 15, so we only need to add the repositories and install the packages
-#-------------------------------------------------------------------
-# import cuda signing key
-rpm --import $CUDA_PUBKEY_URI
-# CUDA driver (nvidia provides a repo file)
-zypper addrepo -f -g $CUDA_REPO_URI
-# fetch key
-zypper --non-interactive --gpg-auto-import-keys refresh cuda-sles${SLE_MAJOR}-x86_64
-
-#-------------------------------------------------------------------
-# Container Repository
-#-------------------------------------------------------------------
-# Docker is shipped with SLES by default
-# with SLE HPC we need to enable the Container repository
-SUSEConnect -p sle-module-containers/${SLE_DOTV}/x86_64
-
-#-------------------------------------------------------------------
 # Nvidia container repo
 #-------------------------------------------------------------------
 # see https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Check https://nvidia.github.io/libnvidia-container
+zypper --non-interactive rr libnvidia-container &>/dev/null || :
 zypper addrepo -f -g $NVIDIA_CONTAINER_REPO_URI
 # fetch key
 zypper --non-interactive --gpg-auto-import-keys refresh libnvidia-container
@@ -61,11 +66,7 @@ SUSEConnect -p PackageHub/${SLE_DOTV}/x86_64
 ## SLES HPC ship with many HPC packages already, so no need to build it - simple install is enough
 #
 # Install base compiler (this will pull in packages for HPC and Lmod as well)
-zypper in -y gnu-compilers-hpc
-
-## Lmod is an advanced environment module system that allows the installation of multiple versions of a program or shared library, and helps configure the system environment for the use of a specific version.
-## the modulefile path is /usr/share/lmod/modulefiles
-source /usr/share/lmod/lmod/init/bash
+zypper --non-interactive in -y gnu-compilers-hpc-devel
 
 #
 # If you run kernel-default remove "-azure" from the kernel package names below
@@ -75,9 +76,9 @@ zypper install -y \
     byacc \
     atk \
     m4 \
+    ${KERNEL_VERSION:+kernel-azure-devel = ${KERNEL_VERSION}} \
+    ${KERNEL_VERSION:+kernel-source-azure = ${KERNEL_VERSION}} \
     binutils \
-    kernel-azure-devel = ${KERNEL_VERSION} \
-    kernel-source-azure = ${KERNEL_VERSION} \
     fuse \
     cmake \
     libarchive13 \
@@ -99,16 +100,18 @@ zypper install -y \
     automake \
     libtool \
     nfs-client \
-    jq
+    jq \
+    rdma-core-devel \
+    wget
 
 # Install azcopy tool
 ## To copy blobs or files to or from a storage account.
 wget ${AZCOPY_DOWNLOAD_URL}
 tar -xvf ${AZTARBALL}
 ## copy the azcopy to the bin path - better would be ${LOCALBIN}
-pushd azcopy_linux_amd64_${AZVERSION}
-mv azcopy ${LOCALBIN}
-popd
+mv azcopy_linux_amd64_${AZVERSION}/azcopy ${LOCALBIN}
 chmod +x ${LOCALBIN}/azcopy
-## remove azcopy tarball
-rm -rf *.tar.gz
+$COMMON_DIR/write_component_version.sh "azcopy" ${AZCOPY_VERSION}
+## remove azcopy tarball and directory
+rm -rf *.tar.gz azcopy_linux_amd64_${AZVERSION}
+

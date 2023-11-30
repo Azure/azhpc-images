@@ -2,7 +2,7 @@
 
 set -e
 
-MONEO_VERSION=v0.3.0
+MONEO_VERSION=v0.3.3
 
 # Dependencies 
 python3 -m pip install --upgrade pip
@@ -20,11 +20,11 @@ pushd $MONITOR_DIR
     chmod 777 Moneo
 
     pushd Moneo/linux_service
-        ./configure_service.sh $MONITOR_DIR/Moneo       
+        ./configure_service.sh    
     popd
 popd
 
-# add an slias for Moneo
+# add an alias for Moneo
 if ! grep -qxF "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" /etc/bashrc; then
     echo "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" >> /etc/bashrc
 fi

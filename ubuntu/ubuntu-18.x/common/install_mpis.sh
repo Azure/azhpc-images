@@ -1,50 +1,51 @@
 #!/bin/bash
 set -ex
 
+# Parameters
+HPCX_CHECKSUM=$1
+
 # Load gcc
-GCC_VERSION=gcc-9.2.0
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.7.0
-MLNX_OFED_VERSION="4.7-1.0.0.1"
-HPCX_VERSION="v2.7.0"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-${MLNX_OFED_VERSION}-${DISTRIBUTION}-x86_64.tbz"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
+# HPC-X v2.15
+HPCX_VERSION="v2.15"
+TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-$DISTRIBUTION-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
+HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
 HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "83f03e2d01cb1e4198e50ed9bdadb742aebf5d247369071bc911096824147d7a"
+$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} ${HPCX_CHECKSUM}
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
-$COMMON_DIR/write_component_version.sh "HPCX" ${HPCX_VERSION}
+$COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
-# MVAPICH2 2.3.7
-MV2_VERSION="2.3.7"
+# MVAPICH2 2.3.7-1
+MV2_VERSION="2.3.7-1"
 MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MV2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "c39a4492f4be50df6100785748ba2894e23ce450a94128181d516da5757751ae"
+$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
 tar -xvf mvapich2-${MV2_VERSION}.tar.gz
 cd mvapich2-${MV2_VERSION}
-./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+# Error exclusive to Ubuntu 22.04
+# configure: error: The Fortran compiler gfortran will not compile files that call
+# the same routine with arguments of different types.
+./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MV2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MV2_VERSION}
 
-# OpenMPI 4.1.3
+# OpenMPI 4.1.5
 OMPI_VERSION="4.1.5"
 OMPI_DOWNLOAD_URL=https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz
 $COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL "c018b127619d2a2a30c1931f316fc8a245926d0f5b4ebed4711f9695e7f70925"
 tar -xvf openmpi-${OMPI_VERSION}.tar.gz
 cd openmpi-${OMPI_VERSION}
-# disable OpenSHMEM build
-sed -i "s/enable_oshmem_fortran=yes/enable_oshmem_fortran=no/" contrib/platform/mellanox/optimized
-sed -i "s/enable_oshmem=yes/enable_oshmem=no/" contrib/platform/mellanox/optimized
-./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --disable-oshmem --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
+./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
-# Intel MPI 2021 (Update 7)
+# Intel MPI 2021 (Update 9)
 IMPI_2021_VERSION="2021.9.0"
 IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh
 $COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8"

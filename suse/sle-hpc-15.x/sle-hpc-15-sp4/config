@@ -8,12 +8,16 @@
 # #export SLE_DOTV=${VERSION_ID}
 # #export SLE_MAJOR=${VERSION_ID%.*}
 export SLE_DOTV=15.4
-export SLE_MAJOR=15
+export SLE_MAJOR=${SLE_DOTV%%.*}
+export SLE_MINOR=${SLE_DOTV##*.}
+
 
 # we need the running kernel version to get the right -devel packages
 # PAYG SLES and SLE HPC use kernel-azure by default
 # BYOS has kernel-default by default, so pls. replace name below if you use BYOS images
 export KERNEL_VERSION=$(rpm -q  --qf="%{VERSION}-%{RELEASE}" kernel-azure)
+[[ $KERNEL_VERSION =~ "is not" ]] && KERNEL_VERSION=
+
 
 # GNU compiler version
 export GNU_COMPILER_VERSION=11
@@ -95,7 +99,7 @@ export INTELLIBS=/opt/intel/oneapi
 # intel-oneapi-mpi-2021.5.0
 # intel-oneapi-mpi-2021.5.1
 # intel-oneapi-mpi-2021.6.0
-## intel-oneapi-mpi-2021.7.0
+# intel-oneapi-mpi-2021.7.0
 # intel-oneapi-mpi-2021.7.1
 # intel-oneapi-mpi-2021.8.0
 # intel-oneapi-mpi-2021.9.0
@@ -110,7 +114,7 @@ export IMPI_MAJOR=${INTEL_ONE_MPI_VERSION%.*.*}
 # intel-oneapi-mkl-2022.0.1
 # intel-oneapi-mkl-2022.0.2
 # intel-oneapi-mkl-2022.1.0
-## intel-oneapi-mkl-2022.2.0
+# intel-oneapi-mkl-2022.2.0
 # intel-oneapi-mkl-2023.0.0
 # intel-oneapi-mkl-2023.1.0
 export INTEL_ONE_MKL_VERSION="2023.1.0"

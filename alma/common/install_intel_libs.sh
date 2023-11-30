@@ -7,9 +7,9 @@ case ${DISTRIBUTION} in
         CHECKSUM="4b325a3c4c56e52f4ce6c8fbb55d7684adc16425000afc860464c0f29ea4563e";
         IDENTIFIER="irc_nas";
         ;;
-    "almalinux8.7") INTEL_MKL_VERSION="2023.1.0.46342";
-        RELEASE_VERSION="cd17b7fe-500e-4305-a89b-bd5b42bfd9f8";
-        CHECKSUM="cc28c94cab23c185520b93c5a04f3979d8da6b4c90cee8c0681dd89819d76167";
+    "almalinux8.7") INTEL_MKL_VERSION="2023.2.0.49497";
+        RELEASE_VERSION="adb8a02c-4ee7-4882-97d6-a524150da358";
+        CHECKSUM="4a0d93da85a94d92e0ad35dc0fc3b3ab7f040bd55ad374c4d5ec81a57a2b872b";
         IDENTIFIER="IRC_NAS";
         ;;
     *) ;;

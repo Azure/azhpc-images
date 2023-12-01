@@ -14,8 +14,6 @@ xfs_growfs /dev/rootvg/tmplv
 xfs_growfs /dev/rootvg/rootlv
 xfs_growfs /dev/rootvg/usrlv
 
-exit
-
 # install utils
 ./install_utils.sh
 
@@ -27,6 +25,8 @@ exit
 
 # install mpi libraries
 ./install_mpis.sh
+
+exit
 
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh

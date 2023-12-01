@@ -14,6 +14,8 @@ xfs_growfs /dev/rootvg/tmplv
 xfs_growfs /dev/rootvg/rootlv
 xfs_growfs /dev/rootvg/usrlv
 
+exit
+
 # install utils
 ./install_utils.sh
 
@@ -51,19 +53,19 @@ xfs_growfs /dev/rootvg/usrlv
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # add udev rule
-$COMMON_DIR/../alma/common/add-udev-rules.sh
+$COMMON_DIR/../rhel/common/add-udev-rules.sh
 
 # add interface rules
-$COMMON_DIR/../alma/common/network-config.sh
+$COMMON_DIR/../rhel/common/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
 
-#install monitoring tools
-$COMMON_DIR/../alma/common/install_monitoring_tools.sh
+# install monitoring tools
+$COMMON_DIR/../rhel/common/install_monitoring_tools.sh
 
 # install AMD libs
-$COMMON_DIR/../alma/common/install_amd_libs.sh
+$COMMON_DIR/../rhel/common/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh
@@ -72,7 +74,7 @@ $COMMON_DIR/install_health_checks.sh
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-$ALMA_COMMON_DIR/disable_cloudinit.sh
+$COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

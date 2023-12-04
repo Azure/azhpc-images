@@ -26,11 +26,9 @@ xfs_growfs /dev/rootvg/usrlv
 # install mpi libraries
 ./install_mpis.sh
 
-exit
-
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
-
+exit
 # install AMD tuned libraries
 ./install_amd_libs.sh
 

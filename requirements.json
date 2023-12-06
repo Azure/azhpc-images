@@ -27,7 +27,7 @@
     },
     "gcc": {
         "almalinux8.7": {
-            "version": "9.2.0"
+            "version": "12.2.0"
         },
         "ubuntu22.04": {
             "version": "11.4.0"

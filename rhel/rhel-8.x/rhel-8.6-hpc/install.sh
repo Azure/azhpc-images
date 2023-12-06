@@ -24,7 +24,7 @@ xfs_growfs /dev/rootvg/usrlv
 ./install_mellanoxofed.sh
 
 # install mpi libraries
-./install_mpis.sh
+#./install_mpis.sh
 
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh

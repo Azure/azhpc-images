@@ -27,7 +27,7 @@
     },
     "gcc": {
         "almalinux8.7": {
-            "version": "12.2.0"
+            "version": "13.1.0"
         },
         "ubuntu22.04": {
             "version": "11.4.0"
@@ -193,10 +193,10 @@
     "amd": {
         "almalinux8.7": {
             "aocl": {
-                "version": "4.1"
+                "version": "4.0"
             },
             "aocc": {
-                "version": "4.1.0"
+                "version": "4.0.0"
             } 
         }
     },

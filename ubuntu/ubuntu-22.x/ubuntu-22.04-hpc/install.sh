@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# install pre-requisites
+./install_prerequisites.sh
+
 # set properties
 source ./set_properties.sh
 

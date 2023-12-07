@@ -40,6 +40,11 @@ $COMMON_DIR/write_component_version.sh "spack" $spack_version
 
 # Create an environment/ container in /opt
 spack env create -d $HPC_ENV
+
+concretizer_yaml=$HPC_ENV/spack/etc/spack/defaults/concretizer.yaml
+sed -i -e 's/unify: true/unify: when_possible/g' $concretizer_yaml
+
 echo "spack env activate $HPC_ENV" | tee -a /etc/profile
 echo "PATH=\$(echo \"\$PATH\" | tr \":\" \"\\n\" | grep -v \"$HPC_ENV/.spack-env/view/bin\" | tr \"\\n\" \":\" | sed \"s/:$//\")" | sudo tee -a /etc/profile
+
 source /etc/profile

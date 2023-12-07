@@ -99,7 +99,7 @@ function set_module_files_path {
     ubuntu)
         export MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
         ;;
-    centos | almalinux) 
+    almalinux) 
         export MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
         ;;
     * ) ;;

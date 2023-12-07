@@ -1,8 +1,5 @@
 {
     "spack": {
-        "ubuntu18.04": {
-            "branch": "releases/v0.19"
-        },
         "ubuntu20.04": {
             "branch": "releases/v0.19"
         },
@@ -34,10 +31,6 @@
         }
     },
     "mofed": {
-        "ubuntu18.04": {
-            "mofedlts": {},
-            "others": {}
-        },
         "ubuntu20.04": {},
         "ubuntu22.04": {
             "version": "23.07-0.5.1.2",

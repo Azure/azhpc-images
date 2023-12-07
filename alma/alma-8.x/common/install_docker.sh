@@ -9,8 +9,6 @@ yum install -y moby-cli
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
 case ${DISTRIBUTION} in
-    "almalinux8.6") distribution="rhel8.6"
-        ;;
     "almalinux8.7") distribution="rhel8.7";
         ;;
     *) ;;

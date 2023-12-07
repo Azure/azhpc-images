@@ -209,7 +209,7 @@ function verify_dcgm_installation {
     # Verify DCGM package installation
     case $ID in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
-        centos | almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        almalinux) dnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac
     check_exit_code "DCGM Installed" "DCGM not installed!"
@@ -248,7 +248,7 @@ function verify_sunrpc_tcp_settings_service {
 function verify_apt_yum_update {
     case $ID in
         ubuntu) sudo apt-get -q --assume-no update;;
-        centos | almalinux) sudo yum update -y --setopt tsflags=test;
+        almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
         * ) ;;
     esac

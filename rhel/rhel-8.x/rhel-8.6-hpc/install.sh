@@ -28,7 +28,7 @@ xfs_growfs /dev/rootvg/usrlv
 
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
-exit
+
 # install AMD tuned libraries
 ./install_amd_libs.sh
 

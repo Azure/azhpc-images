@@ -40,7 +40,7 @@ popd
 # Nvidia driver
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_CHECKSUM}
-bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms || echo "driver installed"
+bash NVIDIA-Linux-x86_64-${NVIDIA_VERSION}.run --silent --dkms || echo "expected warnings and non-zero exit on non-gpu machine"
 dkms install --no-depmod -m nvidia -v ${NVIDIA_VERSION} -k `uname -r` --force
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_VERSION}
 

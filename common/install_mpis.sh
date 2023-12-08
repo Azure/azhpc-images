@@ -106,7 +106,7 @@ impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' <<< $COMPONEN
 spack add intel-oneapi-mpi@$impi_2021_version
 
 # Install the MPIs
-# spack concretize -f
+spack concretize -f
 spack install
 
 # Set the installation directories

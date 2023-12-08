@@ -30,19 +30,19 @@ xfs_growfs /dev/rootvg/usrlv
 ./install_nvidiagpudriver.sh
 
 # install AMD tuned libraries
-./install_amd_libs.sh
+#./install_amd_libs.sh
 
 # install Intel libraries
-./install_intel_libs.sh
+#./install_intel_libs.sh
 
 # Install NCCL
-./install_nccl.sh
+#./install_nccl.sh
 
 # Install NVIDIA docker container
 ./install_docker.sh
 
 # Install DCGM
-./install_dcgm.sh
+#./install_dcgm.sh
 
 # optimizations
 ./hpc-tuning.sh

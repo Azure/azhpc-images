@@ -46,7 +46,7 @@ prepend-path    LD_LIBRARY_PATH   $aocl_home/lib
 setenv          AMD_FFTW_INCLUDE  $aocl_home/include
 EOF
 
-spack gc -y
+#spack gc -y
 # return to the old environment
 # deactivate existing environment
 # despacktivate

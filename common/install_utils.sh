@@ -11,7 +11,7 @@ spack add cmake \
 spack install
 
 cmake_home=$(spack location -i cmake)
-echo $cmake_home
+eval $cmake_home
 echo 'export PATH=$cmake_home/bin:$PATH' | tee -a /etc/profile
 
 # Install azcopy tool

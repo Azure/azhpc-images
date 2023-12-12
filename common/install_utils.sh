@@ -14,6 +14,7 @@ cmake_home=$(spack location -i cmake)
 export_cmake_path="export PATH=$(echo $cmake_home)/bin:$PATH"
 eval $export_cmake_path
 echo $export_cmake_path | tee -a /etc/profile
+source /etc/profile
 
 # Install azcopy tool
 # To copy blobs or files to or from a storage account

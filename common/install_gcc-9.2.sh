@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-MODULE_FILES_DIRECTORY=$1
-
 # Install gcc 9.2
 GMP_DOWNLOAD_URL=http://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2
 $COMMON_DIR/download_and_verify.sh $GMP_DOWNLOAD_URL "498449a994efeba527885c10405993427995d3f86b8768d8cdf8d9dd7c6b73e8"

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-module_files_directory=$1
+module_files_directory=$MODULE_FILES_DIRECTORY/mpi
 install_prefix=/opt
 
 # Install HPC-x

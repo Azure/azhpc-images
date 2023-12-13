@@ -1,8 +1,7 @@
 #!/bin/bash
 set -ex
 
-module_files_directory=/usr/share/Modules/modulefiles
-mkdir -p ${module_files_directory}
+mkdir -p ${MODULE_FILES_DIRECTORY}
 
 # Set the GCC version
 gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
@@ -16,7 +15,7 @@ spack install
 gcc_home=$(spack location -i gcc@$gcc_version)
 
 # create modulefile
-cat << EOF >> ${module_files_directory}/gcc-$gcc_version
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/gcc-$gcc_version
 #%Module 1.0
 #
 #  GCC $gcc_version

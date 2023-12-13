@@ -30,8 +30,7 @@ $COMMON_DIR/write_component_version.sh "aocc" $aocc_version
 $COMMON_DIR/write_component_version.sh "aocl" $aocl_version
 
 # Setup module files for AMD Libraries
-module_files_directory=/usr/share/Modules/modulefiles
-amd_module_directory=$module_files_directory/amd
+amd_module_directory=$MODULE_FILES_DIRECTORY/amd
 mkdir -p $amd_module_directory
 
 aocl_home=$(spack location -i amd-aocl@$aocl_version)

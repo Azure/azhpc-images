@@ -1,8 +1,7 @@
 #!/bin/bash
 set -ex
 
-module_files_directory=/usr/share/Modules/modulefiles/mpi
-$COMMON_DIR/install_mpis.sh $module_files_directory
+$COMMON_DIR/install_mpis.sh
 
 # exclude updates on certain packages
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf

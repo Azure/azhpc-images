@@ -27,7 +27,7 @@ popd
 popd
 
 # Build the nccl tests
-export_modulepath="export MODULEPATH=$MODULEPATH:/usr/share/modules/modulefiles"
+export_modulepath="export MODULEPATH=$MODULEPATH:$MODULE_FILES_DIRECTORY"
 eval $export_modulepath
 source /etc/profile.d/modules.sh
 module load mpi/hpcx

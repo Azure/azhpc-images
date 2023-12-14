@@ -47,9 +47,9 @@ $COMMON_DIR/install_intel_libs.sh
 $ALMA_COMMON_DIR/install_nccl.sh
 
 spack clean -a
-spack env deactivate
+#spack env deactivate
 spack gc -y
-spack env activate $HPC_ENV
+#spack env activate $HPC_ENV
 
 # Install NVIDIA docker container
 $COMMON_DIR/../alma/alma-8.x/common/install_docker.sh

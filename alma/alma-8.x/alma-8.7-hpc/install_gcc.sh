@@ -27,7 +27,7 @@ setenv          GCC             $gcc_home/bin/gcc
 EOF
 
 # Clear the ununsed packages
-#spack gc -y
+spack gc -y
 
 # return to the old environment
 # deactivate existing environment

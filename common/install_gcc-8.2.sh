@@ -30,7 +30,7 @@ cd ..
 
 
 # create modulefile
-cat << EOF >> /usr/share/Modules/modulefiles/gcc-8.2.0
+cat << EOF >> $MODULE_FILES_DIRECTORY/gcc-8.2.0
 #%Module 1.0
 #
 #  GCC 8.2.0

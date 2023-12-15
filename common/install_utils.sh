@@ -10,6 +10,12 @@ spack add cmake \
 
 spack install
 
+cmake_home=$(spack location -i cmake)
+export_cmake_path="export PATH=$(echo $cmake_home)/bin:$PATH"
+eval $export_cmake_path
+echo $export_cmake_path | tee -a /etc/profile
+ln -s $cmake_home/bin/cmake /bin/cmake
+
 # Install azcopy tool
 # To copy blobs or files to or from a storage account
 azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)

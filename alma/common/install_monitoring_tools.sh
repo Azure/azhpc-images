@@ -2,7 +2,11 @@
 
 set -e
 
-MONEO_VERSION=v0.3.3
+# grab latest release version
+repo=Azure/Moneo
+release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+
+MONEO_VERSION=$release_version
 
 # Dependencies 
 python3 -m pip install --upgrade pip

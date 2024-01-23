@@ -3,6 +3,10 @@
         "components": ["check_impi_2021", "check_cuda", "check_nccl", "check_docker", "check_dcgm"],
         "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings"]
     },
+    "ubuntu20.04": {
+        "components": ["check_impi_2021", "check_cuda", "check_nccl", "check_docker", "check_dcgm"],
+        "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings"]
+    },
     "almalinux8.7": {
         "components": ["check_impi_2021", "check_cuda", "check_nccl", "check_docker", "check_dcgm"],
         "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings"]

@@ -1,7 +1,7 @@
 {
     "spack": {
         "ubuntu20.04": {
-            "branch": "releases/v0.19"
+            "branch": "develop"
         },
         "ubuntu22.04": {
             "branch": "develop"
@@ -11,6 +11,11 @@
         }     
     },
     "azcopy": {
+        "ubuntu20.04": {
+            "version": "10.17.0",
+            "release": "release20230123",
+            "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"
+        },
         "ubuntu22.04": {
             "version": "10.17.0",
             "release": "release20230123",
@@ -28,10 +33,16 @@
         },
         "ubuntu22.04": {
             "version": "11.4.0"
+        },
+        "ubuntu20.04": {
+            "version": "9.4.0"
         }
     },
     "mofed": {
-        "ubuntu20.04": {},
+        "ubuntu20.04": {
+            "version": "23.07-0.5.1.2",
+            "sha256": "923ddbd48d250b25ba50098ad8852ad6a591df3e975f3e0b9922b752181bdd12"
+        },
         "ubuntu22.04": {
             "version": "23.07-0.5.1.2",
             "sha256": "77e032a48de4c040b2f2dd3bf2edd11921de7caff59c773ac35208514f72eff5"
@@ -42,6 +53,11 @@
         }
     },
     "hpcx": {
+        "ubuntu20.04": {
+            "version": "2.16",
+            "sha256": "addda11a710c52268b7a725c13d9cc54c93deddf259c87d8547ad3c0422b87e1",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.16/hpcx-v2.16-gcc-mlnx_ofed-ubuntu20.04-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
+        },
         "ubuntu22.04": {
             "version": "2.16",
             "sha256": "97eac5555d54f5fd8da1c354222a1aff2e85eb017682441e06287971a5b95772",
@@ -54,6 +70,9 @@
         }
     },
     "mvapich2": {
+        "ubuntu20.04": {
+            "version": "2.3.7-1"
+        },
         "ubuntu22.04": {
             "version": "2.3.7-1"
         },
@@ -62,6 +81,9 @@
         }
     },
     "ompi": {
+        "ubuntu20.04": {
+            "version": "4.1.5"
+        },
         "ubuntu22.04": {
             "version": "4.1.5"
         },
@@ -70,6 +92,9 @@
         }
     },
     "impi_2021": {
+        "ubuntu20.04": {
+            "version": "2021.9.0"
+        },
         "ubuntu22.04": {
             "version": "2021.9.0"
         },
@@ -78,6 +103,18 @@
         }
     },
     "nvidia": {
+        "ubuntu20.04": {
+            "driver": {
+                "version": "535.86.10",
+                "sha256": "cec37fd9317091a01fd0380309400a14284769790651fe021e1d5aaa2327a370"
+            },
+            "fabricmanager": {
+                "prefix": "535",
+                "distribution": "ubuntu2004",
+                "version": "535_535.86.10-1",
+                "sha256": "d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29"        
+            }   
+        },
         "ubuntu22.04": {
             "driver": {
                 "version": "535.86.10",
@@ -104,6 +141,15 @@
         }
     },
     "cuda": {
+        "ubuntu20.04": {
+            "driver": {
+                "version": "12.1.0"
+            },
+            "samples": {
+                "version": "12.1",
+                "sha256": "f758160645b366d79c2638d8dfd389f01029b8d179ab0c11726b9ef58aecebd9"
+            }   
+        },
         "ubuntu22.04": {
             "driver": {
                 "version": "12.1.0"
@@ -124,6 +170,9 @@
         }
     },
     "gdrcopy": {
+        "ubuntu20.04": {
+            "version": "2.3"
+        },
         "ubuntu22.04": {
             "version": "2.3"
         },
@@ -132,6 +181,12 @@
         }
     },
     "nccl": {
+        "ubuntu20.04": {
+            "version": "2.18.5-1",
+            "rdmasharpplugins": {
+                "commit": "575c1e0"
+            }
+        },
         "ubuntu22.04": {
             "version": "2.18.5-1",
             "rdmasharpplugins": {
@@ -146,6 +201,10 @@
         }
     },
     "dcgm": {
+        "ubuntu20.04": {
+            "version": "3.1.8",
+            "distribution": "ubuntu2004"
+        },
         "ubuntu22.04": {
             "version": "3.1.8",
             "distribution": "ubuntu2204"
@@ -156,6 +215,9 @@
         }
     },
     "intel_one_mkl": {
+        "ubuntu20.04": {
+            "version": "2023.2.0"
+        },
         "ubuntu22.04": {
             "version": "2023.2.0"
         },
@@ -164,12 +226,19 @@
         }
     },
     "waagent": {
+        "ubuntu20.04": {
+            "version": "2.9.0.4",
+            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
+        },
         "ubuntu22.04": {
             "version": "2.9.0.4",
             "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
         }
     },
     "moneo": {
+        "ubuntu20.04": {
+            "version": "0.3.2"
+        },
         "ubuntu22.04": {
             "version": "0.3.2"
         },
@@ -197,6 +266,9 @@
         "almalinux8.7": {
             "version": "2.15.1_24_gbaa21ca"
         },
+        "ubuntu20.04": {
+            "version": "2.15.1-29-gbae0abe"
+        },
         "ubuntu22.04": {
             "version": "2.15.1-29-gbae0abe"
         }
@@ -205,12 +277,18 @@
         "almalinux8.7": {
             "version": "0.2.4"
         },
+        "ubuntu20.04": {
+            "version": "0.2.4"
+        },
         "ubuntu22.04": {
             "version": "0.2.4"
         }
     },
     "rdma_core": {
         "almalinux8.7": {
+            "branch": "stable-v48"
+        },
+        "ubuntu20.04": {
             "branch": "stable-v48"
         },
         "ubuntu22.04": {

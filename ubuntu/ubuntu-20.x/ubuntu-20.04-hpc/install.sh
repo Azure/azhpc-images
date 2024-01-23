@@ -22,8 +22,10 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
-# install nvidia gpu driver
+
+# install nvidia gpu driver  
 ./install_nvidiagpudriver.sh
+
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*

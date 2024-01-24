@@ -1,8 +1,18 @@
 #!/bin/bash
 set -ex
 
+# install pre-requisites
+./install_prerequisites.sh
+
 # set properties
 source ./set_properties.sh
+
+# install spack
+$UBUNTU_COMMON_DIR/install_spack.sh
+
+# Activate the environment/ container
+source $HPC_ENV/spack/share/spack/setup-env.sh
+spack env activate $HPC_ENV
 
 # install utils
 ./install_utils.sh
@@ -13,17 +23,8 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
-# install mpi libraries
-./install_mpis.sh
-
-# install nvidia gpu driver
+# install nvidia gpu driver  
 ./install_nvidiagpudriver.sh
-
-# Install NCCL
-$UBUNTU_COMMON_DIR/install_nccl.sh
-
-# Install NVIDIA docker container
-$UBUNTU_COMMON_DIR/install_docker.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -31,11 +32,23 @@ rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
+# install Intel libraries
+$COMMON_DIR/install_intel_libs.sh
+
+# install mpi libraries
+./install_mpis.sh
+
+# Install NCCL
+$UBUNTU_COMMON_DIR/install_nccl.sh
+
+spack clean -a
+spack gc -y
+
+# Install NVIDIA docker container
+$UBUNTU_COMMON_DIR/install_docker.sh
+
 # Install DCGM
 $UBUNTU_COMMON_DIR/install_dcgm.sh
-
-# install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

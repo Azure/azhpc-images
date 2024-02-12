@@ -3,7 +3,11 @@
 
 set -e
 
-AZHC_VERSION=v0.2.6
+# grab latest release version
+repo=Azure/azurehpc-health-checks
+release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+
+AZHC_VERSION=$release_version
 
 DEST_TEST_DIR=/opt/azurehpc/test
 AZHC_DIR=/opt/azurehpc/test/azurehpc-health-checks

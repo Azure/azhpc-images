@@ -146,8 +146,8 @@
                 "version": "12.2.1"
             },
             "samples": {
-                "version": "12.2.1",
-                "sha256": "c51e814eaa756160a73289b1f35880cc38c18e1ddedc87f46f7ff0d1696bdb95"
+                "version": "12.2",
+                "sha256": "c9fbdee420fd4567edb1239420e2a5c93d9652b4ccf3a828fcb3e0de3152e466"
             }   
         },
         "ubuntu22.04": {
@@ -155,8 +155,8 @@
                 "version": "12.2.1"
             },
             "samples": {
-                "version": "12.2.1",
-                "sha256": "c51e814eaa756160a73289b1f35880cc38c18e1ddedc87f46f7ff0d1696bdb95"
+                "version": "12.2",
+                "sha256": "c9fbdee420fd4567edb1239420e2a5c93d9652b4ccf3a828fcb3e0de3152e466"
             }   
         },
         "almalinux8.7": {

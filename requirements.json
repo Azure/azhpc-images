@@ -147,7 +147,7 @@
             },
             "samples": {
                 "version": "12.2",
-                "sha256": "c9fbdee420fd4567edb1239420e2a5c93d9652b4ccf3a828fcb3e0de3152e466"
+                "sha256": "1823cfe28e97a9230107aa72b231f78952c0f178b71a920f036d360518480bdc"
             }   
         },
         "ubuntu22.04": {
@@ -156,7 +156,7 @@
             },
             "samples": {
                 "version": "12.2",
-                "sha256": "c9fbdee420fd4567edb1239420e2a5c93d9652b4ccf3a828fcb3e0de3152e466"
+                "sha256": "1823cfe28e97a9230107aa72b231f78952c0f178b71a920f036d360518480bdc"
             }   
         },
         "almalinux8.7": {
@@ -165,7 +165,7 @@
             },
             "samples": {
                 "version": "12.2",
-                "sha256": "c9fbdee420fd4567edb1239420e2a5c93d9652b4ccf3a828fcb3e0de3152e466"
+                "sha256": "1823cfe28e97a9230107aa72b231f78952c0f178b71a920f036d360518480bdc"
             }   
         }
     },

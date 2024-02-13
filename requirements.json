@@ -143,20 +143,20 @@
     "cuda": {
         "ubuntu20.04": {
             "driver": {
-                "version": "12.1.0"
+                "version": "12.2.1"
             },
             "samples": {
-                "version": "12.1",
-                "sha256": "f758160645b366d79c2638d8dfd389f01029b8d179ab0c11726b9ef58aecebd9"
+                "version": "12.2.1",
+                "sha256": "c51e814eaa756160a73289b1f35880cc38c18e1ddedc87f46f7ff0d1696bdb95"
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "12.1.0"
+                "version": "12.2.1"
             },
             "samples": {
-                "version": "12.1",
-                "sha256": "f758160645b366d79c2638d8dfd389f01029b8d179ab0c11726b9ef58aecebd9"
+                "version": "12.2.1",
+                "sha256": "c51e814eaa756160a73289b1f35880cc38c18e1ddedc87f46f7ff0d1696bdb95"
             }   
         },
         "almalinux8.7": {
@@ -182,13 +182,13 @@
     },
     "nccl": {
         "ubuntu20.04": {
-            "version": "2.18.5-1",
+            "version": "2.19.3-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "ubuntu22.04": {
-            "version": "2.18.5-1",
+            "version": "2.19.3-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
@@ -222,7 +222,7 @@
             "version": "2023.2.0"
         },
         "almalinux8.7": {
-            "version": "2023.1.0"
+            "version": "2023.2.0"
         }
     },
     "waagent": {
@@ -237,13 +237,13 @@
     },
     "moneo": {
         "ubuntu20.04": {
-            "version": "0.3.2"
+            "version": "0.3.3"
         },
         "ubuntu22.04": {
-            "version": "0.3.2"
+            "version": "0.3.3"
         },
         "almalinux8.7": {
-            "version": "0.3.2"
+            "version": "0.3.3"
         }
     },
     "pssh": {
@@ -255,10 +255,10 @@
     "amd": {
         "almalinux8.7": {
             "aocl": {
-                "version": "4.1"
+                "version": "4.0"
             },
             "aocc": {
-                "version": "4.1.0"
+                "version": "4.0.0"
             } 
         }
     },
@@ -275,13 +275,13 @@
     },
     "azhc": {
         "almalinux8.7": {
-            "version": "0.2.4"
+            "version": "0.2.6"
         },
         "ubuntu20.04": {
-            "version": "0.2.4"
+            "version": "0.2.6"
         },
         "ubuntu22.04": {
-            "version": "0.2.4"
+            "version": "0.2.6"
         }
     },
     "rdma_core": {

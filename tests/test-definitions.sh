@@ -201,7 +201,8 @@ function verify_ipoib_status {
     check_exit_code "ib_ipoib module is inserted" "ip_ipoib module not inserted!"
 
     # Check if ib devices are listed
-    ifconfig | grep ib
+    # ifconfig | grep ib
+    ip link | grep ib
     check_exit_code "IPoIB is working" "IPoIB is not working!"
 }
 

@@ -11,7 +11,7 @@ mkdir -p $dest_test_dir
 
 pushd $dest_test_dir
 
-git clone https://github.com/Azure/azurehpc-health-checks.git --branch $azhc_version
+git clone https://github.com/Azure/azurehpc-health-checks.git --branch v$azhc_version
 
 pushd azurehpc-health-checks
 

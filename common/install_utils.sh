@@ -12,7 +12,7 @@ spack install
 
 cmake_home=$(spack location -i cmake)
 numactl_home=$(spack location -i numactl)
-echo "export PATH=$(echo $cmake_home)/bin:$(echo $numactl_home)/bin:\$PATH" | tee -a /etc/profile
+echo "export PATH=\$PATH:$(echo $cmake_home)/bin:$(echo $numactl_home)/bin" | tee -a /etc/profile
 ln -s $cmake_home/bin/cmake /bin/cmake
 ln -s $numactl_home/bin/numactl /bin/numactl
 

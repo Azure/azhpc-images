@@ -12,7 +12,7 @@ $ALMA_COMMON_DIR/install_spack.sh
 
 # Activate the environment/ container
 source /etc/profile
-export PATH="/sbin:/bin:/usr/sbin:/usr/bin:$PATH"
+export PATH="$PATH:/sbin:/bin:/usr/sbin:/usr/bin"
 
 # install compilers
 ./install_gcc.sh

@@ -11,10 +11,10 @@ spack add cmake \
 spack install
 
 cmake_home=$(spack location -i cmake)
-export_cmake_path="export PATH=$(echo $cmake_home)/bin:$PATH"
-eval $export_cmake_path
-echo $export_cmake_path | tee -a /etc/profile
+numactl_home=$(spack location -i numactl)
+echo "export PATH=\$PATH:$(echo $cmake_home)/bin:$(echo $numactl_home)/bin" | tee -a /etc/profile
 ln -s $cmake_home/bin/cmake /bin/cmake
+ln -s $numactl_home/bin/numactl /bin/numactl
 
 # Install azcopy tool
 # To copy blobs or files to or from a storage account

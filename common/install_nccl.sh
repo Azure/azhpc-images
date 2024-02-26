@@ -9,9 +9,7 @@ spack add nccl@$nccl_version cuda_arch=70,80,90 # V100,A100,H100 respectively
 spack install --no-checksum
 
 nccl_home=$(spack location -i nccl@$nccl_version)
-export_nccl_ld="export LD_LIBRARY_PATH=$(echo $nccl_home)/lib:$LD_LIBRARY_PATH"
-eval $export_nccl_ld
-echo $export_nccl_ld | tee -a /etc/profile
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$(echo $nccl_home)/lib" | tee -a /etc/profile
 
 # Install the nccl rdma sharp plugin
 mkdir -p /usr/local/nccl-rdma-sharp-plugins

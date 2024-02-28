@@ -23,7 +23,7 @@ pushd $monitor_dir
     popd
 popd
 
-# add an slias for Moneo
+# add an alias for Moneo
 if ! grep -qxF "alias moneo='python3 $HPC_ENV/tools/Moneo/moneo.py'" /etc/profile; then
     echo "alias moneo='python3 $HPC_ENV/tools/Moneo/moneo.py'" >> /etc/profile
 fi

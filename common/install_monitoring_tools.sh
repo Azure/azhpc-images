@@ -2,8 +2,11 @@
 
 set -ex
 
-# Set moneo metadata
-moneo_version=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+# grab latest release version of Moneo
+repo=Azure/Moneo
+release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+
+MONEO_VERSION=$release_version
 
 monitor_dir=$HPC_ENV/tools
 

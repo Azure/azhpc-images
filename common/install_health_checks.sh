@@ -1,8 +1,11 @@
 #!/bin/bash
 set -ex
 
-# Set the azhc version
-azhc_version=$(jq -r '.azhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+# grab latest release version of AZHC
+repo=Azure/azurehpc-health-checks
+release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+
+AZHC_VERSION=$release_version
 
 dest_test_dir=$HPC_ENV/test
 azhc_dir=$HPC_ENV/test/azurehpc-health-checks

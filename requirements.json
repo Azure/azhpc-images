@@ -264,13 +264,13 @@
     },
     "lustre": {
         "almalinux8.7": {
-            "version": "2.15.1_24_gbaa21ca"
+            "version": "2.15.3-43-gd7e07df"
         },
         "ubuntu20.04": {
-            "version": "2.15.1-29-gbae0abe"
+            "version": "2.15.3-43-gd7e07df"
         },
         "ubuntu22.04": {
-            "version": "2.15.1-29-gbae0abe"
+            "version": "2.15.3-43-gd7e07df"
         }
     },
     "azhc": {

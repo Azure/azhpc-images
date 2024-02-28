@@ -87,16 +87,16 @@ update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"
 update_waagent_conf "Provisioning.MonitorHostNamePeriod" "60"
 
 systemctl restart waagent
-$COMMON_DIR/write_component_version.sh "waagent" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
+$COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
 
 # Setting Linux NFS read-ahead limits
 # Reference: 
 #    https://learn.microsoft.com/en-us/azure/azure-netapp-files/performance-linux-nfs-read-ahead
 #    https://learn.microsoft.com/en-us/azure/storage/blobs/secure-file-transfer-protocol-support-how-to?tabs=azure-portal
 cat > /etc/udev/rules.d/90-nfs-readahead.rules <<EOM
-SUBSYSTEM=="bdi",
-ACTION=="add",
-PROGRAM="/usr/bin/awk -v bdi=$kernel 'BEGIN{ret=1} {if ($4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes",
+SUBSYSTEM=="bdi", \
+ACTION=="add", \
+PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
 ATTR{read_ahead_kb}="15380"
 EOM
 

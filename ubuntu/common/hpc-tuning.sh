@@ -73,36 +73,41 @@ fi
 # Install WALinuxAgent
 apt-get install -y python3-setuptools
 pip3 install distro
-WAAGENT_VERSION=2.9.0.4
-$COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
-DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
-wget ${DOWNLOAD_URL}
-tar -xvf $(basename ${DOWNLOAD_URL})
-pushd WALinuxAgent-${WAAGENT_VERSION}/
-python3 setup.py install --register-service
+
+# Set waagent version and sha256
+waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+waagent_version=$(jq -r '.version' <<< $waagent_metadata)
+waagent_sha256=$(jq -r '.sha256' <<< $waagent_metadata)
+waagent_download_url=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v$waagent_version.tar.gz
+
+$COMMON_DIR/download_and_verify.sh $waagent_download_url $waagent_sha256
+tar -xvf $(basename $waagent_download_url)
+pushd WALinuxAgent-$waagent_version/
+/usr/bin/python3 setup.py install --register-service
 popd
 
 # Configure WALinuxAgent
 sed -i -e 's/# OS.EnableRDMA=y/OS.EnableRDMA=y/g' /etc/waagent.conf
 sed -i -e 's/Provisioning.MonitorHostName=n/Provisioning.MonitorHostName=y/g' /etc/waagent.conf
-echo "Extensions.GoalStatePeriod=300" | sudo tee -a /etc/waagent.conf
-echo "Extensions.InitialGoalStatePeriod=6" | sudo tee -a /etc/waagent.conf
-echo "OS.EnableFirewallPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.RemovePersistentNetRulesPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.RootDeviceScsiTimeoutPeriod=300" | sudo tee -a /etc/waagent.conf
-echo "OS.MonitorDhcpClientRestartPeriod=60" | sudo tee -a /etc/waagent.conf
-echo "Provisioning.MonitorHostNamePeriod=60" | sudo tee -a /etc/waagent.conf
+echo "Extensions.GoalStatePeriod=300" | tee -a /etc/waagent.conf
+echo "Extensions.InitialGoalStatePeriod=6" | tee -a /etc/waagent.conf
+echo "OS.EnableFirewallPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.RemovePersistentNetRulesPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.RootDeviceScsiTimeoutPeriod=300" | tee -a /etc/waagent.conf
+echo "OS.MonitorDhcpClientRestartPeriod=60" | tee -a /etc/waagent.conf
+echo "Provisioning.MonitorHostNamePeriod=60" | tee -a /etc/waagent.conf
 systemctl daemon-reload
 systemctl restart walinuxagent
 
+$COMMON_DIR/write_component_version.sh "waagent" $waagent_version
 # Setting Linux NFS read-ahead limits
 # Reference: 
 #    https://learn.microsoft.com/en-us/azure/azure-netapp-files/performance-linux-nfs-read-ahead
 #    https://learn.microsoft.com/en-us/azure/storage/blobs/secure-file-transfer-protocol-support-how-to?tabs=azure-portal
 cat > /etc/udev/rules.d/90-nfs-readahead.rules <<EOM
-SUBSYSTEM=="bdi", \
-ACTION=="add", \
-PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
+SUBSYSTEM=="bdi",
+ACTION=="add",
+PROGRAM="/usr/bin/awk -v bdi=$kernel 'BEGIN{ret=1} {if ($4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes",
 ATTR{read_ahead_kb}="15380"
 EOM
 

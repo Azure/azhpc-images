@@ -6,11 +6,14 @@
 |Ubuntu 22.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_22.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |AlmaLinux 8.7|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.7)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
-# Azhpc Images
+# Azure HPC/AI VM Images
 
-This repository contains installation scripts for HPC images in Azure Marketplace, specifically [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) and [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc)
+This repository houses a collection of scripts meticulously crafted for installing High-Performance Computing (HPC) and Artificial Intelligence (AI) libraries, along with tools essential for building Azure HPC/AI images. Whether you're provisioning compute-intensive workloads or crafting advanced AI models in the cloud, these scripts streamline the process, ensuring efficiency and reliability in your deployments.
 
-Note: We are not releasing any new CentOS HPC images to Azure marketplace. You can still use our CentOS HPC images, but it is suggested to consider moving to our AlmaLinux HPC images alternatives in Azure marketplace.
+Following are the current supported HPC/AI VM images that are available in Azure Marketplace:
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 (microsoft-dsvm:ubuntu-hpc:2204:latest)
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 20.04 (microsoft-dsvm:ubuntu-hpc:2004:latest)
+- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.7 (almalinux:almalinux-hpc:8_7-hpc-gen2:latest)
 
 # Contributing
 

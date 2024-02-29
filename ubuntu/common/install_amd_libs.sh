@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Set the GCC version
 export GCC_VERSION=$(gcc --version | grep gcc | awk '{print $4}')

@@ -237,13 +237,13 @@
     },
     "moneo": {
         "ubuntu20.04": {
-            "version": "0.3.3"
+            "version": "0.3.4"
         },
         "ubuntu22.04": {
-            "version": "0.3.3"
+            "version": "0.3.4"
         },
         "almalinux8.7": {
-            "version": "0.3.3"
+            "version": "0.3.4"
         }
     },
     "pssh": {
@@ -275,13 +275,13 @@
     },
     "azhc": {
         "almalinux8.7": {
-            "version": "0.2.6"
+            "version": "0.2.9"
         },
         "ubuntu20.04": {
-            "version": "0.2.6"
+            "version": "0.2.9"
         },
         "ubuntu22.04": {
-            "version": "0.2.6"
+            "version": "0.2.9"
         }
     },
     "rdma_core": {

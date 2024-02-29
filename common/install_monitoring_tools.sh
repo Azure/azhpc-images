@@ -4,9 +4,8 @@ set -ex
 
 # grab latest release version of Moneo
 repo=Azure/Moneo
-release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
+moneo_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
 
-MONEO_VERSION=$release_version
 
 monitor_dir=$HPC_ENV/tools
 
@@ -14,7 +13,7 @@ mkdir -p $monitor_dir
 
 pushd $monitor_dir
 
-    git clone https://github.com/Azure/Moneo  --branch v$moneo_version
+    git clone https://github.com/Azure/Moneo  --branch $moneo_version
 
     chmod 777 Moneo
 

@@ -35,7 +35,7 @@ rm -Rf -- */
 $COMMON_DIR/install_intel_libs.sh
 
 # install mpi libraries
-./install_mpis.sh
+$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh

@@ -13,6 +13,9 @@ $UBUNTU_COMMON_DIR/install_spack.sh
 source $HPC_ENV/spack/share/spack/setup-env.sh
 spack env activate $HPC_ENV
 
+# install AMD libs
+$UBUNTU_COMMON_DIR/install_amd_libs.sh
+
 # install utils
 ./install_utils.sh
 
@@ -21,6 +24,9 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
+
+# install mpi libraries
+$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh
@@ -33,9 +39,6 @@ rm -Rf -- */
 
 # install Intel libraries
 $COMMON_DIR/install_intel_libs.sh
-
-# install mpi libraries
-$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
@@ -63,9 +66,6 @@ $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
 $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
-
-# install AMD libs
-$UBUNTU_COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

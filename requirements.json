@@ -254,6 +254,22 @@
             "aocc": {
                 "version": "4.1.0"
             } 
+        },
+        "ubuntu20.04": {
+            "aocl": {
+                "version": "4.1"
+            },
+            "aocc": {
+                "version": "4.1.0"
+            } 
+        },
+        "ubuntu22.04": {
+            "aocl": {
+                "version": "4.1"
+            },
+            "aocc": {
+                "version": "4.1.0"
+            } 
         }
     },
     "lustre": {

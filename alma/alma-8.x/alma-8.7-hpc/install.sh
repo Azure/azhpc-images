@@ -89,3 +89,6 @@ $COMMON_DIR/setup_sku_customizations.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh
+
+# add a security patch of CVE issue for AlmaLinux 8.7 only
+$COMMON_DIR/../alma/alma-8.x/common/disable_user_namespaces.sh

@@ -5,6 +5,7 @@ module_files_directory=$MODULE_FILES_DIRECTORY/mpi
 install_prefix=/opt
 
 # Install HPC-x
+gcc_version=$(jq -r '.gcc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 hpcx_version=$(jq -r '.version' <<< $hpcx_metadata)
 hpcx_sha256=$(jq -r '.sha256' <<< $hpcx_metadata)
@@ -36,7 +37,7 @@ ln -s $module_files_directory/hpcx-$hpcx_version $module_files_directory/hpcx
 # Add the MPIs to the environment
 # Install MVAPICH2
 mvapich2_version=$(jq -r '.mvapich2."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add mvapich2@$mvapich2_version %gcc@$GCC_VERSION
+spack add mvapich2@$mvapich2_version %gcc@$gcc_version
 
 # Add UCX, HCOLL as externals for Open MPI installation
 # /opt/azurehpc/spack/etc/spack/defaults/packages.yaml
@@ -98,7 +99,7 @@ EOF
 
 # Install Open MPI
 ompi_version=$(jq -r '.ompi."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-spack add openmpi@$ompi_version fabrics=ucx,hcoll ^ucx@$ucx_version ^hcoll@$hcoll_version %gcc@$GCC_VERSION
+spack add openmpi@$ompi_version fabrics=ucx,hcoll ^ucx@$ucx_version ^hcoll@$hcoll_version %gcc@$gcc_version
 
 # Install Intel MPI 2021
 impi_2021_version=$(jq -r '.impi_2021."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
@@ -123,8 +124,8 @@ cat << EOF >> $module_files_directory/mvapich2-$mvapich2_version
 conflict        mpi
 
 if { "$DISTRIBUTION" == "almalinux8.7" } {
-    setenv gcc_version $GCC_VERSION
-    module load gcc-$GCC_VERSION
+    setenv gcc_version $gcc_version
+    module load gcc-$gcc_version
 }
 
 prepend-path    PATH            $(echo $mvapich2_path)/bin
@@ -146,8 +147,8 @@ cat << EOF >> $module_files_directory/openmpi-$ompi_version
 conflict        mpi
 
 if { "$DISTRIBUTION" == "almalinux8.7" } {
-    setenv gcc_version $GCC_VERSION
-    module load gcc-$GCC_VERSION
+    setenv gcc_version $gcc_version
+    module load gcc-$gcc_version
 }
 
 prepend-path    PATH            $(echo $ompi_path)/bin

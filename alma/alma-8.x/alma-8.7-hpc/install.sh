@@ -18,7 +18,7 @@ export PATH="$PATH:/sbin:/bin:/usr/sbin:/usr/bin"
 $COMMON_DIR/install_gcc.sh
 
 # install AMD tuned libraries
-$ALMA_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install utils
 ./install_utils.sh

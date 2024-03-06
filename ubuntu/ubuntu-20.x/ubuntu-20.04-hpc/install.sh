@@ -11,8 +11,11 @@ source ./set_properties.sh
 $UBUNTU_COMMON_DIR/install_spack.sh
 
 # Activate the environment/ container
-source $HPC_ENV/spack/share/spack/setup-env.sh
-spack env activate $HPC_ENV
+source /etc/profile
+export PATH="$PATH:/sbin:/bin:/usr/sbin:/usr/bin"
+
+# install compilers
+$COMMON_DIR/install_gcc.sh
 
 # install utils
 ./install_utils.sh

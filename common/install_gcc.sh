@@ -34,5 +34,5 @@ spack gc -y
 # despacktivate
 spack env activate -d $HPC_ENV
 
-# Adds 9.2.0 to the list of compilers of old environment
+# Adds installed gcc to the list of compilers of old environment
 spack compiler add $gcc_home

@@ -22,6 +22,10 @@ echo $source_spack_env | tee -a /etc/profile
 spack_version=$(spack --version | cut -d ' ' -f 1)
 $COMMON_DIR/write_component_version.sh "spack" $spack_version
 
+# Setup spack binary cache
+spack mirror add tutorial /mirror
+spack buildcache keys --install --trust
+
 # Create an environment/ container in /opt
 spack env create -d $HPC_ENV
 echo "spack env activate $HPC_ENV" | tee -a /etc/profile

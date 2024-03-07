@@ -29,13 +29,13 @@
     },
     "gcc": {
         "almalinux8.7": {
-            "version": "12.2.0"
+            "version": "12.3.0"
         },
         "ubuntu22.04": {
-            "version": "12.2.0"
+            "version": "12.3.0"
         },
         "ubuntu20.04": {
-            "version": "12.2.0"
+            "version": "12.3.0"
         }
     },
     "mofed": {

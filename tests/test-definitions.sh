@@ -177,9 +177,9 @@ function verify_gcc_installation {
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
     # Verify GCC Software installation path
-    check_exists "/opt/gcc-$gcc_version/"
+    check_exists "/opt/gcc-$gcc/"
     # Verify GCC module file path
-    check_exists "$MODULE_FILES_ROOT/gcc-$gcc_version"
+    check_exists "$MODULE_FILES_ROOT/gcc-$gcc"
 }
 
 function verify_aocl_installation {

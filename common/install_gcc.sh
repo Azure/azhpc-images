@@ -12,6 +12,8 @@ spack env activate /opt/gcc-$gcc_version
 spack add gcc@$gcc_version
 spack install
 
+$COMMON_DIR/write_component_version.sh "gcc" $gcc_version
+
 gcc_home=$(spack location -i gcc@$gcc_version)
 
 # create modulefile

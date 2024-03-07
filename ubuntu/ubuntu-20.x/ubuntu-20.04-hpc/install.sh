@@ -17,6 +17,9 @@ export PATH="$PATH:/sbin:/bin:/usr/sbin:/usr/bin"
 # install compilers
 $COMMON_DIR/install_gcc.sh
 
+# install AMD libs
+$COMMON_DIR/install_amd_libs.sh
+
 # install utils
 ./install_utils.sh
 
@@ -26,7 +29,10 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
-# install nvidia gpu driver  
+# install mpi libraries
+$UBUNTU_COMMON_DIR/install_mpis.sh
+
+# install nvidia gpu driver
 ./install_nvidiagpudriver.sh
 
 # cleanup downloaded tarballs - clear some space
@@ -37,9 +43,6 @@ rm -Rf -- */
 
 # install Intel libraries
 $COMMON_DIR/install_intel_libs.sh
-
-# install mpi libraries
-$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
@@ -67,9 +70,6 @@ $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
 $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
-
-# install AMD libs
-$COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

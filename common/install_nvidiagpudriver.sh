@@ -12,8 +12,8 @@ cuda_samples_sha256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 spack add cuda@$cuda_driver_version
 spack concretize -f
 spack install
-echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/profile
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile
+echo 'export PATH=/usr/local/cuda/bin:$PATH' | tee -a /etc/profile
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
 
 $COMMON_DIR/write_component_version.sh "cuda" $cuda_driver_version
 

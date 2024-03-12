@@ -12,6 +12,8 @@ spack env activate /opt/gcc-$gcc_version
 spack add gcc@$gcc_version
 spack install
 
+$COMMON_DIR/write_component_version.sh "gcc" $gcc_version
+
 gcc_home=$(spack location -i gcc@$gcc_version)
 
 # create modulefile
@@ -34,5 +36,5 @@ spack gc -y
 # despacktivate
 spack env activate -d $HPC_ENV
 
-# Adds 9.2.0 to the list of compilers of old environment
+# Adds installed gcc to the list of compilers of old environment
 spack compiler add $gcc_home

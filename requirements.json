@@ -29,13 +29,13 @@
     },
     "gcc": {
         "almalinux8.7": {
-            "version": "12.2.0"
+            "version": "12.3.0"
         },
         "ubuntu22.04": {
-            "version": "11.4.0"
+            "version": "12.3.0"
         },
         "ubuntu20.04": {
-            "version": "9.4.0"
+            "version": "12.3.0"
         }
     },
     "mofed": {
@@ -254,6 +254,22 @@
     },
     "amd": {
         "almalinux8.7": {
+            "aocl": {
+                "version": "4.1"
+            },
+            "aocc": {
+                "version": "4.1.0"
+            } 
+        },
+        "ubuntu20.04": {
+            "aocl": {
+                "version": "4.1"
+            },
+            "aocc": {
+                "version": "4.1.0"
+            } 
+        },
+        "ubuntu22.04": {
             "aocl": {
                 "version": "4.1"
             },

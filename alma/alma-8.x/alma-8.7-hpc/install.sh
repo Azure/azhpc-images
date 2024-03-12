@@ -15,10 +15,10 @@ source /etc/profile
 export PATH="$PATH:/sbin:/bin:/usr/sbin:/usr/bin"
 
 # install compilers
-./install_gcc.sh
+$COMMON_DIR/install_gcc.sh
 
 # install AMD tuned libraries
-$ALMA_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install utils
 ./install_utils.sh
@@ -30,7 +30,7 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 ./install_mellanoxofed.sh
 
 # install mpi libraries
-./install_mpis.sh
+$ALMA_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
 ./install_nvidiagpudriver.sh

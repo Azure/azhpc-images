@@ -14,8 +14,8 @@ cp ./microsoft-prod.list /etc/apt/sources.list.d/
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
 cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
 
-apt-get update
-apt-get install -y libnuma-dev \
+apt update
+apt install -y libnuma-dev \
     python3-pip \
     net-tools \
     libnl-3-dev \

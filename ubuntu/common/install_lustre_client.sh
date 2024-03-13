@@ -6,7 +6,7 @@ lustre_version=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERS
 
 source $UBUNTU_COMMON_DIR/setup_lustre_repo.sh
 
-apt-get update
-apt-get install -y amlfs-lustre-client-$lustre_version=$(uname -r)
+apt update
+apt install -y amlfs-lustre-client-$lustre_version=$(uname -r)
 
 $COMMON_DIR/write_component_version.sh "lustre" $lustre_version

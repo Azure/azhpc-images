@@ -4,8 +4,8 @@ set -ex
 # Set Intel® oneAPI Math Kernel Library info
 intel_one_mkl_metadata=$(jq -r '.intel_one_mkl."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 INTEL_ONE_MKL_VERSION=$(jq -r '.version' <<< $intel_one_mkl_metadata)
-INTEL_ONE_MKL_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
-INTEL_ONE_MKL_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
+INTEL_ONE_MKL_SHA256=$(jq -r '.sha256' <<< $intel_one_mkl_metadata)
+INTEL_ONE_MKL_DOWNLOAD_URL=$(jq -r '.url' <<< $intel_one_mkl_metadata)
 INTEL_ONE_MKL_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
 
 # Install Intel® oneAPI Math Kernel Library

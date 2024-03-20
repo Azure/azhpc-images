@@ -88,7 +88,7 @@ azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
 azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)
 azcopy_sha256=$(jq -r '.sha256' <<< $azcopy_metadata)
 TARBALL="azcopy_linux_amd64_$azcopy_version.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$tarball"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$TARBALL"
 wget ${AZCOPY_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 

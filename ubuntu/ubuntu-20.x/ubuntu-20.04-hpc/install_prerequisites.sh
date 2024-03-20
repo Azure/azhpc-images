@@ -6,7 +6,7 @@ apt-mark hold linux-azure
 
 # upgrade pre-installed components
 apt update
-apt upgrade -y
+# apt upgrade -y # test to see if this fixes lustre
 
 # jq is needed to parse the component versions from the requirements.json file
 apt install -y jq

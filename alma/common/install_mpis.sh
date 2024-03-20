@@ -22,6 +22,7 @@ MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mv
 TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
 MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
 
+$COMMON_DIR/download_and_verify.sh $MVAPICH2_DOWNLOAD_URL $MVAPICH2_SHA256
 tar -xvf ${TARBALL}
 cd ${MVAPICH2_FOLDER}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MVAPICH2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
@@ -55,7 +56,7 @@ IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
 IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
 
 $COMMON_DIR/download_and_verify.sh $IMPI_DOWNLOAD_URL $IMPI_SHA256
-bash OFFLINE_INSTALLER -s -a -s --eula accept
+bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 

@@ -25,10 +25,13 @@ $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
-MV2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz
-$COMMON_DIR/download_and_verify.sh $MV2_DOWNLOAD_URL $MVAPICH2_SHA256
-tar -xvf mvapich2-${MVAPICH2_VERSION}.tar.gz
-cd mvapich2-${MVAPICH2_VERSION}
+MVAPICH2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz
+TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
+MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
+
+$COMMON_DIR/download_and_verify.sh $MVAPICH2_DOWNLOAD_URL $MVAPICH2_SHA256
+tar -xvf ${TARBALL}
+cd ${MVAPICH2_FOLDER}
 # Error exclusive to Ubuntu 22.04
 # configure: error: The Fortran compiler gfortran will not compile files that call
 # the same routine with arguments of different types.
@@ -59,7 +62,7 @@ IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
 IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
 
 $COMMON_DIR/download_and_verify.sh $IMPI_DOWNLOAD_URL $IMPI_SHA256
-bash OFFLINE_INSTALLER -s -a -s --eula accept
+bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 

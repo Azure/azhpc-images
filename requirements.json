@@ -90,9 +90,9 @@
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_2021.9.0.43482_offline.sh"
         },
         "almalinux8.7": {
-            "version": "2018.4.274",
-            "sha256": "a1114b3eb4149c2f108964b83cad02150d619e50032059d119ac4ffc9d5dd8e0",
-            "url": "http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/13651/l_mpi_2018.4.274.tgz"
+            "version": "2021.9.0",
+            "sha256": "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_2021.9.0.43482_offline.sh"
         }
     },
     "nvidia": {

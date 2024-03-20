@@ -47,13 +47,17 @@ $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 # exclude openmpi, perftest from updates
 sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 
-# Intel MPI 2021 (Update 9)
-IMPI_2021_VERSION="2021.9.0"
-IMPI_2021_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh
-$COMMON_DIR/download_and_verify.sh $IMPI_2021_DOWNLOAD_URL "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8"
-bash l_mpi_oneapi_p_${IMPI_2021_VERSION}.43482_offline.sh -s -a -s --eula accept
-mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
-$COMMON_DIR/write_component_version.sh "IMPI_2021" ${IMPI_2021_VERSION}
+# Install Intel MPI
+impi_metadata=$(jq -r '.impi."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
+IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
+IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
+IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
+
+$COMMON_DIR/download_and_verify.sh $IMPI_DOWNLOAD_URL $IMPI_SHA256
+bash OFFLINE_INSTALLER -s -a -s --eula accept
+mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
+$COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 
 # Setup module files for MPIs
 mkdir -p /usr/share/Modules/modulefiles/mpi/

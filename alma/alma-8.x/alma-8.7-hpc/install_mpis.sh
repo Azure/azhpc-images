@@ -11,13 +11,15 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.15
-HPCX_VERSION="v2.16"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-mlnx_ofed-redhat8-cuda12-gdrcopy2-nccl2.18-x86_64.tbz"
-HPCX_DOWNLOAD_URL=https://content.mellanox.com/hpc/hpc-x/${HPCX_VERSION}/${TARBALL}
-HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
+# Install HPC-x
+hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
+HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
+HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+TARBALL=$(basename $HPCX_DOWNLOAD_URL)
+HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "78dc6bc152489decc8a4191121c7f070adadf657b0c90d8713dd8feb7e5e968e"
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL $HPCX_SHA256
 tar -xvf ${TARBALL}
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}

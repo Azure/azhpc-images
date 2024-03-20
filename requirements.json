@@ -27,17 +27,6 @@
             "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
-    "gcc": {
-        "almalinux8.7": {
-            "version": "12.3.0"
-        },
-        "ubuntu22.04": {
-            "version": "12.3.0"
-        },
-        "ubuntu20.04": {
-            "version": "12.3.0"
-        }
-    },
     "mofed": {
         "ubuntu20.04": {
             "version": "23.07-0.5.1.2",
@@ -91,7 +80,7 @@
             "version": "4.1.5"
         }
     },
-    "impi_2021": {
+    "impi": {
         "ubuntu20.04": {
             "version": "2021.9.0"
         },
@@ -99,7 +88,7 @@
             "version": "2021.9.0"
         },
         "almalinux8.7": {
-            "version": "2021.9.0"
+            "version": "2018.4.274"
         }
     },
     "nvidia": {

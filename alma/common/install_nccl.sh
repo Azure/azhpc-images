@@ -1,15 +1,10 @@
 #!/bin/bash
 set -ex
 
-case ${DISTRIBUTION} in
-    "almalinux8.6") NCCL_VERSION="2.14.3-1";
-        CUDA_VERSION="11.6";
-        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
-    "almalinux8.7") NCCL_VERSION="2.19.3-1";
-        CUDA_VERSION="12.2";
-        NCCL_RDMA_SHARP_COMMIT="575c1e0";;
-    *) ;;
-esac
+# Set NCCL versions
+NCCL_VERSION=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+NCCL_RDMA_SHARP_COMMIT=$(jq -r '.nccl."'"$DISTRIBUTION"'".rdmasharpplugins.commit' <<< $COMPONENT_VERSIONS)
+CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
 # Install NCCL
 yum install -y rpm-build rpmdevtools
@@ -22,9 +17,9 @@ tar -xvf ${TARBALL}
 pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
 sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 popd
 

@@ -77,13 +77,14 @@ yum localinstall ./repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/j
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
-# Install azcopy tool 
-# To copy blobs or files to or from a storage account.
-VERSION="10.17.0"
-RELEASE_TAG="release20230123"
-TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
-AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+# Install azcopy tool
+# To copy blobs or files to or from a storage account
+azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
+azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)
+azcopy_sha256=$(jq -r '.sha256' <<< $azcopy_metadata)
+TARBALL="azcopy_linux_amd64_$azcopy_version.tar.gz"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$tarball"
 wget ${AZCOPY_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 

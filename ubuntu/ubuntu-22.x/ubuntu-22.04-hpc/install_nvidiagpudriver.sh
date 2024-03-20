@@ -4,11 +4,11 @@ set -ex
 # Dependency for nvidia driver installation
 apt-get install -y libvulkan1
 
-$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh 2204
+$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install gdrcopy
 sudo apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
-GDRCOPY_VERSION="2.3"
+GDRCOPY_VERSION=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"
 GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/${TARBALL}
 wget $GDRCOPY_DOWNLOAD_URL
@@ -29,4 +29,4 @@ popd
 $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
 
 # Install nvidia fabric manager (required for ND96asr_v4)
-$UBUNTU_COMMON_DIR/install_nvidia_fabric_manager.sh 2204
+$UBUNTU_COMMON_DIR/install_nvidia_fabric_manager.sh

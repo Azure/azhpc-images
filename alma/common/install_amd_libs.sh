@@ -1,6 +1,8 @@
 #!/bin/bash
 
-AOCC_VERSION=4.0.0-1
+# Set AOCC and AOCL versions
+amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+AOCC_VERSION=$(jq -r '.aocc.version' <<< $amd_metadata)
 
 # install dependency
 wget https://download.amd.com/developer/eula/aocc-compiler/aocc-compiler-${AOCC_VERSION}.x86_64.rpm

@@ -1,13 +1,8 @@
 #!/bin/bash
-
-
 set -e
 
-# grab latest release version
-repo=Azure/azurehpc-health-checks
-release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
-
-AZHC_VERSION=$release_version
+# Set the azhc version
+AZHC_VERSION=$(jq -r '.azhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 DEST_TEST_DIR=/opt/azurehpc/test
 AZHC_DIR=/opt/azurehpc/test/azurehpc-health-checks
@@ -16,7 +11,7 @@ mkdir -p $DEST_TEST_DIR
 
 pushd $DEST_TEST_DIR
 
-git clone https://github.com/Azure/azurehpc-health-checks.git --branch $AZHC_VERSION
+git clone https://github.com/Azure/azurehpc-health-checks.git --branch v$AZHC_VERSION
 
 pushd azurehpc-health-checks
 

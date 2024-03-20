@@ -1,15 +1,4 @@
 {
-    "spack": {
-        "ubuntu20.04": {
-            "branch": "develop"
-        },
-        "ubuntu22.04": {
-            "branch": "develop"
-        },
-        "almalinux8.7": {
-            "branch": "develop"
-        }     
-    },
     "azcopy": {
         "ubuntu20.04": {
             "version": "10.17.0",

@@ -12,10 +12,14 @@ yum install -y python3.8
 ln -fs /usr/bin/python3.8 /usr/bin/python3
 
 # install pssh
-PSSH_VER=2.3.1-29
-wget https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$PSSH_VER.el8.noarch.rpm
-yum install -y  pssh-$PSSH_VER.el8.noarch.rpm
-rm -f pssh-$PSSH_VER.el8.noarch.rpm
+pssh_metadata=$(jq -r '.pssh."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+PSSH_VERSION=$(jq -r '.version' <<< $pssh_metadata)
+PSSH_SHA256=$(jq -r '.sha256' <<< $pssh_metadata)
+pssh_download_url="https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$PSSH_VERSION.el8.noarch.rpm"
+$COMMON_DIR/download_and_verify.sh $pssh_download_url $PSSH_SHA256
+
+yum install -y  pssh-$PSSH_VERSION.el8.noarch.rpm
+rm -f pssh-$PSSH_VERSION.el8.noarch.rpm
 
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"

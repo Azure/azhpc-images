@@ -60,7 +60,7 @@ wget ${AZCOPY_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 # copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${VERSION}
+pushd azcopy_linux_amd64_${azcopy_version}
 cp azcopy /usr/bin/
 popd
 

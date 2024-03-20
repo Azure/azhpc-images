@@ -18,7 +18,7 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
-MVAPICH2_DOWNLOAD_URL=$(jq -r '.url' <<< $mvapich2_metadata)
+MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz"
 TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
 MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
 

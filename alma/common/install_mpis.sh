@@ -100,24 +100,24 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 #IntelMPI-v2021
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION}
+cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
 #%Module 1.0
 #
-#  Intel MPI ${IMPI_2021_VERSION}
+#  Intel MPI ${IMPI_VERSION}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/modulefiles/impi
-setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/bin
-setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/include
-setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/lib
-setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}/man
-setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_2021_VERSION}
+module load /opt/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
+setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/bin
+setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_VERSION}/include
+setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_VERSION}/lib
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/man
+setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_VERSION}
 EOF
 
 # Create symlinks for modulefiles
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MVAPICH2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
-ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_2021_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
+ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
 
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tar.gz *offline.sh

@@ -117,18 +117,18 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 # Intel 2021
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${IMPI_VERSION}
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
 #  Intel MPI ${IMPI_VERSION}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
-setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/bin
-setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_VERSION}/include
-setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_VERSION}/lib
-setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/man
-setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_VERSION}
+module load /opt/intel/oneapi/mpi/${impi_2021_version}/modulefiles/impi
+setenv          MPI_BIN         /opt/intel/oneapi/mpi/${impi_2021_version}/bin
+setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/include
+setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/man
+setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
 EOF
 
 # Softlinks

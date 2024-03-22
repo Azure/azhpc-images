@@ -527,12 +527,12 @@ fi
 # impi 2021
 if [ $CHECK_IMPI_2021 -eq 1 ]
 then
-    check_exists "${MODULE_FILES_ROOT}/etc/modulefiles/mpi"
+    check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
 
-    module load mpi/2021.11
+    module load mpi/impi-2021
     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${IMPI2021_PATH}/bin/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021" "Failed to run Intel MPI 2021"
-    module unload mpi/2021.11
+    module unload mpi/impi-2021
 fi
 
 # impi 2018

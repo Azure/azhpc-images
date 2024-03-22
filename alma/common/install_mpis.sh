@@ -119,7 +119,7 @@ EOF
 # Create symlinks for modulefiles
 ln -s /usr/share/Modules/modulefiles/mpi/mvapich2-${MVAPICH2_VERSION} /usr/share/Modules/modulefiles/mpi/mvapich2
 ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modules/modulefiles/mpi/openmpi
-ln -s /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION} /usr/share/Modules/modulefiles/mpi/impi-2021
+ln -s /usr/share/Modules/modulefiles/mpi/impi_${impi_2021_version} /usr/share/Modules/modulefiles/mpi/impi-2021
 
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tar.gz *offline.sh

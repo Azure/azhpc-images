@@ -76,10 +76,6 @@ else
     OMPI_VERSION_UBUNTU="4.1.5"
     HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
     case ${distro} in
-        "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.15";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";
-            ;;
         "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
@@ -90,7 +86,6 @@ else
             ;;
         *) ;;
     esac
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-MLNX_OFED_LINUX-5-ubuntu18.04-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
 fi
 
 MVAPICH2_VERSION_ALMA="2.3.7-1"

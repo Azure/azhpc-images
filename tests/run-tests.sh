@@ -28,8 +28,6 @@ if [ -z "${l}" ]; then
     usage
 fi
 
-MOFED_LTS=${l} # true/ false
-
 source /etc/profile
 
 GCC_VERSION="9.2.0"
@@ -64,29 +62,19 @@ find_ubuntu_distro() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
-if [ "${MOFED_LTS}" = true ]
-then
-    HPCX_VERSION_UBUNTU="v2.7.0"
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-6.0.6.0"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
-    HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-    IMPI_2021_VERSION_UBUNTU="2021.9.0"
-    OMPI_VERSION_UBUNTU="4.1.5"
-else
-    OMPI_VERSION_UBUNTU="4.1.5"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
-    case ${distro} in
-        "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";
-            ;;
-        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";
-            ;;
-        *) ;;
-    esac
-fi
+OMPI_VERSION_UBUNTU="4.1.5"
+HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
+case ${distro} in
+    "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
+        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
+        IMPI_2021_VERSION_UBUNTU="2021.9.0";
+        ;;
+    "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
+        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
+        IMPI_2021_VERSION_UBUNTU="2021.9.0";
+        ;;
+    *) ;;
+esac
 
 MVAPICH2_VERSION_ALMA="2.3.7-1"
 MVAPICH2_VERSION_UBUNTU="2.3.7-1"
@@ -268,7 +256,7 @@ then
     check_exists "/opt/amd/include/"
 fi
 
-if [ $CHECK_DOCKER -eq 1 ] && [ "${MOFED_LTS}" = false ]
+if [ $CHECK_DOCKER -eq 1 ]
 then
     sudo docker pull hello-world
     sudo docker run hello-world
@@ -355,31 +343,17 @@ if [ $CHECK_NCCL -eq 1 ]
 then
     module load mpi/hpcx
 
-    if [ "${MOFED_LTS}" = true ]
-    then
-        mpirun -np 4 \
-        -x LD_LIBRARY_PATH \
-        --allow-run-as-root \
-        --map-by ppr:4:node \
-        -mca coll_hcoll_enable 0 \
-        -x UCX_TLS=tcp \
-        -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
-        -x NCCL_SOCKET_IFNAME=eth0 \
-        -x NCCL_DEBUG=WARN \
-        /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
-    else
-        mpirun -np 8 \
-        --allow-run-as-root \
-        --map-by ppr:8:node \
-        -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
-        -mca coll_hcoll_enable 0 \
-        -x UCX_TLS=tcp \
-        -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
-        -x NCCL_SOCKET_IFNAME=eth0 \
-        -x NCCL_DEBUG=WARN \
-        -x NCCL_NET_GDR_LEVEL=5 \
-        /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
-    fi
+    mpirun -np 8 \
+    --allow-run-as-root \
+    --map-by ppr:8:node \
+    -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+    -mca coll_hcoll_enable 0 \
+    -x UCX_TLS=tcp \
+    -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+    -x NCCL_SOCKET_IFNAME=eth0 \
+    -x NCCL_DEBUG=WARN \
+    -x NCCL_NET_GDR_LEVEL=5 \
+    /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
 
     check_exit_code "Single Node NCCL Test" "Failed"
 

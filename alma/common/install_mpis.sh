@@ -59,7 +59,7 @@ $COMMON_DIR/download_and_verify.sh $IMPI_DOWNLOAD_URL $IMPI_SHA256
 bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
 
 impi_2021_version=${IMPI_VERSION:0:-2}
-mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
+mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 
 # Setup module files for MPIs

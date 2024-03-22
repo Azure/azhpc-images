@@ -84,27 +84,27 @@ echo "Detected distro: ${distro}"
 
 if [ "${MOFED_LTS}" = true ]
 then
-    HPCX_VERSION_UBUNTU="v2.7.0"
-    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-4.9-6.0.6.0"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-4.7-1.0.0.1"
+    HPCX_VERSION_UBUNTU="v2.18"
+    MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1"
+    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED"
     HPCX_OMB_PATH_UBUNTU_1804="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-${HPCX_MOFED_INTEGRATION_VERSION}-ubuntu18.04-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
-    IMPI_2021_VERSION_UBUNTU="2021.9.0"
-    OMPI_VERSION_UBUNTU="4.1.5"
+    IMPI_2021_VERSION_UBUNTU="2021.11"
+    OMPI_VERSION_UBUNTU="5.0.2"
 else
-    OMPI_VERSION_UBUNTU="4.1.5"
-    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
+    OMPI_VERSION_UBUNTU="5.0.2"
+    HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-24.01-0.3.3.1"
     case ${distro} in
         "Ubuntu 18.04") HPCX_VERSION_UBUNTU="v2.15";
             MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.04-1.1.3.0";
             IMPI_2021_VERSION_UBUNTU="2021.9.0";
             ;;
-        "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";
+        "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.18";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
+            IMPI_2021_VERSION_UBUNTU="2021.11";
             ;;
-        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
-            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-            IMPI_2021_VERSION_UBUNTU="2021.9.0";
+        "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.18";
+            MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
+            IMPI_2021_VERSION_UBUNTU="2021.11";
             ;;
         *) ;;
     esac
@@ -121,12 +121,12 @@ MVAPICH2_VERSION_SUSE="2.3.6"
 
 OMPI_VERSION_CENTOS="4.1.1"
 OMPI_VERSION_ALMA_86="4.1.3"
-OMPI_VERSION_ALMA_87="4.1.5"
+OMPI_VERSION_ALMA_87="5.0.2"
 OMPI_VERSION_SUSE="4.1.1"
 
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA_86="2021.7.0"
-IMPI_2021_VERSION_ALMA_87="2021.9.0"
+IMPI_2021_VERSION_ALMA_87="2021.11"
 IMPI_2021_VERSION_SUSE="2021.9.0"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
@@ -136,7 +136,7 @@ MOFED_VERSION_CENTOS="MLNX_OFED_LINUX-5.4-1.0.3.0"
 MOFED_VERSION_CENTOS_79="MLNX_OFED_LINUX-5.4-3.0.0.0"
 MOFED_VERSION_CENTOS_83="MLNX_OFED_LINUX-5.2-1.0.4.0"
 MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
-MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-23.07-0.5.1.2"
+MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-24.01-0.3.3.1"
 MOFED_VERSION_SUSE="MLNX_OFED_INBOX_5.14.21-4.0.0"
 #MOFED_VERSION_SUSE="MLNX_OFED-5.7-1.0.2.0"
 
@@ -154,7 +154,7 @@ MVAPICH2X_PATH_CENTOS="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.1/azu
 OPENMPI_PATH_CENTOS="/opt/openmpi-${OMPI_VERSION_CENTOS}"
 
 HPCX_OMB_PATH_ALMA_86="/opt/hpcx-v2.14-gcc-MLNX_OFED_LINUX-5-redhat8-cuda11-gdrcopy2-nccl2.16-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.16-gcc-mlnx_ofed-redhat8-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA_86="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_86}"
 IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"
@@ -164,8 +164,8 @@ OPENMPI_PATH_ALMA_86="/opt/openmpi-${OMPI_VERSION_ALMA_86}"
 OPENMPI_PATH_ALMA_87="/opt/openmpi-${OMPI_VERSION_ALMA_87}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
+HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 # added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
@@ -200,13 +200,13 @@ then
     MKL_VERSION="2023.1.0"
 elif [[ $distro == "Ubuntu"* ]]
 then
-    MKL_VERSION="2023.2.0"
+    MKL_VERSION="2024.0.0.49673"
 elif [[ $distro == "AlmaLinux 8.6" ]]
 then
     MKL_VERSION="2022.1.0"
 elif [[ $distro == "AlmaLinux 8.7" ]]
 then
-    MKL_VERSION="2023.2.0"
+    MKL_VERSION="2024.0.0.49673"
 else
     MKL_VERSION="2023.1.0"
 fi

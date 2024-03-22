@@ -51,7 +51,9 @@ tdnf install -y python3-devel \
     environment-modules \
     pam-devel \
     ed \
-    pciutils
+    pciutils \
+    vim \
+    dnf-plugins-core
    
 ## Disable kernel updates
 #echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

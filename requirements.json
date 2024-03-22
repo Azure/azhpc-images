@@ -199,11 +199,12 @@
         },
         "mariner2.0": {
             "driver": {
-                "version": "12.1.0"
+                "version": "12-2",
+                "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.1",
-                "sha256": "f758160645b366d79c2638d8dfd389f01029b8d179ab0c11726b9ef58aecebd9"
+                "version": "12.2",
+                "sha256": "1823cfe28e97a9230107aa72b231f78952c0f178b71a920f036d360518480bdc"
             }  
         }
     },

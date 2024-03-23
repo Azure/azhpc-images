@@ -120,14 +120,14 @@ EOF
 cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
-#  Intel MPI ${IMPI_VERSION}
+#  Intel MPI ${impi_2021_version}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${impi_2021_version}/modulefiles/impi
+module load /opt/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
 setenv          MPI_BIN         /opt/intel/oneapi/mpi/${impi_2021_version}/bin
 setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/include
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
-setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/man
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share/man
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
 EOF
 

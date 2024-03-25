@@ -123,7 +123,7 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #  Intel MPI ${impi_2021_version}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
+module load /opt/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi/${impi_2021_version}
 setenv          MPI_BIN         /opt/intel/oneapi/mpi/${impi_2021_version}/bin
 setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/include
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib

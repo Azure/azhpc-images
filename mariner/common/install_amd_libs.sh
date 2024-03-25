@@ -1,26 +1,16 @@
 #!/bin/bash
 set -ex
 
-source /etc/bashrc
-
-# Set AOCC and AOCL versions
+# Set AOCC version
 amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
-aocc_version=$(jq -r '.aocc.version' <<< $amd_metadata)
+AOCC_VERSION=$(jq -r '.aocc.version' <<< $amd_metadata)
+AOCC_SHA256=$(jq -r '.aocc.sha256' <<< $amd_metadata)
 
-# Create an environment for amd related packages
-spack env create -d /opt/amd
-spack env activate /opt/amd
+# install dependency
+PACKAGE="aocc-compiler-${AOCC_VERSION}.x86_64.rpm"
+AOCC_DOWNLOAD_URL=https://download.amd.com/developer/eula/aocc-compiler/$PACKAGE
+$COMMON_DIR/download_and_verify.sh $AOCC_DOWNLOAD_URL $AOCC_SHA256 
+tdnf install -y ./$PACKAGE
 
-# Install AOCC
-spack add aocc@$aocc_version +license-agreed
-spack concretize -f
-spack install
-
-$COMMON_DIR/write_component_version.sh "aocc" $aocc_version
-
-# Clear the ununsed packages
-spack gc -y
-# return to the old environment
-# deactivate existing environment
-# despacktivate
-spack env activate -d $HPC_ENV
+rm ./$PACKAGE
+$COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}

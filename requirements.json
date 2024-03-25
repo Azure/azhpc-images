@@ -342,10 +342,12 @@
         },
         "mariner2.0": {
             "aocl": {
-                "version": "4.0"
+                "version": "4.0",
+                "sha256": "c8000a66aaa2a257252cbb307732b4e66758b72b08f43b3723f4eb5404ba28c8"
             },
             "aocc": {
-                "version": "4.0.0"
+                "version": "4.0.0-1",
+                "sha256": "bdeb4d6a24c7e783821ff02ce50f253587cf93b128f0c84eeb506698dcd8c9d3"
             } 
         }
     },

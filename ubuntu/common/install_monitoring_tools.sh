@@ -2,11 +2,8 @@
 
 set -e
 
-# grab latest release version
-repo=Azure/Moneo
-release_version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name')
-
-MONEO_VERSION=$release_version
+# Set the Moneo version
+MONEO_VERSION=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 # Dependencies 
 python3 -m pip install --upgrade pip
@@ -17,7 +14,7 @@ mkdir -p $MONITOR_DIR
 
 pushd $MONITOR_DIR
 
-    git clone https://github.com/Azure/Moneo  --branch $MONEO_VERSION
+    git clone https://github.com/Azure/Moneo  --branch v$MONEO_VERSION
 
     chmod 777 Moneo
 

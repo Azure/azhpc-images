@@ -70,10 +70,13 @@ then
     exit ${error_code}
 fi
 
+# Set waagent version and sha256
+waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
+
 # Install WALinuxAgent
 apt-get install -y python3-setuptools
 pip3 install distro
-WAAGENT_VERSION=2.9.0.4
 $COMMON_DIR/write_component_version.sh "WAAGENT" ${WAAGENT_VERSION}
 DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
 wget ${DOWNLOAD_URL}

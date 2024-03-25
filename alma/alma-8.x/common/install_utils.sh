@@ -12,10 +12,14 @@ yum install -y python3.8
 ln -fs /usr/bin/python3.8 /usr/bin/python3
 
 # install pssh
-PSSH_VER=2.3.1-29
-wget https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$PSSH_VER.el8.noarch.rpm
-yum install -y  pssh-$PSSH_VER.el8.noarch.rpm
-rm -f pssh-$PSSH_VER.el8.noarch.rpm
+pssh_metadata=$(jq -r '.pssh."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+pssh_version=$(jq -r '.version' <<< $pssh_metadata)
+pssh_sha256=$(jq -r '.sha256' <<< $pssh_metadata)
+pssh_download_url="https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$pssh_version.el8.noarch.rpm"
+$COMMON_DIR/download_and_verify.sh $pssh_download_url $pssh_sha256
+
+yum install -y  pssh-$pssh_version.el8.noarch.rpm
+rm -f pssh-$pssh_version.el8.noarch.rpm
 
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
@@ -77,18 +81,19 @@ yum localinstall ./repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/j
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
-# Install azcopy tool 
-# To copy blobs or files to or from a storage account.
-VERSION="10.17.0"
-RELEASE_TAG="release20230123"
-TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
-AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
+# Install azcopy tool
+# To copy blobs or files to or from a storage account
+azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
+azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)
+azcopy_sha256=$(jq -r '.sha256' <<< $azcopy_metadata)
+tarball="azcopy_linux_amd64_$azcopy_version.tar.gz"
+AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$tarball"
 wget ${AZCOPY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
+tar -xvf ${tarball}
 
 # copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${VERSION}
+pushd azcopy_linux_amd64_${azcopy_version}
 cp azcopy /usr/bin/
 popd
 

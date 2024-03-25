@@ -41,6 +41,7 @@ tdnf install -y python3-devel \
     fuse-libs \
     libnl3-devel \
     rpm-build \
+    rpmdevtools \
     make \
     cmake \
     mariner-rpm-macros \

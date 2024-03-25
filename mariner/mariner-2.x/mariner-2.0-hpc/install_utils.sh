@@ -53,7 +53,8 @@ tdnf install -y python3-devel \
     ed \
     pciutils \
     vim \
-    dnf-plugins-core
+    dnf-plugins-core \
+    check
    
 ## Disable kernel updates
 #echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
@@ -78,9 +79,6 @@ dnf localinstall -y ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages
 
 # Remove rpm files
 rm -rf ./dl.fedoraproject.org/
-
-# Install common dependencies
-$COMMON_DIR/install_utils.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

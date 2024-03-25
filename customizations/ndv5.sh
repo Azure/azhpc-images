@@ -15,6 +15,7 @@ EOF
 
 ## NVIDIA Fabric manager
 systemctl enable nvidia-fabricmanager
+systemctl stop nvidia-fabricmanager
 systemctl start nvidia-fabricmanager
 systemctl is-active --quiet nvidia-fabricmanager
 

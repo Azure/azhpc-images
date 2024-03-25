@@ -29,7 +29,7 @@ source ./set_properties.sh
 ./install_amd_libs.sh
 
 # install Intel libraries
-$COMMON_DIR/install_intel_libs.sh
+$MARINER_COMMON_DIR/install_intel_libs.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb

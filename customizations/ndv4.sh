@@ -14,10 +14,10 @@ NCCL_TOPO_FILE=/opt/microsoft/ndv4/topo.xml
 EOF
 
 ## NVIDIA Fabric manager
-systemctl enable nvidia-fabricmanager
-systemctl stop nvidia-fabricmanager
-systemctl start nvidia-fabricmanager
-systemctl is-active --quiet nvidia-fabricmanager
+# systemctl enable nvidia-fabricmanager
+# systemctl stop nvidia-fabricmanager
+# systemctl start nvidia-fabricmanager
+# systemctl is-active --quiet nvidia-fabricmanager
 
 error_code=$?
 if [ ${error_code} -ne 0 ]

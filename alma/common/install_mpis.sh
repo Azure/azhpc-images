@@ -102,7 +102,7 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 #IntelMPI-v2021
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
+cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${impi_2021_version}
 #%Module 1.0
 #
 #  Intel MPI ${impi_2021_version}

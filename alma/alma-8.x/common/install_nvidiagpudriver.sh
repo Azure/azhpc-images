@@ -72,6 +72,10 @@ yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rp
 sed -i "$ s/$/ nvidia-fabric-manager/" /etc/dnf/dnf.conf
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}
 
+systemctl enable nvidia-fabricmanager
+systemctl start nvidia-fabricmanager
+systemctl is-active --quiet nvidia-fabricmanager
+
 # cleanup downloaded files
 rm -rf *.run *tar.gz *.rpm
 rm -rf -- */

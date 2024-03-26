@@ -105,15 +105,15 @@ EOF
 cat << EOF >> /usr/share/Modules/modulefiles/mpi/impi_${IMPI_VERSION}
 #%Module 1.0
 #
-#  Intel MPI ${IMPI_VERSION}
+#  Intel MPI ${impi_2021_version}
 #
 conflict        mpi
-module load /opt/intel/oneapi/mpi/${IMPI_VERSION}/modulefiles/impi
-setenv          MPI_BIN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/bin
-setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${IMPI_VERSION}/include
-setenv          MPI_LIB         /opt/intel/oneapi/mpi/${IMPI_VERSION}/lib
-setenv          MPI_MAN         /opt/intel/oneapi/mpi/${IMPI_VERSION}/man
-setenv          MPI_HOME        /opt/intel/oneapi/mpi/${IMPI_VERSION}
+module load /opt/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi/${impi_2021_version}
+setenv          MPI_BIN         /opt/intel/oneapi/mpi/${impi_2021_version}/bin
+setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/include
+setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
+setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share/man
+setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
 EOF
 
 # Create symlinks for modulefiles

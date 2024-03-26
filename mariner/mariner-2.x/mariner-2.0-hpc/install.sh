@@ -56,7 +56,7 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 $MARINER_COMMON_DIR/add-udev-rules.sh
 
 # add interface rules
-$MARINER_COMMON_DIR/network-config.sh
+# $MARINER_COMMON_DIR/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh

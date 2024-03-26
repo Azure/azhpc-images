@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 GCC_VERSION=$1
 HPCX_PATH=$2

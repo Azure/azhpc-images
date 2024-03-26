@@ -55,7 +55,8 @@ tdnf install -y python3-devel \
     pciutils \
     vim \
     dnf-plugins-core \
-    check
+    check \
+    python3-pip
    
 ## Disable kernel updates
 #echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

@@ -19,6 +19,9 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 # install mellanox ofed
 ./install_mellanoxofed.sh
 
+# install PMIX
+$COMMON_DIR/../alma/alma-8.x/common/install_pmix.sh
+
 # install mpi libraries
 ./install_mpis.sh
 

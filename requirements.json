@@ -300,5 +300,16 @@
         "ubuntu22.04": {
             "branch": "stable-v48"
         }
+    },
+    "pmix": {
+        "almalinux8.7": {
+            "version": "4.2.9-1"
+        },
+        "ubuntu20.04": {
+            "version": "4.2.9-1"
+        },
+        "ubuntu22.04": {
+            "version": "4.2.9-1"
+        }
     }
 }

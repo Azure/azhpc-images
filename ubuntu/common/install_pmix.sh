@@ -1,9 +1,8 @@
 #!/bin/bash
+set -ex
 
-set -x
-
+PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
-PMIX_VERSION=4.2.9-1
 
 if [ $UBUNTU_VERSION == 22.04 ]; then
     REPO=slurm-ubuntu-jammy
@@ -48,3 +47,5 @@ apt install -y pmix=$PMIX_VERSION
 # Hold versions of packages to prevent accidental updates. Packages can still be upgraded explictly by
 # '--allow-change-held-packages' flag.
 apt-mark hold pmix=$PMIX_VERSION
+
+$COMMON_DIR/write_component_version.sh "PMIX" ${PMIX_VERSION}

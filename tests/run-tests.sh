@@ -62,9 +62,9 @@ find_ubuntu_distro() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
-
 OMPI_VERSION_UBUNTU="5.0.2"
 HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-24.01-0.3.3.1"
+
 case ${distro} in
     "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.18";
         MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";

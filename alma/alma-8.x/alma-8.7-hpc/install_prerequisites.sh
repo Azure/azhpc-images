@@ -1,12 +1,8 @@
 #!/bin/bash
 set -ex
 
-# Don't allow the kernel to be updated
-apt-mark hold linux-azure
-
-# upgrade pre-installed components
-apt update
-apt upgrade -y
+# Import the newest AlmaLinux 8 GPG key
+rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
 
 # jq is needed to parse the component versions from the requirements.json file
-apt install -y jq
+yum install -y jq

@@ -1,11 +1,12 @@
 #!/bin/bash
 set -ex
 
+# Don't allow the kernel to be updated
+apt-mark hold linux-azure
+
 # upgrade pre-installed components
 apt update
-
-# install LTS kernel
-apt install -y linux-azure-lts-20.04
+apt upgrade -y
 
 # jq is needed to parse the component versions from the requirements.json file
 apt install -y jq

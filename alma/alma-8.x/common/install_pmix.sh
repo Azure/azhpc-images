@@ -2,9 +2,9 @@
 set -ex
 
 PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-# SCRIPT_DIR=dirname "$0"
+REPO_DIR="$ALMA_COMMON_DIR/../alma-8.x/common"
 
-cp ./slurmel8.repo /etc/yum.repos.d/slurm.repo
+cp ${REPO_DIR}/slurmel8.repo /etc/yum.repos.d/slurm.repo
 
 ## This package is pre-installed in all hpc images used by cyclecloud, but if customer wants to
 ## build an image from generic marketplace images then this package sets up the right gpg keys for PMC.

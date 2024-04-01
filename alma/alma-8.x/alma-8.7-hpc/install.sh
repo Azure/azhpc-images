@@ -35,10 +35,10 @@ $ALMA_COMMON_DIR/../alma-8.x/common/install_pmix.sh
 ./install_intel_libs.sh
 
 # cleanup downloaded tarballs - clear some space
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
-rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -Rf -- */
+#rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+#rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+#rm -rf /var/intel/ /var/cache/*
+#rm -Rf -- */
 
 # Install NCCL
 ./install_nccl.sh

@@ -73,9 +73,9 @@
             "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
         },
         "almalinux8.7": {
-            "version": "4.1.6",
-            "sha256": "44da277b8cdc234e71c62473305a09d63f4dcca292ca40335aab7c4bf0e6a566",
-            "url": "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.6.tar.gz"
+            "version": "5.0.2",
+            "sha256": "095ab1cddb0fa0f9e7fc211a1d33185c6727c5237d0ee55f80a7e4311e5d279c",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
         }
     },
     "impi": {

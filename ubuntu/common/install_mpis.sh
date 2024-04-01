@@ -25,7 +25,7 @@ HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
-${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix=${PMIX_PATH}
+${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix-libdir=${PMIX_PATH}
 
 # Install MVAPICH2
 mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
@@ -41,7 +41,7 @@ cd ${MVAPICH2_FOLDER}
 # Error exclusive to Ubuntu 22.04
 # configure: error: The Fortran compiler gfortran will not compile files that call
 # the same routine with arguments of different types.
-./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MVAPICH2_VERSION} --enable-g=none --enable-fast=yes --with-pmix=${PMIX_PATH} && make -j$(nproc) && make install
+./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MVAPICH2_VERSION} --enable-g=none --enable-fast=yes --with-pmix-libdir=${PMIX_PATH} && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MVAPICH2_VERSION}
 
@@ -56,7 +56,7 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 $COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
+./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix-libdir=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized && make -j$(nproc) && make install
 cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 

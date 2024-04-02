@@ -32,10 +32,10 @@ $UBUNTU_COMMON_DIR/install_nccl.sh
 $UBUNTU_COMMON_DIR/install_docker.sh
 
 # cleanup downloaded tarballs - clear some space
-rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
-rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -Rf -- */
+#rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
+#rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
+#rm -rf /var/intel/ /var/cache/*
+#rm -Rf -- */
 
 # Install DCGM
 $UBUNTU_COMMON_DIR/install_dcgm.sh

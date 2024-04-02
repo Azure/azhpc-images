@@ -8,7 +8,7 @@ set GCC=/usr/bin/gcc
 INSTALL_PREFIX=/opt
 
 PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}/lib
+PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
 
 # HPC-X v2.16
 hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)

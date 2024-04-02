@@ -31,7 +31,7 @@ HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
-${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix-libdir=${PMIX_PATH}
+${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix=${PMIX_PATH}
 
 # exclude ucx from updates
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf

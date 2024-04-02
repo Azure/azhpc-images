@@ -127,5 +127,5 @@ ln -s /usr/share/Modules/modulefiles/mpi/openmpi-${OMPI_VERSION} /usr/share/Modu
 ln -s /usr/share/Modules/modulefiles/mpi/impi_${impi_2021_version} /usr/share/Modules/modulefiles/mpi/impi-2021
 
 # cleanup downloaded tarballs and other installation files/folders
-# rm -rf *.tar.gz *offline.sh
-# rm -rf -- */
+rm -rf *.tar.gz *offline.sh
+rm -rf -- */

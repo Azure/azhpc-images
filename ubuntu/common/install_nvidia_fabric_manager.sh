@@ -13,3 +13,7 @@ $COMMON_DIR/download_and_verify.sh $NVIDIA_FABRIC_MNGR_URL ${NVIDIA_FABRICMANAGE
 apt install -y ./nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
 apt-mark hold nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}
+
+systemctl enable nvidia-fabricmanager
+systemctl start nvidia-fabricmanager
+systemctl is-active --quiet nvidia-fabricmanager

@@ -19,11 +19,19 @@ HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
 TARBALL=$(basename $HPCX_DOWNLOAD_URL)
 HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
+PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+
 $COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL $HPCX_SHA256
 tar -xvf ${TARBALL}
+
+sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
+
+# rebuild HPCX with PMIx
+${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix=${PMIX_PATH}
 
 # exclude ucx from updates
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
@@ -38,7 +46,7 @@ cat << EOF >> /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION}
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx
+module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # Create symlinks for modulefiles

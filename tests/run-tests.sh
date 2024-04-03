@@ -62,16 +62,17 @@ find_ubuntu_distro() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
-OMPI_VERSION_UBUNTU="4.1.5"
-HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-5.4-1.0.3.0"
+OMPI_VERSION_UBUNTU="5.0.2"
+HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-24.01-0.3.3.1"
+
 case ${distro} in
-    "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.16";
-        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-        IMPI_2021_VERSION_UBUNTU="2021.9.0";
+    "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.18";
+        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
+        IMPI_2021_VERSION_UBUNTU="2021.11";
         ;;
-    "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.16";
-        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-23.07-0.5.1.2";
-        IMPI_2021_VERSION_UBUNTU="2021.9.0";
+    "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.18";
+        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
+        IMPI_2021_VERSION_UBUNTU="2021.11";
         ;;
     *) ;;
 esac
@@ -79,25 +80,22 @@ esac
 MVAPICH2_VERSION_ALMA="2.3.7-1"
 MVAPICH2_VERSION_UBUNTU="2.3.7-1"
 
-OMPI_VERSION_ALMA_86="4.1.3"
-OMPI_VERSION_ALMA_87="4.1.5"
-
-IMPI_2021_VERSION_ALMA_86="2021.7.0"
-IMPI_2021_VERSION_ALMA_87="2021.9.0"
+OMPI_VERSION_ALMA_87="5.0.2"
+IMPI_2021_VERSION_ALMA_87="2021.11"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
-MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-23.07-0.5.1.2"
-HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.16-gcc-mlnx_ofed-redhat8-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-24.01-0.3.3.1"
+HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
 OPENMPI_PATH_ALMA_87="/opt/openmpi-${OMPI_VERSION_ALMA_87}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
-HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2-nccl2.18-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
+HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
@@ -117,10 +115,10 @@ CHECK_DOCKER=0
 
 if [[ $distro == "Ubuntu"* ]]
 then
-    MKL_VERSION="2023.2.0"
+    MKL_VERSION="2024.0"
 elif [[ $distro == "AlmaLinux 8.7" ]]
 then
-    MKL_VERSION="2023.2.0"
+    MKL_VERSION="2024.0"
 else
     MKL_VERSION="2023.1.0"
 fi

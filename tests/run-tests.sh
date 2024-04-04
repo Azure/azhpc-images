@@ -87,15 +87,12 @@ MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-24.01-0.3.3.1"
-HPCX_OMB_PATH_ALMA_87="/opt/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
 OPENMPI_PATH_ALMA_87="/opt/openmpi-${OMPI_VERSION_ALMA_87}"
 
 MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-HPCX_OMB_PATH_UBUNTU_2004="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
-HPCX_OMB_PATH_UBUNTU_2204="/opt/hpcx-${HPCX_VERSION_UBUNTU}-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64/ompi/tests/osu-micro-benchmarks"
 IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
@@ -125,7 +122,6 @@ fi
 
 if [[ $distro == "AlmaLinux 8.7" ]]
 then
-    HPCX_OMB_PATH=${HPCX_OMB_PATH_ALMA_87}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
     CHECK_IMPI_2018=0
@@ -142,7 +138,6 @@ then
     CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 20.04" ]]
 then
-    HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2004}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
     CHECK_MVAPICH2=1
@@ -160,7 +155,6 @@ then
     CHECK_DOCKER=1
 elif [[ $distro == "Ubuntu 22.04" ]]
 then
-    HPCX_OMB_PATH=${HPCX_OMB_PATH_UBUNTU_2204}
     CHECK_HPCX=1
     CHECK_IMPI_2021=1
     CHECK_MVAPICH2=1
@@ -271,7 +265,7 @@ then
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
 
     module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OMB_PATH}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
 fi

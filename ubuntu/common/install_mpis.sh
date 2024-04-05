@@ -26,6 +26,7 @@ $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
 ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix=${PMIX_PATH}
+cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 # Install MVAPICH2
 mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)

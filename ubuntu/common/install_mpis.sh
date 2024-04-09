@@ -25,7 +25,7 @@ HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
-${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config --with-pmix=${PMIX_PATH}
+${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 # Install MVAPICH2

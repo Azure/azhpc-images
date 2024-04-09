@@ -11,8 +11,8 @@ curl -s -L https://packages.microsoft.com/cbl-mariner/2.0/prod/extended/x86_64/c
 tdnf repolist
 
 # Install Kernel dependencies
-tdnf install -y  kernel-headers \
-                kernel-devel
+tdnf install -y kernel-headers-$(uname -r) \
+                kernel-devel-$(uname -r) # Needed for MOFED all of a sudden
 
 # Install Python 3
 tdnf install -y python3

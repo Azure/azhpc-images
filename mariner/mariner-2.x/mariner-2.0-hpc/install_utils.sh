@@ -17,12 +17,6 @@ tdnf install -y  kernel-headers \
 # Install Python 3
 tdnf install -y python3
 
-# Only python 3.9 available in Mariner 2.0
-# symlinks didn't work
-# ln -fs python3.9 /usr/bin/python3.6
-# ln -fs python3.9-config /usr/bin/python3.6-config
-# ln -fs pydoc3.9 /usr/bin/pydoc3.6
-
 # install pssh
 # pssh_metadata=$(jq -r '.pssh."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 # pssh_version=$(jq -r '.version' <<< $pssh_metadata)

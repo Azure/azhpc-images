@@ -36,11 +36,6 @@ NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)
 tdnf install -y cuda-$NVIDIA_DRIVER_VERSION
 $COMMON_DIR/write_component_version.sh "nvidia" $NVIDIA_DRIVER_VERSION
 
-# cannot find -lcuda
-# tried adding /usr/lib64 to LD_LIBRARY_PATH
-# tried adding /usr/lib64 to ld.so.conf and running ldconfig
-# libcuda is in /usr/lib
-
 # Temporarily install NV Peer Memory
 ./install_nv_peer_memory.sh
 

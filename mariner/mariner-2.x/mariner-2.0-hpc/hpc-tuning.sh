@@ -1,3 +1,3 @@
 #!/bin/bash
 
-../../common/hpc-tuning.sh
+$MARINER_COMMON_DIR/hpc-tuning.sh

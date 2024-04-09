@@ -11,13 +11,10 @@ source ./set_properties.sh
 ./install_utils.sh
 
 # install Lustre client
-#$MARINER_COMMON_DIR/install_lustre_client.sh "8"
+# $MARINER_COMMON_DIR/install_lustre_client.sh "8"
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
-
-# temporarily install rdma-core-devel
-# tdnf -y install rdma-core-devel
 
 # install mpi libraries
 ./install_mpis.sh
@@ -47,7 +44,7 @@ $MARINER_COMMON_DIR/install_nccl.sh
 ./install_dcgm.sh
 
 # optimizations
-# ./hpc-tuning.sh
+./hpc-tuning.sh
 
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh

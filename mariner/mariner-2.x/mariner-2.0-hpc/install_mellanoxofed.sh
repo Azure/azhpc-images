@@ -34,7 +34,7 @@ $COMMON_DIR/download_and_verify.sh $mofed_download_url $mofed_sha256
 tar zxvf $tarball
 
 pushd $mofed_folder
-./install.pl --all --without-openmpi --without-mlnx-ofa_kernel-modules
+./install.pl --all --without-openmpi
 popd
 $COMMON_DIR/write_component_version.sh "mofed" $mofed_version
 

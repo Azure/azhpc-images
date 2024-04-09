@@ -86,3 +86,6 @@ rm -rf ./dl.fedoraproject.org/
 $COMMON_DIR/copy_kvp_client.sh
 
 rm -rf ./packages.microsoft.com/
+
+# Create alias for "ls -l"
+echo "alias ll='ls -l'" | tee -a /etc/bash.bashrc

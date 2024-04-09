@@ -63,6 +63,13 @@ then
     rmmod nvidia_peermem
 fi
 
+# Mariner only
+if lsmod | grep nv_peer_mem &> /dev/null
+then 
+    rmmod nv_peer_mem
+    rpm -e nvidia_peer_memory
+fi
+
 # Clear topo and graph files
 rm -rf /opt/microsoft/ncv4
 rm -rf /opt/microsoft/ndv2

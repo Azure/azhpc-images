@@ -26,7 +26,13 @@ then
 fi
 
 ## load nvidia-peermem module
-modprobe nvidia-peermem
+os=$(cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $NF}')
+if [ ${os} == "mariner" ]
+then
+    modprobe nv_peer_mem
+else
+    modprobe nvidia-peermem
+fi
 
 # ## Setup NVME devices
 # if [ ! -f /etc/systemd/system/nvme-raid.service ]; then

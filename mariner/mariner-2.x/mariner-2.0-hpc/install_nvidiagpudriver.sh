@@ -41,6 +41,9 @@ $COMMON_DIR/write_component_version.sh "nvidia" $NVIDIA_DRIVER_VERSION
 # tried adding /usr/lib64 to ld.so.conf and running ldconfig
 # libcuda is in /usr/lib
 
+# Temporarily install NV Peer Memory
+./install_nv_peer_memory.sh
+
 # Install GDRCopy
 GDRCOPY_VERSION=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"

@@ -42,5 +42,5 @@ rm -rf *tar.gz
 
 $MARINER_COMMON_DIR/install_amd_libs.sh
 
-# Setup permissions
-chmod -R 755 $MODULE_FILES_DIRECTORY
+# # Setup permissions
+# chmod -R 755 $MODULE_FILES_DIRECTORY

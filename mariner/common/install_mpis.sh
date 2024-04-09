@@ -155,5 +155,5 @@ rm -rf -- */
 # cleanup downloaded tarball for HPC-x
 rm -rf *.tbz
 
-# Setup permissions
-chmod -R 755 /usr/share/Modules/modulefiles/mpi/
+# # Setup permissions
+# chmod -R 755 /usr/share/Modules/modulefiles/mpi/

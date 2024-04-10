@@ -15,12 +15,20 @@ EOF
 
 ## NVIDIA Fabric manager
 systemctl enable nvidia-fabricmanager
+systemctl is-active --quiet nvidia-fabricmanager
 
 error_code=$?
 if [ ${error_code} -ne 0 ]
 then
-    echo "NVIDIA Fabic Manager Inactive!"
-    exit ${error_code}
+    systemctl start nvidia-fabricmanager
+    systemctl is-active --quiet nvidia-fabricmanager
+
+    error_code=$?
+    if [ ${error_code} -ne 0 ]
+    then
+        echo "NVIDIA Fabic Manager Inactive!"
+        exit ${error_code}
+    fi
 fi
 
 ## load nvidia-peermem module

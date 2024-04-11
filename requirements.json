@@ -175,19 +175,19 @@
     },
     "nccl": {
         "ubuntu20.04": {
-            "version": "2.20.3-1",
+            "version": "2.21.5-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "ubuntu22.04": {
-            "version": "2.20.3-1",
+            "version": "2.21.5-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "almalinux8.7": {
-            "version": "2.20.3-1",
+            "version": "2.21.5-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }

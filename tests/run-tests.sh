@@ -268,6 +268,13 @@ then
     mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
+
+    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
+
+    module load mpi/hpcx-pmix
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
+    check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
+    module unload mpi/hpcx-pmix
 fi
 
 # impi 2021

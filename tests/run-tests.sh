@@ -53,6 +53,10 @@ find_distro() {
     then
         local sle_hpc_distro=`find_sle_hpc_distro`
         echo ${sle_hpc_distro}
+    elif [[ $os == "Common Base Linux Mariner" ]]
+    then
+        local mariner_distro=`find_mariner_distro`
+        echo "Mariner ${mariner_distro}"
     else
         echo "*** Error - invalid distro!"
         exit -1
@@ -77,6 +81,11 @@ find_ubuntu_distro() {
 # Find SUSE Linux Enterprise HPC distro
 find_sle_hpc_distro() {
     echo $(cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }')
+}
+
+# Find Mariner distro
+find_mariner_distro() {
+    echo $(cat /etc/os-release | awk 'match($0, /^VERSION_ID="(.*)"/, result) { print result[1] }')
 }
 
 distro=`find_distro`
@@ -113,21 +122,25 @@ fi
 
 HPCX_VERSION_CENTOS="v2.9.0"
 HPCX_VERSION_SUSE="2.12"
+HPCX_VERSION_MARINER="2.15"
 
 MVAPICH2_VERSION_CENTOS="2.3.6"
 MVAPICH2_VERSION_ALMA="2.3.7-1"
 MVAPICH2_VERSION_UBUNTU="2.3.7-1"
 MVAPICH2_VERSION_SUSE="2.3.6"
+MVAPICH2_VERSION_MARINER="2.3.7-1"
 
 OMPI_VERSION_CENTOS="4.1.1"
 OMPI_VERSION_ALMA_86="4.1.3"
 OMPI_VERSION_ALMA_87="4.1.5"
 OMPI_VERSION_SUSE="4.1.1"
+OMPI_VERSION_MARINER="4.1.5"
 
 IMPI_2021_VERSION_CENTOS="2021.4.0"
 IMPI_2021_VERSION_ALMA_86="2021.7.0"
 IMPI_2021_VERSION_ALMA_87="2021.9.0"
 IMPI_2021_VERSION_SUSE="2021.9.0"
+IMPI_2021_VERSION_MARINER="2021.9.0"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
@@ -139,6 +152,7 @@ MOFED_VERSION_ALMA_86="MLNX_OFED_LINUX-5.8-1.0.1.1"
 MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-23.07-0.5.1.2"
 MOFED_VERSION_SUSE="MLNX_OFED_INBOX_5.14.21-4.0.0"
 #MOFED_VERSION_SUSE="MLNX_OFED-5.7-1.0.2.0"
+MOFED_VERSION_MARINER="OFED-internal-23.10-1.1.9"
 
 HPCX_OMB_PATH_CENTOS_76="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.6-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
 HPCX_OMB_PATH_CENTOS_77="/opt/hpcx-${HPCX_VERSION_CENTOS}-gcc${GCC_VERSION}-${MOFED_VERSION_CENTOS}-redhat7.7-x86_64/ompi/tests/osu-micro-benchmarks-5.6.2"
@@ -180,6 +194,14 @@ MVAPICH2_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/mvapich2-psm2/2.3.6/lib"
 MVAPICH2X_PATH_SUSE=""
 OPENMPI_PATH_SUSE="/usr/lib/hpc/gnu7/mpi/openmpi/4.1.1"
 
+MODULE_FILES_ROOT_MARINER="/usr/share/Modules/modulefiles"
+HPCX_OMB_PATH_MARINER="/opt/hpcx-v${HPCX_VERSION_MARINER}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64/ompi/tests/osu-micro-benchmarks-5.8"
+IMPI2021_PATH_MARINER="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_MARINER}"
+# added "libexec" to the path, as centos and ubuntu use "libexec", but SUSE only "lib"
+MVAPICH2_PATH_MARINER="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
+# MVAPICH2X_PATH_MARINER="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
+OPENMPI_PATH_MARINER="/opt/openmpi-${OMPI_VERSION_MARINER}"
+
 CHECK_HPCX=0
 CHECK_IMPI_2021=0
 CHECK_IMPI_2018=0
@@ -205,6 +227,9 @@ elif [[ $distro == "AlmaLinux 8.6" ]]
 then
     MKL_VERSION="2022.1.0"
 elif [[ $distro == "AlmaLinux 8.7" ]]
+then
+    MKL_VERSION="2023.2.0"
+elif [[ $distro == "Mariner 2.0" ]]
 then
     MKL_VERSION="2023.2.0"
 else
@@ -419,6 +444,24 @@ then
     CHECK_AOCL=1
     CHECK_NV_PMEM=0
     CHECK_NCCL=1
+elif [[ $distro == "Mariner 2.0" ]]
+then
+    HPCX_OMB_PATH=${HPCX_OMB_PATH_MARINER}
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_IMPI_2018=0
+    CHECK_OMPI=1
+    CHECK_MVAPICH2=1
+    CHECK_MVAPICH2X=0
+    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_MARINER}
+    MOFED_VERSION=${MOFED_VERSION_MARINER}
+    IMPI2021_PATH=${IMPI2021_PATH_MARINER}
+    MVAPICH2_PATH=${MVAPICH2_PATH_MARINER}
+    OPENMPI_PATH=${OPENMPI_PATH_MARINER}
+    CHECK_AOCL=1
+    CHECK_NCCL=1
+    CHECK_GCC=0
+    CHECK_DOCKER=1
 else
     echo "*** Error - invalid distro!"
     exit -1

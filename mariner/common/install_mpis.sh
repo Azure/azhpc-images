@@ -17,6 +17,10 @@ HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
 $COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL $HPCX_SHA256
 tar -xvf ${TARBALL}
+
+# Enables ompi configuration
+sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
+
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION

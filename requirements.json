@@ -80,19 +80,19 @@
     },
     "impi": {
         "ubuntu20.04": {
-            "version": "2021.11.0",
-            "sha256": "9a96caeb7abcf5aa08426216db38a2c7936462008b9825036266bc79cb0e30d8",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2c45ede0-623c-4c8e-9e09-bed27d70fa33/l_mpi_oneapi_p_2021.11.0.49513_offline.sh"
+            "version": "2021.12.0",
+            "sha256": "ab2e97d87b139201a2e7dab9a61ac6e8927b7783b459358c4ad69a1b1c064f40",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
         },
         "ubuntu22.04": {
-            "version": "2021.11.0",
-            "sha256": "9a96caeb7abcf5aa08426216db38a2c7936462008b9825036266bc79cb0e30d8",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2c45ede0-623c-4c8e-9e09-bed27d70fa33/l_mpi_oneapi_p_2021.11.0.49513_offline.sh"
+            "version": "2021.12.0",
+            "sha256": "ab2e97d87b139201a2e7dab9a61ac6e8927b7783b459358c4ad69a1b1c064f40",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
         },
         "almalinux8.7": {
-            "version": "2021.11.0",
-            "sha256": "9a96caeb7abcf5aa08426216db38a2c7936462008b9825036266bc79cb0e30d8",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2c45ede0-623c-4c8e-9e09-bed27d70fa33/l_mpi_oneapi_p_2021.11.0.49513_offline.sh"
+            "version": "2021.12.0",
+            "sha256": "ab2e97d87b139201a2e7dab9a61ac6e8927b7783b459358c4ad69a1b1c064f40",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
         }
     },
     "nvidia": {

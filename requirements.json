@@ -98,38 +98,38 @@
     "nvidia": {
         "ubuntu20.04": {
             "driver": {
-                "version": "535.86.10",
-                "sha256": "cec37fd9317091a01fd0380309400a14284769790651fe021e1d5aaa2327a370"
+                "version": "535.161.08",
+                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
                 "prefix": "535",
                 "distribution": "ubuntu2004",
-                "version": "535_535.86.10-1",
-                "sha256": "d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29"        
+                "version": "535_535.161.08-1",
+                "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "535.86.10",
-                "sha256": "cec37fd9317091a01fd0380309400a14284769790651fe021e1d5aaa2327a370"
+                "version": "535.161.08",
+                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
                 "prefix": "535",
                 "distribution": "ubuntu2204",
-                "version": "535_535.86.10-1",
-                "sha256": "d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29"        
+                "version": "535_535.161.08-1",
+                "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
             }   
         },
         "almalinux8.7": {
             "driver": {
-                "version": "535.86.10",
-                "sha256": "cec37fd9317091a01fd0380309400a14284769790651fe021e1d5aaa2327a370"
+                "version": "535.161.08",
+                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
                 "prefix": "535",
                 "distribution": "rhel8",
-                "version": "535.86.10-1",
-                "sha256": "4c3cfc9f410c5c3e8dd2c50f9cdfc0c7e807094020bce3555bf8f1e09c053045"        
+                "version": "535.161.08-1",
+                "sha256": "4a21cce2178d7e3555d3880ed4735855d059fbf9c8682ac1435a5c4ab3651ec0"        
             }   
         }
     },

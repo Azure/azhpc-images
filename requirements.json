@@ -162,11 +162,11 @@
         },
         "mariner2.0": {
             "driver": {
-                "version": "535.129.03"
+                "version": "550.54.15"
             },
             "fabricmanager": {
-                "version": "535.129.03"
-            }  
+                "version": "550.54.15"
+            }
         }
     },
     "cuda": {

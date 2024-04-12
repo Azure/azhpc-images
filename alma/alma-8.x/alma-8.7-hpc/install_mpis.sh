@@ -38,7 +38,8 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 
 # Setup module files for MPIs
-mkdir -p /usr/share/Modules/modulefiles/mpi/
+MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/mpi
+mkdir -p ${MODULE_FILES_DIRECTORY}
 
 # HPC-X
 cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}

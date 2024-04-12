@@ -68,11 +68,11 @@ HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-24.01-0.3.3.1"
 case ${distro} in
     "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.18";
         MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
-        IMPI_2021_VERSION_UBUNTU="2021.11";
+        IMPI_2021_VERSION_UBUNTU="2021.12";
         ;;
     "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.18";
         MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
-        IMPI_2021_VERSION_UBUNTU="2021.11";
+        IMPI_2021_VERSION_UBUNTU="2021.12";
         ;;
     *) ;;
 esac
@@ -81,7 +81,7 @@ MVAPICH2_VERSION_ALMA="2.3.7-1"
 MVAPICH2_VERSION_UBUNTU="2.3.7-1"
 
 OMPI_VERSION_ALMA_87="5.0.2"
-IMPI_2021_VERSION_ALMA_87="2021.11"
+IMPI_2021_VERSION_ALMA_87="2021.12"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
@@ -268,6 +268,13 @@ then
     mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
+
+    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
+
+    module load mpi/hpcx-pmix
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
+    check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
+    module unload mpi/hpcx-pmix
 fi
 
 # impi 2021

@@ -15,6 +15,8 @@ EOF
 
 ## NVIDIA Fabric manager
 systemctl enable nvidia-fabricmanager
+systemctl start nvidia-fabricmanager
+systemctl is-active --quiet nvidia-fabricmanager
 
 error_code=$?
 if [ ${error_code} -ne 0 ]

@@ -86,6 +86,16 @@ cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
+module load ${HPCX_PATH}/modulefiles/hpcx
+EOF
+
+# HPC-X with PMIX
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
+#%Module 1.0
+#
+#  HPCx ${HPCX_VERSION}
+#
+conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
@@ -140,6 +150,7 @@ EOF
 
 # Softlinks
 ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx-pmix
 ln -s ${MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION} ${MODULE_FILES_DIRECTORY}/mvapich2
 ln -s ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/openmpi
 ln -s ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MODULE_FILES_DIRECTORY}/impi-2021

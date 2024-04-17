@@ -26,7 +26,7 @@ CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/ta
 $COMMON_DIR/download_and_verify.sh $CUDA_SAMPLES_DOWNLOAD_URL $CUDA_SAMPLES_SHA256
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
-make -j $(nproc)
+make # -j $(nproc)
 mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 

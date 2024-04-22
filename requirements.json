@@ -162,10 +162,10 @@
         },
         "mariner2.0": {
             "driver": {
-                "version": "550.54.15"
+                "version": "535.129.03"
             },
             "fabricmanager": {
-                "version": "550.54.15"
+                "version": "535.129.03"
             }
         }
     },

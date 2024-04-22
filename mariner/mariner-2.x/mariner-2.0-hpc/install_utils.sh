@@ -51,7 +51,8 @@ tdnf install -y python3-devel \
     dnf-plugins-core \
     check \
     python3-pip \
-    gfortran
+    gfortran \
+    lsb-release
    
 ## Disable kernel updates
 #echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

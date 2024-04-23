@@ -4,13 +4,18 @@ set -ex
 # Setup Mariner NVIDIA packages repo
 curl https://packages.microsoft.com/cbl-mariner/2.0/prod/nvidia/x86_64/config.repo > /etc/yum.repos.d/mariner-nvidia-prod.repo
 
-# Set the driver versions
+# Install signed NVIDIA driver
+nvidia_driver_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".driver' <<< $COMPONENT_VERSIONS)
+NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)
+tdnf install -y cuda-$NVIDIA_DRIVER_VERSION # Note: Nvidia driver is named cuda in Mariner packages repo
+$COMMON_DIR/write_component_version.sh "nvidia" $NVIDIA_DRIVER_VERSION
+
+# Set the CUDA driver versions
 cuda_metadata=$(jq -r '.cuda."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
 CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
-kernel_with_dots=${KERNEL/-/.}
 
 # Install Cuda
 dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
@@ -26,15 +31,9 @@ CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/ta
 $COMMON_DIR/download_and_verify.sh $CUDA_SAMPLES_DOWNLOAD_URL $CUDA_SAMPLES_SHA256
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
-make # -j $(nproc)
+make -j $(nproc)
 mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
-
-# Install NVIDIA driver
-nvidia_driver_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".driver' <<< $COMPONENT_VERSIONS)
-NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)
-tdnf install -y cuda-$NVIDIA_DRIVER_VERSION
-$COMMON_DIR/write_component_version.sh "nvidia" $NVIDIA_DRIVER_VERSION
 
 # Temporarily install NV Peer Memory
 ./install_nv_peer_memory.sh

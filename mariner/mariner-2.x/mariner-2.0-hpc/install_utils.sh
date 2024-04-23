@@ -54,8 +54,15 @@ tdnf install -y python3-devel \
     gfortran \
     lsb-release
    
-## Disable kernel updates
+# Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
+# Since tdnf is the default package manager and
+# because /etc/tdnf/tdnf.conf does not recongnize
+# exclude option adding a kernel package lock file
+# https://github.com/vmware/tdnf/wiki/Configuration-Options#package-locks
+mkdir -p /etc/tdnf/locks.d
+echo kernel > /etc/tdnf/locks.d/kernel.conf # wild cards don't seem  to work
+echo kmod >> /etc/tdnf/locks.d/kernel.conf
 
 # Disable dependencies on kernel core
 #sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf

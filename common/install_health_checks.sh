@@ -1,11 +1,11 @@
 #!/bin/bash
+
 set -e
 
-# Set the azhc version
-AZHC_VERSION=$(jq -r '.azhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
+AZHC_VERSION=$(jq -r '.aznhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 DEST_TEST_DIR=/opt/azurehpc/test
-AZHC_DIR=/opt/azurehpc/test/azurehpc-health-checks
 
 mkdir -p $DEST_TEST_DIR
 
@@ -15,8 +15,8 @@ git clone https://github.com/Azure/azurehpc-health-checks.git --branch v$AZHC_VE
 
 pushd azurehpc-health-checks
 
-# install NHC
-./install-nhc.sh
+# Pull down docker container from MCR
+./dockerfile/pull-image-acr.sh cuda
 
 popd
 popd

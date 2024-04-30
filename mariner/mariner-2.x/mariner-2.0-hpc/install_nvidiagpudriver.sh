@@ -39,10 +39,12 @@ popd
 ./install_nv_peer_memory.sh
 
 # Install GDRCopy
-GDRCOPY_VERSION=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+gdrcopy_metadata=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
+GDRCOPY_SHA256=$(jq -r '.sha256' <<< $gdrcopy_metadata)
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"
 GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/${TARBALL}
-$COMMON_DIR/download_and_verify.sh $GDRCOPY_DOWNLOAD_URL "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475" #TODO: put sha256 in requirements.txt
+$COMMON_DIR/download_and_verify.sh $GDRCOPY_DOWNLOAD_URL $GDRCOPY_SHA256
 tar -xvf $TARBALL
 
 pushd gdrcopy-${GDRCOPY_VERSION}/packages/

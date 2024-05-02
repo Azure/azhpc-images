@@ -15,6 +15,13 @@ Following are the current supported HPC/AI VM images that are available in Azure
 - [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 20.04 (microsoft-dsvm:ubuntu-hpc:2004:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.7 (almalinux:almalinux-hpc:8_7-hpc-gen2:latest)
 
+# How to Use
+
+The high level steps to create your own HPC images using our repository are below:
+1. Deploy a VM.
+2. Run install.sh (e.g., [Ubuntu 22.04](https://github.com/Azure/azhpc-images/blob/master/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc/install.sh)).
+3. Generate an image from the VM ([tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-custom-images)).
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

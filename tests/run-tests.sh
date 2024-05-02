@@ -43,6 +43,10 @@ find_distro() {
     then
         local ubuntu_distro=`find_ubuntu_distro`
         echo "${os} ${ubuntu_distro}"
+    elif [[ $os == "Common Base Linux Mariner" ]]
+    then
+        local mariner_distro=`find_mariner_distro`
+        echo "Mariner ${mariner_distro}"
     else
         echo "*** Error - invalid distro!"
         exit -1
@@ -57,6 +61,11 @@ find_alma_distro() {
 # Find Ubuntu distro
 find_ubuntu_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
+}
+
+# Find Mariner distro
+find_mariner_distro() {
+    echo $(cat /etc/os-release | awk 'match($0, /^VERSION_ID="(.*)"/, result) { print result[1] }')
 }
 
 distro=`find_distro`
@@ -79,14 +88,20 @@ esac
 
 MVAPICH2_VERSION_ALMA="2.3.7-1"
 MVAPICH2_VERSION_UBUNTU="2.3.7-1"
+MVAPICH2_VERSION_MARINER="2.3.7-1"
 
 OMPI_VERSION_ALMA_87="5.0.2"
+OMPI_VERSION_MARINER="4.1.5"
+
 IMPI_2021_VERSION_ALMA_87="2021.12"
+IMPI_2021_VERSION_MARINER="2021.9.0"
 
 MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
 IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
 
 MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-24.01-0.3.3.1"
+MOFED_VERSION_MARINER="OFED-internal-23.10-1.1.9"
+
 MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
 IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"
 MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
@@ -97,6 +112,11 @@ IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
 MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
 MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
 OPENMPI_PATH_UBUNTU="/opt/openmpi-${OMPI_VERSION_UBUNTU}"
+
+MODULE_FILES_ROOT_MARINER="/usr/share/Modules/modulefiles"
+IMPI2021_PATH_MARINER="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_MARINER}"
+MVAPICH2_PATH_MARINER="/opt/mvapich2-${MVAPICH2_VERSION_MARINER}/libexec"
+OPENMPI_PATH_MARINER="/opt/openmpi-${OMPI_VERSION_MARINER}"
 
 CHECK_HPCX=0
 CHECK_IMPI_2021=0
@@ -116,6 +136,9 @@ then
 elif [[ $distro == "AlmaLinux 8.7" ]]
 then
     MKL_VERSION="2024.0"
+elif [[ $distro == "Mariner 2.0" ]]
+then
+    MKL_VERSION="2023.2.0"
 else
     MKL_VERSION="2023.1.0"
 fi
@@ -170,6 +193,23 @@ then
     CHECK_NCCL=1
     CHECK_GCC=0
     CHECK_DOCKER=1
+elif [[ $distro == "Mariner 2.0" ]]
+then
+    CHECK_HPCX=1
+    CHECK_IMPI_2021=1
+    CHECK_IMPI_2018=0
+    CHECK_OMPI=1
+    CHECK_MVAPICH2=1
+    CHECK_MVAPICH2X=0
+    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_MARINER}
+    MOFED_VERSION=${MOFED_VERSION_MARINER}
+    IMPI2021_PATH=${IMPI2021_PATH_MARINER}
+    MVAPICH2_PATH=${MVAPICH2_PATH_MARINER}
+    OPENMPI_PATH=${OPENMPI_PATH_MARINER}
+    CHECK_AOCL=1
+    CHECK_NCCL=1
+    CHECK_GCC=0
+    CHECK_DOCKER=1
 else
     echo "*** Error - invalid distro!"
     exit -1
@@ -203,7 +243,7 @@ check_exit_code() {
 # verify if package updates work
 case ${distro} in
     Ubuntu*) sudo apt-get -q --assume-no update;;
-    AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
+    AlmaLinux* | Mariner*) sudo yum update -y --setopt tsflags=test;;
     * ) ;;
 esac
 check_exit_code "Package update works" "Package update fails!"

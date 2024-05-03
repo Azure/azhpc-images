@@ -68,7 +68,7 @@ $COMMON_DIR/install_health_checks.sh
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-$MARINER_COMMON_DIR/disable_cloudinit.sh
+# $MARINER_COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # Update memory limits
 cat << EOF >> /etc/security/limits.conf
 *               hard    memlock         unlimited

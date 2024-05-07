@@ -31,7 +31,7 @@ consistency, and reliability. This image consists of the following HPC tools and
 - NVIDIA-Docker
 - Moneo (Distributed HPC/AI system monitor)
 
-This Image is compliant with the Linux Kernel 5.15.118.1-1.cm2.x86_64
+This Image is compliant with the Linux Kernel 5.15.148.2-2.cm2.x86_64
 
 Software packages are configured as environment modules. Users can select preferred MPI or software packages as follows:
 

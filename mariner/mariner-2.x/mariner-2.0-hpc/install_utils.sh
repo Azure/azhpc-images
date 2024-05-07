@@ -62,6 +62,7 @@ echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
 # https://github.com/vmware/tdnf/wiki/Configuration-Options#package-locks
 mkdir -p /etc/tdnf/locks.d
 echo kernel > /etc/tdnf/locks.d/kernel.conf # wild cards don't seem  to work
+echo kernel-headers >> /etc/tdnf/locks.d/kernel.conf
 echo kmod >> /etc/tdnf/locks.d/kernel.conf
 
 # Disable dependencies on kernel core

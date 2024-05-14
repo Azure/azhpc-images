@@ -1,364 +1,127 @@
 #!/bin/bash
-# transform long form MOFED-LTS flag to short
-for arg in "$@"; do
-    shift
-    case "$arg" in
-        "--mofed-lts") set -- "$@" "-l" ;;
-        *) set -- "$@" "$arg"
+
+function test_service {
+    local service=$1
+    
+    case $service in
+        check_sku_customization) verify_sku_customization_service;;
+        check_nvidia_fabricmanager) verify_nvidia_fabricmanager_service;;
+        check_sunrpc_tcp_settings) verify_sunrpc_tcp_settings_service;;
+        *) ;;
     esac
-done
+}
 
-# display the usage of lts flag for user
-usage() { echo "Usage: $0 [--mofed-lts <true|false>]"  1>&2; exit 1; }
-
-while getopts ":l:" o; do
-    case "${o}" in
-        l)
-            l=${OPTARG}
-            ((l == true || l == false)) || usage
-            ;;
-        *)
-            usage
-            ;;
+function test_component {
+    # Print divider
+    # echo "----------------------------------------------------------------"
+    local component=$1
+    
+    case $component in
+        check_impi_2021) verify_impi_2021_installation;;
+        check_impi_2018) verify_impi_2018_installation;;
+        check_cuda) verify_cuda_installation;;
+        check_nccl) verify_nccl_installation;;
+        check_gcc) verify_gcc_modulefile;;
+        check_aocl) verify_aocl_installation;;
+        check_docker) verify_docker_installation;;
+        check_dcgm) verify_dcgm_installation;;
+        * ) ;;
     esac
-done
-shift $((OPTIND-1))
+}
 
-if [ -z "${l}" ]; then
-    usage
-fi
+# Verify common component installations accross all distros
+function verify_common_components {
+    verify_spack_installation;
+    verify_gcc_installation;
+    verify_azcopy_installation;
+    verify_mofed_installation;
+    verify_ib_device_status;
+    verify_hpcx_installation;
+    verify_mvapich2_installation;
+    verify_ompi_installation;
+    verify_mkl_installation;
+    verify_hpcdiag_installation;
+    verify_ipoib_status;
+    # Perform miscellaneous checks
+    verify_apt_yum_update;
+}
 
-source /etc/profile
+function initiate_test_suite {
+    # Run the common component tests
+    verify_common_components
 
-GCC_VERSION="9.2.0"
+    # Read the variable component test matrix
+    readarray -t components <<< "$(jq -r '.components[]' <<< $TEST_MATRIX)"
+    for component in "${components[@]}"; do
+        test_component $component;
+    done
 
-# Find distro
-find_distro() {
-    local os=`cat /etc/os-release | awk 'match($0, /^NAME="(.*)"/, result) { print result[1] }'`
-    if [[ $os == "AlmaLinux" ]]
-    then
-        local alma_distro=`find_alma_distro`
-        echo "${os} ${alma_distro}"
-    elif [[ $os == "Ubuntu" ]]
-    then
-        local ubuntu_distro=`find_ubuntu_distro`
-        echo "${os} ${ubuntu_distro}"
-    else
-        echo "*** Error - invalid distro!"
-        exit -1
+    # Read the variable service test matrix
+    readarray -t services <<< "$(jq -r '.services[]' <<< $TEST_MATRIX)"
+    for service in "${services[@]}"; do
+        test_service $service;
+    done
+}
+
+function set_test_matrix {
+    export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix.json)
+    export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
+    
+    if [[ -z "$TEST_MATRIX" ]]; then
+        echo "*****No test matrix found for distribution $distro!*****"
+        exit 1
     fi
 }
 
-# Find Alma distro
-find_alma_distro() {
-    echo `cat /etc/redhat-release | awk '{print $3}'`
+function set_sku_configuration {
+    local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
+    local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
+    export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
 }
 
-# Find Ubuntu distro
-find_ubuntu_distro() {
-    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
+# Function to set component versions from JSON file
+function set_component_versions {
+    local component_versions_file=$HPC_ENV/component_versions.json
+    # read and set the component versions
+    local component_versions=$(cat "$component_versions_file" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"')
+
+    # Set the component versions based on the keys and values
+    while read -r component; do
+        if [[ ! -z "$component" ]]; then
+            eval "export $component" # Associates component name as variable and version as value
+        fi
+    done <<< "$component_versions"
 }
 
-distro=`find_distro`
-echo "Detected distro: ${distro}"
-
-OMPI_VERSION_UBUNTU="5.0.2"
-HPCX_MOFED_INTEGRATION_VERSION="MLNX_OFED_LINUX-24.01-0.3.3.1"
-
-case ${distro} in
-    "Ubuntu 20.04") HPCX_VERSION_UBUNTU="v2.18";
-        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
-        IMPI_2021_VERSION_UBUNTU="2021.12";
+function set_module_files_path {
+    case $ID in
+    ubuntu)
+        export MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
         ;;
-    "Ubuntu 22.04") HPCX_VERSION_UBUNTU="v2.18";
-        MOFED_VERSION_UBUNTU="MLNX_OFED_LINUX-24.01-0.3.3.1";
-        IMPI_2021_VERSION_UBUNTU="2021.12";
+    almalinux) 
+        export MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
         ;;
-    *) ;;
-esac
-
-MVAPICH2_VERSION_ALMA="2.3.7-1"
-MVAPICH2_VERSION_UBUNTU="2.3.7-1"
-
-OMPI_VERSION_ALMA_87="5.0.2"
-IMPI_2021_VERSION_ALMA_87="2021.12"
-
-MVAPICH2X_INSTALLATION_DIRECTORY="/opt/mvapich2-x"
-IMPI2018_PATH="/opt/intel/compilers_and_libraries_2018.5.274"
-
-MOFED_VERSION_ALMA_87="MLNX_OFED_LINUX-24.01-0.3.3.1"
-MODULE_FILES_ROOT_ALMA="/usr/share/Modules/modulefiles"
-IMPI2021_PATH_ALMA_87="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_ALMA_87}"
-MVAPICH2_PATH_ALMA="/opt/mvapich2-${MVAPICH2_VERSION_ALMA}/libexec"
-OPENMPI_PATH_ALMA_87="/opt/openmpi-${OMPI_VERSION_ALMA_87}"
-
-MODULE_FILES_ROOT_UBUNTU="/usr/share/modules/modulefiles"
-IMPI2021_PATH_UBUNTU="/opt/intel/oneapi/mpi/${IMPI_2021_VERSION_UBUNTU}"
-MVAPICH2_PATH_UBUNTU="/opt/mvapich2-${MVAPICH2_VERSION_UBUNTU}/libexec"
-MVAPICH2X_PATH_UBUNTU="${MVAPICH2X_INSTALLATION_DIRECTORY}/gnu9.2.0/mofed5.0/advanced-xpmem/mpirun"
-OPENMPI_PATH_UBUNTU="/opt/openmpi-${OMPI_VERSION_UBUNTU}"
-
-CHECK_HPCX=0
-CHECK_IMPI_2021=0
-CHECK_IMPI_2018=0
-CHECK_OMPI=0
-CHECK_MVAPICH2=0
-CHECK_MVAPICH2X=0
-CHECK_CUDA=0
-CHECK_AOCL=1
-CHECK_NCCL=0
-CHECK_GCC=1
-CHECK_DOCKER=0
-
-if [[ $distro == "Ubuntu"* ]]
-then
-    MKL_VERSION="2024.0"
-elif [[ $distro == "AlmaLinux 8.7" ]]
-then
-    MKL_VERSION="2024.0"
-else
-    MKL_VERSION="2023.1.0"
-fi
-
-if [[ $distro == "AlmaLinux 8.7" ]]
-then
-    CHECK_HPCX=1
-    CHECK_IMPI_2021=1
-    CHECK_IMPI_2018=0
-    CHECK_OMPI=1
-    CHECK_MVAPICH2=1
-    CHECK_MVAPICH2X=0
-    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_ALMA}
-    MOFED_VERSION=${MOFED_VERSION_ALMA_87}
-    IMPI2021_PATH=${IMPI2021_PATH_ALMA_87}
-    MVAPICH2_PATH=${MVAPICH2_PATH_ALMA}
-    OPENMPI_PATH=${OPENMPI_PATH_ALMA_87}
-    CHECK_AOCL=1
-    CHECK_NCCL=1
-    CHECK_DOCKER=1
-elif [[ $distro == "Ubuntu 20.04" ]]
-then
-    CHECK_HPCX=1
-    CHECK_IMPI_2021=1
-    CHECK_MVAPICH2=1
-    CHECK_OMPI=1
-    CHECK_BLIS_MT=1
-    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_UBUNTU}
-    MOFED_VERSION=${MOFED_VERSION_UBUNTU}
-    IMPI2021_PATH=${IMPI2021_PATH_UBUNTU}
-    MVAPICH2_PATH=${MVAPICH2_PATH_UBUNTU}
-    MVAPICH2X_PATH=${MVAPICH2X_PATH_UBUNTU}
-    OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
-    CHECK_AOCL=0
-    CHECK_NCCL=1
-    CHECK_GCC=0
-    CHECK_DOCKER=1
-elif [[ $distro == "Ubuntu 22.04" ]]
-then
-    CHECK_HPCX=1
-    CHECK_IMPI_2021=1
-    CHECK_MVAPICH2=1
-    CHECK_OMPI=1
-    CHECK_BLIS_MT=1
-    MODULE_FILES_ROOT=${MODULE_FILES_ROOT_UBUNTU}
-    MOFED_VERSION=${MOFED_VERSION_UBUNTU}
-    IMPI2021_PATH=${IMPI2021_PATH_UBUNTU}
-    MVAPICH2_PATH=${MVAPICH2_PATH_UBUNTU}
-    MVAPICH2X_PATH=${MVAPICH2X_PATH_UBUNTU}
-    OPENMPI_PATH=${OPENMPI_PATH_UBUNTU}
-    CHECK_AOCL=0
-    CHECK_NCCL=1
-    CHECK_GCC=0
-    CHECK_DOCKER=1
-else
-    echo "*** Error - invalid distro!"
-    exit -1
-fi
-
-module use ${MODULE_FILES_ROOT}
-
-# check file is present
-check_exists() {
-    ls $1
-    if [ $? -eq 0 ]
-    then
-        echo "$1 [OK]"
-    else
-        echo "*** Error - $1 not found!" >&2
-        exit -1
-    fi
-}
-
-# check exit code
-check_exit_code() {
-    if [ $? -eq 0 ]
-    then
-        echo "[OK] : $1"
-    else
-        echo "*** Error - $2!" >&2
-        exit -1
-    fi
-}
-
-# verify if package updates work
-case ${distro} in
-    Ubuntu*) sudo apt-get -q --assume-no update;;
-    AlmaLinux*) sudo yum update -y --setopt tsflags=test;;
     * ) ;;
 esac
-check_exit_code "Package update works" "Package update fails!"
+}
 
-# verify MOFED installation
-ofed_info | grep ${MOFED_VERSION}
-check_exit_code "MOFED installed" "MOFED not installed"
-
-# verify IB device is listed
-lspci | grep "Infiniband controller\|Network controller"
-check_exit_code "IB device is listed" "IB device not found"
-
-# verify IB device is up
-ibstatus | grep "LinkUp"
-check_exit_code "IB device state: LinkUp" "IB link not up"
-
-# verify GCC modulefile
-if [ $CHECK_GCC -eq 1 ]
-then
-    # Not using gcc 9.2.0 in Ubuntu 20.04 (9.3.0 used)
-    check_exists "${MODULE_FILES_ROOT}/gcc-${GCC_VERSION}"
-fi
-
-# verify s/w package installations
-if [ $CHECK_GCC -eq 1 ]
-then
-    # Not using gcc 9.2.0 in Ubuntu 20.04 (9.3.0 used)
-    check_exists "/opt/gcc-${GCC_VERSION}/"
-fi
-
-check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
-
-# verify hpcdiag installation
-check_exists '/opt/azurehpc/diagnostics/gather_azhpc_vm_diagnostics.sh'
-
-if [ $CHECK_AOCL -eq 1 ]
-then
-    # verify AMD modulefiles
-    check_exists "${MODULE_FILES_ROOT}/amd/aocl"
-
-    check_exists "/opt/amd/lib/"
-    check_exists "/opt/amd/include/"
-fi
-
-if [ $CHECK_DOCKER -eq 1 ]
-then
-    sudo docker pull hello-world
-    sudo docker run hello-world
-    check_exit_code "Docker installed and working correctly!" "Problem with Docker!"
-    sudo docker rm $(sudo docker ps -aq)
-fi
-
-# verify mpi installations and their modulefiles
-module avail
-
-# hpcx
-if [ $CHECK_HPCX -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
-
-    module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
-    check_exit_code "HPC-X" "Failed to run HPC-X"
-    module unload mpi/hpcx
-
-    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
-
-    module load mpi/hpcx-pmix
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_MPI_DIR}/tests/osu-micro-benchmarks/osu_latency
-    check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
-    module unload mpi/hpcx-pmix
-fi
-
-# impi 2021
-if [ $CHECK_IMPI_2021 -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
-
-    module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${IMPI2021_PATH}/bin/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2021" "Failed to run Intel MPI 2021"
-    module unload mpi/impi-2021
-fi
-
-# impi 2018
-if [ $CHECK_IMPI_2018 -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/impi"
-
-    module load mpi/impi
-    mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa ${IMPI2018_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2018" "Failed to run Intel MPI 2018"
-    module unload mpi/impi
-fi
-
-# mvapich2
-if [ $CHECK_MVAPICH2 -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
-    module load mpi/mvapich2
-
-    # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  ${MVAPICH2_PATH}/osu-micro-benchmarks/mpi/pt2pt/osu_latency
-    check_exit_code "MVAPICH2" "Failed to run MVAPICH2"
-    module unload mpi/mvapich2
-fi
-
-# mvapich2x
-if [ $CHECK_MVAPICH2X -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2x"
-    check_exists ${MVAPICH2X_PATH}
-
-    module load mpi/mvapich2x
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  ${MVAPICH2X_INSTALLATION_DIRECTORY}/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
-    check_exit_code "MVAPICH2X" "Failed to run MVAPICH2X"
-    module unload mpi/mvapich2x
-fi
-
-# Note: no need to run OpenMPI, as it is already covered by HPC-X runs, but make sure it is installed
-if [ $CHECK_OMPI -eq 1 ]
-then
-    check_exists "${MODULE_FILES_ROOT}/mpi/openmpi"
-    check_exists ${OPENMPI_PATH}
-fi
-
-# Check Cuda drivers by running Nvidia SMI
-if [ $CHECK_CUDA -eq 1 ]
-then
-    nvidia-smi
-    check_exit_code "Nvidia SMI - Cuda Drivers" "Failed to run Nvidia SMI - Cuda Drivers"
-fi
-
-# Perform Single Node NCCL Test
-if [ $CHECK_NCCL -eq 1 ]
-then
-    module load mpi/hpcx
-
-    mpirun -np 8 \
-    --allow-run-as-root \
-    --map-by ppr:8:node \
-    -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
-    -mca coll_hcoll_enable 0 \
-    -x UCX_TLS=tcp \
-    -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
-    -x NCCL_SOCKET_IFNAME=eth0 \
-    -x NCCL_DEBUG=WARN \
-    -x NCCL_NET_GDR_LEVEL=5 \
-    /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
-
-    check_exit_code "Single Node NCCL Test" "Failed"
-
-    module unload mpi/hpcx
-fi
+# Load profile
+. /etc/profile
+# Set HPC environment
+HPC_ENV=/opt/azurehpc
+# Set test definitions
+. $HPC_ENV/test/test-definitions.sh
+# Set module files directory
+. /etc/os-release
+set_module_files_path
+# Set component versions
+set_component_versions
+# Set current SKU
+set_sku_configuration
+# Set test matrix
+set_test_matrix
+# Initiate test suite
+initiate_test_suite
 
 echo "ALL OK!"
-
-exit 0

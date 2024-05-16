@@ -52,13 +52,13 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # add udev rule
 $MARINER_COMMON_DIR/add-udev-rules.sh
 
-# add interface rules
-# $MARINER_COMMON_DIR/network-config.sh
+# configure networking
+$MARINER_COMMON_DIR/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
 
-#install monitoring tools
+# install monitoring tools
 $MARINER_COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks

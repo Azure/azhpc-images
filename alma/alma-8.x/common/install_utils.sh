@@ -27,7 +27,6 @@ yum install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
-    environment-modules \
     python3-devel \
     python3-setuptools \
     gtk2 \
@@ -56,6 +55,11 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl
+
+# Install environment-modules 5.0.1
+wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm
+yum install -y environment-modules-5.0.1-1.el9.x86_64.rpm
+rm -f environment-modules-5.0.1-1.el9.x86_64.rpm
 
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

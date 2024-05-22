@@ -7,7 +7,7 @@ set -ex
 #
 
 pushd /tmp
-rdma_core_branch=stable-v34
+rdma_core_branch=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".branch' <<< $COMPONENT_VERSIONS)
 git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
 pushd rdma-core
 bash build.sh

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# install pre-requisites
+./install_prerequisites.sh
+
 # set properties
 source ./set_properties.sh
 
@@ -12,6 +15,9 @@ $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
+
+# install PMIX
+$UBUNTU_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
 ./install_mpis.sh

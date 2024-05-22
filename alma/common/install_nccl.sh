@@ -1,15 +1,11 @@
 #!/bin/bash
 set -ex
 
-case ${DISTRIBUTION} in
-    "almalinux8.6") NCCL_VERSION="2.14.3-1";
-        CUDA_VERSION="11.6";
-        ;;
-    "almalinux8.7") NCCL_VERSION="2.18.1-1";
-        CUDA_VERSION="12.1";
-        ;;
-    *) ;;
-esac
+# Set NCCL versions
+NCCL_VERSION=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+NCCL_RDMA_SHARP_COMMIT=$(jq -r '.nccl."'"$DISTRIBUTION"'".rdmasharpplugins.commit' <<< $COMPONENT_VERSIONS)
+CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
+CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
 
 # Install NCCL
 yum install -y rpm-build rpmdevtools
@@ -32,6 +28,7 @@ popd
 mkdir -p /usr/local/nccl-rdma-sharp-plugins
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
+git checkout ${NCCL_RDMA_SHARP_COMMIT}
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

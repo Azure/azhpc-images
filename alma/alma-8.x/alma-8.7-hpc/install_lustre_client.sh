@@ -1,8 +1,10 @@
 #!/bin/bash
 set -ex
 
+# Set Lustre driver version
+LUSTRE_VERSION=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+
 DISTRIB_CODENAME=el8
-LUSTRE_VERSION=2.15.1_24_g98d1cac
 REPO_PATH=/etc/yum.repos.d/amlfs.repo
 
 rpm --import https://packages.microsoft.com/keys/microsoft.asc

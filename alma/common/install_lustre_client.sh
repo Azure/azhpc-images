@@ -1,7 +1,8 @@
 #!/bin/bash
 set -ex
 
-LUSTRE_VERSION=2.15.1_24_gbaa21ca
+# Set Lustre version
+LUSTRE_VERSION=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 # Expected params:
 # $1 = the major version of the distro. "8" for RHEL/Alma8, "9" for RHEL/Alma9.

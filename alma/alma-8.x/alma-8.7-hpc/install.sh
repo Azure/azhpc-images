@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
 
+# install pre-requisites
+./install_prerequisites.sh
+
 # set properties
 source ./set_properties.sh
 
@@ -15,6 +18,9 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 
 # install mellanox ofed
 ./install_mellanoxofed.sh
+
+# install PMIX
+$ALMA_COMMON_DIR/../alma-8.x/common/install_pmix.sh
 
 # install mpi libraries
 ./install_mpis.sh
@@ -76,3 +82,6 @@ $COMMON_DIR/setup_sku_customizations.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh
+
+# add a security patch of CVE issue for AlmaLinux 8.7 only
+./disable_user_namespaces.sh

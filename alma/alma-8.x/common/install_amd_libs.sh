@@ -4,10 +4,14 @@ set -ex
 INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 
-AOCL_VERSION="4.0"
+# Set AOCL version
+amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+AOCL_VERSION=$(jq -r '.aocl.version' <<< $amd_metadata)
+AOCL_SHA256=$(jq -r '.aocl.sha256' <<< $amd_metadata)
+
 TARBALL="aocl-linux-aocc-${AOCL_VERSION}.tar.gz"
 AOCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
-$COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL "c8000a66aaa2a257252cbb307732b4e66758b72b08f43b3723f4eb5404ba28c8"
+$COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL $AOCL_SHA256
 tar -xvf ${TARBALL}
 
 pushd aocl-linux-aocc-${AOCL_VERSION}

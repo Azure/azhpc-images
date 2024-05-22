@@ -11,26 +11,38 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-# HPC-X v2.15
-HPCX_VERSION="v2.15"
-TARBALL="hpcx-${HPCX_VERSION}-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
-HPCX_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
-HPCX_FOLDER=$(basename ${HPCX_DOWNLOAD_URL} .tbz)
+# Install HPC-x
+hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
+HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
+HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+TARBALL=$(basename $HPCX_DOWNLOAD_URL)
+HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
-$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL "0ca27ef0d6fa3d6be176f461977875030bc8cc130a784e216b1c23259c733e41"
+PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+
+$COMMON_DIR/download_and_verify.sh $HPCX_DOWNLOAD_URL $HPCX_SHA256
 tar -xvf ${TARBALL}
+
+sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 $COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
+
+# rebuild HPCX with PMIx
+${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
+cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 # exclude ucx from updates
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 
 # Setup module files for MPIs
-mkdir -p /usr/share/Modules/modulefiles/mpi/
+MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/mpi
+mkdir -p ${MODULE_FILES_DIRECTORY}
 
 # HPC-X
-cat << EOF >> /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION}
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
@@ -39,8 +51,19 @@ conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx
 EOF
 
+# HPC-X with PMIX
+cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
+#%Module 1.0
+#
+#  HPCx ${HPCX_VERSION}
+#
+conflict        mpi
+module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
+EOF
+
 # Create symlinks for modulefiles
-ln -s /usr/share/Modules/modulefiles/mpi/hpcx-${HPCX_VERSION} /usr/share/Modules/modulefiles/mpi/hpcx
+ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx-pmix
 
 # Install platform independent MPIs
 $ALMA_COMMON_DIR/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}

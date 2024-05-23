@@ -19,7 +19,7 @@ vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU
 case \$vmSize in
-    standard_nc*ads_a100_v4)
+    standard_nc96ads_a100_v4)
         /opt/azurehpc/customizations/ncv4.sh;;
     
     standard_nd*v4)

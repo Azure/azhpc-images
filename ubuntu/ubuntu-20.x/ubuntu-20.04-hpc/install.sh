@@ -61,6 +61,9 @@ $UBUNTU_COMMON_DIR/install_monitoring_tools.sh
 # install AMD libs
 $UBUNTU_COMMON_DIR/install_amd_libs.sh
 
+# remove packages requiring Ubuntu Pro for security updates
+$UBUNTU_COMMON_DIR/cleanup_esm.sh
+
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh
 

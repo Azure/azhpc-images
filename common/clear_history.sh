@@ -37,9 +37,19 @@ then
     yum history sync
 fi
 
+# Remove Defender
+if [[ $distro == *"Ubuntu"* ]]
+then
+    apt-get purge mdatp
+else
+    yum remove mdatp
+fi
+
 # Clear History
 # Stop syslog service
 systemctl stop syslog.socket rsyslog
+# Delete Defender related files
+rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Clear contents of rest of systemd services related log files

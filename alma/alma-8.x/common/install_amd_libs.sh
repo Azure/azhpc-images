@@ -18,7 +18,7 @@ tar -xvf ${TARBALL}
 
 pushd aocl-linux-aocc-${AOCL_VERSION}
 ./install.sh -t amd -l blis fftw libflame -i lp64
-cp -r amd/${AOCL_VERSION}/* ${INSTALL_PREFIX}
+cp -r amd/${AOCL_VERSION}/aocc/* ${INSTALL_PREFIX}
 popd
 
 # Setup module files for AMD Libraries

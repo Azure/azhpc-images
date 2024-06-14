@@ -10,7 +10,9 @@ AOCL_VERSION=$(jq -r '.aocl.version' <<< $amd_metadata)
 AOCL_SHA256=$(jq -r '.aocl.sha256' <<< $amd_metadata)
 
 TARBALL="aocl-linux-aocc-${AOCL_VERSION}.tar.gz"
-AOCL_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/${TARBALL}
+BASE_AOCL_VERSION=${AOCL_VERSION:0:3}
+DIRECTORY="aocl-${BASE_AOCL_VERSION//./-}"
+AOCL_DOWNLOAD_URL=https://download.amd.com/developer/eula/aocl/${DIRECTORY}/${TARBALL}
 $COMMON_DIR/download_and_verify.sh $AOCL_DOWNLOAD_URL $AOCL_SHA256
 tar -xvf ${TARBALL}
 

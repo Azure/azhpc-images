@@ -77,10 +77,6 @@ wget -r --no-parent -A "subunit-*.el8.x86_64.rpm" https://dl.fedoraproject.org/p
 yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-[0-9].*.el8.x86_64.rpm -y
 yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-devel-[0-9].*.el8.x86_64.rpm -y
 
-# Download jq utility
-wget -r --no-parent -A "jq-*.el8.x86_64.rpm" https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/
-yum localinstall ./repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/jq-*.el8.x86_64.rpm -y
-
 # Remove rpm files
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/

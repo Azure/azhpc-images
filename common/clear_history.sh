@@ -40,9 +40,9 @@ fi
 # Remove Defender
 if [[ $distro == *"Ubuntu"* ]]
 then
-    apt-get purge mdatp
+    apt-get purge -y mdatp
 else
-    yum remove mdatp
+    yum remove -y mdatp
 fi
 
 # Clear History

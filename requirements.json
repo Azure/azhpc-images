@@ -14,6 +14,11 @@
             "version": "10.19.0",
             "release": "release20230530",
             "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
+        },
+        "mariner2.0": {
+            "version": "10.19.0",
+            "release": "release20230530",
+            "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
     "mofed": {
@@ -28,6 +33,10 @@
         "almalinux8.7": {
             "version": "24.01-0.3.3.1",
             "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
+        },
+        "mariner2.0": {
+            "version": "23.10-1.1.9.0",
+            "sha256": "3201e0f1f27e5dcc9af32127e268065fe08362ef46a6029d6ae70949d69a3b5e"
         }
     },
     "hpcx": {
@@ -45,6 +54,11 @@
             "version": "2.18",
             "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+        },
+        "mariner2.0": {
+            "version": "2.15",
+            "sha256": "0ca27ef0d6fa3d6be176f461977875030bc8cc130a784e216b1c23259c733e41",
+            "url": "https://azhpcstor.blob.core.windows.net/azhpc-images-store/hpcx-v2.15-gcc-MLNX_OFED_LINUX-5-redhat8-cuda12-gdrcopy2-nccl2.17-x86_64.tbz"
         }
     },
     "mvapich2": {
@@ -57,6 +71,10 @@
             "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
         },
         "almalinux8.7": {
+            "version": "2.3.7-1",
+            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
+        },
+        "mariner2.0": {
             "version": "2.3.7-1",
             "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
         }
@@ -76,6 +94,11 @@
             "version": "5.0.2",
             "sha256": "095ab1cddb0fa0f9e7fc211a1d33185c6727c5237d0ee55f80a7e4311e5d279c",
             "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
+        },
+        "mariner2.0": {
+            "version": "4.1.5",
+            "sha256": "c018b127619d2a2a30c1931f316fc8a245926d0f5b4ebed4711f9695e7f70925",
+            "url": "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz"
         }
     },
     "impi": {
@@ -93,6 +116,11 @@
             "version": "2021.12.0",
             "sha256": "6ccfc35784ec86d898f4c1cedf82c4f71926123a12db64111f67e7d0286bbb2d",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
+        },
+        "mariner2.0": {
+            "version": "2021.9.0",
+            "sha256": "5c170cdf26901311408809ced28498b630a494428703685203ceef6e62735ef8",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/718d6f8f-2546-4b36-b97b-bc58d5482ebf/l_mpi_oneapi_p_2021.9.0.43482_offline.sh"
         }
     },
     "nvidia": {
@@ -131,6 +159,14 @@
                 "version": "535.161.08-1",
                 "sha256": "4a21cce2178d7e3555d3880ed4735855d059fbf9c8682ac1435a5c4ab3651ec0"        
             }   
+        },
+        "mariner2.0": {
+            "driver": {
+                "version": "535.129.03"
+            },
+            "fabricmanager": {
+                "version": "535.129.03"
+            }
         }
     },
     "cuda": {
@@ -160,6 +196,16 @@
             "samples": {
                 "version": "12.4"
             }   
+        },
+        "mariner2.0": {
+            "driver": {
+                "version": "12-2",
+                "distribution": "rhel8"
+            },
+            "samples": {
+                "version": "12.2",
+                "sha256": "1823cfe28e97a9230107aa72b231f78952c0f178b71a920f036d360518480bdc"
+            }  
         }
     },
     "gdrcopy": {
@@ -171,6 +217,10 @@
         },
         "almalinux8.7": {
             "version": "2.3"
+        },
+        "mariner2.0": {
+            "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475"
         }
     },
     "nccl": {
@@ -191,6 +241,12 @@
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
+        },
+        "mariner2.0": {
+            "version": "2.18.1-1",
+            "rdmasharpplugins": {
+                "commit": "575c1e0"
+            }
         }
     },
     "dcgm": {
@@ -202,13 +258,19 @@
         },
         "almalinux8.7": {
             "version": "3.3.3"
+        },
+        "mariner2.0": {
+            "version": "3.2.6-1",
+            "distribution": "rhel9",
+            "sha256": "54595a9bc9698ab4243f88f9d4471f409013a07b2785e2b765ea96e602ae0cfb"
         }
     },
     "intel_one_mkl": {
         "ubuntu20.04": {
             "version": "2024.0.0.49673",
             "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"        },
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"
+        },
         "ubuntu22.04": {
             "version": "2024.0.0.49673",
             "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
@@ -218,6 +280,11 @@
             "version": "2024.0.0.49673",
             "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"
+        },
+        "mariner2.0": {
+            "version": "2023.2.0.49497",
+            "sha256": "4a0d93da85a94d92e0ad35dc0fc3b3ab7f040bd55ad374c4d5ec81a57a2b872b",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/adb8a02c-4ee7-4882-97d6-a524150da358/l_onemkl_p_2023.2.0.49497_offline.sh"
         }
     },
     "waagent": {
@@ -239,10 +306,17 @@
         },
         "almalinux8.7": {
             "version": "0.3.5"
+        },
+        "mariner2.0": {
+            "version": "0.3.4"
         }
     },
     "pssh": {
         "almalinux8.7": {
+            "version": "2.3.1-29",
+            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
+        },
+        "mariner2.0": {
             "version": "2.3.1-29",
             "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
         }
@@ -266,6 +340,16 @@
             "aocc": {
                 "version": "4.0.0_1"
             } 
+        },
+        "mariner2.0": {
+            "aocl": {
+                "version": "4.0",
+                "sha256": "c8000a66aaa2a257252cbb307732b4e66758b72b08f43b3723f4eb5404ba28c8"
+            },
+            "aocc": {
+                "version": "4.0.0-1",
+                "sha256": "bdeb4d6a24c7e783821ff02ce50f253587cf93b128f0c84eeb506698dcd8c9d3"
+            } 
         }
     },
     "lustre": {
@@ -277,6 +361,9 @@
         },
         "ubuntu22.04": {
             "version": "2.15.4-42-gd6d405d"
+        },
+        "mariner2.0": {
+            "version": "2.15.1_24_gbaa21ca"
         }
     },
     "aznhc": {
@@ -288,6 +375,9 @@
         },
         "ubuntu22.04": {
             "version": "0.4.2"
+        },
+        "mariner2.0": {
+            "version": "0.4.2"
         }
     },
     "rdma_core": {
@@ -298,6 +388,9 @@
             "branch": "stable-v48"
         },
         "ubuntu22.04": {
+            "branch": "stable-v48"
+        },
+        "mariner2.0": {
             "branch": "stable-v48"
         }
     },

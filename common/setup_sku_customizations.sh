@@ -7,6 +7,7 @@ cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
 
 ## Copy topology files to /opt/microsoft
 mkdir -p /opt/microsoft
+chmod 644 $COMMON_DIR/../topology/* # Ensure read permission is set of others
 cp $COMMON_DIR/../topology/* /opt/microsoft
 
 ## Systemd service for setting up appropriate customizations based on SKU
@@ -14,7 +15,21 @@ cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 #!/bin/bash
 
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
-vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+vmSize=\$(curl -s -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+
+retry_count=0
+while [ -z "\${vmSize}" ] && (( retry_count++ < 5 ))
+do
+    sleep 30
+    vmSize=\$(curl -s -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+done
+
+if [ -z "\${vmSize}" ]
+then
+    echo "Error! Could not retrieve VM Size from IMDS endpoint"
+    exit 1
+fi
+
 vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU
@@ -61,6 +76,13 @@ fi
 if lsmod | grep nvidia_peermem &> /dev/null
 then 
     rmmod nvidia_peermem
+fi
+
+# Mariner only
+if lsmod | grep nv_peer_mem &> /dev/null
+then 
+    rmmod nv_peer_mem
+    rpm -e nvidia_peer_memory
 fi
 
 # Clear topo and graph files

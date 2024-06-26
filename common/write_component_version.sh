@@ -8,10 +8,17 @@
 
 set -e
 
-DEST_DIR=/opt/azurehpc
+# Parameters
+component=$1
+version=$2
 
-mkdir -p $DEST_DIR
+mkdir -p $HPC_ENV
+component_versions_json=$HPC_ENV/component_versions.json
 
-echo $1=$2 | sudo tee -a $DEST_DIR/component_versions.txt
-
-exit 0
+if [ ! -f "$component_versions_json" ]
+then
+    jq -n "{ \"$component\": \"$version\" }" > $component_versions_json
+else
+    component_versions=$(cat "$component_versions_json")
+    echo "$component_versions" | jq ". + {\"$component\": \"$version\"}" > $component_versions_json
+fi

@@ -63,7 +63,7 @@ function initiate_test_suite {
 
 function set_test_matrix {
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
-    test_matrix_file=$(jq -r . test-matrix.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
     
     if [[ -z "$TEST_MATRIX" ]]; then
@@ -109,7 +109,7 @@ esac
 # Set HPC environment
 HPC_ENV=/opt/azurehpc
 # Set test definitions
-. test-definitions.sh
+. $HPC_ENV/test/test-definitions.sh
 # Set module files directory
 . /etc/os-release
 set_module_files_path

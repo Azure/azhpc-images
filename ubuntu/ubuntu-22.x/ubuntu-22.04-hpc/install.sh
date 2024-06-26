@@ -7,6 +7,9 @@ set -ex
 # set properties
 source ./set_properties.sh
 
+# remove packages requiring Ubuntu Pro for security updates
+$UBUNTU_COMMON_DIR/remove_unused_packages.sh
+
 # install utils
 ./install_utils.sh
 

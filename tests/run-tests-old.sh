@@ -254,6 +254,7 @@ then
     sudo docker run hello-world
     check_exit_code "Docker installed and working correctly!" "Problem with Docker!"
     sudo docker rm $(sudo docker ps -aq)
+    sudo docker rmi hello-world
 fi
 
 # verify mpi installations and their modulefiles

@@ -44,13 +44,22 @@ function verify_ib_device_status {
 }
 
 function verify_hpcx_installation {
+    # verify mpi installations and their modulefiles
+    module avail
+
     check_exists "$MODULE_FILES_ROOT/mpi/hpcx"
     
     module load mpi/hpcx
-    local hpcx_omb_path=$MPI_HOME/tests/osu-micro-benchmarks-5.8
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc $hpcx_omb_path/osu_latency
-    check_exit_code "HPC-X $hpcx" "Failed to run HPC-X"
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
+
+    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
+
+    module load mpi/hpcx-pmix
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
+    module unload mpi/hpcx-pmix
     module purge
 }
 
@@ -75,19 +84,17 @@ function verify_impi_2021_installation {
 }
 
 function verify_impi_2018_installation {
-    # This needs modification
     check_exists "$MODULE_FILES_ROOT/mpi/impi"
 
     module load mpi/impi
-    mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa ${IMPI2018_PATH}/linux/mpi/intel64/bin/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa $MPI_BIN/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2018: $impi_2018" "Failed to run Intel MPI 2018"
     module unload mpi/impi
 }
 
 function verify_ompi_installation {
     check_exists "$MODULE_FILES_ROOT/mpi/openmpi"
-    local openmpi_path=$(spack location -i openmpi@$ompi)
-    check_exists $openmpi_path
+    check_exists "/opt/openmpi-${ompi}"
     check_exit_code "Open MPI $ompi" "Failed to run Open MPI"
 }
 
@@ -147,9 +154,14 @@ function verify_nccl_installation {
     module unload mpi/hpcx
 }
 
-function verify_spack_installation {
-    spack --version
-    check_exit_code "Spack $spack" "Failed to install Spack"
+function verify_package_updates {
+    case $ID in
+        ubuntu) sudo apt -q --assume-no update;;
+        almalinux) sudo yum update -y --setopt tsflags=test;
+            sudo yum clean packages;;
+        * ) ;;
+    esac
+    check_exit_code "Package update works" "Package update fails!"
 }
 
 function verify_azcopy_installation {
@@ -158,8 +170,7 @@ function verify_azcopy_installation {
 }
 
 function verify_mkl_installation {
-    local intelmkl_path=$(spack location -i intel-oneapi-mkl@$intel_one_mkl)
-    check_exists $intelmkl_path
+    check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
     check_exit_code "Intel Oneapi MKL $intel_one_mkl" "Intel Oneapi MKL installation not found!"
 }
 
@@ -177,9 +188,9 @@ function verify_gcc_installation {
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
     # Verify GCC Software installation path
-    check_exists "/opt/gcc-$gcc/"
+    check_exists "/opt/gcc-${gcc}/"
     # Verify GCC module file path
-    check_exists "$MODULE_FILES_ROOT/gcc-$gcc"
+    check_exists "${MODULE_FILES_ROOT}/gcc-${gcc}"
 }
 
 function verify_aocl_installation {
@@ -245,14 +256,4 @@ function verify_sunrpc_tcp_settings_service {
     # Check if the sunrpc TCP settings service is active
     systemctl is-active --quiet sunrpc_tcp_settings
     check_exit_code "sunrpc TCP settings service is active" "sunrpc TCP settings service is inactive/dead!"
-}
-
-function verify_apt_yum_update {
-    case $ID in
-        ubuntu) sudo apt -q --assume-no update;;
-        almalinux) sudo yum update -y --setopt tsflags=test;
-            sudo yum clean packages;;
-        * ) ;;
-    esac
-    check_exit_code "Package update works" "Package update fails!"
 }

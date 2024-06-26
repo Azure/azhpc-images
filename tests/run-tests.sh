@@ -31,7 +31,7 @@ function test_component {
 
 # Verify common component installations accross all distros
 function verify_common_components {
-    verify_spack_installation;
+    verify_package_updates;
     verify_gcc_installation;
     verify_azcopy_installation;
     verify_mofed_installation;
@@ -42,8 +42,6 @@ function verify_common_components {
     verify_mkl_installation;
     verify_hpcdiag_installation;
     verify_ipoib_status;
-    # Perform miscellaneous checks
-    verify_apt_yum_update;
 }
 
 function initiate_test_suite {

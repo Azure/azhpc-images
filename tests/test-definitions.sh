@@ -193,6 +193,8 @@ function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world
     check_exit_code "NVIDIA Docker $nvidia_docker" "Problem with Docker!"
+    sudo docker rm $(sudo docker ps -aq)
+    sudo docker rmi hello-world
 }
 
 function verify_ipoib_status {

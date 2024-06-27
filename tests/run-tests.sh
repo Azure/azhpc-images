@@ -80,7 +80,7 @@ function set_sku_configuration {
 
 # Function to set component versions from JSON file
 function set_component_versions {
-    local component_versions_file=$HPC_ENV/component_versions.json
+    local component_versions_file=$HPC_ENV/component_versions.txt
     # read and set the component versions
     local component_versions=$(cat ${component_versions_file} | jq -r 'to_entries | .[] | "VERSION_\(.key)=\(.value)"')
     echo "Component versions: $component_versions"

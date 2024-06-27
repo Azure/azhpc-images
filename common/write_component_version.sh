@@ -14,7 +14,7 @@ version=$2
 
 install_dir="/opt/azurehpc"
 mkdir -p ${install_dir}
-component_versions_json="${install_dir}/component_versions.json"
+component_versions_json="${install_dir}/component_versions.txt"
 
 if [ ! -f "${component_versions_json}" ]
 then

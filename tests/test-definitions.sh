@@ -28,7 +28,7 @@ function check_exit_code {
 # verify MOFED installation
 function verify_mofed_installation {
     # verify MOFED installation
-    ofed_info | grep $mofed
+    ofed_info | grep ${MOFED}
     check_exit_code "MOFED installed" "MOFED not installed"
 }
 
@@ -47,7 +47,7 @@ function verify_hpcx_installation {
     # verify mpi installations and their modulefiles
     module avail
 
-    check_exists "$MODULE_FILES_ROOT/mpi/hpcx"
+    check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
     
     module load mpi/hpcx
     mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
@@ -64,44 +64,35 @@ function verify_hpcx_installation {
 }
 
 function verify_mvapich2_installation {
-    check_exists "$MODULE_FILES_ROOT/mpi/mvapich2"
+    check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
 
     module load mpi/mvapich2
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
-    local mvapich2_omb_path=$MPI_HOME/libexec/osu-micro-benchmarks/mpi/pt2pt
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22  $mvapich2_omb_path/osu_latency
-    check_exit_code "MVAPICH2 $mvapich2" "Failed to run MVAPICH2"
+    local mvapich2_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
+    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich2_omb_path}/osu_latency
+    check_exit_code "MVAPICH2 ${MVAPICH2}" "Failed to run MVAPICH2"
     module unload mpi/mvapich2
 }
 
 function verify_impi_2021_installation {
-    check_exists "$MODULE_FILES_ROOT/mpi/impi-2021"
+    check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
     
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 $MPI_BIN/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2021 $impi_2021" "Failed to run Intel MPI 2021"
+    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    check_exit_code "Intel MPI 2021 ${IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
 
-function verify_impi_2018_installation {
-    check_exists "$MODULE_FILES_ROOT/mpi/impi"
-
-    module load mpi/impi
-    mpiexec -np 2 -ppn 2 -env I_MPI_FABRICS=ofa $MPI_BIN/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2018: $impi_2018" "Failed to run Intel MPI 2018"
-    module unload mpi/impi
-}
-
 function verify_ompi_installation {
-    check_exists "$MODULE_FILES_ROOT/mpi/openmpi"
-    check_exists "/opt/openmpi-${ompi}"
-    check_exit_code "Open MPI $ompi" "Failed to run Open MPI"
+    check_exists "${MODULE_FILES_ROOT}/mpi/openmpi"
+    check_exists "/opt/openmpi-${OMPI}"
+    check_exit_code "Open MPI ${OMPI}" "Failed to run Open MPI"
 }
 
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
     nvidia-smi
-    check_exit_code "Nvidia Driver $nvidia" "Failed to run Nvidia SMI"
+    check_exit_code "Nvidia Driver ${NVIDIA}" "Failed to run Nvidia SMI"
     
     # Verify if NVIDIA peer memory module is inserted
     lsmod | grep nvidia_peermem
@@ -109,12 +100,12 @@ function verify_cuda_installation {
 
     # Verify if CUDA is installed
     nvcc --version
-    check_exit_code "CUDA Driver $cuda" "CUDA not installed"
+    check_exit_code "CUDA Driver ${CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
     
     # Verify the compilation of CUDA samples
     /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
-    check_exit_code "CUDA Samples $cuda" "Failed to perform merge sort using CUDA Samples"
+    check_exit_code "CUDA Samples ${CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 
 function verify_nccl_installation {
@@ -125,7 +116,7 @@ function verify_nccl_installation {
 
     module load mpi/hpcx
 
-    case $VMSIZE in
+    case ${VMSIZE} in
         standard_nc24rs_v3) mpirun -np 4 \
             -x LD_LIBRARY_PATH \
             --allow-run-as-root \
@@ -149,13 +140,13 @@ function verify_nccl_installation {
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
-    check_exit_code "NCCL $nccl" "Failed to run NCCL all reduce perf"
+    check_exit_code "NCCL ${NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
 }
 
 function verify_package_updates {
-    case $ID in
+    case ${ID} in
         ubuntu) sudo apt -q --assume-no update;;
         almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
@@ -166,16 +157,16 @@ function verify_package_updates {
 
 function verify_azcopy_installation {
     sudo azcopy --version
-    check_exit_code "azcopy $azcopy" "Failed to install azcopy"
+    check_exit_code "azcopy ${AZCOPY}" "Failed to install azcopy"
 }
 
 function verify_mkl_installation {
-    check_exists "/opt/intel/oneapi/mkl/${MKL_VERSION}/"
-    check_exit_code "Intel Oneapi MKL $intel_one_mkl" "Intel Oneapi MKL installation not found!"
+    check_exists "/opt/intel/oneapi/mkl/${INTEL_ONE_MKL:0:6}/"
+    check_exit_code "Intel Oneapi MKL ${INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
 }
 
 function verify_hpcdiag_installation {
-    local hpcdiag_path="$HPC_ENV/diagnostics/gather_azhpc_vm_diagnostics.sh"
+    local hpcdiag_path="${HPC_ENV}/diagnostics/gather_azhpc_vm_diagnostics.sh"
     check_exists $hpcdiag_path
 }
 
@@ -188,14 +179,14 @@ function verify_gcc_installation {
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
     # Verify GCC Software installation path
-    check_exists "/opt/gcc-${gcc}/"
+    check_exists "/opt/gcc-${GCC}/"
     # Verify GCC module file path
-    check_exists "${MODULE_FILES_ROOT}/gcc-${gcc}"
+    check_exists "${MODULE_FILES_ROOT}/gcc-${GCC}"
 }
 
 function verify_aocl_installation {
     # verify AMD modulefiles
-    check_exists "$MODULE_FILES_ROOT/amd/aocl"
+    check_exists "${MODULE_FILES_ROOT}/amd/aocl"
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
 }
@@ -203,7 +194,7 @@ function verify_aocl_installation {
 function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world
-    check_exit_code "NVIDIA Docker $nvidia_docker" "Problem with Docker!"
+    check_exit_code "Docker ${DOCKER}" "Problem with Docker!"
     sudo docker rm $(sudo docker ps -aq)
     sudo docker rmi hello-world
 }
@@ -220,7 +211,7 @@ function verify_ipoib_status {
 
 function verify_dcgm_installation {
     # Verify DCGM package installation
-    case $ID in
+    case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
         almalinux) dnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
@@ -235,7 +226,7 @@ function verify_dcgm_installation {
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
     local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5"
-    if [[ "$VMSIZE" =~ ^($valid_sizes)$ ]]
+    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
         check_exit_code "SKU Customization is active" "SKU Customization is inactive/dead!"
@@ -245,7 +236,7 @@ function verify_sku_customization_service {
 function verify_nvidia_fabricmanager_service {
     # Check if the NVIDIA Fabricmanager service is active
     local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
-    if [[ "$VMSIZE" =~ ^($valid_sizes)$ ]]
+    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet nvidia-fabricmanager
         check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"

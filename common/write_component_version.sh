@@ -12,8 +12,9 @@ set -e
 component=$1
 version=$2
 
-mkdir -p $HPC_ENV
-component_versions_json=$HPC_ENV/component_versions.json
+$install_dir="/opt/azurehpc"
+mkdir -p ${install_dir}
+component_versions_json="${install_dir}/component_versions.json"
 
 if [ ! -f "$component_versions_json" ]
 then

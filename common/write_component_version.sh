@@ -12,14 +12,14 @@ set -e
 component=$1
 version=$2
 
-$install_dir="/opt/azurehpc"
+install_dir="/opt/azurehpc"
 mkdir -p ${install_dir}
 component_versions_json="${install_dir}/component_versions.json"
 
-if [ ! -f "$component_versions_json" ]
+if [ ! -f "${component_versions_json}" ]
 then
-    jq -n "{ \"$component\": \"$version\" }" > $component_versions_json
+    jq -n "{ \"${component}\": \"${version}\" }" > ${component_versions_json}
 else
-    component_versions=$(cat "$component_versions_json")
-    echo "$component_versions" | jq ". + {\"$component\": \"$version\"}" > $component_versions_json
+    component_versions=$(cat "${component_versions_json}")
+    echo "${component_versions}" | jq ". + {\"${component}\": \"${version}\"}" > ${component_versions_json}
 fi

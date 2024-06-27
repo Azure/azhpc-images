@@ -83,6 +83,7 @@ function set_component_versions {
     local component_versions_file=$HPC_ENV/component_versions.json
     # read and set the component versions
     local component_versions=$(cat "$component_versions_file" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"')
+    echo "Component versions: $component_versions"
 
     # Set the component versions based on the keys and values
     while read -r component; do

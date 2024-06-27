@@ -28,7 +28,7 @@ function check_exit_code {
 # verify MOFED installation
 function verify_mofed_installation {
     # verify MOFED installation
-    ofed_info | grep ${MOFED}
+    ofed_info | grep ${VERSION_MOFED}
     check_exit_code "MOFED installed" "MOFED not installed"
 }
 
@@ -70,7 +70,7 @@ function verify_mvapich2_installation {
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     local mvapich2_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
     mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich2_omb_path}/osu_latency
-    check_exit_code "MVAPICH2 ${MVAPICH2}" "Failed to run MVAPICH2"
+    check_exit_code "MVAPICH2 ${VERSION_MVAPICH2}" "Failed to run MVAPICH2"
     module unload mpi/mvapich2
 }
 
@@ -79,20 +79,20 @@ function verify_impi_2021_installation {
     
     module load mpi/impi-2021
     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
-    check_exit_code "Intel MPI 2021 ${IMPI}" "Failed to run Intel MPI 2021"
+    check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
 
 function verify_ompi_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/openmpi"
-    check_exists "/opt/openmpi-${OMPI}"
-    check_exit_code "Open MPI ${OMPI}" "Failed to run Open MPI"
+    check_exists "/opt/openmpi-${VERSION_OMPI}"
+    check_exit_code "Open MPI ${VERSION_OMPI}" "Failed to run Open MPI"
 }
 
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
     nvidia-smi
-    check_exit_code "Nvidia Driver ${NVIDIA}" "Failed to run Nvidia SMI"
+    check_exit_code "Nvidia Driver ${VERSION_NVIDIA}" "Failed to run Nvidia SMI"
     
     # Verify if NVIDIA peer memory module is inserted
     lsmod | grep nvidia_peermem
@@ -101,12 +101,12 @@ function verify_cuda_installation {
     # Verify if CUDA is installed
     # re-enable this after testing
     # nvcc --version
-    # check_exit_code "CUDA Driver ${CUDA}" "CUDA not installed"
+    # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
     
     # Verify the compilation of CUDA samples
     /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
-    check_exit_code "CUDA Samples ${CUDA}" "Failed to perform merge sort using CUDA Samples"
+    check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 
 function verify_nccl_installation {
@@ -141,7 +141,7 @@ function verify_nccl_installation {
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
-    check_exit_code "NCCL ${NCCL}" "Failed to run NCCL all reduce perf"
+    check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
 }
@@ -158,12 +158,12 @@ function verify_package_updates {
 
 function verify_azcopy_installation {
     sudo azcopy --version
-    check_exit_code "azcopy ${AZCOPY}" "Failed to install azcopy"
+    check_exit_code "azcopy ${VERSION_AZCOPY}" "Failed to install azcopy"
 }
 
 function verify_mkl_installation {
-    check_exists "/opt/intel/oneapi/mkl/${INTEL_ONE_MKL:0:6}/"
-    check_exit_code "Intel Oneapi MKL ${INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
+    check_exists "/opt/intel/oneapi/mkl/${VERSION_INTEL_ONE_MKL:0:6}/"
+    check_exit_code "Intel Oneapi MKL ${VERSION_INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
 }
 
 function verify_hpcdiag_installation {
@@ -180,9 +180,9 @@ function verify_gcc_installation {
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
     # Verify GCC Software installation path
-    check_exists "/opt/gcc-${GCC}/"
+    check_exists "/opt/gcc-${VERSION_GCC}/"
     # Verify GCC module file path
-    check_exists "${MODULE_FILES_ROOT}/gcc-${GCC}"
+    check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
 }
 
 function verify_aocl_installation {
@@ -195,7 +195,7 @@ function verify_aocl_installation {
 function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world
-    check_exit_code "Docker ${DOCKER}" "Problem with Docker!"
+    check_exit_code "Docker ${VERSION_DOCKER}" "Problem with Docker!"
     sudo docker rm $(sudo docker ps -aq)
     sudo docker rmi hello-world
 }

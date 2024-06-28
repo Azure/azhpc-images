@@ -5,7 +5,7 @@ DEST_TEST_DIR=/opt/azurehpc/test
 
 mkdir -p $DEST_TEST_DIR
 
-cp $TEST_DIR/run-tests.sh $DEST_TEST_DIR
+cp $TEST_DIR/*.* $DEST_TEST_DIR
 
 #Test if nvcc is installed and if so install gpu-copy test.
 if test -f "/usr/local/cuda/bin/nvcc"; then

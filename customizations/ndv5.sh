@@ -13,6 +13,13 @@ NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv5/topo.xml
 EOF
 
+if [ "$SKU" = "CUDA" ]; then
+    ## NVIDIA Fabric manager
+    systemctl enable nvidia-fabricmanager
+    systemctl start nvidia-fabricmanager
+    systemctl is-active --quiet nvidia-fabricmanager
+fi 
+
 error_code=$?
 if [ ${error_code} -ne 0 ]
 then
@@ -20,3 +27,7 @@ then
     exit ${error_code}
 fi
 
+if [ "$SKU" = "CUDA" ]; then
+    ## load nvidia-peermem module
+    modprobe nvidia-peermem
+fi

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+export SKU=$1
+
 # install pre-requisites
 ./install_prerequisites.sh
 
@@ -25,16 +27,34 @@ $UBUNTU_COMMON_DIR/install_pmix.sh
 # install mpi libraries
 ./install_mpis.sh
 
-# Set up docker
-apt-get install -y moby-engine
-systemctl enable docker
-systemctl restart docker
+if [ "$SKU" = "CUDA" ]; then
+    # install nvidia gpu driver
+    ./install_nvidiagpudriver.sh
+    
+    # Install NCCL
+    $UBUNTU_COMMON_DIR/install_nccl.sh
+    
+    # Install NVIDIA docker container
+    $UBUNTU_COMMON_DIR/install_docker.sh
+fi
+
+if [ "$SKU" = "ROCM" ]; then
+    # Set up docker
+    apt-get install -y moby-engine
+    systemctl enable docker
+    systemctl restart docker
+fi
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
+
+if [ "$SKU" = "CUDA" ]; then
+    # Install DCGM
+    $UBUNTU_COMMON_DIR/install_dcgm.sh
+fi
 
 # install Intel libraries
 $UBUNTU_COMMON_DIR/install_intel_libs.sh
@@ -69,11 +89,13 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
-#install rocm software stack
-./install_rocm.sh
-
-#install rccl and rccl-tests
-./install_rccl.sh
+if [ "$SKU" = "ROCM" ]; then
+    #install rocm software stack
+    ./install_rocm.sh
+    
+    #install rccl and rccl-tests
+    ./install_rccl.sh
+fi
 
 # clear history
 # Uncomment the line below if you are running this on a VM

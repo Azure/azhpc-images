@@ -4,6 +4,8 @@ set -ex
 # install pre-requisites
 ./install_prerequisites.sh
 
+export SKU="CUDA"
+
 # set properties
 source ./set_properties.sh
 

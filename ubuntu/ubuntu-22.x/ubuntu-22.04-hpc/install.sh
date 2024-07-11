@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-export SKU=$1
+export GPU=$1
 
 # install pre-requisites
 ./install_prerequisites.sh
@@ -27,7 +27,7 @@ $UBUNTU_COMMON_DIR/install_pmix.sh
 # install mpi libraries
 ./install_mpis.sh
 
-if [ "$SKU" = "CUDA" ]; then
+if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
     ./install_nvidiagpudriver.sh
     
@@ -38,7 +38,7 @@ if [ "$SKU" = "CUDA" ]; then
     $UBUNTU_COMMON_DIR/install_docker.sh
 fi
 
-if [ "$SKU" = "ROCM" ]; then
+if [ "$GPU" = "AMD" ]; then
     # Set up docker
     apt-get install -y moby-engine
     systemctl enable docker
@@ -51,7 +51,7 @@ rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
-if [ "$SKU" = "CUDA" ]; then
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $UBUNTU_COMMON_DIR/install_dcgm.sh
 fi
@@ -89,7 +89,7 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
-if [ "$SKU" = "ROCM" ]; then
+if [ "$GPU" = "AMD" ]; then
     #install rocm software stack
     ./install_rocm.sh
     

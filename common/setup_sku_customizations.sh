@@ -9,6 +9,7 @@ cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
 mkdir -p /opt/microsoft
 cp $COMMON_DIR/../topology/* /opt/microsoft
 
+if [ "$GPU" = "NVIDIA" ]; then
 ## Systemd service for setting up appropriate customizations based on SKU
 cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 #!/bin/bash
@@ -42,7 +43,6 @@ esac
 EOF
 chmod 755 /usr/sbin/setup_sku_customizations.sh
 
-if [ "$SKU" = "CUDA" ]; then
 ## Systemd service for removing SKU based customizations
 cat <<EOF >/usr/sbin/remove_sku_customizations.sh
 #!/bin/bash
@@ -78,7 +78,41 @@ cat /dev/null > /etc/nccl.conf
 
 EOF
 
-elif [ "$SKU" = "ROCM" ]; then
+elif [ "$GPU" = "AMD" ]; then
+## Systemd service for setting up appropriate customizations based on SKU
+cat <<EOF >/usr/sbin/setup_sku_customizations.sh
+#!/bin/bash
+
+metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
+vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
+
+## Topo file setup based on SKU
+case \$vmSize in
+    standard_nc96ads_a100_v4)
+        /opt/azurehpc/customizations/ncv4.sh;;
+    
+    standard_nd*v4)
+        /opt/azurehpc/customizations/ndv4_rocm.sh;;
+        
+    standard_nd40rs_v2)
+        /opt/azurehpc/customizations/ndv2.sh;;
+
+    standard_hb176*v4)
+        /opt/azurehpc/customizations/hbv4.sh;;
+
+    standard_nd96is*_h100_v5)
+        /opt/azurehpc/customizations/ndv5_rocm.sh;;
+
+    standard_nd96is*_mi300x_v5)
+        /opt/azurehpc/customizations/ndv5_rocm.sh;;
+
+    *) echo "No SKU customization for \$vmSize";;
+esac
+EOF
+chmod 755 /usr/sbin/setup_sku_customizations.sh
+
+## Systemd service for removing SKU based customizations
 cat <<EOF >/usr/sbin/remove_sku_customizations.sh
 #!/bin/bash
 
@@ -101,7 +135,7 @@ cat /dev/null > /etc/nccl.conf
 EOF
 
 else
-echo "SKU is not CUDA or ROCM, exiting"
+echo "GPU is not NVIDIA or AMD, exiting"
 exit 1
 fi
 chmod 755 /usr/sbin/remove_sku_customizations.sh

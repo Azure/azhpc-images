@@ -4,7 +4,7 @@ set -ex
 # install pre-requisites
 ./install_prerequisites.sh
 
-export SKU="CUDA"
+export GPU="NVIDIA"
 
 # set properties
 source ./set_properties.sh

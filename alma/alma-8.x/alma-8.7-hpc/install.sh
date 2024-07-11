@@ -16,8 +16,8 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 # install compilers
 ./install_gcc.sh
 
-# install mellanox ofed
-./install_mellanoxofed.sh
+# install DOCA OFED
+$ALMA_COMMON_DIR/install_doca.sh
 
 # install PMIX
 $ALMA_COMMON_DIR/install_pmix.sh

@@ -16,8 +16,8 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
-# install mellanox ofed
-$UBUNTU_COMMON_DIR/install_mellanoxofed.sh
+# install DOCA OFED
+$UBUNTU_COMMON_DIR/install_doca.sh
 
 # install PMIX
 $UBUNTU_COMMON_DIR/install_pmix.sh

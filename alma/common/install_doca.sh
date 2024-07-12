@@ -12,6 +12,11 @@ $COMMON_DIR/download_and_verify.sh $DOCA_URL $DOCA_SHA256
 rpm -i $DOCA_FILE
 dnf clean all
 
+# Install DOCA extras for compatibility
+dnf install -y doca-extra
+/opt/mellanox/doca/tools/doca-kernel-support
+dnf install -y doca-ofed-userspace
+
 dnf -y install doca-ofed
 $COMMON_DIR/write_component_version.sh "DOCA" $DOCA_VERSION
 

@@ -2,7 +2,7 @@
 
 set -e
 
-# Set moneo metadata
+# Set the Moneo version
 MONEO_VERSION=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 
 # Dependencies 

@@ -10,7 +10,7 @@ INSTALL_PREFIX=/opt
 PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
 
-# HPC-X v2.16
+# Install HPC-x
 hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
@@ -32,7 +32,7 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
-MVAPICH2_DOWNLOAD_URL=http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz
+MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz"
 TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
 MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
 
@@ -75,12 +75,11 @@ impi_2021_version=${IMPI_VERSION:0:-2}
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
 $COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 
-# Module Files
-MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles/mpi
-mkdir -p ${MODULE_FILES_DIRECTORY}
+# Setup module files for MPIs
+mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
@@ -90,7 +89,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx
 EOF
 
 # HPC-X with PMIX
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
@@ -100,7 +99,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # MVAPICH2
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION}
 #%Module 1.0
 #
 #  MVAPICH2 ${MVAPICH2_VERSION}
@@ -117,7 +116,7 @@ setenv          MPI_HOME        /opt/mvapich2-${MVAPICH2_VERSION}
 EOF
 
 # OpenMPI
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #%Module 1.0
 #
 #  OpenMPI ${OMPI_VERSION}
@@ -133,8 +132,8 @@ setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
-# Intel 2021
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
+#IntelMPI-v2021
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
 #  Intel MPI ${impi_2021_version}
@@ -148,9 +147,9 @@ setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
 EOF
 
-# Softlinks
-ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
-ln -s ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx-pmix
-ln -s ${MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION} ${MODULE_FILES_DIRECTORY}/mvapich2
-ln -s ${MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MODULE_FILES_DIRECTORY}/openmpi
-ln -s ${MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MODULE_FILES_DIRECTORY}/impi-2021
+# Create symlinks for modulefiles
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich2
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021

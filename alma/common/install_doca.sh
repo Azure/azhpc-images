@@ -20,4 +20,7 @@ dnf install -y doca-ofed-userspace
 dnf -y install doca-ofed
 $COMMON_DIR/write_component_version.sh "DOCA" $DOCA_VERSION
 
+OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+$COMMON_DIR/write_component_version.sh "OFED" $OFED_VERSION
+
 /etc/init.d/openibd restart

@@ -13,10 +13,3 @@ NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv5/topo.xml
 EOF
 
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "NVIDIA Fabic Manager Inactive!"
-    exit ${error_code}
-fi
-

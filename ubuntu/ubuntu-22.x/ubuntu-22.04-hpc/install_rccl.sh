@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
 
-sudo apt install libstdc++-12-dev
-sudo apt remove -y rccl
+apt install libstdc++-12-dev
+apt remove -y rccl
 pushd ~
 git clone https://github.com/rocm/rccl
 popd
@@ -10,13 +10,13 @@ mkdir ~/rccl/build
 pushd ~/rccl/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j 32
-sudo make install
+make install
 popd
 
 pushd ~
 
-sudo sysctl kernel.numa_balancing=0
-echo "kernel.numa_balancing=0" | sudo tee -a /etc/sysctl.conf
+sysctl kernel.numa_balancing=0
+echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
@@ -40,17 +40,17 @@ ROCM_TARGET_LST=$(pwd)/target.lst make MPI=1 \
 popd
 
 DEST_TEST_DIR=/opt/rccl-tests
-sudo mkdir -p $DEST_TEST_DIR
+mkdir -p $DEST_TEST_DIR
 
-sudo cp -r ~/rccl-tests/build/* $DEST_TEST_DIR
+cp -r ~/rccl-tests/build/* $DEST_TEST_DIR
 rm -rf rccl-tests
 
 git clone https://github.com/ROCm/rdma-perftest
-sudo mkdir /opt/rocm-perftest
+mkdir /opt/rocm-perftest
 pushd ~/rdma-perftest
 ./autogen.sh
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
 make -j 32
-sudo make install
+make install
 
 popd

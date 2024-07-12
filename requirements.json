@@ -16,20 +16,6 @@
             "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
-    "mofed": {
-        "ubuntu20.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "72e4b2961b73989793304eda9320ba3cdcdb226ea12fe1a7b8e7a179ea516e22"
-        },
-        "ubuntu22.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "caa74c295ec88afd1f1c950b4bd6e32c609e3c5185199c7e344bf492ccef6429"
-        },
-        "almalinux8.7": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
-        }
-    },
     "doca": {
         "ubuntu20.04": {
             "version": "2.7.0",

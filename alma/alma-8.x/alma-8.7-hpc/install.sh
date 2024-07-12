@@ -32,7 +32,7 @@ $ALMA_COMMON_DIR/install_nvidiagpudriver.sh
 $ALMA_COMMON_DIR/install_amd_libs.sh
 
 # install Intel libraries
-$ALMA_COMMON_DIR/install_intel_libs.sh
+$COMMON_DIR/install_intel_libs.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh

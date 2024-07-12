@@ -5,12 +5,14 @@ set -ex
 NCCL_VERSION=$(jq -r '.nccl."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
 NCCL_RDMA_SHARP_COMMIT=$(jq -r '.nccl."'"$DISTRIBUTION"'".rdmasharpplugins.commit' <<< $COMPONENT_VERSIONS)
 CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
+
 CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
+TARBALL="v${NCCL_VERSION}.tar.gz"
+NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
 yum install -y rpm-build rpmdevtools
-TARBALL="v${NCCL_VERSION}.tar.gz"
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
+
 pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}

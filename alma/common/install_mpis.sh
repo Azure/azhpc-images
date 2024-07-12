@@ -89,6 +89,7 @@ mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi $
 $COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
 
 # Setup module files for MPIs
+MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X

@@ -52,6 +52,9 @@ $ALMA_COMMON_DIR/install_dcgm.sh
 # optimizations
 $ALMA_COMMON_DIR/hpc-tuning.sh
 
+# Azure Linux Agent
+$ALMA_COMMON_DIR/waagent.sh
+
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 

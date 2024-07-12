@@ -55,6 +55,9 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
+# Azure Linux Agent
+$UBUNTU_COMMON_DIR/waagent.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 

@@ -20,3 +20,6 @@ EOF
 netplan apply
 
 $COMMON_DIR/hpc-tuning.sh
+
+# Azure Linux Agent
+$UBUNTU_COMMON_DIR/install_waagent.sh

@@ -10,3 +10,6 @@ systemctl disable firewalld
 if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
 
 $COMMON_DIR/hpc-tuning.sh
+
+# Azure Linux Agent
+$ALMA_COMMON_DIR/install_waagent.sh

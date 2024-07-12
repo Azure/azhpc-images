@@ -22,9 +22,9 @@ make -j src.build
 make pkg.debian.build
 pushd build/pkg/deb/
 dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
-sudo apt-mark hold libnccl2
+apt-mark hold libnccl2
 dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
-sudo apt-mark hold libnccl-dev
+apt-mark hold libnccl-dev
 popd
 popd
 

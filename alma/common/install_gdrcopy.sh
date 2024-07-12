@@ -2,7 +2,7 @@
 set -ex
 
 # Install gdrcopy
-sudo apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
+apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 
 gdrcopy_metadata=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)

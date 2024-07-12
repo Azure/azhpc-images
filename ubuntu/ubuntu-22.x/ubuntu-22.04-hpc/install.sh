@@ -1,7 +1,17 @@
 #!/bin/bash
 set -ex
 
-export GPU=$1
+GPUi="NVIDIA"
+
+if [[ "$#" -gt 0 ]]; then
+    INPUT=$1
+    if [ "$INPUT" == "AMD" ]; then
+        GPUi="AMD"
+    fi
+fi
+
+
+export GPU=$GPUi
 
 # install pre-requisites
 ./install_prerequisites.sh

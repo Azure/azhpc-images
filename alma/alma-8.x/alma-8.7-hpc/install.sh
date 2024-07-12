@@ -23,7 +23,7 @@ $ALMA_COMMON_DIR/install_doca.sh
 $ALMA_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
-./install_mpis.sh
+$ALMA_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
 $ALMA_COMMON_DIR/install_nvidiagpudriver.sh

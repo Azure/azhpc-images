@@ -42,35 +42,10 @@ modprobe nvidia-peermem
 # verify if loaded
 lsmod | grep nvidia_peermem
 
-# Install GDRCopy
-GDRCOPY_VERSION=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-TARBALL="v${GDRCOPY_VERSION}.tar.gz"
-GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/${TARBALL}
-wget $GDRCOPY_DOWNLOAD_URL
-tar -xvf $TARBALL
+$ALMA_COMMON_DIR/install_gdrcopy.sh
 
-pushd gdrcopy-${GDRCOPY_VERSION}/packages/
-CUDA=/usr/local/cuda ./build-rpm-packages.sh
-rpm -Uvh gdrcopy-kmod-${GDRCOPY_VERSION}-1dkms.noarch.el8.rpm
-rpm -Uvh gdrcopy-${GDRCOPY_VERSION}-1.x86_64.el8.rpm
-rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}-1.noarch.el8.rpm
-sed -i "$ s/$/ gdrcopy*/" /etc/dnf/dnf.conf
-popd
-
-$COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
-
-# Set NVIDIA fabricmanager version
-nvidia_fabricmanager_metadata=$(jq -r '.nvidia."'"$DISTRIBUTION"'".fabricmanager' <<< $COMPONENT_VERSIONS)
-NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
-NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
-NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
-
-# Install Fabric Manager
-NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
-$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_URL} ${NVIDIA_FABRICMANAGER_SHA256}
-yum install -y ./nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
-sed -i "$ s/$/ nvidia-fabric-manager/" /etc/dnf/dnf.conf
-$COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}
+# Install nvidia fabric manager (required for ND96asr_v4)
+$ALMA_COMMON_DIR/install_nvidia_fabric_manager.sh
 
 # cleanup downloaded files
 rm -rf *.run *tar.gz *.rpm

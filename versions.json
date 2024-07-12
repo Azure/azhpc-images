@@ -175,7 +175,8 @@
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
-            "version": "2.3"
+            "version": "2.3",
+            "distribution": "el8"
         }
     },
     "nccl": {

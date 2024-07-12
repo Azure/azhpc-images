@@ -8,3 +8,4 @@ export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/requirements.json)
+export MPI_MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/mpi

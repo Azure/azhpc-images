@@ -38,11 +38,10 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 
 # Setup module files for MPIs
-MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/mpi
-mkdir -p ${MODULE_FILES_DIRECTORY}
+mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
@@ -52,7 +51,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx
 EOF
 
 # HPC-X with PMIX
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
@@ -62,8 +61,8 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # Create symlinks for modulefiles
-ln -s ${MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx
-ln -s ${MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MODULE_FILES_DIRECTORY}/hpcx-pmix
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
 
 # Install platform independent MPIs
 $ALMA_COMMON_DIR/install_mpis.sh ${GCC_VERSION} ${HPCX_PATH}

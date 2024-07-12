@@ -2,7 +2,7 @@
 set -ex
 
 PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
-REPO_DIR="$ALMA_COMMON_DIR/../alma-8.x/common"
+REPO_DIR="$ALMA_COMMON_DIR"
 
 cp ${REPO_DIR}/slurmel8.repo /etc/yum.repos.d/slurm.repo
 

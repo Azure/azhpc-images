@@ -54,13 +54,6 @@ then
     systemctl disable nvidia-fabricmanager
 fi
 
-# Stop nvme raid service
-# if systemctl is-active --quiet nvme-raid
-# then
-#     systemctl stop nvme-raid
-#     systemctl disable nvme-raid
-# fi
-
 # Remove NVIDIA peer memory module
 if lsmod | grep nvidia_peermem &> /dev/null
 then
@@ -115,13 +108,6 @@ chmod 755 /usr/sbin/setup_sku_customizations.sh
 ## Systemd service for removing SKU based customizations
 cat <<EOF >/usr/sbin/remove_sku_customizations.sh
 #!/bin/bash
-
-# Stop nvme raid service
-# if systemctl is-active --quiet nvme-raid
-# then
-#     systemctl stop nvme-raid
-#     systemctl disable nvme-raid
-# fi
 
 # Clear topo and graph files
 rm -rf /opt/microsoft/ncv4

@@ -13,19 +13,3 @@ NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv4/topo.xml
 EOF
 
-# ## Setup NVME devices
-# if [ ! -f /etc/systemd/system/nvme-raid.service ]; then
-#     /opt/azurehpc/customizations/setup_nvme.sh
-# fi
-
-# ## NVME raid service
-# systemctl enable nvme-raid
-# systemctl start nvme-raid
-# systemctl is-active --quiet nvme-raid
-
-# error_code=$?
-# if [ ${error_code} -ne 0 ]
-# then
-#     echo "Failed to setup/ mount NVMe devices!"
-#     exit ${error_code}
-# fi

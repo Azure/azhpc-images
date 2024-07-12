@@ -31,25 +31,26 @@ echo blacklist amdgpu | sudo tee -a /etc/modprobe.d/blacklist.conf
 sudo update-initramfs -c -k $(uname -r)
 
 echo "Writing gpu mode probe in init.d"
-bprefix="#!"
-echo "$bprefix/bin/sh" > /tmp/tempinit.sh
-echo "at_count=0" >> /tmp/tempinit.sh
-echo 'while [ $at_count -le 90 ]' >> /tmp/tempinit.sh
-echo "do" >> /tmp/tempinit.sh
-echo '    if [ $(lspci -d 1002:74b5 | wc -l) -eq 8 -o $(lspci -d 1002:740c | wc -l) -eq 16 ]; then' >> /tmp/tempinit.sh
-echo '       echo Required number of GPUs found' >> /tmp/tempinit.sh
-echo '       at_count=91' >> /tmp/tempinit.sh
-echo '       sleep 120s' >> /tmp/tempinit.sh
-echo '       echo doing Modprobe for amdgpu' >> /tmp/tempinit.sh
-echo "       sudo modprobe -r hyperv_drm" >> /tmp/tempinit.sh
-echo "       sudo modprobe amdgpu ip_block_mask=0x7f" >> /tmp/tempinit.sh
-echo '    else' >> /tmp/tempinit.sh
-echo '       sleep 10' >> /tmp/tempinit.sh
-echo '       at_count=$(($at_count + 1))' >> /tmp/tempinit.sh
-echo '    fi' >> /tmp/tempinit.sh
-echo 'done' >> /tmp/tempinit.sh
-echo ""
-echo "exit 0" >> /tmp/tempinit.sh
+cat <<'EOF' > /tmp/tempinit.sh
+#!/bin/sh
+at_count=0
+while [ $at_count -le 90 ]
+do
+    if [ $(lspci -d 1002:74b5 | wc -l) -eq 8 -o $(lspci -d 1002:740c | wc -l) -eq 16 ]; then
+       echo Required number of GPUs found
+       at_count=91
+       sleep 120s
+       echo doing Modprobe for amdgpu
+       sudo modprobe -r hyperv_drm
+       sudo modprobe amdgpu ip_block_mask=0x7f
+    else
+       sleep 10
+       at_count=$(($at_count + 1))
+    fi
+done
+
+exit 0
+EOF
 sudo cp /tmp/tempinit.sh /etc/init.d/initamdgpu.sh
 sudo chmod +x /etc/init.d/initamdgpu.sh
 rm /tmp/tempinit.sh

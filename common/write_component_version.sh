@@ -8,10 +8,18 @@
 
 set -e
 
-DEST_DIR=/opt/azurehpc
+# Parameters
+component=$1
+version=$2
 
-mkdir -p $DEST_DIR
+install_dir="/opt/azurehpc"
+mkdir -p ${install_dir}
+component_versions_json="${install_dir}/component_versions.txt"
 
-echo $1=$2 | sudo tee -a $DEST_DIR/component_versions.txt
-
-exit 0
+if [ ! -f "${component_versions_json}" ]
+then
+    jq -n "{ \"${component}\": \"${version}\" }" > ${component_versions_json}
+else
+    component_versions=$(cat "${component_versions_json}")
+    echo "${component_versions}" | jq ". + {\"${component}\": \"${version}\"}" > ${component_versions_json}
+fi

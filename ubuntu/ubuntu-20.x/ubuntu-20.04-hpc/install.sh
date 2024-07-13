@@ -27,16 +27,16 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install mellanox ofed
-./install_mellanoxofed.sh
+$UBUNTU_COMMON_DIR/install_mellanoxofed.sh
 
 # install PMIX
 $UBUNTU_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
-./install_mpis.sh
+$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
-./install_nvidiagpudriver.sh
+$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh

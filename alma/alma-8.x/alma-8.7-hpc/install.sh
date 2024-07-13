@@ -30,19 +30,19 @@ $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 ./install_mellanoxofed.sh
 
 # install PMIX
-$ALMA_COMMON_DIR/../alma-8.x/common/install_pmix.sh
+$ALMA_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
 ./install_mpis.sh
 
 # install nvidia gpu driver
-./install_nvidiagpudriver.sh
+$ALMA_COMMON_DIR/install_nvidiagpudriver.sh
 
 # install AMD tuned libraries
-./install_amd_libs.sh
+$ALMA_COMMON_DIR/install_amd_libs.sh
 
 # install Intel libraries
-./install_intel_libs.sh
+$ALMA_COMMON_DIR/install_intel_libs.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -51,31 +51,31 @@ rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
 # Install NCCL
-./install_nccl.sh
+$ALMA_COMMON_DIR/install_nccl.sh
 
 # Install NVIDIA docker container
-$COMMON_DIR/../alma/alma-8.x/common/install_docker.sh
+$ALMA_COMMON_DIR/install_docker.sh
 
 # Install DCGM
-./install_dcgm.sh
+$ALMA_COMMON_DIR/install_dcgm.sh
 
 # optimizations
-./hpc-tuning.sh
+$ALMA_COMMON_DIR/hpc-tuning.sh
 
 # install persistent rdma naming
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # add udev rule
-$COMMON_DIR/../alma/common/add-udev-rules.sh
+$ALMA_COMMON_DIR/add-udev-rules.sh
 
 # add interface rules
-$COMMON_DIR/../alma/common/network-config.sh
+$ALMA_COMMON_DIR/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
-$COMMON_DIR/../alma/common/install_monitoring_tools.sh
+$ALMA_COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

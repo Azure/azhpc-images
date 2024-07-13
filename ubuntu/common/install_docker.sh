@@ -18,7 +18,7 @@ systemctl restart containerd
 ctr plugin ls
 
 # Write the docker version to components file
-docker_version=$(nvidia-docker --version | awk -F' ' '{print $3}')
+docker_version=$(docker --version | awk -F' ' '{print $3}')
 $COMMON_DIR/write_component_version.sh "DOCKER" ${docker_version::-1}
 
 moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')

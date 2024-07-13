@@ -7,8 +7,8 @@ NCCL_RDMA_SHARP_COMMIT=$(jq -r '.nccl."'"$DISTRIBUTION"'".rdmasharpplugins.commi
 CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
 CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
-TARBALL="v${NCCL_VERSION}.tar.gz";
-NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL};
+TARBALL="v${NCCL_VERSION}.tar.gz"
+NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
@@ -33,7 +33,7 @@ mkdir -p /usr/local/nccl-rdma-sharp-plugins
 apt install -y zlib1g-dev
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
-git checkout ${NCCL_RDMA_SHARP_COMMIT} 
+git checkout ${NCCL_RDMA_SHARP_COMMIT}
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

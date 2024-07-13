@@ -2,8 +2,6 @@
 set -ex
 
 # Disable some unneeded services by default (administrators can re-enable if desired)
-systemctl disable wpa_supplicant
-systemctl disable abrtd
 systemctl disable firewalld
 
 # Remove auoms if exists - Prevent CPU utilization by auoms

@@ -264,11 +264,19 @@
             } 
         },
         "ubuntu20.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 
         },
         "ubuntu22.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 

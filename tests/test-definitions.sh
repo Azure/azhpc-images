@@ -25,11 +25,11 @@ function check_exit_code {
     fi
 }
 
-# verify MOFED installation
-function verify_mofed_installation {
-    # verify MOFED installation
-    ofed_info | grep ${VERSION_MOFED}
-    check_exit_code "MOFED installed" "MOFED not installed"
+# verify OFED installation
+function verify_ofed_installation {
+    # verify OFED installation
+    ofed_info | grep ${VERSION_OFED}
+    check_exit_code "OFED installed" "OFED not installed"
 }
 
 # verify IB device status

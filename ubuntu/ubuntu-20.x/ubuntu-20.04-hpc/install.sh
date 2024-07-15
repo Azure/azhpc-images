@@ -67,6 +67,9 @@ $UBUNTU_COMMON_DIR/install_amd_libs.sh
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh
 
+# disable cloud-init
+$UBUNTU_COMMON_DIR/disable_cloudinit.sh
+
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 

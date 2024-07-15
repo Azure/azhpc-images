@@ -21,7 +21,6 @@ sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
 nvidia-ctk runtime configure --runtime=docker
 
 # Configure containerd to use NVIDIA runtime
-# nvidia-ctk runtime configure --runtime=containerd
 mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
 sed -i 's/runtime = "runc"/runtime = "nvidia-container-runtime"/g' /etc/containerd/config.toml

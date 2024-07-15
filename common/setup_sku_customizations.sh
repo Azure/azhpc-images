@@ -15,6 +15,20 @@ cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+
+retry_count=0
+while [ -z "\${vmSize}" ] && (( retry_count++ < 5 ))
+do
+    sleep 30
+    vmSize=\$(curl -s -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
+done
+
+if [ -z "\${vmSize}" ]
+then
+    echo "Error! Could not retrieve VM Size from IMDS endpoint"
+    exit 1
+fi
+
 vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU

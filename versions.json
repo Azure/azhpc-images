@@ -141,7 +141,8 @@
                 "distribution": "ubuntu2004"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "ubuntu22.04": {
@@ -150,7 +151,8 @@
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "almalinux8.7": {
@@ -159,39 +161,46 @@
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         }
     },
     "gdrcopy": {
         "ubuntu20.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "el8"
         }
     },
     "nccl": {
         "ubuntu20.04": {
             "version": "2.21.5-1",
+            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "ubuntu22.04": {
             "version": "2.21.5-1",
+            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "almalinux8.7": {
             "version": "2.21.5-1",
+            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }

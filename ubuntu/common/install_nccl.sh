@@ -15,7 +15,8 @@ NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 # Install NCCL
 apt install -y build-essential devscripts debhelper fakeroot
 
-$COMMON_DIR/download_and_verify.sh ${NCCL_DOWNLOAD_URL} ${NCCL_SHA256}
+pushd /tmp
+${COMMON_DIR}/download_and_verify.sh ${NCCL_DOWNLOAD_URL} ${NCCL_SHA256}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
@@ -40,6 +41,7 @@ git checkout ${NCCL_RDMA_SHARP_COMMIT}
 make
 make install
 popd
+popd
 
 # Build the nccl tests
 source /etc/profile.d/modules.sh
@@ -54,5 +56,5 @@ module unload mpi/hpcx
 $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 
 # Remove installation files
-rm -rf ${TARBALL}
-rm -rf nccl-${NCCL_VERSION}
+rm -rf /tmp/${TARBALL}
+rm -rf /tmp/nccl-${NCCL_VERSION}

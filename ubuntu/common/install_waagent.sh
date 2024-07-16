@@ -16,7 +16,7 @@ WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
 # python3 setup.py install --register-service
 # popd
 
-apt-get update -y WALinuxAgent
+apt-get install -y WALinuxAgent
 
 # Configure WALinuxAgent
 sed -i -e 's/Provisioning.MonitorHostName=n/Provisioning.MonitorHostName=y/g' /etc/waagent.conf

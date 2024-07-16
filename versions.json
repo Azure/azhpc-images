@@ -105,7 +105,6 @@
                 "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2004",
                 "version": "535_535.161.08-1",
                 "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
@@ -117,7 +116,6 @@
                 "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2204",
                 "version": "535_535.161.08-1",
                 "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        

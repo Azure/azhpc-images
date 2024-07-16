@@ -15,7 +15,6 @@ NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 # Install NCCL
 yum install -y rpm-build rpmdevtools
 
-pushd /tmp
 $COMMON_DIR/download_and_verify.sh ${NCCL_DOWNLOAD_URL} ${NCCL_SHA256}
 tar -xvf ${TARBALL}
 

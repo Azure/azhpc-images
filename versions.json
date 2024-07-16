@@ -230,16 +230,6 @@
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"
         }
     },
-    "waagent": {
-        "ubuntu20.04": {
-            "version": "2.9.0.4",
-            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
-        },
-        "ubuntu22.04": {
-            "version": "2.9.0.4",
-            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
-        }
-    },
     "moneo": {
         "ubuntu20.04": {
             "version": "0.3.5"

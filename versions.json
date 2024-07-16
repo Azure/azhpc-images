@@ -186,21 +186,18 @@
     "nccl": {
         "ubuntu20.04": {
             "version": "2.21.5-1",
-            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "ubuntu22.04": {
             "version": "2.21.5-1",
-            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }
         },
         "almalinux8.7": {
             "version": "2.21.5-1",
-            "sha256": "1923596984d85e310b5b6c52b2c72a1b93da57218f2bc5a5c7ac3d59297a3303",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
             }

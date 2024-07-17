@@ -1,7 +1,21 @@
 #!/bin/bash
 set -ex
 
-apt-get install -y walinuxagent
+# Set waagent version and sha256
+waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
+WAAGENT_SHA256=$(jq -r '.sha256' <<< $waagent_metadata)
+
+# Install newest WALinuxAgent. Ubuntu package manager has an old version of WALinuxAgent
+apt-get install -y python3-setuptools
+pip3 install distro
+
+DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
+$COMMON_DIR/download_and_verify.sh ${DOWNLOAD_URL} ${WAAGENT_SHA256}
+tar -xvf $(basename ${DOWNLOAD_URL})
+pushd WALinuxAgent-${WAAGENT_VERSION}/
+python3 setup.py install --register-service
+popd
 
 # Configure WALinuxAgent
 sed -i -e 's/Provisioning.MonitorHostName=n/Provisioning.MonitorHostName=y/g' /etc/waagent.conf

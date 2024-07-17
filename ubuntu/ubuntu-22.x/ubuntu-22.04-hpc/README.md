@@ -39,6 +39,7 @@ Running Single Node NCCL Test (example):
 ```sh
 mpirun -np 8 \
     --allow-run-as-root \
+    --bind-to numa --report-bindings \
     --map-by ppr:8:node \
     -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
     -mca coll_hcoll_enable 0 \

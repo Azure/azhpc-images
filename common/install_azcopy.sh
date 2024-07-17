@@ -20,5 +20,7 @@ popd
 # Allow execute permissions
 chmod +x /usr/bin/azcopy
 
+$COMMON_DIR/write_component_version.sh "AZCOPY" ${azcopy_version}
+
 # remove tarball from azcopy
 rm -rf *.tar.gz

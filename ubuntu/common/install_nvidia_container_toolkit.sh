@@ -18,16 +18,14 @@ apt-mark hold nvidia-container-toolkit
 apt-mark hold libnvidia-container-tools
 apt-mark hold libnvidia-container1
 
-# Install NVIDIA container runtime and mark NVIDIA packages on hold
-# apt-get install -y nvidia-container-runtime
-# apt-mark hold nvidia-container-runtime
-
+# Configure NVIDIA Container Toolkit
 nvidia-ctk runtime configure --runtime=docker
 
 # Configure containerd to use NVIDIA runtime
 mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
 sed -i 's/runtime = "runc"/runtime = "nvidia-container-runtime"/g' /etc/containerd/config.toml
+sed -i 's/disabled_plugins = \[\]/disabled_plugins = \["cri", "zfs", "aufs", "btrfs", "devmapper"\]/g' /etc/containerd/config.toml
 
 # Remove unwanted repos
 rm -f /etc/apt/sources.list.d/nvidia*

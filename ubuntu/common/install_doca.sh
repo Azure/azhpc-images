@@ -19,3 +19,10 @@ OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | t
 $COMMON_DIR/write_component_version.sh "OFED" $OFED_VERSION
 
 /etc/init.d/openibd restart
+/etc/init.d/openibd status
+error_code=$?
+if [ ${error_code} -ne 0 ]
+then
+    echo "OpenIBD not loaded correctly!"
+    exit ${error_code}
+fi

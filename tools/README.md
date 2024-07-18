@@ -25,6 +25,6 @@ pip install -r requirements.txt
 
 This will create a number of files in the <output> directory:
 
-- guids.txt: A file with the InfiniBand device GUIDs from every host
+- guids.txt: A file with the InfiniBand device Port GUIDs from every host
 - topology.txt: A file with the InfiniBand fabric topology output from `sharp_cmd`
 - torset-NN_hosts.txt: A set of files with the hosts belonging to each torset.

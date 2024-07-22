@@ -34,7 +34,7 @@ function verify_common_components {
     verify_package_updates;
     verify_gcc_installation;
     verify_azcopy_installation;
-    verify_mofed_installation;
+    verify_ofed_installation;
     verify_ib_device_status;
     verify_hpcx_installation;
     verify_mvapich2_installation;

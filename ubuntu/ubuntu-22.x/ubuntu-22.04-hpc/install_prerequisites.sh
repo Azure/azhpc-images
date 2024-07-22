@@ -8,5 +8,5 @@ apt-mark hold linux-azure
 apt update
 apt upgrade -y
 
-# jq is needed to parse the component versions from the requirements.json file
+# jq is needed to parse the component versions from the versions.json file
 apt install -y jq

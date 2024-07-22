@@ -8,5 +8,6 @@ source $UBUNTU_COMMON_DIR/setup_lustre_repo.sh
 
 apt-get update
 apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
+apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
 
 $COMMON_DIR/write_component_version.sh "LUSTRE" ${LUSTRE_VERSION}

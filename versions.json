@@ -16,18 +16,21 @@
             "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
-    "mofed": {
+    "doca": {
         "ubuntu20.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "72e4b2961b73989793304eda9320ba3cdcdb226ea12fe1a7b8e7a179ea516e22"
+            "version": "2.7.0",
+            "sha256": "40b2480ce89c9ea8718c3f671eb01155de677031e0d51c2457ee5968055de3c7",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "caa74c295ec88afd1f1c950b4bd6e32c609e3c5185199c7e344bf492ccef6429"
+            "version": "2.7.0",
+            "sha256": "80eecc2efa414d41b9a8dc59404cd78eb81d3818f453007529847b5cfa29646f",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
+            "version": "2.7.0",
+            "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
         }
     },
     "hpcx": {
@@ -102,7 +105,6 @@
                 "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2004",
                 "version": "535_535.161.08-1",
                 "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
@@ -114,7 +116,6 @@
                 "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2204",
                 "version": "535_535.161.08-1",
                 "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
@@ -140,7 +141,8 @@
                 "distribution": "ubuntu2004"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "ubuntu22.04": {
@@ -149,7 +151,8 @@
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "almalinux8.7": {
@@ -158,21 +161,26 @@
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         }
     },
     "gdrcopy": {
         "ubuntu20.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
-            "version": "2.3"
+            "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
+            "distribution": "el8"
         }
     },
     "nccl": {
@@ -260,11 +268,19 @@
             } 
         },
         "ubuntu20.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 
         },
         "ubuntu22.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 

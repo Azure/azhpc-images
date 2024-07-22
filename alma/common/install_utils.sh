@@ -82,26 +82,7 @@ rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
 # Install azcopy tool
-# To copy blobs or files to or from a storage account
-azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
-azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
-azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)
-azcopy_sha256=$(jq -r '.sha256' <<< $azcopy_metadata)
-tarball="azcopy_linux_amd64_$azcopy_version.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$tarball"
-wget ${AZCOPY_DOWNLOAD_URL}
-tar -xvf ${tarball}
-
-# copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${azcopy_version}
-cp azcopy /usr/bin/
-popd
-
-# Allow execute permissions
-chmod +x /usr/bin/azcopy
-
-# remove tarball from azcopy
-rm -rf *.tar.gz
+$COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

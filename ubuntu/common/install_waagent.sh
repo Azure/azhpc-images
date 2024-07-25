@@ -27,4 +27,4 @@ systemctl daemon-reload
 systemctl restart walinuxagent
 
 $COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
-$COMMON_DIR/write_component_version.sh "WAAGENT-EXT" $(waagent --version | head -n 3 | awk -F' ' '{print $4}')
+$COMMON_DIR/write_component_version.sh "WAAGENT_EXTENSIONS" $(waagent --version | head -n 3 | awk -F' ' '{print $4}')

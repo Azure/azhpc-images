@@ -22,11 +22,11 @@ cp -r amd/${AOCL_VERSION}/aocc/* ${INSTALL_PREFIX}
 popd
 
 # Setup module files for AMD Libraries
-MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles/amd
-mkdir -p ${MODULE_FILES_DIRECTORY}
+AMD_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/amd
+mkdir -p ${AMD_MODULE_FILES_DIRECTORY}
 
 # fftw
-cat << EOF >> ${MODULE_FILES_DIRECTORY}/aocl-${AOCL_VERSION}
+cat << EOF >> ${AMD_MODULE_FILES_DIRECTORY}/aocl-${AOCL_VERSION}
 #%Module 1.0
 #
 #  AOCL
@@ -36,7 +36,7 @@ setenv          AMD_FFTW_INCLUDE  ${INSTALL_PREFIX}/include
 EOF
 
 # Create symlinks for modulefiles
-ln -s ${MODULE_FILES_DIRECTORY}/aocl-${AOCL_VERSION} ${MODULE_FILES_DIRECTORY}/aocl
+ln -s ${AMD_MODULE_FILES_DIRECTORY}/aocl-${AOCL_VERSION} ${AMD_MODULE_FILES_DIRECTORY}/aocl
 $COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
 
 # cleanup downloaded files

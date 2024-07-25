@@ -6,6 +6,7 @@ cuda_metadata=$(jq -r '.cuda."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
+CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 
 # Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
 # Install Cuda
@@ -21,10 +22,10 @@ $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
 # Download CUDA samples
 TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
 CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-wget ${CUDA_SAMPLES_DOWNLOAD_URL}
+$COMMON_DIR/download_and_verify.sh ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
-make
+make -j $(nproc)
 mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
 popd
 
@@ -37,3 +38,8 @@ NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
 bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
+
+$UBUNTU_COMMON_DIR/install_gdrcopy.sh
+
+# Install nvidia fabric manager (required for ND96asr_v4)
+$UBUNTU_COMMON_DIR/install_nvidia_fabric_manager.sh

@@ -15,7 +15,7 @@ DOWNLOADED_FILE_NAME=$(basename "$DOWNLOAD_URL")
 TARBALL_FILES=$(tar -xzvf "$DOWNLOADED_FILE_NAME")
 UNPACK_DIR=$(echo "$TARBALL_FILES" | head -1)
 
-sudo mkdir -p "$DESTINATION_DIR"
-sudo cp "$UNPACK_DIR/Linux/src/gather_azhpc_vm_diagnostics.sh" "$DESTINATION_DIR"
+mkdir -p "$DESTINATION_DIR"
+cp "$UNPACK_DIR/Linux/src/gather_azhpc_vm_diagnostics.sh" "$DESTINATION_DIR"
 
 rm -r "$DOWNLOADED_FILE_NAME" "$UNPACK_DIR"

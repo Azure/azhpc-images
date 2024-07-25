@@ -91,6 +91,13 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
+# A workaround to make fabricmanager service start automatically
+FMSYSPATH="/lib/systemd/system/nvidia-fabricmanager.service"
+if [ -f "$FMSYSPATH" ]; then
+    sed -i '/^After=multi-user.target/d' $FMSYSPATH
+    echo "Removed multi-user.target in Unit section"
+fi
+
 systemctl enable sku-customizations
 systemctl start sku-customizations
 systemctl is-active --quiet sku-customizations

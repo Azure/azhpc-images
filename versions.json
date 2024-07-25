@@ -137,32 +137,32 @@
     "cuda": {
         "ubuntu20.04": {
             "driver": {
-                "version": "12-4",
+                "version": "12-5",
                 "distribution": "ubuntu2004"
             },
             "samples": {
-                "version": "12.4",
-                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
+                "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "12-4",
+                "version": "12-5",
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.4",
-                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
+                "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
             }   
         },
         "almalinux8.7": {
             "driver": {
-                "version": "12-4",
+                "version": "12-5",
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.4",
-                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
+                "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
             }   
         }
     },

@@ -127,7 +127,6 @@
                 "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
             },
             "fabricmanager": {
-                "prefix": "550",
                 "distribution": "rhel8",
                 "version": "550.90.07-1",
                 "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        

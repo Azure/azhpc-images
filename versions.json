@@ -2,17 +2,17 @@
     "azcopy": {
         "ubuntu20.04": {
             "version": "10.25.1",
-            "release": "release-10.25.1-20240612",
+            "release": "10.25.1-20240612",
             "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
         },
         "ubuntu22.04": {
             "version": "10.25.1",
-            "release": "release-10.25.1-20240612",
+            "release": "10.25.1-20240612",
             "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
         },
         "almalinux8.7": {
             "version": "10.25.1",
-            "release": "release-10.25.1-20240612",
+            "release": "10.25.1-20240612",
             "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
         }
     },

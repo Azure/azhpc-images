@@ -11,18 +11,11 @@ $ALMA_COMMON_DIR/install_nvidia_container_toolkit.sh
 systemctl enable docker
 systemctl restart docker
 
-$COMMON_DIR/setup_nvidia_containerd.sh
-
 # restart containerd service
 systemctl restart containerd
 
 # status of containerd snapshotter plugins
 ctr plugin ls
-
-# Clean repos
-rm -rf /etc/yum.repos.d/nvidia-*
-rm -rf /var/cache/yum/x86_64/8/nvidia-*
-rm -rf /var/cache/yum/x86_64/8/libnvidia-container/
 
 # Write the docker version to components file
 docker_version=$(docker --version | awk -F' ' '{print $3}')

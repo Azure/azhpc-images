@@ -39,7 +39,7 @@ $ALMA_COMMON_DIR/install_mpis.sh
 $ALMA_COMMON_DIR/install_nvidiagpudriver.sh
 
 # install AMD tuned libraries
-$ALMA_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install Intel libraries
 $COMMON_DIR/install_intel_libs.sh

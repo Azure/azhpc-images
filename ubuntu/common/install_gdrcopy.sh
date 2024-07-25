@@ -8,7 +8,9 @@ gdrcopy_metadata=$(jq -r '.gdrcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_SHA256=$(jq -r '.sha256' <<< $gdrcopy_metadata)
 GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
+CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
+CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"
 GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/${TARBALL}
 
@@ -21,7 +23,7 @@ dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold gdrdrv-dkms
 dpkg -i libgdrapi_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold libgdrapi
-dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}+cuda${CUDA_VERSION}.deb
 apt-mark hold gdrcopy-tests
 dpkg -i gdrcopy_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold gdrcopy

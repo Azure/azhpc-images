@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# @Brief        : Function to extract component version from the requirements.json file
-# @Param        : (1) #Key
+# @Brief        : Function to extract component version from the versions.json file
+# @Param        : (1) #Component name
 # @RetVal       : json node value
 ####
-get_requirements(){
-    key=$1
+get_component_config(){
+    component=$1
   
-    echo $(jq -r '.${key}."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+    config=$(jq -r ".${component}.${DISTRIBUTION}" <<< "$COMPONENT_VERSIONS")
+    
+    echo "${config}"
 }

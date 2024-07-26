@@ -100,8 +100,8 @@ function verify_cuda_installation {
 
     # Verify if CUDA is installed
     # re-enable this after testing
-    # nvcc --version
-    # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
+    nvcc --version
+    check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
     
     # Verify the compilation of CUDA samples

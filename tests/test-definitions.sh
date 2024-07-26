@@ -224,6 +224,26 @@ function verify_lustre_installation {
     check_exit_code "Lustre Installed" "Lustre not installed!"
 }
 
+function verify_gdrcopy_installation {
+    # Verify GDRCopy package installation
+    case ${ID} in
+        ubuntu) dpkg -l | grep gdrcopy;;
+        almalinux) dnf list installed | grep gdrcopy;;
+        * ) ;;
+    esac
+    check_exit_code "GDRCopy Installed" "GDRCopy not installed!"
+}
+
+function verify_pssh_installation {
+    # Verify PSSH package installation
+    case ${ID} in
+        ubuntu) dpkg -l | grep pssh;;
+        almalinux) dnf list installed | grep pssh;;
+        * ) ;;
+    esac
+    check_exit_code "PSSH Installed" "PSSH not installed!"
+}
+
 function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in

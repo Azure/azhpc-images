@@ -44,6 +44,8 @@ function verify_common_components {
     verify_hpcdiag_installation;
     verify_ipoib_status;
     verify_lustre_installation;
+    verify_gdrcopy_installation;
+    verify_pssh_installation;
 }
 
 function initiate_test_suite {

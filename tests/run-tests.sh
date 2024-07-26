@@ -23,6 +23,7 @@ function test_component {
         check_nccl) verify_nccl_installation;;
         check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
+        check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
         * ) ;;

@@ -99,7 +99,6 @@ function verify_cuda_installation {
     check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 
     # Verify if CUDA is installed
-    # re-enable this after testing
     nvcc --version
     check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
@@ -190,6 +189,11 @@ function verify_aocl_installation {
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
+}
+
+function verify_aocc_installation {
+    # verify AMD compiler installation
+    check_exists "/opt/AMD/aocc-compiler-/${VERSION_AOCC}"
 }
 
 function verify_docker_installation {

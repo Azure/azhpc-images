@@ -27,7 +27,6 @@ yum install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
-    environment-modules \
     python3-devel \
     python3-setuptools \
     gtk2 \
@@ -57,6 +56,11 @@ yum install -y numactl \
     gcc-gfortran \
     perl
 
+# Install environment-modules 5.0.1
+wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm
+yum install -y environment-modules-5.0.1-1.el9.x86_64.rpm
+rm -f environment-modules-5.0.1-1.el9.x86_64.rpm
+
 ## Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
 
@@ -73,35 +77,12 @@ wget -r --no-parent -A "subunit-*.el8.x86_64.rpm" https://dl.fedoraproject.org/p
 yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-[0-9].*.el8.x86_64.rpm -y
 yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-devel-[0-9].*.el8.x86_64.rpm -y
 
-# Download jq utility
-wget -r --no-parent -A "jq-*.el8.x86_64.rpm" https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/
-yum localinstall ./repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/jq-*.el8.x86_64.rpm -y
-
 # Remove rpm files
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
 # Install azcopy tool
-# To copy blobs or files to or from a storage account
-azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
-azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
-azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)
-azcopy_sha256=$(jq -r '.sha256' <<< $azcopy_metadata)
-tarball="azcopy_linux_amd64_$azcopy_version.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/$azcopy_release/$tarball"
-wget ${AZCOPY_DOWNLOAD_URL}
-tar -xvf ${tarball}
-
-# copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${azcopy_version}
-cp azcopy /usr/bin/
-popd
-
-# Allow execute permissions
-chmod +x /usr/bin/azcopy
-
-# remove tarball from azcopy
-rm -rf *.tar.gz
+$COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

@@ -1,6 +1,9 @@
 #!/bin/bash
+set -ex
 
-# Set AOCC and AOCL versions
+$COMMON_DIR/install_amd_libs.sh
+
+# Set AOCC version
 amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 AOCC_VERSION=$(jq -r '.aocc.version' <<< $amd_metadata)
 

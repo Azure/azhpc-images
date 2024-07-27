@@ -1,8 +1,11 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set Lustre version
-LUSTRE_VERSION=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+lustre_metadata=$(get_component_config "lustre")
+LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 # Expected params:
 # $1 = the major version of the distro. "8" for RHEL/Alma8, "9" for RHEL/Alma9.

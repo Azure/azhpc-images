@@ -4,7 +4,6 @@ set -ex
 source ${COMMON_DIR}/utilities.sh
 
 # To copy blobs or files to or from a storage account
-# azcopy_metadata=$(jq -r '.azcopy."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
 azcopy_metadata=$(get_component_config "azcopy")
 azcopy_version=$(jq -r '.version' <<< $azcopy_metadata)
 azcopy_release=$(jq -r '.release' <<< $azcopy_metadata)

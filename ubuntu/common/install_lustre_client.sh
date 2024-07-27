@@ -1,8 +1,11 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set Lustre version
-LUSTRE_VERSION=$(jq -r '.lustre."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+lustre_metadata=$(get_component_config "lustre")
+LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 source $UBUNTU_COMMON_DIR/setup_lustre_repo.sh
 

@@ -1,9 +1,12 @@
 #!/bin/bash
 
-set -e
+set -ex
+
+source ${COMMON_DIR}/utilities.sh
 
 # Set the Moneo version
-MONEO_VERSION=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+azcopy_metadata=$(get_component_config "moneo")
+MONEO_VERSION=$(jq -r '.version' <<< $azcopy_metadata)
 
 # Dependencies 
 python3 -m pip install --upgrade pip

@@ -1,13 +1,16 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 #
 # install rdma_rename with NAME_FIXED option
 # install rdma_rename monitor
 #
 
 pushd /tmp
-rdma_core_branch=$(jq -r '.rdma_core."'"$DISTRIBUTION"'".branch' <<< $COMPONENT_VERSIONS)
+rdma_core_metadata=$(get_component_config "rdma_core")
+rdma_core_branch=$(jq -r '.branch' <<< $rdma_core_metadata)
 git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
 pushd rdma-core
 bash build.sh

@@ -7,7 +7,7 @@
 get_component_config(){
     component=$1
   
-    config=$(jq -r ".${component}.${DISTRIBUTION}" <<< "$COMPONENT_VERSIONS")
+    config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"' <<< "${COMPONENT_VERSIONS}")
     
     echo "${config}"
 }

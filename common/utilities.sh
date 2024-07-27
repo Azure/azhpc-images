@@ -8,6 +8,9 @@ get_component_config(){
     component=$1
   
     config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"' <<< "${COMPONENT_VERSIONS}")
+    if [[ -z "${config}" ]]; then
+        config=$(jq -r '."'"${component}"'".common' <<< "${COMPONENT_VERSIONS}")
+    fi
     
     echo "${config}"
 }

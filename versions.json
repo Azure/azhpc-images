@@ -1,11 +1,6 @@
 {
     "azcopy": {
-        "ubuntu20.04": {
-            "version": "10.17.0",
-            "release": "release20230123",
-            "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "10.17.0",
             "release": "release20230123",
             "sha256": "7da94b560f4de8265ae834a94b22b1ea94f1dbccc4551782eba56aa370244042"

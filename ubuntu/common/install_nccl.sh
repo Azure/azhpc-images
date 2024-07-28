@@ -7,8 +7,8 @@ NCCL_VERSION=$(jq -r '.version' <<< $nccl_metadata)
 NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
 CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
 
-CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
-TARBALL="v${NCCL_VERSION}.tar.gz"
+NCCL_VERSION_EXT=${NCCL_VERSION}-1
+TARBALL="v${NCCL_VERSION_EXT}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
@@ -18,13 +18,13 @@ pushd /tmp
 wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
-pushd nccl-${NCCL_VERSION}
+pushd nccl-${NCCL_VERSION_EXT}
 make -j src.build
 make pkg.debian.build
 pushd build/pkg/deb/
-dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
+dpkg -i libnccl2_${NCCL_VERSION_EXT}+cuda${CUDA_DRIVER_VERSION}_amd64.deb
 apt-mark hold libnccl2
-dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_VERSION}_amd64.deb
+dpkg -i libnccl-dev_${NCCL_VERSION_EXT}+cuda${CUDA_DRIVER_VERSION}_amd64.deb
 apt-mark hold libnccl-dev
 popd
 popd
@@ -56,4 +56,4 @@ $COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
 
 # Remove installation files
 rm -rf /tmp/${TARBALL}
-rm -rf /tmp/nccl-${NCCL_VERSION}
+rm -rf /tmp/nccl-${NCCL_VERSION_EXT}

@@ -218,8 +218,8 @@ function verify_ipoib_status {
 function verify_lustre_installation {
     # Verify lustre client package installation
     case ${ID} in
-        ubuntu) dpkg -l | grep lustre-client;;
-        almalinux) dnf list installed | grep lustre-client;;
+        ubuntu) dpkg -l | grep amlfs-lustre-client;;
+        almalinux) dnf list installed | grep amlfs-lustre-client;;
         * ) ;;
     esac
     check_exit_code "Lustre Installed" "Lustre not installed!"

@@ -192,11 +192,6 @@ function verify_aocl_installation {
     check_exists "/opt/amd/include/"
 }
 
-function verify_aocc_installation {
-    # verify AMD compiler installation
-    check_exists "/opt/AMD/aocc-compiler-/${VERSION_AOCC}"
-}
-
 function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world

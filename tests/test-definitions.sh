@@ -215,16 +215,6 @@ function verify_ipoib_status {
     check_exit_code "IPoIB is working" "IPoIB is not working!"
 }
 
-function verify_lustre_installation {
-    # Verify lustre client package installation
-    case ${ID} in
-        ubuntu) dpkg -l | grep amlfs-lustre-client;;
-        almalinux) dnf list installed | grep amlfs-lustre-client;;
-        * ) ;;
-    esac
-    check_exit_code "Lustre Installed" "Lustre not installed!"
-}
-
 function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in

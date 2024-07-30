@@ -75,7 +75,7 @@ $ALMA_COMMON_DIR/network-config.sh
 $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
-$COMMON_DIR/install_monitoring_tools.sh
+$ALMA_COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

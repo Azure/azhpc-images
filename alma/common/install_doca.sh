@@ -1,7 +1,9 @@
 #!/bin/bash
 set -ex
 
-doca_metadata=$(jq -r '.doca."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+source ${COMMON_DIR}/utilities.sh
+
+doca_metadata=$(get_component_config "doca")
 DOCA_VERSION=$(jq -r '.version' <<< $doca_metadata)
 DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
 DOCA_URL=$(jq -r '.url' <<< $doca_metadata)

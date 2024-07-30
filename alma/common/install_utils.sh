@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Install Kernel dependencies
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
 yum install -y https://repo.almalinux.org/vault/8.7/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
@@ -12,7 +14,7 @@ yum install -y python3.8
 ln -fs /usr/bin/python3.8 /usr/bin/python3
 
 # install pssh
-pssh_metadata=$(jq -r '.pssh."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+pssh_metadata=$(get_component_config "pssh")
 pssh_version=$(jq -r '.version' <<< $pssh_metadata)
 pssh_sha256=$(jq -r '.sha256' <<< $pssh_metadata)
 pssh_download_url="https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$pssh_version.el8.noarch.rpm"

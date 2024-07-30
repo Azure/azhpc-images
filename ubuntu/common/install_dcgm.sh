@@ -1,8 +1,10 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set DCGM version info
-dcgm_metadata=$(jq -r '.dcgm."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+dcgm_metadata=$(get_component_config "dcgm")
 DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 
 # Install DCGM

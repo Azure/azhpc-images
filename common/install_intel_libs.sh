@@ -1,8 +1,10 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set Intel® oneAPI Math Kernel Library info
-intel_one_mkl_metadata=$(jq -r '.intel_one_mkl."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+intel_one_mkl_metadata=$(get_component_config "intel_one_mkl")
 INTEL_ONE_MKL_VERSION=$(jq -r '.version' <<< $intel_one_mkl_metadata)
 INTEL_ONE_MKL_SHA256=$(jq -r '.sha256' <<< $intel_one_mkl_metadata)
 INTEL_ONE_MKL_DOWNLOAD_URL=$(jq -r '.url' <<< $intel_one_mkl_metadata)

@@ -46,6 +46,7 @@ function verify_common_components {
     verify_lustre_installation;
     verify_gdrcopy_installation;
     verify_pssh_installation;
+    verify_aznfs_installation;
 }
 
 function initiate_test_suite {

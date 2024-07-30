@@ -62,3 +62,5 @@ $COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}
 
 # cleanup downloaded files
 rm -rf *tar.gz
+rm -rf ${AOCL_FOLDER}
+rm -rf ${AOCC_FOLDER}

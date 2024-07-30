@@ -25,11 +25,11 @@ function check_exit_code {
     fi
 }
 
-# verify MOFED installation
-function verify_mofed_installation {
-    # verify MOFED installation
-    ofed_info | grep ${VERSION_MOFED}
-    check_exit_code "MOFED installed" "MOFED not installed"
+# verify OFED installation
+function verify_ofed_installation {
+    # verify OFED installation
+    ofed_info | grep ${VERSION_OFED}
+    check_exit_code "OFED installed" "OFED not installed"
 }
 
 # verify IB device status
@@ -192,6 +192,11 @@ function verify_aocl_installation {
     check_exists "/opt/amd/include/"
 }
 
+function verify_aocc_installation {
+    # verify AMD compiler installation
+    check_exists "/opt/AMD/aocc-compiler-${VERSION_AOCC}/"
+}
+
 function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world
@@ -208,6 +213,36 @@ function verify_ipoib_status {
     # Check if ib devices are listed
     ip addr | grep ib
     check_exit_code "IPoIB is working" "IPoIB is not working!"
+}
+
+function verify_lustre_installation {
+    # Verify lustre client package installation
+    case ${ID} in
+        ubuntu) dpkg -l | grep lustre-client;;
+        almalinux) dnf list installed | grep lustre-client;;
+        * ) ;;
+    esac
+    check_exit_code "Lustre Installed" "Lustre not installed!"
+}
+
+function verify_gdrcopy_installation {
+    # Verify GDRCopy package installation
+    case ${ID} in
+        ubuntu) dpkg -l | grep gdrcopy;;
+        almalinux) dnf list installed | grep gdrcopy;;
+        * ) ;;
+    esac
+    check_exit_code "GDRCopy Installed" "GDRCopy not installed!"
+}
+
+function verify_pssh_installation {
+    # Verify PSSH package installation
+    case ${ID} in
+        ubuntu) dpkg -l | grep pssh;;
+        almalinux) dnf list installed | grep pssh;;
+        * ) ;;
+    esac
+    check_exit_code "PSSH Installed" "PSSH not installed!"
 }
 
 function verify_dcgm_installation {

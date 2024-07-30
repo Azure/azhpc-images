@@ -16,18 +16,21 @@
             "sha256": "71f583f80a31d54bd307b4fe068678e5cdde0dd4c8c121ee384e336340cb8017"
         }
     },
-    "mofed": {
+    "doca": {
         "ubuntu20.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "72e4b2961b73989793304eda9320ba3cdcdb226ea12fe1a7b8e7a179ea516e22"
+            "version": "2.7.0",
+            "sha256": "40b2480ce89c9ea8718c3f671eb01155de677031e0d51c2457ee5968055de3c7",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "caa74c295ec88afd1f1c950b4bd6e32c609e3c5185199c7e344bf492ccef6429"
+            "version": "2.7.0",
+            "sha256": "80eecc2efa414d41b9a8dc59404cd78eb81d3818f453007529847b5cfa29646f",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
+            "version": "2.7.0",
+            "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
         }
     },
     "hpcx": {
@@ -48,48 +51,20 @@
         }
     },
     "mvapich2": {
-        "ubuntu20.04": {
-            "version": "2.3.7-1",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
-        },
-        "ubuntu22.04": {
-            "version": "2.3.7-1",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2.3.7-1",
             "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
         }
     },
     "ompi": {
-        "ubuntu20.04": {
-            "version": "5.0.2",
-            "sha256": "095ab1cddb0fa0f9e7fc211a1d33185c6727c5237d0ee55f80a7e4311e5d279c",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
-        },
-        "ubuntu22.04": {
-            "version": "5.0.2",
-            "sha256": "095ab1cddb0fa0f9e7fc211a1d33185c6727c5237d0ee55f80a7e4311e5d279c",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "5.0.2",
             "sha256": "095ab1cddb0fa0f9e7fc211a1d33185c6727c5237d0ee55f80a7e4311e5d279c",
             "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz"
         }
     },
     "impi": {
-        "ubuntu20.04": {
-            "version": "2021.12.0",
-            "sha256": "6ccfc35784ec86d898f4c1cedf82c4f71926123a12db64111f67e7d0286bbb2d",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
-        },
-        "ubuntu22.04": {
-            "version": "2021.12.0",
-            "sha256": "6ccfc35784ec86d898f4c1cedf82c4f71926123a12db64111f67e7d0286bbb2d",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2021.12.0",
             "sha256": "6ccfc35784ec86d898f4c1cedf82c4f71926123a12db64111f67e7d0286bbb2d",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/749f02a5-acb8-4bbb-91db-501ff80d3f56/l_mpi_oneapi_p_2021.12.0.538_offline.sh"
@@ -98,38 +73,35 @@
     "nvidia": {
         "ubuntu20.04": {
             "driver": {
-                "version": "535.161.08",
-                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
+                "version": "550.90.07",
+                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2004",
-                "version": "535_535.161.08-1",
-                "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
+                "version": "550_550.90.07-1",
+                "sha256": "f8321f47875fa79968cda38c77c1723ff9fa3ca010f250f17b0075d84f443058"        
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "535.161.08",
-                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
+                "version": "550.90.07",
+                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "ubuntu2204",
-                "version": "535_535.161.08-1",
-                "sha256": "7e2e334896f4bd4e5554e2387d11ea8979eef7ee7af7c03370984dcee5a1bfaf"        
+                "version": "550_550.90.07-1",
+                "sha256": "f8321f47875fa79968cda38c77c1723ff9fa3ca010f250f17b0075d84f443058"        
             }   
         },
         "almalinux8.7": {
             "driver": {
-                "version": "535.161.08",
-                "sha256": "0f026c2e6161c0bd453830903c55569e402eb1cf0c5a8e56c39e7998df55565c"
+                "version": "550.90.07",
+                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
             },
             "fabricmanager": {
-                "prefix": "535",
                 "distribution": "rhel8",
-                "version": "535.161.08-1",
-                "sha256": "4a21cce2178d7e3555d3880ed4735855d059fbf9c8682ac1435a5c4ab3651ec0"        
+                "version": "550.90.07-1",
+                "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        
             }   
         }
     },
@@ -140,7 +112,8 @@
                 "distribution": "ubuntu2004"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "ubuntu22.04": {
@@ -149,7 +122,8 @@
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         },
         "almalinux8.7": {
@@ -158,37 +132,30 @@
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.4"
+                "version": "12.4",
+                "sha256": "aa28fa2227768dd31ebbf9cd48b265a0c8810fae03e02c6079c0fa71bbea7319"
             }   
         }
     },
     "gdrcopy": {
         "ubuntu20.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
             "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
-            "version": "2.3"
+            "version": "2.3",
+            "sha256": "b85d15901889aa42de6c4a9233792af40dd94543e82abe0439e544c87fd79475",
+            "distribution": "el8"
         }
     },
     "nccl": {
-        "ubuntu20.04": {
-            "version": "2.21.5-1",
-            "rdmasharpplugins": {
-                "commit": "575c1e0"
-            }
-        },
-        "ubuntu22.04": {
-            "version": "2.21.5-1",
-            "rdmasharpplugins": {
-                "commit": "575c1e0"
-            }
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2.21.5-1",
             "rdmasharpplugins": {
                 "commit": "575c1e0"
@@ -196,27 +163,12 @@
         }
     },
     "dcgm": {
-        "ubuntu20.04": {
-            "version": "3.3.3"
-        },
-        "ubuntu22.04": {
-            "version": "3.3.3"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "3.3.3"
         }
     },
     "intel_one_mkl": {
-        "ubuntu20.04": {
-            "version": "2024.0.0.49673",
-            "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"        },
-        "ubuntu22.04": {
-            "version": "2024.0.0.49673",
-            "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2024.0.0.49673",
             "sha256": "2a3be7d01d75ba8cc3059f9a32ae72e5bfc93e68e72e94e79d7fa6ea2f7814de",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86d6a4c1-c998-4c6b-9fff-ca004e9f7455/l_onemkl_p_2024.0.0.49673_offline.sh"
@@ -233,13 +185,7 @@
         }
     },
     "moneo": {
-        "ubuntu20.04": {
-            "version": "0.3.5"
-        },
-        "ubuntu22.04": {
-            "version": "0.3.5"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "0.3.5"
         }
     },
@@ -260,57 +206,41 @@
             } 
         },
         "ubuntu20.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 
         },
         "ubuntu22.04": {
+            "aocl": {
+                "version": "4.2.0",
+                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+            },
             "aocc": {
                 "version": "4.0.0_1"
             } 
         }
     },
     "lustre": {
-        "almalinux8.7": {
-            "version": "2.15.1_24_gbaa21ca"
-        },
-        "ubuntu20.04": {
-            "version": "2.15.4-42-gd6d405d"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "2.15.4-42-gd6d405d"
         }
     },
     "aznhc": {
-        "almalinux8.7": {
-            "version": "0.4.2"
-        },
-        "ubuntu20.04": {
-            "version": "0.4.2"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "0.4.2"
         }
     },
     "rdma_core": {
-        "almalinux8.7": {
-            "branch": "stable-v48"
-        },
-        "ubuntu20.04": {
-            "branch": "stable-v48"
-        },
-        "ubuntu22.04": {
+        "common": {
             "branch": "stable-v48"
         }
     },
     "pmix": {
-        "almalinux8.7": {
-            "version": "4.2.9-1"
-        },
-        "ubuntu20.04": {
-            "version": "4.2.9-1"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "4.2.9-1"
         }
     }

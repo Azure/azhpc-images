@@ -26,8 +26,8 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
-# install mellanox ofed
-$UBUNTU_COMMON_DIR/install_mellanoxofed.sh
+# install DOCA OFED
+$UBUNTU_COMMON_DIR/install_doca.sh
 
 # install PMIX
 $UBUNTU_COMMON_DIR/install_pmix.sh
@@ -54,7 +54,7 @@ rm -Rf -- */
 $UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
+$COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -76,6 +76,9 @@ $UBUNTU_COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh
+
+# disable cloud-init
+$UBUNTU_COMMON_DIR/disable_cloudinit.sh
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

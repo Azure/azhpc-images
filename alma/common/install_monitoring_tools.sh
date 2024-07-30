@@ -2,8 +2,11 @@
 
 set -e
 
-# Set moneo metadata
-MONEO_VERSION=$(jq -r '.moneo."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+source ${COMMON_DIR}/utilities.sh
+
+# Set the Moneo version
+moneo_metadata=$(get_component_config "moneo")
+MONEO_VERSION=$(jq -r '.version' <<< $moneo_metadata)
 
 # Dependencies 
 python3 -m pip install --upgrade pip
@@ -26,8 +29,8 @@ pushd $MONITOR_DIR
 popd
 
 # add an alias for Moneo
-if ! grep -qxF "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" /etc/bashrc; then
-    echo "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" >> /etc/bashrc
+if ! grep -qxF "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" /etc/bash.bashrc; then
+    echo "alias moneo='python3 /opt/azurehpc/tools/Moneo/moneo.py'" >> /etc/bash.bashrc
 fi
 
 $COMMON_DIR/write_component_version.sh "MONEO" ${MONEO_VERSION}

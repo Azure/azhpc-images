@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Install AZNFS Mount Helper
 aznfs_metadata=$(get_component_config "aznfs")
 AZNFS_VERSION=$(jq -r '.version' <<< $aznfs_metadata)

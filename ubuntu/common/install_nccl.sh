@@ -1,11 +1,15 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set NCCL versions
-nccl_metadata=$(jq -r '.nccl."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+nccl_metadata=$(get_component_config "nccl")
 NCCL_VERSION=$(jq -r '.version' <<< $nccl_metadata)
 NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
-CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
+
+cuda_metadata=$(get_component_config "cuda")
+CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
 NCCL_VERSION_EXT=${NCCL_VERSION}-1
 TARBALL="v${NCCL_VERSION_EXT}.tar.gz"

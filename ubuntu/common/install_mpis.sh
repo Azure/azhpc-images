@@ -1,17 +1,20 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Load gcc
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+pmix_metadata=$(get_component_config "pmix")
+PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION}
 
 # Install HPC-x
-hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+hpcx_metadata=$(get_component_config "hpcx")
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
@@ -29,7 +32,7 @@ ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 # Install MVAPICH2
-mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+mvapich2_metadata=$(get_component_config "mvapich2")
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
 MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}-1.tar.gz"
@@ -47,7 +50,7 @@ cd ..
 $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MVAPICH2_VERSION}
 
 # Install Open MPI
-ompi_metadata=$(jq -r '.ompi."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+ompi_metadata=$(get_component_config "ompi")
 OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata)
 OMPI_SHA256=$(jq -r '.sha256' <<< $ompi_metadata)
 OMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $ompi_metadata)
@@ -62,7 +65,7 @@ cd ..
 $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 
 # Install Intel MPI
-impi_metadata=$(jq -r '.impi."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+impi_metadata=$(get_component_config "impi")
 IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
 IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
 IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)

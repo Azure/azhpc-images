@@ -1,11 +1,13 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 INSTALL_PREFIX=/opt/amd
 mkdir -p ${INSTALL_PREFIX}
 
-# Set AOCL and AOCC version
-amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+# Set AOCL version
+amd_metadata=$(get_component_config "amd")
 AOCL_VERSION=$(jq -r '.aocl.version' <<< $amd_metadata)
 AOCL_SHA256=$(jq -r '.aocl.sha256' <<< $amd_metadata)
 

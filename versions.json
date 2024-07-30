@@ -51,48 +51,20 @@
         }
     },
     "mvapich2": {
-        "ubuntu20.04": {
-            "version": "2.3.7",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
-        },
-        "ubuntu22.04": {
-            "version": "2.3.7",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2.3.7",
             "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
         }
     },
     "ompi": {
-        "ubuntu20.04": {
-            "version": "5.0.3",
-            "sha256": "3e12160dd1d6f5cd8897bbab63a05fb9223a1e20a1726db23607aac25dc1aa19",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.3.tar.gz"
-        },
-        "ubuntu22.04": {
-            "version": "5.0.3",
-            "sha256": "3e12160dd1d6f5cd8897bbab63a05fb9223a1e20a1726db23607aac25dc1aa19",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.3.tar.gz"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "5.0.3",
             "sha256": "3e12160dd1d6f5cd8897bbab63a05fb9223a1e20a1726db23607aac25dc1aa19",
             "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.3.tar.gz"
         }
     },
     "impi": {
-        "ubuntu20.04": {
-            "version": "2021.13.0",
-            "sha256": "5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh"
-        },
-        "ubuntu22.04": {
-            "version": "2021.13.0",
-            "sha256": "5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2021.13.0",
             "sha256": "5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh"
@@ -183,19 +155,7 @@
         }
     },
     "nccl": {
-        "ubuntu20.04": {
-            "version": "2.22.3",
-            "rdmasharpplugins": {
-                "commit": "v2.6.x"
-            }
-        },
-        "ubuntu22.04": {
-            "version": "2.22.3",
-            "rdmasharpplugins": {
-                "commit": "v2.6.x"
-            }
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2.22.3",
             "rdmasharpplugins": {
                 "commit": "v2.6.x"
@@ -203,28 +163,12 @@
         }
     },
     "dcgm": {
-        "ubuntu20.04": {
-            "version": "3.3.6"
-        },
-        "ubuntu22.04": {
-            "version": "3.3.6"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "3.3.6"
         }
     },
     "intel_one_mkl": {
-        "ubuntu20.04": {
-            "version": "2024.2.0.664",
-            "sha256": "f1f46f5352c197a9840e08fc191a879dad79ebf742fe782e386ba8006f262f7a",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cdff21a5-6ac7-4b41-a7ec-351b5f9ce8fd/l_onemkl_p_2024.2.0.664_offline.sh"
-        },
-        "ubuntu22.04": {
-            "version": "2024.2.0.664",
-            "sha256": "f1f46f5352c197a9840e08fc191a879dad79ebf742fe782e386ba8006f262f7a",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cdff21a5-6ac7-4b41-a7ec-351b5f9ce8fd/l_onemkl_p_2024.2.0.664_offline.sh"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2024.2.0.664",
             "sha256": "f1f46f5352c197a9840e08fc191a879dad79ebf742fe782e386ba8006f262f7a",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cdff21a5-6ac7-4b41-a7ec-351b5f9ce8fd/l_onemkl_p_2024.2.0.664_offline.sh"
@@ -241,13 +185,7 @@
         }
     },
     "moneo": {
-        "ubuntu20.04": {
-            "version": "0.3.5"
-        },
-        "ubuntu22.04": {
-            "version": "0.3.5"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "0.3.5"
         }
     },
@@ -290,46 +228,22 @@
         }
     },
     "lustre": {
-        "almalinux8.7": {
-            "version": "2.15.4_42_gd6d405d"
-        },
-        "ubuntu20.04": {
-            "version": "2.15.4-42-gd6d405d"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "2.15.4-42-gd6d405d"
         }
     },
     "aznhc": {
-        "almalinux8.7": {
-            "version": "0.4.2"
-        },
-        "ubuntu20.04": {
-            "version": "0.4.2"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "0.4.2"
         }
     },
     "rdma_core": {
-        "almalinux8.7": {
-            "branch": "v52.0"
-        },
-        "ubuntu20.04": {
-            "branch": "v52.0"
-        },
-        "ubuntu22.04": {
+        "common": {
             "branch": "v52.0"
         }
     },
     "pmix": {
-        "almalinux8.7": {
-            "version": "4.2.9"
-        },
-        "ubuntu20.04": {
-            "version": "4.2.9"
-        },
-        "ubuntu22.04": {
+        "common": {
             "version": "4.2.9"
         }
     }

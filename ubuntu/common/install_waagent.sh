@@ -1,8 +1,10 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Set waagent version and sha256
-waagent_metadata=$(jq -r '.waagent."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+waagent_metadata=$(get_component_config "waagent")
 WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
 WAAGENT_SHA256=$(jq -r '.sha256' <<< $waagent_metadata)
 

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 # Load gcc
 GCC_VERSION=gcc-9.2.0
 export PATH=/opt/${GCC_VERSION}/bin:$PATH
@@ -10,11 +12,12 @@ set GCC=/opt/${GCC_VERSION}/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+pmix_metadata=$(get_component_config "pmix")
+PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION}
 
 # Install HPC-x
-hpcx_metadata=$(jq -r '.hpcx."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+hpcx_metadata=$(get_component_config "hpcx")
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
@@ -39,7 +42,7 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 
 # Install MVAPICH2
-mvapich2_metadata=$(jq -r '.mvapich2."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+mvapich2_metadata=$(get_component_config "mvapich2")
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
 MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}-1.tar.gz"
@@ -55,7 +58,7 @@ $COMMON_DIR/write_component_version.sh "MVAPICH2" ${MVAPICH2_VERSION}
 
 
 # Install Open MPI
-ompi_metadata=$(jq -r '.ompi."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+ompi_metadata=$(get_component_config "ompi")
 OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata)
 OMPI_SHA256=$(jq -r '.sha256' <<< $ompi_metadata)
 OMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $ompi_metadata)
@@ -75,7 +78,7 @@ $COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
 sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 
 # Install Intel MPI
-impi_metadata=$(jq -r '.impi."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+impi_metadata=$(get_component_config "impi")
 IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
 IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
 IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)

@@ -1,7 +1,10 @@
 #!/bin/bash
 set -ex
 
-PMIX_VERSION=$(jq -r '.pmix."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+source ${COMMON_DIR}/utilities.sh
+
+pmix_metadata=$(get_component_config "pmix")
+PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
 if [ $UBUNTU_VERSION == 22.04 ]; then

@@ -1,10 +1,12 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
 $COMMON_DIR/install_amd_libs.sh
 
 # Set AOCC version
-amd_metadata=$(jq -r '.amd."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+amd_metadata=$(get_component_config "amd")
 AOCC_VERSION=$(jq -r '.aocc.version' <<< $amd_metadata)
 
 # install dependency

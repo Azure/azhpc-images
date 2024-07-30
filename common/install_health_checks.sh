@@ -1,9 +1,11 @@
 #!/bin/bash
 
-set -e
+set -ex
 
+source ${COMMON_DIR}/utilities.sh
 
-AZHC_VERSION=$(jq -r '.aznhc."'"$DISTRIBUTION"'".version' <<< $COMPONENT_VERSIONS)
+aznhc_metadata=$(get_component_config "aznhc")
+AZHC_VERSION=$(jq -r '.version' <<< $aznhc_metadata)
 
 DEST_TEST_DIR=/opt/azurehpc/test
 

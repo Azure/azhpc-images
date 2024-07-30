@@ -245,15 +245,7 @@
         }
     },
     "aznfs": {
-        "ubuntu20.04": {
-            "version": "2.0.8",
-            "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
-        },
-        "ubuntu22.04": {
-            "version": "2.0.8",
-            "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
-        },
-        "almalinux8.7": {
+        "common": {
             "version": "2.0.8",
             "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
         }

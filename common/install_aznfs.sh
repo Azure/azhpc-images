@@ -2,7 +2,7 @@
 set -ex
 
 # Install AZNFS Mount Helper
-aznfs_metadata=$(jq -r '.aznfs."'"$DISTRIBUTION"'"' <<< $COMPONENT_VERSIONS)
+aznfs_metadata=$(get_component_config "aznfs")
 AZNFS_VERSION=$(jq -r '.version' <<< $aznfs_metadata)
 AZNFS_SHA256=$(jq -r '.sha256' <<< $aznfs_metadata)
 AZNFS_DOWNLOAD_URL=https://github.com/Azure/AZNFS-mount/releases/download/${AZNFS_VERSION}/aznfs_install.sh

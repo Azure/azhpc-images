@@ -41,5 +41,23 @@ EOF
 ln -s ${AMD_MODULE_FILES_DIRECTORY}/aocl-${AOCL_VERSION} ${AMD_MODULE_FILES_DIRECTORY}/aocl
 $COMMON_DIR/write_component_version.sh "AOCL" ${AOCL_VERSION}
 
+# Install AMD Optimizing C/C++ and Fortran Compilers
+AOCC_VERSION=$(jq -r '.aocc.version' <<< $amd_metadata)
+AOCC_SHA256=$(jq -r '.aocc.sha256' <<< $amd_metadata)
+AOCC_TARBALL="aocc-compiler-${AOCC_VERSION}.tar"
+AOCC_FOLDER_VERSION=$(echo $AOCC_VERSION | cut -d'.' -f1-2 --output-delimiter='-')
+AOCC_DOWNLOAD_URL=https://download.amd.com/developer/eula/aocc/aocc-${AOCC_FOLDER_VERSION}/${AOCC_TARBALL}
+AOCC_FOLDER=$(basename $AOCC_TARBALL .tar)
+
+$COMMON_DIR/download_and_verify.sh $AOCC_DOWNLOAD_URL $AOCC_SHA256
+tar -xvf ${AOCC_TARBALL}
+
+pushd ${AOCC_FOLDER}
+./install.sh
+popd
+cp -r ${AOCC_FOLDER} ${INSTALL_PREFIX}
+
+$COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}
+
 # cleanup downloaded files
 rm -rf *tar.gz

@@ -227,11 +227,7 @@ function verify_lustre_installation {
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation
-    case ${ID} in
-        ubuntu) dpkg -l | grep gdrcopy;;
-        almalinux) dnf list installed | grep gdrcopy;;
-        * ) ;;
-    esac
+    gdrcopy_sanity
     check_exit_code "GDRCopy Installed" "GDRCopy not installed!"
 }
 

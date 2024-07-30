@@ -55,8 +55,8 @@ tar -xvf ${AOCC_TARBALL}
 
 pushd ${AOCC_FOLDER}
 ./install.sh
-# source <compdir>/setenv_AOCC.sh
 popd
+cp -r ${AOCC_FOLDER} ${INSTALL_PREFIX}
 
 $COMMON_DIR/write_component_version.sh "AOCC" ${AOCC_VERSION}
 

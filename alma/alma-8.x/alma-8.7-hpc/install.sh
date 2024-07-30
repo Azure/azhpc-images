@@ -4,6 +4,16 @@ set -ex
 # install pre-requisites
 ./install_prerequisites.sh
 
+export GPU="NVIDIA"
+
+if [[ "$#" -gt 0 ]]; then
+    INPUT=$1
+    if [ "$INPUT" != "NVIDIA" ]; then
+        echo "Error: Invalid GPU type. Only 'NVIDIA' is implemented for this OS."
+	exit 1
+    fi
+fi
+
 # set properties
 source ./set_properties.sh
 

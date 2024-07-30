@@ -13,18 +13,3 @@ NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv4/topo.xml
 EOF
 
-## NVIDIA Fabric manager
-systemctl enable nvidia-fabricmanager
-systemctl start nvidia-fabricmanager
-systemctl is-active --quiet nvidia-fabricmanager
-
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "NVIDIA Fabic Manager Inactive!"
-    exit ${error_code}
-fi
-
-## load nvidia-peermem module
-modprobe nvidia-peermem
-

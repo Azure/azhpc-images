@@ -11,7 +11,7 @@ INSTALL_PREFIX=/opt
 
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
-PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION}
+PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
 
 # Install HPC-x
 hpcx_metadata=$(get_component_config "hpcx")

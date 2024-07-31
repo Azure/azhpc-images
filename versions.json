@@ -58,9 +58,9 @@
     },
     "ompi": {
         "common": {
-            "version": "5.0.3",
-            "sha256": "3e12160dd1d6f5cd8897bbab63a05fb9223a1e20a1726db23607aac25dc1aa19",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.3.tar.gz"
+            "version": "5.0.5",
+            "sha256": "5cbefa0780b84f4126743c40cdd6a334b2f0574cd7fd95050fb1ac0ddbb7f0b8",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.5.tar.gz"
         }
     },
     "impi": {
@@ -164,7 +164,7 @@
     },
     "dcgm": {
         "common": {
-            "version": "3.3.6"
+            "version": "3.3.7"
         }
     },
     "intel_one_mkl": {
@@ -196,27 +196,7 @@
         }
     },
     "amd": {
-        "almalinux8.7": {
-            "aocl": {
-                "version": "4.2.0",
-                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
-            },
-            "aocc": {
-                "version": "4.2.0",
-                "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
-            } 
-        },
-        "ubuntu20.04": {
-            "aocl": {
-                "version": "4.2.0",
-                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
-            },
-            "aocc": {
-                "version": "4.2.0",
-                "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
-            } 
-        },
-        "ubuntu22.04": {
+        "common": {
             "aocl": {
                 "version": "4.2.0",
                 "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"

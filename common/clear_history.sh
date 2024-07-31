@@ -65,7 +65,6 @@ rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /run/cloud-init
 rm -rf /root/*
 rm -rf /usr/tmp/dnf*
-rm -f /opt/azurehpc/test/azurehpc-health-checks/health.log
 # rm -rf /etc/sudoers.d/*
 
 if systemctl is-active --quiet sku-customizations

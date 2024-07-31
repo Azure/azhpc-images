@@ -10,7 +10,9 @@ gdrcopy_metadata=$(get_component_config "gdrcopy")
 GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_SHA256=$(jq -r '.sha256' <<< $gdrcopy_metadata)
 GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
-CUDA_DRIVER_VERSION=$(jq -r '.cuda."'"$DISTRIBUTION"'".driver.version' <<< $COMPONENT_VERSIONS)
+
+cuda_metadata=$(get_component_config "cuda")
+CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
 TARBALL="v${GDRCOPY_VERSION}.tar.gz"
 GDRCOPY_DOWNLOAD_URL=https://github.com/NVIDIA/gdrcopy/archive/refs/tags/${TARBALL}

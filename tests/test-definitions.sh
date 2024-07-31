@@ -194,7 +194,7 @@ function verify_aocl_installation {
 
 function verify_aocc_installation {
     # verify AMD compiler installation
-    check_exists "/opt/AMD/aocc-compiler-${VERSION_AOCC:0:2}/"
+    check_exists "/opt/AMD/aocc-compiler-${VERSION_AOCC}/"
 }
 
 function verify_docker_installation {

@@ -22,13 +22,13 @@ tar -xvf $TARBALL
 
 pushd gdrcopy-${GDRCOPY_VERSION}/packages/
 CUDA=/usr/local/cuda ./build-deb-packages.sh 
-dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}-1_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold gdrdrv-dkms
-dpkg -i libgdrapi_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+dpkg -i libgdrapi_${GDRCOPY_VERSION}-1_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold libgdrapi
-dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}+cuda${CUDA_DRIVER_VERSION}.deb
+dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}-1_amd64.${GDRCOPY_DISTRIBUTION}+cuda${CUDA_DRIVER_VERSION}.deb
 apt-mark hold gdrcopy-tests
-dpkg -i gdrcopy_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+dpkg -i gdrcopy_${GDRCOPY_VERSION}-1_amd64.${GDRCOPY_DISTRIBUTION}.deb
 apt-mark hold gdrcopy
 popd
 

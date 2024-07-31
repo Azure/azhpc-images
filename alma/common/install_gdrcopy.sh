@@ -17,9 +17,9 @@ tar -xvf $TARBALL
 
 pushd gdrcopy-${GDRCOPY_VERSION}/packages/
 CUDA=/usr/local/cuda ./build-rpm-packages.sh
-rpm -Uvh gdrcopy-kmod-${GDRCOPY_VERSION}dkms.${GDRCOPY_DISTRIBUTION}.noarch.rpm
-rpm -Uvh gdrcopy-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
-rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.noarch.rpm
+rpm -Uvh gdrcopy-kmod-${GDRCOPY_VERSION}-1dkms.${GDRCOPY_DISTRIBUTION}.noarch.rpm
+rpm -Uvh gdrcopy-${GDRCOPY_VERSION}-1.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
+rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}-1.${GDRCOPY_DISTRIBUTION}.noarch.rpm
 sed -i "$ s/$/ gdrcopy*/" /etc/dnf/dnf.conf
 popd
 

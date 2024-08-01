@@ -241,6 +241,11 @@ function verify_pssh_installation {
     check_exit_code "PSSH Installed" "PSSH not installed!"
 }
 
+function verify_aznfs_installation {
+    # verify AZNFS Mount Helper installation
+    check_exists "/opt/microsoft/aznfs/"
+}
+
 function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in

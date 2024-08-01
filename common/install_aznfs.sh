@@ -11,7 +11,5 @@ AZNFS_DOWNLOAD_URL=https://github.com/Azure/AZNFS-mount/releases/download/${AZNF
 
 ${COMMON_DIR}/download_and_verify.sh $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
 
-# echo Y > /sys/module/sunrpc/parameters/enable_azure_nconnect
-
 export AZNFS_NONINTERACTIVE_INSTALL=1
 bash aznfs_install.sh

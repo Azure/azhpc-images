@@ -45,10 +45,10 @@ fi
 
 apt update
 
-apt install -y pmix=$PMIX_VERSION libevent-dev libhwloc-dev # libmunge-dev
+apt install -y pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 
 # Hold versions of packages to prevent accidental updates. Packages can still be upgraded explictly by
 # '--allow-change-held-packages' flag.
-apt-mark hold pmix=$PMIX_VERSION libevent-dev libhwloc-dev # libmunge-dev
+apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 
 $COMMON_DIR/write_component_version.sh "PMIX" ${PMIX_VERSION}

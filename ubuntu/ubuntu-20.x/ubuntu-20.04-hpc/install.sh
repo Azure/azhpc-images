@@ -72,10 +72,10 @@ $COMMON_DIR/install_aznfs.sh
 $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
-$UBUNTU_COMMON_DIR/install_monitoring_tools.sh
+$COMMON_DIR/install_monitoring_tools.sh
 
 # install AMD libs
-$UBUNTU_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

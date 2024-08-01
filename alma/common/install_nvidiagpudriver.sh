@@ -13,7 +13,7 @@ CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # Install Cuda
 dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
 dnf clean expire-cache
-dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION}
+dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
 $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}

@@ -46,7 +46,7 @@ case \$vmSize in
     standard_hb176*v4)
         /opt/azurehpc/customizations/hbv4.sh;;
 
-    standard_nd96is*_h100_v5)
+    standard_nd96is*_h[1-2]00_v5)
         /opt/azurehpc/customizations/ndv5.sh;;
 
     standard_nd96is*_mi300x_v5)

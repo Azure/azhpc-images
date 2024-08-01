@@ -39,7 +39,7 @@ $ALMA_COMMON_DIR/install_mpis.sh
 $ALMA_COMMON_DIR/install_nvidiagpudriver.sh
 
 # install AMD tuned libraries
-$ALMA_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install Intel libraries
 $COMMON_DIR/install_intel_libs.sh
@@ -75,7 +75,7 @@ $ALMA_COMMON_DIR/network-config.sh
 $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
-$ALMA_COMMON_DIR/install_monitoring_tools.sh
+$COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh

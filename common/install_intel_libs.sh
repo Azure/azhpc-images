@@ -15,4 +15,6 @@ $COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" ${INTEL_ONE_MKL_VERSION}
 $COMMON_DIR/download_and_verify.sh ${INTEL_ONE_MKL_DOWNLOAD_URL} ${INTEL_ONE_MKL_SHA256}
 sh ./${INTEL_ONE_MKL_OFFLINE_INSTALLER} -s -a -s --eula accept
 
+rm -f ${INTEL_ONE_MKL_OFFLINE_INSTALLER}
+
 $COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" ${INTEL_ONE_MKL_VERSION}

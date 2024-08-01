@@ -194,7 +194,7 @@ function verify_aocl_installation {
 
 function verify_aocc_installation {
     # verify AMD compiler installation
-    check_exists "/opt/AMD/aocc-compiler-${VERSION_AOCC}/"
+    check_exists "/opt/amd/aocc-compiler-${VERSION_AOCC}/"
 }
 
 function verify_docker_installation {
@@ -227,11 +227,7 @@ function verify_lustre_installation {
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation
-    case ${ID} in
-        ubuntu) dpkg -l | grep gdrcopy;;
-        almalinux) dnf list installed | grep gdrcopy;;
-        * ) ;;
-    esac
+    gdrcopy_sanity
     check_exit_code "GDRCopy Installed" "GDRCopy not installed!"
 }
 

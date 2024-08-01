@@ -11,7 +11,6 @@ NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
-CUDA_VERSION="${CUDA_DRIVER_VERSION//-/.}"
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
@@ -25,9 +24,9 @@ tar -xvf ${TARBALL}
 pushd nccl-${NCCL_VERSION}
 make -j src.build
 make pkg.redhat.build
-rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
-rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
 sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 popd
 

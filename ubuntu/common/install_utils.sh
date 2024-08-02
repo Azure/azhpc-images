@@ -53,3 +53,6 @@ $COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh
+
+# copy torset tool
+$COMMON_DIR/copy_torset_tool.sh

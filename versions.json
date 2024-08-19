@@ -18,36 +18,36 @@
     },
     "doca": {
         "ubuntu20.04": {
-            "version": "2.7.0",
-            "sha256": "40b2480ce89c9ea8718c3f671eb01155de677031e0d51c2457ee5968055de3c7",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2004_amd64.deb"
+            "version": "2.8.0",
+            "sha256": "00f76872fc1073ca83eccae519f284eaa9a241ea23b9bfd898b082460ddea595",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "2.7.0",
-            "sha256": "80eecc2efa414d41b9a8dc59404cd78eb81d3818f453007529847b5cfa29646f",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2204_amd64.deb"
+            "version": "2.8.0",
+            "sha256": "289a3e00f676032b52afb1aab5f19d2a672bcca782daf9d30ade0b59975af582",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
-            "version": "2.7.0",
-            "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
+            "version": "2.8.0",
+            "sha256": "a9f1ebd173bd8df08ec8a8e2448f3d3f757460cb26690fb62ecca59f3f271bb5",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel87.x86_64.rpm"
         }
     },
     "hpcx": {
         "ubuntu20.04": {
-            "version": "2.19",
-            "sha256": "b813f86a661672b3e6835a5c97938032ac59c963ef9f95a97cbb7df68137b8d2",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
+            "version": "2.20",
+            "sha256": "be6b4cc12790f83b9411750bc6fb22e8bb46ff3f578c463b30d2bda2b825a68b",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.19",
-            "sha256": "40e370de8daf13e26ff9d59cc07f9f04748b34b9cee0d3a1610819af838b364d",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.20",
+            "sha256": "81a0d8fb41ff43a9cff589e986e7a08e83e67f2e06616e0eeab069a581a09231",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
-            "version": "2.19",
-            "sha256": "b43cbee29635f5b3a4a95d09e8cdcd8a6933eb07ae14226774156a6018d74199",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+            "version": "2.20",
+            "sha256": "ad8398622ff19152be5bbec3abff6e801f2ad48941cfea478f2953d098e69a8c",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
     "mvapich2": {
@@ -65,9 +65,9 @@
     },
     "impi": {
         "common": {
-            "version": "2021.13.0",
-            "sha256": "5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh"
+            "version": "2021.13.1",
+            "sha256": "be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh"
         }
     },
     "nvidia": {
@@ -158,7 +158,7 @@
         "common": {
             "version": "2.22.3-1",
             "rdmasharpplugins": {
-                "commit": "v2.6.x"
+                "commit": "v2.7.x"
             }
         }
     },

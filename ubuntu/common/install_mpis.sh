@@ -64,7 +64,7 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 $COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..

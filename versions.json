@@ -25,19 +25,19 @@
     },
     "hpcx": {
         "ubuntu20.04": {
-            "version": "2.20",
-            "sha256": "be6b4cc12790f83b9411750bc6fb22e8bb46ff3f578c463b30d2bda2b825a68b",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "8e088f5ae94576e1d845fbb4ef67c7dc54983555d3583c244dde7e19dc082074",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.20",
-            "sha256": "81a0d8fb41ff43a9cff589e986e7a08e83e67f2e06616e0eeab069a581a09231",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
-            "version": "2.20",
-            "sha256": "ad8398622ff19152be5bbec3abff6e801f2ad48941cfea478f2953d098e69a8c",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.20/hpcx-v2.20-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
     "mvapich2": {

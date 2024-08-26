@@ -159,7 +159,7 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2024.2.1",
+            "version": "2024.2.1.105",
             "sha256": "adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
             "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh"
         }

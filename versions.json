@@ -98,7 +98,7 @@
     "cuda": {
         "ubuntu20.04": {
             "driver": {
-                "version": "12.6",
+                "version": "12.5",
                 "distribution": "ubuntu2004"
             },
             "samples": {
@@ -108,7 +108,7 @@
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "12.6",
+                "version": "12.5",
                 "distribution": "ubuntu2204"
             },
             "samples": {
@@ -118,7 +118,7 @@
         },
         "almalinux8.7": {
             "driver": {
-                "version": "12.6",
+                "version": "12.5",
                 "distribution": "rhel8"
             },
             "samples": {

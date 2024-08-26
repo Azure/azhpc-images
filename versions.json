@@ -1,9 +1,9 @@
 {
     "azcopy": {
         "common": {
-            "version": "10.26.0",
-            "release": "10.26.0-20240731",
-            "sha256": "ecbc6bc91cb9db794f29e26a0592894cf3290228721aa26bdb9c3b1fa0880034"
+            "version": "10.25.1",
+            "release": "10.25.1-20240612",
+            "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
         }
     },
     "doca": {

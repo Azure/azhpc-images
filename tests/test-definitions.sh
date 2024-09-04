@@ -43,7 +43,7 @@ function verify_ib_device_status {
     check_exit_code "IB device state: LinkUp" "IB link not up"
 
     # verify ifconfig
-    ifconfig | grep "ib0:"
+    ifconfig | grep "ibP"
     check_exit_code "IB device is configured" "IB device not configured"
 }
 

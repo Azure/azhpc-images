@@ -41,6 +41,10 @@ function verify_ib_device_status {
     # verify IB device is up
     ibstatus | grep "LinkUp"
     check_exit_code "IB device state: LinkUp" "IB link not up"
+
+    # verify ifconfig
+    ifconfig | grep "ib0:\|ibP"
+    check_exit_code "IB device is configured" "IB device not configured"
 }
 
 function verify_hpcx_installation {

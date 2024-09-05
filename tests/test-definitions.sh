@@ -43,14 +43,8 @@ function verify_ib_device_status {
     check_exit_code "IB device state: LinkUp" "IB link not up"
 
     # verify ifconfig
-    ifconfig | grep "ib0:"
-    if [ $exit_code -eq 0 ]
-    then
-        echo "[OK] : IB device is configured after reboot"
-    else
-        ifconfig | grep "ibP"
-        check_exit_code "IB device is configured before reboot" "IB device not configured"
-    fi
+    ifconfig | grep "ib0:\|ibP"
+    check_exit_code "IB device is configured" "IB device not configured"
 }
 
 function verify_hpcx_installation {

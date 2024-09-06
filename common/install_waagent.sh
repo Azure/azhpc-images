@@ -22,6 +22,7 @@ waagent_metadata=$(get_component_config "waagent")
 WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
 WAAGENT_SHA256=$(jq -r '.sha256' <<< $waagent_metadata)
 
+# Update WALinuxAgent - for IPoIB support
 DOWNLOAD_URL=https://github.com/Azure/WALinuxAgent/archive/refs/tags/v${WAAGENT_VERSION}.tar.gz
 $COMMON_DIR/download_and_verify.sh ${DOWNLOAD_URL} ${WAAGENT_SHA256}
 tar -xvf $(basename ${DOWNLOAD_URL})

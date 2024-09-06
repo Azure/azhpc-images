@@ -166,6 +166,7 @@
     },
     "waagent": {
         "common": {
+            "_comment": "Beware upgrading waagent as there is a bug that causes IP address not to be set in ifconfig. There appears to be a fix in the pipeline but not released.",
             "version": "2.9.0.4",
             "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
         }

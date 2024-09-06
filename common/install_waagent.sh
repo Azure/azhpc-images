@@ -40,10 +40,11 @@ update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"
 update_waagent_conf "Provisioning.MonitorHostName" "y"
 update_waagent_conf "Provisioning.MonitorHostNamePeriod" "60"
 
-systemctl daemon-reload
-systemctl restart walinuxagent
 
 rm -rf WALinuxAgent-${WAAGENT_VERSION}
 
 $COMMON_DIR/write_component_version.sh "WAAGENT" $(waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
 $COMMON_DIR/write_component_version.sh "WAAGENT_EXTENSIONS" $(waagent --version | sed '3q;d' | awk -F' ' '{print $4}')
+
+systemctl daemon-reload
+# Restart waagent service in distribution specific file as its name differs between distributions

@@ -39,7 +39,7 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 mvapich2_metadata=$(get_component_config "mvapich2")
 MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
 MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
-MVAPICH2_DOWNLOAD_URL="https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/private/mvapich2-2.3.x.tar.gz"
+MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz"
 TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
 MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
 

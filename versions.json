@@ -42,8 +42,8 @@
     },
     "mvapich2": {
         "common": {
-            "version": "2.3.7-azure",
-            "sha256": "983ac2c4a82eca7681a6caff6d8e6fd39369622453b3b0837c0bce600240d2f7"
+            "version": "2.3.7-1",
+            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
         }
     },
     "ompi": {

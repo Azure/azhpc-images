@@ -34,6 +34,7 @@ popd
 update_waagent_conf "Extensions.GoalStatePeriod" "300"
 update_waagent_conf "Extensions.InitialGoalStatePeriod" "6"
 update_waagent_conf "OS.EnableFirewallPeriod" "300"
+update_waagent_conf "OS.EnableRDMA" "y"
 update_waagent_conf "OS.RemovePersistentNetRulesPeriod" "300"
 update_waagent_conf "OS.RootDeviceScsiTimeoutPeriod" "300"
 update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"

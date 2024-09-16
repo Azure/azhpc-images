@@ -14,6 +14,8 @@ if [ "$GPU" = "NVIDIA" ]; then
 cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 #!/bin/bash
 
+/opt/azurehpc/customizations/alma_disable_cloudinit.sh
+
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
 

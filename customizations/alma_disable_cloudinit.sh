@@ -1,7 +1,8 @@
 #!/bin/bash
 set -ex
 
-# TEMP add to fix changed behavior in AlmaLinux 8.7
+# TEMP add to fix changed behavior in AlmaLinux 8.7. 
+# Cloud init keeps reverting the changes /etc/sysconfig/network-scripts/ifcfg-eth0 even though it is disabled
 os=$(cat /etc/os-release | awk 'match($0, /^NAME="(.*)"/, result) { print result[1] }')
 if [[ $os == "AlmaLinux" ]]
 then

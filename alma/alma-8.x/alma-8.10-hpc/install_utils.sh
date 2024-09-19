@@ -15,4 +15,7 @@ yum install -y https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packag
     https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
 
+# Install wget as AlmaLinux 8.10 does not have it by default
+sudo yum install -y wget
+
 $ALMA_COMMON_DIR/install_utils.sh

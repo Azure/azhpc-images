@@ -97,4 +97,4 @@ $COMMON_DIR/setup_sku_customizations.sh
 # $COMMON_DIR/clear_history.sh
 
 # add a security patch of CVE issue for AlmaLinux 8.7 only
-./disable_user_namespaces.sh
+# ./disable_user_namespaces.sh

@@ -1,6 +1,6 @@
-# AlmaLinux 8.7 HPC Image
+# AlmaLinux 8.10 HPC Image
 
-The AlmaLInux 8.7 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
+The AlmaLInux 8.10 HPC Image includes optimizations and recommended configurations to deliver optimal performance,
 consistency, and reliability. This image consists of the following HPC tools and libraries:
 
 - Mellanox OFED

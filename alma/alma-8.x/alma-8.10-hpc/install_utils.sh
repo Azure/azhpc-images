@@ -18,4 +18,7 @@ yum install -y https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packag
 # Install wget as AlmaLinux 8.10 does not have it by default
 sudo yum install -y wget
 
+# Install net-tools as AlmaLinux 8.10 does not have ifconfig by default
+sudo yum install -y net-tools
+
 $ALMA_COMMON_DIR/install_utils.sh

@@ -35,6 +35,7 @@ apt-get -y install numactl \
                    net-tools \
                    libsecret-1-0 \
                    python3-pip \
+                   python3-setuptools \
                    dkms \
                    jq \
                    curl \

@@ -1,53 +1,53 @@
 {
     "azcopy": {
-        "ubuntu20.04": {
-            "version": "10.25.1",
-            "release": "10.25.1-20240612",
-            "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
-        },
-        "ubuntu22.04": {
-            "version": "10.25.1",
-            "release": "10.25.1-20240612",
-            "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
-        },
-        "almalinux8.7": {
-            "version": "10.25.1",
-            "release": "10.25.1-20240612",
-            "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
+        "common": {
+            "version": "10.26.0",
+            "release": "10.26.0-20240731",
+            "sha256": "ecbc6bc91cb9db794f29e26a0592894cf3290228721aa26bdb9c3b1fa0880034"
         }
     },
     "doca": {
         "ubuntu20.04": {
-            "version": "2.7.0",
-            "sha256": "40b2480ce89c9ea8718c3f671eb01155de677031e0d51c2457ee5968055de3c7",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2004_amd64.deb"
+            "version": "2.8.0",
+            "sha256": "00f76872fc1073ca83eccae519f284eaa9a241ea23b9bfd898b082460ddea595",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "2.7.0",
-            "sha256": "80eecc2efa414d41b9a8dc59404cd78eb81d3818f453007529847b5cfa29646f",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2204_amd64.deb"
+            "version": "2.8.0",
+            "sha256": "289a3e00f676032b52afb1aab5f19d2a672bcca782daf9d30ade0b59975af582",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
-            "version": "2.7.0",
-            "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
+            "version": "2.8.0",
+            "sha256": "a9f1ebd173bd8df08ec8a8e2448f3d3f757460cb26690fb62ecca59f3f271bb5",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel87.x86_64.rpm"
+        },
+        "almalinux8.10": {
+            "version": "2.8.0",
+            "sha256": "387d0b20311353a5833a029b3f8e7d64bf511ce88107be53f594f5c03e0ce26b",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel810.x86_64.rpm"
         }
     },
     "hpcx": {
         "ubuntu20.04": {
-            "version": "2.19",
-            "sha256": "b813f86a661672b3e6835a5c97938032ac59c963ef9f95a97cbb7df68137b8d2",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "8e088f5ae94576e1d845fbb4ef67c7dc54983555d3583c244dde7e19dc082074",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.19",
-            "sha256": "40e370de8daf13e26ff9d59cc07f9f04748b34b9cee0d3a1610819af838b364d",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
-            "version": "2.19",
-            "sha256": "b43cbee29635f5b3a4a95d09e8cdcd8a6933eb07ae14226774156a6018d74199",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+        },
+        "almalinux8.10": {
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
     "mvapich2": {
@@ -65,9 +65,9 @@
     },
     "impi": {
         "common": {
-            "version": "2021.13.0",
-            "sha256": "5e23cf495c919e17032577e3059438f632297ee63f2cdb906a2547298823cc64",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9f84e1e8-11b2-4bd1-8512-3e3343585956/l_mpi_oneapi_p_2021.13.0.719_offline.sh"
+            "version": "2021.13.1",
+            "sha256": "be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh"
         }
     },
     "nvidia": {
@@ -94,6 +94,17 @@
             }   
         },
         "almalinux8.7": {
+            "driver": {
+                "version": "550.90.07",
+                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
+            },
+            "fabricmanager": {
+                "distribution": "rhel8",
+                "version": "550.90.07-1",
+                "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        
+            }   
+        },
+        "almalinux8.10": {
             "driver": {
                 "version": "550.90.07",
                 "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
@@ -135,6 +146,16 @@
                 "version": "12.5",
                 "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
             }   
+        },
+        "almalinux8.10": {
+            "driver": {
+                "version": "12.5",
+                "distribution": "rhel8"
+            },
+            "samples": {
+                "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+            }   
         }
     },
     "gdrcopy": {
@@ -152,13 +173,18 @@
             "version": "2.4.1",
             "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
             "distribution": "el8"
+        },
+        "almalinux8.10": {
+            "version": "2.4.1",
+            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "distribution": "el8"
         }
     },
     "nccl": {
         "common": {
             "version": "2.22.3-1",
             "rdmasharpplugins": {
-                "commit": "v2.6.x"
+                "commit": "v2.7.x"
             }
         }
     },
@@ -169,19 +195,16 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2024.2.0.664",
-            "sha256": "f1f46f5352c197a9840e08fc191a879dad79ebf742fe782e386ba8006f262f7a",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cdff21a5-6ac7-4b41-a7ec-351b5f9ce8fd/l_onemkl_p_2024.2.0.664_offline.sh"
+            "version": "2024.2.1.105",
+            "sha256": "adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh"
         }
     },
     "waagent": {
-        "ubuntu20.04": {
-            "version": "2.11.1.4",
-            "sha256": "956f12e31b0903f304cc070ddcbe4c8130c10e7ccc2597061e6467e911bc085d"
-        },
-        "ubuntu22.04": {
-            "version": "2.11.1.4",
-            "sha256": "956f12e31b0903f304cc070ddcbe4c8130c10e7ccc2597061e6467e911bc085d"
+        "common": {
+            "_comment": "Beware upgrading waagent as there is a bug that causes IP address not to be set in ifconfig. There appears to be a fix in the pipeline but not released.",
+            "version": "2.9.0.4",
+            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
         }
     },
     "moneo": {
@@ -191,6 +214,10 @@
     },
     "pssh": {
         "almalinux8.7": {
+            "version": "2.3.1-29",
+            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
+        },
+        "almalinux8.10": {
             "version": "2.3.1-29",
             "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
         }
@@ -219,7 +246,7 @@
     },
     "rdma_core": {
         "common": {
-            "branch": "v52.0"
+            "branch": "v53.0"
         }
     },
     "pmix": {
@@ -229,8 +256,8 @@
     },
     "aznfs": {
         "common": {
-            "version": "2.0.8",
-            "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
+            "version": "2.0.9",
+            "sha256": "36d9f34bb0554acad27f77dd2d1a7d1f8a2246a63a670d26ec2db3e680bf838f"
         }
     }
 }

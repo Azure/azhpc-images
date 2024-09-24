@@ -28,7 +28,7 @@ $COMMON_DIR/download_and_verify.sh ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_S
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)
-mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
+mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
 popd
 
 # Install NVIDIA driver

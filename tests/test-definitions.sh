@@ -25,6 +25,10 @@ function check_exit_code {
     fi
 }
 
+function ver { 
+    printf "%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -99,7 +103,7 @@ function verify_ompi_installation {
 
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
-    nvidia-smi
+    nvidia_driver_cuda_version=${nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]"}
     check_exit_code "Nvidia Driver ${VERSION_NVIDIA}" "Failed to run Nvidia SMI"
     
     # Verify if NVIDIA peer memory module is inserted
@@ -112,6 +116,13 @@ function verify_cuda_installation {
     # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
     
+    # Check that the CUDA runtime version isn't newer than the driver CUDA version.
+    # Having a newer CUDA runtime breaks gpu-burn that perfgate uses
+    if [[ $(version ${VERSION_CUDA}) -gt $(version ${nvidia_driver_cuda_version})  ]]; then
+        echo "CUDA runtime version ${VERSION_CUDA} is newer than the driver version ${nvidia_driver_cuda_version}"
+        exit -1
+    fi
+
     # Verify the compilation of CUDA samples
     /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
     check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"

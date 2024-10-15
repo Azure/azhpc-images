@@ -103,7 +103,7 @@ function verify_ompi_installation {
 
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
-    nvidia_driver_cuda_version=${nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]"}
+    nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "Nvidia Driver ${VERSION_NVIDIA}" "Failed to run Nvidia SMI"
     
     # Verify if NVIDIA peer memory module is inserted

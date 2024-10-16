@@ -160,9 +160,7 @@
     },
     "gdrcopy": {
         "ubuntu20.04": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
-            "distribution": "Ubuntu20_04"
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532"
         },
         "ubuntu22.04": {
             "version": "2.4.1",

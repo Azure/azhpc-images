@@ -160,21 +160,23 @@
     },
     "gdrcopy": {
         "ubuntu20.04": {
-            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532"
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"
         },
         "almalinux8.10": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"
         }
     },

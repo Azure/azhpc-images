@@ -7,7 +7,9 @@ source ${COMMON_DIR}/utilities.sh
 apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 
 gdrcopy_metadata=$(get_component_config "gdrcopy")
+GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_COMMIT=$(jq -r '.commit' <<< $gdrcopy_metadata)
+GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
 
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)

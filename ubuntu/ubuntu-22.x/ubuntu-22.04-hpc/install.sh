@@ -27,9 +27,6 @@ source ./set_properties.sh
 # remove packages requiring Ubuntu Pro for security updates
 $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 
-# disable auto kernel updates
-$UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
-
 # install utils
 ./install_utils.sh
 
@@ -103,6 +100,9 @@ $COMMON_DIR/install_health_checks.sh
 
 # disable cloud-init
 $UBUNTU_COMMON_DIR/disable_cloudinit.sh
+
+# diable auto kernel updates
+$UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
 # Disable Predictive Network interface renaming
 $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh

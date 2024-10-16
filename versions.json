@@ -78,8 +78,8 @@
             },
             "fabricmanager": {
                 "distribution": "ubuntu2004",
-                "version": "550.90.07-1",
-                "sha256": "f8321f47875fa79968cda38c77c1723ff9fa3ca010f250f17b0075d84f443058"        
+                "version": "560.35.03-1",
+                "sha256": "ad68065a83e2d3a5b3c3b8121fdc146c2aea5cdcca77b1ab4f9a64ac932be966"        
             }   
         },
         "ubuntu22.04": {
@@ -89,8 +89,8 @@
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
-                "version": "550.90.07-1",
-                "sha256": "f8321f47875fa79968cda38c77c1723ff9fa3ca010f250f17b0075d84f443058"        
+                "version": "560.35.03-1",
+                "sha256": "ad68065a83e2d3a5b3c3b8121fdc146c2aea5cdcca77b1ab4f9a64ac932be966"        
             }   
         },
         "almalinux8.7": {
@@ -100,8 +100,8 @@
             },
             "fabricmanager": {
                 "distribution": "rhel8",
-                "version": "550.90.07-1",
-                "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        
+                "version": "560.35.03-1",
+                "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
             }   
         },
         "almalinux8.10": {
@@ -111,8 +111,8 @@
             },
             "fabricmanager": {
                 "distribution": "rhel8",
-                "version": "550.90.07-1",
-                "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        
+                "version": "560.35.03-1",
+                "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
             }   
         }
     },

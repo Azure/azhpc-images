@@ -104,7 +104,7 @@ function verify_ompi_installation {
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
-    check_exit_code "Nvidia Driver ${VERSION_NVIDIA}" "Failed to run Nvidia SMI"
+    check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted
     lsmod | grep nvidia_peermem
@@ -119,8 +119,10 @@ function verify_cuda_installation {
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
     # Having a newer CUDA runtime breaks gpu-burn that perfgate uses
     if [[ $(ver ${VERSION_CUDA}) -gt $(ver ${nvidia_driver_cuda_version})  ]]; then
-        echo "CUDA runtime version ${VERSION_CUDA} is newer than the driver version ${nvidia_driver_cuda_version}"
+        echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
         exit -1
+    else
+        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"    
     fi
 
     # Verify the compilation of CUDA samples

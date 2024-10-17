@@ -9,9 +9,6 @@ GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_COMMIT=$(jq -r '.commit' <<< $gdrcopy_metadata)
 GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
 
-cuda_metadata=$(get_component_config "cuda")
-CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
-
 git clone https://github.com/NVIDIA/gdrcopy.git
 pushd gdrcopy/packages/
 git checkout ${GDRCOPY_COMMIT}

@@ -117,7 +117,7 @@ function verify_cuda_installation {
     check_exists "/usr/local/cuda/"
     
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
-    # Having a newer CUDA runtime breaks gpu-burn that perfgate uses
+    # Having a newer CUDA runtime breaks gpu-burn
     if [[ $(ver ${VERSION_CUDA}) -gt $(ver ${nvidia_driver_cuda_version})  ]]; then
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
         exit -1

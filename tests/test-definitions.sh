@@ -172,6 +172,8 @@ function verify_package_updates {
         ubuntu) sudo apt -q --assume-no update;;
         almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
+        azurelinux) sudo dnf update -y --setopt tsflags=test;
+            sudo dnf clean packages;;
         * ) ;;
     esac
     check_exit_code "Package update works" "Package update fails!"
@@ -241,6 +243,7 @@ function verify_lustre_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
         almalinux) dnf list installed | grep lustre-client;;
+        azurelinux) dnf list installed | grep lustre-client;;
         * ) ;;
     esac
     check_exit_code "Lustre Installed" "Lustre not installed!"
@@ -257,6 +260,7 @@ function verify_pssh_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
         almalinux) dnf list installed | grep pssh;;
+        azurelinux) dnf list installed | grep pssh;;
         * ) ;;
     esac
     check_exit_code "PSSH Installed" "PSSH not installed!"
@@ -272,6 +276,7 @@ function verify_dcgm_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
         almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        azurelinux) dnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac
     check_exit_code "DCGM Installed" "DCGM not installed!"

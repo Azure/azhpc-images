@@ -1,9 +1,14 @@
 #!/bin/bash
 set -ex
 
-#move to rocm package
-./amdgpu-install -y --usecase=graphics,rocm
+pushd /tmp
+wget https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb
+sudo apt install ./amdgpu-install_6.2.60202-1_all.deb
+rm -f amdgpu-install_6.2.60202-1_all.deb
+popd
 
+#move to rocm package
+amdgpu-install -y --usecase=graphics,rocm
 
 #Add self to render and video groups so they can access gpus.
 usermod -a -G render $(logname)

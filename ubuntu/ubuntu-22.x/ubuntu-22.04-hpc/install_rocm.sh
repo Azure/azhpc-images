@@ -2,9 +2,9 @@
 set -ex
 
 pushd /tmp
-wget https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb
-sudo apt install -y ./amdgpu-install_6.2.60202-1_all.deb
-rm -f amdgpu-install_6.2.60202-1_all.deb
+wget https://repo.radeon.com/amdgpu-install/latest/ubuntu/jammy/amdgpu-install_6.3.60300-1_all.deb
+sudo apt install -y ./amdgpu-install_6.3.60300-1_all.deb
+rm -f amdgpu-install_6.3.60300-1_all.deb
 popd
 
 #move to rocm package

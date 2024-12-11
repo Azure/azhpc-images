@@ -14,11 +14,11 @@ $COMMON_DIR/download_and_verify.sh $DOCA_URL $DOCA_SHA256
 dpkg -i $DOCA_FILE
 apt-get update
 
-apt-get -y install doca-ofed
+apt-get -y install doca-all
 $COMMON_DIR/write_component_version.sh "DOCA" $DOCA_VERSION
 
-OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
-$COMMON_DIR/write_component_version.sh "OFED" $OFED_VERSION
+# OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+# $COMMON_DIR/write_component_version.sh "OFED" $OFED_VERSION
 
 /etc/init.d/openibd restart
 /etc/init.d/openibd status

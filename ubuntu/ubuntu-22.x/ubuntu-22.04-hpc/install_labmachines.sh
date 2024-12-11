@@ -1,19 +1,19 @@
 #!/bin/bash
-set -ex
+set -e
 
 # Define the log folder and file
-LOG_DIR="$HOME/setup_logs"
+LOG_DIR="/home/administrator/setup_logs"
 TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S") 
 LOG_FILE="$LOG_DIR/setup_output_$TIMESTAMP.log"
-
-CURL_VERSION="7.68.0"
-ENV_MODULES_VER="5.0.1"
-MSTFLINT_VER="4.21.0"
 
 # Create the log folder if it doesn't exist
 if [ ! -d "$LOG_DIR" ]; then
     mkdir -p "$LOG_DIR"
 fi
+
+sudo chmod -R u+w "$LOG_DIR"
+
+exec &>/dev/tty
 
 # Redirect all output to both the console and the log file
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -28,6 +28,20 @@ print_section() {
     echo
 }
 
+# Function to check if a package is installed
+install_if_missing() {
+  PACKAGE_NAME=$1
+  COMMAND_TO_CHECK=$2
+
+  if ! command -v "$COMMAND_TO_CHECK" &> /dev/null; then
+    echo "$PACKAGE_NAME is not installed. Installing..."
+    sudo apt update
+    sudo apt install -y "$PACKAGE_NAME"
+  else
+    echo "$PACKAGE_NAME is already installed."
+  fi
+}
+
 # install pre-requisites
 print_section "Install pre-requisites"
 ./install_prerequisites.sh
@@ -39,14 +53,13 @@ source ./set_properties.sh
 # remove packages requiring Ubuntu Pro for security updates
 $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 
-apt update
+# Check and install curl
+install_if_missing "curl" "curl"
 
-# install curl
-apt install -y curl=$CURL_VERSION*
+install_if_missing "cmake" "cmake"
 
-# install modules
-apt install environment-modules
-apt install -y environment-modules=$ENV_MODULES_VER*
+# install utils
+./install_utils.sh
 
 # install DOCA ALL
 print_section "Install DOCA"
@@ -65,4 +78,4 @@ print_section "Install NCCL"
 $UBUNTU_COMMON_DIR/install_nccl.sh
 
 # Install mstflint 
-sudo apt install -y mstflint=$MSTFLINT_VER*
+sudo apt install -y mstflint

@@ -16,8 +16,7 @@ usermod -a -G video $(logname)
 
 #add future new users to the render and video groups.
 echo 'ADD_EXTRA_GROUPS=1' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=video' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=render' | tee -a /etc/adduser.conf
+echo 'EXTRA_GROUPS="video render"' | tee -a /etc/adduser.conf
 
 #add nofile limits
 string_so="*               soft    nofile          1048576"

@@ -1,6 +1,19 @@
 #!/bin/bash
 set -ex
 
+#update CMAKE
+pushd /tmp
+wget https://github.com/Kitware/CMake/releases/download/v3.30.6/cmake-3.30.6-linux-x86_64.tar.gz
+tar xzf cmake-3.30.6-linux-x86_64.tar.gz
+pushd cmake-3.30.6-linux-x86_64
+pushd bin
+sudo mv -f ccmake cmake cpack ctest /usr/local/bin
+popd
+sudo cp -r share/cmake-3.30 /usr/local/share/
+popd
+rm -rf cmake-3.30.5-linux-x86_64*
+hash -r
+
 apt install libstdc++-12-dev
 apt remove -y rccl
 pushd ~
@@ -9,7 +22,7 @@ popd
 mkdir ~/rccl/build
 pushd ~/rccl/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
-make -j 32
+make -j
 make install
 popd
 

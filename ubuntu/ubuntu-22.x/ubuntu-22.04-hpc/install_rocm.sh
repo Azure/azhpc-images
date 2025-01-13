@@ -2,8 +2,13 @@
 set -ex
 
 #move to rocm package
-./amdgpu-install -y --usecase=graphics,rocm
-
+pushd /tmp
+wget -q "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb"
+apt install -y ./amdgpu-install_6.2.60204-1_all.deb
+amdgpu-install -y --usecase=graphics,rocm
+apt install -y rocm-bandwidth-test
+rm -f ./amdgpu-install_6.2.60204-1_all.deb
+popd
 
 #Add self to render and video groups so they can access gpus.
 usermod -a -G render $(logname)
@@ -67,6 +72,3 @@ echo -e '[Install]\n\nWantedBy=multi-user.target' \
 mv rocmstartup.service /etc/systemd/system/rocmstartup.service
 systemctl start rocmstartup
 systemctl enable rocmstartup
-
-apt install -y rocm-bandwidth-test
-

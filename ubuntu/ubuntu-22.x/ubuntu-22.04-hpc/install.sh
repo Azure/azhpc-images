@@ -7,7 +7,7 @@ if [[ "$#" -gt 0 ]]; then
     INPUT=$1
     if [ "$INPUT" == "AMD" ]; then
         GPUi="AMD"
-	    echo "Configuring VM for AMD GPUs."
+        echo "Configuring VM for AMD GPUs."
     elif [ "$INPUT" != "NVIDIA" ]; then
         echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
 	exit 1

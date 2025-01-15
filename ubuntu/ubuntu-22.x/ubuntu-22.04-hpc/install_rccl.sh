@@ -3,15 +3,16 @@ set -ex
 
 #update CMAKE
 pushd /tmp
-wget https://github.com/Kitware/CMake/releases/download/v3.30.6/cmake-3.30.6-linux-x86_64.tar.gz
-tar xzf cmake-3.30.6-linux-x86_64.tar.gz
-pushd cmake-3.30.6-linux-x86_64
+CMAKE_VER="3.30.6"
+wget https://github.com/Kitware/CMake/releases/download/vi${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+tar xzf cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+pushd cmake-${CMAKE_VER}-linux-x86_64
 pushd bin
 sudo mv -f ccmake cmake cpack ctest /usr/local/bin
 popd
 sudo cp -r share/cmake-3.30 /usr/local/share/
 popd
-rm -rf cmake-3.30.5-linux-x86_64*
+rm -rf cmake-${CMAKE_VER}-linux-x86_64*
 hash -r
 
 apt install libstdc++-12-dev

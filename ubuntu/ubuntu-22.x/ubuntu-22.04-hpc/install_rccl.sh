@@ -4,7 +4,7 @@ set -ex
 #update CMAKE
 pushd /tmp
 CMAKE_VER="3.30.6"
-wget https://github.com/Kitware/CMake/releases/download/vi${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
 tar xzf cmake-${CMAKE_VER}-linux-x86_64.tar.gz
 pushd cmake-${CMAKE_VER}-linux-x86_64
 pushd bin

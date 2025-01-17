@@ -66,10 +66,21 @@ function initiate_test_suite {
 }
 
 function set_test_matrix {
+    gpu_platform="NVIDIA"
+    if [[ "$#" -gt 0 ]]; then
+       INPUT=$1
+       if [[ $INPUT == "AMD" ]]; then
+          gpu_platform="AMD"
+       elif [[ $INPUT != "NVIDIA" ]]; then
+          echo "Invalid GPU platform"
+          exit 1
+
+       fi
+    fi
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
-    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
-    
+
     if [[ -z "$TEST_MATRIX" ]]; then
         echo "*****No test matrix found for distribution $distro!*****"
         exit 1
@@ -126,7 +137,7 @@ set_component_versions
 # Set current SKU
 set_sku_configuration
 # Set test matrix
-set_test_matrix
+set_test_matrix $1
 # Initiate test suite
 initiate_test_suite
 

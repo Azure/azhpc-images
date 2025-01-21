@@ -72,7 +72,7 @@ function set_test_matrix {
        if [[ $INPUT == "AMD" ]]; then
           gpu_platform="AMD"
        elif [[ $INPUT != "NVIDIA" ]]; then
-          echo "Invalid GPU platform"
+          echo "$INPUT is not a valid GPU platform"
           exit 1
 
        fi

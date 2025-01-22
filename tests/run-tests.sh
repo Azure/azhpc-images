@@ -21,6 +21,7 @@ function test_component {
         check_impi_2018) verify_impi_2018_installation;;
         check_cuda) verify_gdrcopy_installation;verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
+        check_rccl) verify_rccl_installation;;
         check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;

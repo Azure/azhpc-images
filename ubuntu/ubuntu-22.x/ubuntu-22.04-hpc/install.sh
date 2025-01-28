@@ -7,14 +7,12 @@ if [[ "$#" -gt 0 ]]; then
     INPUT=$1
     if [ "$INPUT" == "AMD" ]; then
         GPUi="AMD"
-	echo "ERROR, the AMD pathway is not fully implemented yet."
-	exit 1
+	echo "Configuring VM for AMD GPUs."
     elif [ "$INPUT" != "NVIDIA" ]; then
         echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
 	exit 1
     fi
 fi
-
 
 export GPU=$GPUi
 

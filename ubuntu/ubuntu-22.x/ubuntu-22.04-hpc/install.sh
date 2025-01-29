@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-GPUi="AMD"
+GPUi="NVIDIA"
 
 if [[ "$#" -gt 0 ]]; then
     INPUT=$1

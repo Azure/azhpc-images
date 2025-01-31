@@ -69,11 +69,11 @@ function initiate_test_suite {
 function set_test_matrix {
     gpu_platform="NVIDIA"
     if [[ "$#" -gt 0 ]]; then
-       INPUT=$1
-       if [[ $INPUT == "AMD" ]]; then
+       GPU_PLAT=$1
+       if [[ ${GPU_PLAT} == "AMD" ]]; then
           gpu_platform="AMD"
-       elif [[ $INPUT != "NVIDIA" ]]; then
-          echo "$INPUT is not a valid GPU platform"
+       elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
+          echo "${GPU_PLAT} is not a valid GPU platform"
           exit 1
 
        fi

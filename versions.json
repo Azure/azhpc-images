@@ -6,6 +6,13 @@
             "sha256": "b66b35c564b88c2e89f0c6b179ea52c42f1dd35924e2f0ebbbc5ff39c94f1d2c"
         }
     },
+    "cmake": {
+        "common": {
+            "version": "3.30.6",
+            "url": "https://github.com/Kitware/CMake/releases/download/v3.30.6/cmake-3.30.6-linux-x86_64.tar.gz",
+            "sha256": "528350c72d89f3b408d12869daa282960dec4dd18224a22bddb52da526655359"
+        }
+    },
     "doca": {
         "ubuntu20.04": {
             "version": "2.8.0",
@@ -232,6 +239,13 @@
                 "version": "4.2.0",
                 "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
             } 
+        }
+    },
+    "rocm": {
+        "ubuntu22.04": {
+            "version": "6.2.60204-1",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
+            "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
         }
     },
     "lustre": {

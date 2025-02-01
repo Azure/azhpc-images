@@ -167,6 +167,19 @@ function verify_nccl_installation {
     module unload mpi/hpcx
 }
 
+function verify_rocm_installation {
+    # Verify AMD GPU Driver installation
+    # Verify if ROCM is installed
+    check_exists "/opt/rocm/"
+
+    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
+
+    # Verify if AMD GPU driver exists
+    amd_driver_version=$(modinfo amdgpu | grep "^version" | cut -d ":" -f 2 | tr -d '[:blank:]')
+    check_exit_code "AMD GPU driver ${amd_driver_version} found" "AMD GPU driver not found"
+}
+
 function verify_rccl_installation {
 
     module load mpi/hpcx

@@ -95,7 +95,7 @@ $COMMON_DIR/install_monitoring_tools.sh
 $COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
-$COMMON_DIR/install_health_checks.sh
+$COMMON_DIR/install_health_checks.sh "$GPU"
 
 # disable cloud-init
 $UBUNTU_COMMON_DIR/disable_cloudinit.sh

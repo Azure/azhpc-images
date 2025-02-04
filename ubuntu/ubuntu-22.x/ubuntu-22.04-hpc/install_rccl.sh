@@ -28,7 +28,7 @@ popd
 mkdir ~/rccl/build
 pushd ~/rccl/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
-make -j
+make -j$(nproc)
 make install
 popd
 

@@ -11,6 +11,7 @@ ln -sf /opt/microsoft/ndv5-topo.xml /opt/microsoft/ndv5/topo.xml
 bash -c "cat > /etc/nccl.conf" <<'EOF'
 NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv5/topo.xml
+NCCL_IGNORE_CPU_AFFINITY=1
 EOF
 
 ## NVIDIA Fabric manager

@@ -1,9 +1,14 @@
 #!/bin/bash
 set -ex
 
-#move to rocm package
-./amdgpu-install -y --usecase=graphics,rocm
+pushd /tmp
+wget https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb
+sudo apt install -y ./amdgpu-install_6.2.60202-1_all.deb
+rm -f amdgpu-install_6.2.60202-1_all.deb
+popd
 
+#move to rocm package
+amdgpu-install -y --usecase=graphics,rocm
 
 #Add self to render and video groups so they can access gpus.
 usermod -a -G render $(logname)
@@ -11,8 +16,7 @@ usermod -a -G video $(logname)
 
 #add future new users to the render and video groups.
 echo 'ADD_EXTRA_GROUPS=1' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=video' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=render' | tee -a /etc/adduser.conf
+echo 'EXTRA_GROUPS="video render"' | tee -a /etc/adduser.conf
 
 #add nofile limits
 string_so="*               soft    nofile          1048576"

@@ -51,9 +51,6 @@ case \$vmSize in
     standard_nd96is*_h[1-2]00_v5)
         /opt/azurehpc/customizations/ndv5.sh;;
 
-    standard_nd96is*_mi300x_v5)
-        /opt/azurehpc/customizations/ndv5.sh;;
-
     *) echo "No SKU customization for \$vmSize";;
 esac
 EOF
@@ -98,20 +95,9 @@ vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU
 case \$vmSize in
-    standard_nc96ads_a100_v4)
-        /opt/azurehpc/customizations/ncv4.sh;;
     
     standard_nd*v4)
         /opt/azurehpc/customizations/ndv4_rocm.sh;;
-        
-    standard_nd40rs_v2)
-        /opt/azurehpc/customizations/ndv2.sh;;
-
-    standard_hb176*v4)
-        /opt/azurehpc/customizations/hbv4.sh;;
-
-    standard_nd96is*_h100_v5)
-        /opt/azurehpc/customizations/ndv5_rocm.sh;;
 
     standard_nd96is*_mi300x_v5)
         /opt/azurehpc/customizations/ndv5_rocm.sh;;

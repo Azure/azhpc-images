@@ -12,6 +12,7 @@ ln -sf /opt/microsoft/ncv4-graph.xml /opt/microsoft/ncv4/graph.xml
 bash -c "cat > /etc/nccl.conf" <<'EOF'
 NCCL_TOPO_FILE=/opt/microsoft/ncv4/topo.xml
 NCCL_GRAPH_FILE=/opt/microsoft/ncv4/graph.xml
+NCCL_IGNORE_CPU_AFFINITY=1
 EOF
 
 ## Setup NVME devices

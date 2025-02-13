@@ -19,7 +19,8 @@ function test_component {
     case $component in
         check_impi_2021) verify_impi_2021_installation;;
         check_impi_2018) verify_impi_2018_installation;;
-        check_cuda) verify_gdrcopy_installation;verify_cuda_installation;;
+        check_gdrcopy) verify_gdrcopy_installation;;
+        check_cuda) verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
 	check_rocm) verify_rocm_installation;;
         check_rccl) verify_rccl_installation;;

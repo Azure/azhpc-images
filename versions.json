@@ -248,6 +248,13 @@
             "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
         }
     },
+    "rccl": {
+        "ubuntu22.04": {
+	    "version": "2.20.5",
+	    "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
+	    "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
+	}
+    },
     "lustre": {
         "common": {
             "version": "2.15.4-42-gd6d405d"

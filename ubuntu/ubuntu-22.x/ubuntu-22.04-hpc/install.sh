@@ -110,6 +110,9 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 $COMMON_DIR/setup_sku_customizations.sh
 
 if [ "$GPU" = "AMD" ]; then
+    #update cmake
+    $UBUNTU_COMMON_DIR/install_cmake.sh
+
     #install rocm software stack
     ./install_rocm.sh
     

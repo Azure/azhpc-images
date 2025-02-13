@@ -3,49 +3,39 @@ set -ex
 
 source ${COMMON_DIR}/utilities.sh
 
-#update CMAKE
-cmake_metadata=$(get_component_config "cmake")
-cmake_version=$(jq -r '.version' <<< $cmake_metadata)
-cmake_url=$(jq -r '.url' <<< $cmake_metadata)
-cmake_sha256=$(jq -r '.sha256' <<< $cmake_metadata)
-TARBALL="cmake-${cmake_version}-linux-x86_64.tar.gz"
-
-${COMMON_DIR}/download_and_verify.sh ${cmake_url} ${cmake_sha256}
-tar -xzf ${TARBALL}
-pushd cmake-${cmake_version}-linux-x86_64
-cp -f bin/{ccmake,cmake,cpack,ctest} /usr/local/bin
-cp -rf share/cmake-* /usr/local/share/
-popd
-rm -rf cmake-${cmake_version}-linux-x86_64*
-hash -r
-$COMMON_DIR/write_component_version.sh "CMAKE" ${cmake_version}
-
+#install the rccl library
 apt install libstdc++-12-dev
 apt remove -y rccl
-pushd ~
-git clone https://github.com/rocm/rccl
-popd
-mkdir ~/rccl/build
-pushd ~/rccl/build
+rccl_metadata=$(get_component_config "rccl")
+rccl_version=$(jq -r '.version' <<< $rccl_metadata)
+rccl_url=$(jq -r '.url' <<< $rccl_metadata)
+rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
+#the content of this tar ball is rccl but its name is misleading
+TARBALL="rocm-6.2.4.tar.gz"
+
+$COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
+tar -xzf ${TARBALL}
+mkdir ./rccl-rocm-6.2.4/build
+pushd ./rccl-rocm-6.2.4/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install
-popd
-
-pushd ~
+pushd ../..
+rm -rf ${TARBALL} rccl-rocm-6.2.4
+$COMMON_DIR/write_component_version.sh "RCCL" ${rccl_version}
 
 sysctl kernel.numa_balancing=0
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
-pushd ~/rccl-tests
+pushd ./rccl-tests
 
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
-HPCX="/opt/hpcx-v2.16-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2"
-HPCX+="-nccl2.18-x86_64/ompi/"
+#HPCX="/opt/hpcx-v2.16-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2"
+#HPCX+="-nccl2.18-x86_64/ompi/"
 RCCLLIB="/opt/rccl/lib/librccl.so"
 RCCLDIR="/opt/rccl"
 
@@ -61,15 +51,16 @@ popd
 DEST_TEST_DIR=/opt/rccl-tests
 mkdir -p $DEST_TEST_DIR
 
-cp -r ~/rccl-tests/build/* $DEST_TEST_DIR
+cp -r ./rccl-tests/build/* $DEST_TEST_DIR
 rm -rf rccl-tests
 
 git clone https://github.com/ROCm/rdma-perftest
-mkdir /opt/rocm-perftest
-pushd ~/rdma-perftest
+mkdir -p /opt/rocm-perftest
+pushd ./rdma-perftest
 ./autogen.sh
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
-make -j
+make -j$(nproc)
 make install
 
 popd
+rm -rf rdma-perftest

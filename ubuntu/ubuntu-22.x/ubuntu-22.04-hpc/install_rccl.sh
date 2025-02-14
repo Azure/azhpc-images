@@ -1,32 +1,41 @@
 #!/bin/bash
 set -ex
 
+source ${COMMON_DIR}/utilities.sh
+
+#install the rccl library
 apt install libstdc++-12-dev
 apt remove -y rccl
-pushd ~
-git clone https://github.com/rocm/rccl
-popd
-mkdir ~/rccl/build
-pushd ~/rccl/build
-CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
-make -j 32
-make install
-popd
+rccl_metadata=$(get_component_config "rccl")
+rccl_version=$(jq -r '.version' <<< $rccl_metadata)
+rccl_url=$(jq -r '.url' <<< $rccl_metadata)
+rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
+#the content of this tar ball is rccl but its name is misleading
+TARBALL="rocm-6.2.4.tar.gz"
 
-pushd ~
+$COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
+tar -xzf ${TARBALL}
+mkdir ./rccl-rocm-6.2.4/build
+pushd ./rccl-rocm-6.2.4/build
+CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
+make -j$(nproc)
+make install
+pushd ../..
+rm -rf ${TARBALL} rccl-rocm-6.2.4
+$COMMON_DIR/write_component_version.sh "RCCL" ${rccl_version}
 
 sysctl kernel.numa_balancing=0
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
-pushd ~/rccl-tests
+pushd ./rccl-tests
 
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
-HPCX="/opt/hpcx-v2.16-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2"
-HPCX+="-nccl2.18-x86_64/ompi/"
+#HPCX="/opt/hpcx-v2.16-gcc-mlnx_ofed-ubuntu22.04-cuda12-gdrcopy2"
+#HPCX+="-nccl2.18-x86_64/ompi/"
 RCCLLIB="/opt/rccl/lib/librccl.so"
 RCCLDIR="/opt/rccl"
 
@@ -42,15 +51,16 @@ popd
 DEST_TEST_DIR=/opt/rccl-tests
 mkdir -p $DEST_TEST_DIR
 
-cp -r ~/rccl-tests/build/* $DEST_TEST_DIR
+cp -r ./rccl-tests/build/* $DEST_TEST_DIR
 rm -rf rccl-tests
 
 git clone https://github.com/ROCm/rdma-perftest
-mkdir /opt/rocm-perftest
-pushd ~/rdma-perftest
+mkdir -p /opt/rocm-perftest
+pushd ./rdma-perftest
 ./autogen.sh
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
-make -j 32
+make -j$(nproc)
 make install
 
 popd
+rm -rf rdma-perftest

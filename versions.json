@@ -1,9 +1,16 @@
 {
     "azcopy": {
         "common": {
-            "version": "10.26.0",
-            "release": "10.26.0-20240731",
-            "sha256": "ecbc6bc91cb9db794f29e26a0592894cf3290228721aa26bdb9c3b1fa0880034"
+            "version": "10.27.1",
+            "release": "10.27.1-20241113",
+            "sha256": "b66b35c564b88c2e89f0c6b179ea52c42f1dd35924e2f0ebbbc5ff39c94f1d2c"
+        }
+    },
+    "cmake": {
+        "common": {
+            "version": "3.30.6",
+            "url": "https://github.com/Kitware/CMake/releases/download/v3.30.6/cmake-3.30.6-linux-x86_64.tar.gz",
+            "sha256": "528350c72d89f3b408d12869daa282960dec4dd18224a22bddb52da526655359"
         }
     },
     "doca": {
@@ -233,6 +240,20 @@
                 "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
             } 
         }
+    },
+    "rocm": {
+        "ubuntu22.04": {
+            "version": "6.2.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
+            "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
+        }
+    },
+    "rccl": {
+        "ubuntu22.04": {
+	    "version": "2.20.5",
+	    "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
+	    "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
+	}
     },
     "lustre": {
         "common": {

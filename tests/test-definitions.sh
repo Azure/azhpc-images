@@ -167,6 +167,39 @@ function verify_nccl_installation {
     module unload mpi/hpcx
 }
 
+function verify_rocm_installation {
+    # Verify AMD GPU Driver installation
+    # Verify if ROCM is installed
+    check_exists "/opt/rocm/"
+
+    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
+
+    # Verify if AMD GPU driver exists
+    amd_driver_version=$(modinfo amdgpu | grep "^version" | cut -d ":" -f 2 | tr -d '[:blank:]')
+    check_exit_code "AMD GPU driver ${amd_driver_version} found" "AMD GPU driver not found"
+}
+
+function verify_rccl_installation {
+
+    module load mpi/hpcx
+
+    case ${VMSIZE} in
+        standard_nd96isr_mi300x_v5) mpirun -np 8 \
+            --allow-run-as-root \
+            --map-by ppr:8:node \
+            -x LD_LIBRARY_PATH=/opt/rccl/lib:$LD_LIBRARY_PATH \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/rccl-tests/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        *) ;;
+    esac
+    check_exit_code "RCCL ${VERSION_RCCL}" "Failed to run RCCL all reduce perf"
+
+    module unload mpi/hpcx
+}
+
 function verify_package_updates {
     case ${ID} in
         ubuntu) sudo apt -q --assume-no update;;

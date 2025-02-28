@@ -17,14 +17,16 @@ apt install -y rocm-bandwidth-test
 rm -f ./${DEBPACKAGE}
 $COMMON_DIR/write_component_version.sh "ROCM" ${rocm_version}
 
+#Update cloud.cfg to add the first user to the render group
+sed -i 's/groups: \[.*/groups: \[render, adm, audio, cdrom, dialout, dip, floppy, lxd, netdev, plugdev, sudo, video\]/' /etc/cloud/cloud.cfg
+
 #Add self to render and video groups so they can access gpus.
 usermod -a -G render $(logname)
 usermod -a -G video $(logname)
 
 #add future new users to the render and video groups.
 echo 'ADD_EXTRA_GROUPS=1' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=video' | tee -a /etc/adduser.conf
-echo 'EXTRA_GROUPS=render' | tee -a /etc/adduser.conf
+echo 'EXTRA_GROUPS="video render"' | tee -a /etc/adduser.conf
 
 #add nofile limits
 string_so="*               soft    nofile          1048576"

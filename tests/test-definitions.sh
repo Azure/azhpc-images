@@ -184,6 +184,9 @@ function verify_rccl_installation {
 
     module load mpi/hpcx
 
+    amdgpumod=$(lsmod | grep "^amdgpu")
+    check_exit_code "amdgpu driver is loaded" "No amdgpu driver"
+    
     case ${VMSIZE} in
         standard_nd96isr_mi300x_v5) mpirun -np 8 \
             --allow-run-as-root \

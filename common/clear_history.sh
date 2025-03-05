@@ -4,11 +4,7 @@ set -ex
 # Find distro
 find_distro() {
     local os=`cat /etc/os-release | awk 'match($0, /^NAME="(.*)"/, result) { print result[1] }'`
-    if [[ $os == "CentOS Linux" ]]
-    then
-        local centos_distro=`find_centos_distro`
-        echo "${os} ${centos_distro}"
-    elif [[ $os == "AlmaLinux" ]]
+    if [[ $os == "AlmaLinux" ]]
     then
         local alma_distro=`find_alma_distro`
         echo "${os} ${alma_distro}"
@@ -20,11 +16,6 @@ find_distro() {
         echo "*** Error - invalid distro!"
         exit -1
     fi
-}
-
-# Find CentOS distro
-find_centos_distro() {
-    echo `cat /etc/redhat-release | awk '{print $4}'`
 }
 
 # Find Alma distro
@@ -40,15 +31,25 @@ find_ubuntu_distro() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
-if [[ $distro == *"CentOS Linux"* ]] || [[ $distro == *"AlmaLinux"* ]]
+if [[ $distro == *"AlmaLinux"* ]]
 then
     # Sync yum and rpmdb after installing rpm's outside yum
     yum history sync
 fi
 
+# Remove Defender
+if [[ $distro == *"Ubuntu"* ]]
+then
+    apt-get purge -y mdatp
+else
+    yum remove -y mdatp
+fi
+
 # Clear History
 # Stop syslog service
 systemctl stop syslog.socket rsyslog
+# Delete Defender related files
+rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Clear contents of rest of systemd services related log files
@@ -58,6 +59,7 @@ rm -rf /var/lib/systemd/random-seed
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
 rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/ssh/ssh_host_* /etc/*-
+rm -f ~/.ssh/authorized_keys
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /run/cloud-init

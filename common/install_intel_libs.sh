@@ -1,8 +1,20 @@
 #!/bin/bash
 set -ex
 
-VERSION="2021.1.1.52"
-MKL_DOWNLOAD_URL=https://registrationcenter-download.intel.com/akdlm/irc_nas/17402/l_onemkl_p_${VERSION}_offline.sh
-$COMMON_DIR/write_component_version.sh "INTEL_oneMKL" $VERSION
-$COMMON_DIR/download_and_verify.sh $MKL_DOWNLOAD_URL "818b6bd9a6c116f4578cda3151da0612ec9c3ce8b2c8a64730d625ce5b13cc0c"
-sudo bash l_onemkl_p_${VERSION}_offline.sh -s -a -s --eula accept
+source ${COMMON_DIR}/utilities.sh
+
+# Set Intel® oneAPI Math Kernel Library info
+intel_one_mkl_metadata=$(get_component_config "intel_one_mkl")
+INTEL_ONE_MKL_VERSION=$(jq -r '.version' <<< $intel_one_mkl_metadata)
+INTEL_ONE_MKL_SHA256=$(jq -r '.sha256' <<< $intel_one_mkl_metadata)
+INTEL_ONE_MKL_DOWNLOAD_URL=$(jq -r '.url' <<< $intel_one_mkl_metadata)
+INTEL_ONE_MKL_OFFLINE_INSTALLER=$(basename $INTEL_ONE_MKL_DOWNLOAD_URL)
+
+# Install Intel® oneAPI Math Kernel Library
+$COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" ${INTEL_ONE_MKL_VERSION}
+$COMMON_DIR/download_and_verify.sh ${INTEL_ONE_MKL_DOWNLOAD_URL} ${INTEL_ONE_MKL_SHA256}
+sh ./${INTEL_ONE_MKL_OFFLINE_INSTALLER} -s -a -s --eula accept
+
+rm -f ${INTEL_ONE_MKL_OFFLINE_INSTALLER}
+
+$COMMON_DIR/write_component_version.sh "INTEL_ONE_MKL" ${INTEL_ONE_MKL_VERSION}

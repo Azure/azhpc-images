@@ -35,6 +35,7 @@ apt-get -y install numactl \
                    net-tools \
                    libsecret-1-0 \
                    python3-pip \
+                   python3-setuptools \
                    dkms \
                    jq \
                    curl \
@@ -49,26 +50,10 @@ apt-get -y install numactl \
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 
 # Install azcopy tool
-# To copy blobs or files to or from a storage account.
-# Parameters - Version, Release Tag
-VERSION=$1
-RELEASE_TAG=$2
-TARBALL="azcopy_linux_amd64_${VERSION}.tar.gz"
-AZCOPY_DOWNLOAD_URL="https://azcopyvnext.azureedge.net/${RELEASE_TAG}/${TARBALL}"
-AZCOPY_FOLDER=$(basename ${AZCOPY_DOWNLOAD_URL} .tgz)
-wget ${AZCOPY_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-
-# copy the azcopy to the bin path
-pushd azcopy_linux_amd64_${VERSION}
-cp azcopy /usr/bin/
-popd
-
-# Allow execute permissions
-chmod +x /usr/bin/azcopy
-
-# remove tarball from azcopy
-rm -rf *.tar.gz
+$COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh
+
+# copy torset tool
+$COMMON_DIR/copy_torset_tool.sh

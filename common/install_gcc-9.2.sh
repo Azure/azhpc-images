@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-MODULE_FILES_DIRECTORY=$1
-
 # Install gcc 9.2
 GMP_DOWNLOAD_URL=http://gcc.gnu.org/pub/gcc/infrastructure/gmp-6.1.0.tar.bz2
 $COMMON_DIR/download_and_verify.sh $GMP_DOWNLOAD_URL "498449a994efeba527885c10405993427995d3f86b8768d8cdf8d9dd7c6b73e8"
@@ -27,7 +25,7 @@ cd ..
 
 # install gcc 9.2
 GCC_VERSION="9.2.0"
-GCC_DOWNLOAD_URL=https://azhpcstor.blob.core.windows.net/azhpc-images-store/gcc-${GCC_VERSION}.tar.gz
+GCC_DOWNLOAD_URL=https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
 $COMMON_DIR/write_component_version.sh "GCC" ${GCC_VERSION}
 $COMMON_DIR/download_and_verify.sh $GCC_DOWNLOAD_URL "a931a750d6feadacbeecb321d73925cd5ebb6dfa7eff0802984af3aef63759f4"
 tar -xvf gcc-${GCC_VERSION}.tar.gz

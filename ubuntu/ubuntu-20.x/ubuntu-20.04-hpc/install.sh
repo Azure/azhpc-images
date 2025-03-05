@@ -1,8 +1,24 @@
 #!/bin/bash
 set -ex
 
+# install pre-requisites
+./install_prerequisites.sh
+
+export GPU="NVIDIA"
+
+if [[ "$#" -gt 0 ]]; then
+    INPUT=$1
+    if [ "$INPUT" != "NVIDIA" ]; then
+        echo "Error: Invalid GPU type. Only 'NVIDIA' is implemented for this OS."
+	exit 1
+    fi
+fi
+
 # set properties
 source ./set_properties.sh
+
+# remove packages requiring Ubuntu Pro for security updates
+$UBUNTU_COMMON_DIR/remove_unused_packages.sh
 
 # install utils
 ./install_utils.sh
@@ -10,14 +26,17 @@ source ./set_properties.sh
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
-# install mellanox ofed
-./install_mellanoxofed.sh
+# install DOCA OFED
+$UBUNTU_COMMON_DIR/install_doca.sh
+
+# install PMIX
+$UBUNTU_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
-./install_mpis.sh
+$UBUNTU_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
-./install_nvidiagpudriver.sh
+$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 
 # Install NCCL
 $UBUNTU_COMMON_DIR/install_nccl.sh
@@ -35,7 +54,7 @@ rm -Rf -- */
 $UBUNTU_COMMON_DIR/install_dcgm.sh
 
 # install Intel libraries
-$UBUNTU_COMMON_DIR/install_intel_libs.sh
+$COMMON_DIR/install_intel_libs.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -46,17 +65,23 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 # optimizations
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
+# Install AZNFS Mount Helper
+$COMMON_DIR/install_aznfs.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
-$UBUNTU_COMMON_DIR/install_monitoring_tools.sh
+$COMMON_DIR/install_monitoring_tools.sh
 
 # install AMD libs
-$UBUNTU_COMMON_DIR/install_amd_libs.sh
+$COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh
+
+# disable cloud-init
+$UBUNTU_COMMON_DIR/disable_cloudinit.sh
 
 # diable auto kernel updates
 $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh

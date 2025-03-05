@@ -1,26 +1,20 @@
 #!/bin/bash
 set -ex
 
-# Parameter
-# Ubuntu Version
-VERSION=$1
+source ${COMMON_DIR}/utilities.sh
 
-# Install nvidia fabric manager
-case ${VERSION} in
-    1804) NVIDIA_FABRIC_MANAGER_VERSION="525_525.105.17-1"; 
-        CHECKSUM="b487db5923194ba9f4d7c34891f4f8513a3f633a22a0c9f51fba3ef971681977";
-        VERSION_PREFIX="525";; 
-    2004) NVIDIA_FABRIC_MANAGER_VERSION="535_535.86.10-1"; 
-        CHECKSUM="d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29";
-        VERSION_PREFIX="535";;
-    2204) NVIDIA_FABRIC_MANAGER_VERSION="535_535.86.10-1"; 
-        CHECKSUM="d0c4662279301187614646650da07f34a6fe267d789d48bc9ed63181af06ac29";
-        VERSION_PREFIX="535";;
-    *) ;;
-esac
+# Set NVIDIA fabricmanager version
+nvidia_metadata=$(get_component_config "nvidia")
+nvidia_fabricmanager_metadata=$(jq -r '.fabricmanager' <<< $nvidia_metadata)
+NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
+NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
+NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
 
-NVIDIA_FABRIC_MNGR_URL=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu${VERSION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}_amd64.deb
-$COMMON_DIR/download_and_verify.sh $NVIDIA_FABRIC_MNGR_URL ${CHECKSUM}
-apt install -y ./nvidia-fabricmanager-${NVIDIA_FABRIC_MANAGER_VERSION}_amd64.deb
-apt-mark hold nvidia-fabricmanager-${VERSION_PREFIX}
-$COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRIC_MANAGER_VERSION}
+NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
+NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
+
+$COMMON_DIR/download_and_verify.sh ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
+apt install -y ./${FILENAME}
+apt-mark hold nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}
+$COMMON_DIR/write_component_version.sh "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

@@ -4,8 +4,6 @@ set -ex
 # install pre-requisites
 ./install_prerequisites.sh
 
-exit
-
 export GPU="NVIDIA"
 
 if [[ "$#" -gt 0 ]]; then
@@ -21,6 +19,8 @@ source ./set_properties.sh
 
 # install utils
 ./install_utils.sh
+
+exit
 
 # install Lustre client
 $ALMA_COMMON_DIR/install_lustre_client.sh "8"

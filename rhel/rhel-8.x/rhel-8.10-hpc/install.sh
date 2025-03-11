@@ -23,10 +23,10 @@ source ./set_properties.sh
 # install Lustre client
 $RHEL_COMMON_DIR/install_lustre_client.sh "8"
 
-exit
-
 # install compilers
 ./install_gcc.sh
+
+exit
 
 # install DOCA OFED
 $ALMA_COMMON_DIR/install_doca.sh

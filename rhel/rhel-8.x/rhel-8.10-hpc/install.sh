@@ -1,6 +1,17 @@
 #!/bin/bash
 set -ex
 
+
+# extend homedir to something usefull
+lvextend -L 12GB /dev/rootvg/homelv || echo "continuing...."
+lvextend -L 8GB /dev/rootvg/tmplv || echo "continuing...."
+lvextend -L 16GB /dev/rootvg/rootlv || echo "continuing...."
+lvextend -L 16GB /dev/rootvg/usrlv || echo "continuing...."
+xfs_growfs /dev/rootvg/homelv
+xfs_growfs /dev/rootvg/tmplv
+xfs_growfs /dev/rootvg/rootlv
+xfs_growfs /dev/rootvg/usrlv
+
 # install pre-requisites
 ./install_prerequisites.sh
 

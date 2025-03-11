@@ -37,10 +37,10 @@ $RHEL_COMMON_DIR/install_lustre_client.sh "8"
 # install compilers
 ./install_gcc.sh
 
-exit
-
 # install DOCA OFED
-$ALMA_COMMON_DIR/install_doca.sh
+$RHEL_COMMON_DIR/install_doca.sh
+
+exit
 
 # install PMIX
 $ALMA_COMMON_DIR/install_pmix.sh

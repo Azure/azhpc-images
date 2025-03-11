@@ -20,10 +20,10 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
-exit
-
 # install Lustre client
-$ALMA_COMMON_DIR/install_lustre_client.sh "8"
+$RHEL_COMMON_DIR/install_lustre_client.sh "8"
+
+exit
 
 # install compilers
 ./install_gcc.sh

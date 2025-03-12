@@ -40,13 +40,13 @@ $RHEL_COMMON_DIR/install_lustre_client.sh "8"
 # install DOCA OFED
 $RHEL_COMMON_DIR/install_doca.sh
 
-exit
-
 # install PMIX
-$ALMA_COMMON_DIR/install_pmix.sh
+$RHEL_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
-$ALMA_COMMON_DIR/install_mpis.sh
+$RHEL_COMMON_DIR/install_mpis.sh
+
+exit
 
 # install nvidia gpu driver
 $ALMA_COMMON_DIR/install_nvidiagpudriver.sh

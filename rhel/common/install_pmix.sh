@@ -5,7 +5,7 @@ source ${COMMON_DIR}/utilities.sh
 
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
-REPO_DIR="$ALMA_COMMON_DIR"
+REPO_DIR="$RHEL_COMMON_DIR"
 
 cp ${REPO_DIR}/slurmel8.repo /etc/yum.repos.d/slurm.repo
 

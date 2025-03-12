@@ -17,7 +17,7 @@ if [ ! -e /etc/yum.repos.d/microsoft-prod.repo ];then
    rm packages-microsoft-prod.rpm
 fi
 
-dnf config-manager --set-enabled powertools
+# dnf config-manager --set-enabled powertools
 yum -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
 
 $COMMON_DIR/write_component_version.sh "PMIX" ${PMIX_VERSION}

@@ -46,10 +46,10 @@ $RHEL_COMMON_DIR/install_pmix.sh
 # install mpi libraries
 $RHEL_COMMON_DIR/install_mpis.sh
 
-exit
-
 # install nvidia gpu driver
-$ALMA_COMMON_DIR/install_nvidiagpudriver.sh
+$RHEL_COMMON_DIR/install_nvidiagpudriver.sh
+
+exit
 
 # install AMD tuned libraries
 $COMMON_DIR/install_amd_libs.sh

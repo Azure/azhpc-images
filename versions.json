@@ -173,6 +173,16 @@
                 "version": "12.5",
                 "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
             }   
+        },
+        "rhel8.10": {
+            "driver": {
+                "version": "12.6",
+                "distribution": "rhel8"
+            },
+            "samples": {
+                "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+            }   
         }
     },
     "gdrcopy": {
@@ -192,6 +202,11 @@
             "distribution": "el8"
         },
         "almalinux8.10": {
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "distribution": "el8"
+        },
+        "rhel8.10": {
             "version": "2.5-1",
             "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"

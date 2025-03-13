@@ -42,9 +42,9 @@ $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 
 # load the nvidia-peermem coming as a part of NVIDIA GPU driver
 # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
-modprobe nvidia-peermem
+# modprobe nvidia-peermem
 # verify if loaded
-lsmod | grep nvidia_peermem
+# lsmod | grep nvidia_peermem
 
 $RHEL_COMMON_DIR/install_gdrcopy.sh
 

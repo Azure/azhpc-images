@@ -141,6 +141,7 @@
                 "distribution": "rhel8",
                 "version": "560.35.03-1",
                 "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
+	    }
         }
     },
     "cuda": {

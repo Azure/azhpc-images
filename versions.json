@@ -131,6 +131,16 @@
                 "version": "560.35.03-1",
                 "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
             }   
+        },
+        "rhel8.10": {
+            "driver": {
+                "version": "560.35.03",
+                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
+            },
+            "fabricmanager": {
+                "distribution": "rhel8",
+                "version": "560.35.03-1",
+                "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
         }
     },
     "cuda": {

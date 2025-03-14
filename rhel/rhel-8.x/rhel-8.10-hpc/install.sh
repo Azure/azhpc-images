@@ -49,8 +49,6 @@ $RHEL_COMMON_DIR/install_mpis.sh
 # install nvidia gpu driver
 $RHEL_COMMON_DIR/install_nvidiagpudriver.sh
 
-exit
-
 # install AMD tuned libraries
 $COMMON_DIR/install_amd_libs.sh
 
@@ -62,6 +60,8 @@ rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
+
+exit
 
 # Install NCCL
 $ALMA_COMMON_DIR/install_nccl.sh

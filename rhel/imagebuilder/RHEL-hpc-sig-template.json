@@ -3,19 +3,15 @@
     "apiVersion": "2020-02-14",
     "location": "<region1>",
     "dependsOn": [],
-    "tags": {
-        "imagebuilderTemplate": "AzureImageBuilderSIG",
-        "userIdentity": "disabled"
-            },
-        "identity": {
-	    "type": "UserAssigned",
-            "userAssignedIdentities": {
-                 "<imgBuilderId>": {}
-                 }
-            },
+    "identity": {
+    	"type": "UserAssigned",
+    	"userAssignedIdentities": {
+        	"<imgBuilderId>": {}
+    	}
+    },
     "properties": {
 
-        "buildTimeoutInMinutes" : 180,
+        "buildTimeoutInMinutes" : 240,
 
         "vmProfile": 
             {
@@ -28,7 +24,7 @@
                 "publisher": "RedHat",
                 "offer": "RHEL",
                 "sku": "8-lvm-gen2",
-                "version": "8.6.2022102701"
+                "version": "8.10.2024070513"
             
         },
         "customize": [
@@ -39,7 +35,7 @@
                     "sudo yum --disablerepo=* --enablerepo=rhui-microsoft-* update -y rhui*",
                     "sudo yum install -y git",
                     "git clone https://github.com/hmeiland/azhpc-images.git -b rhel",
-		    "cd azhpc-images/rhel/rhel-8.x/rhel-8.6-hpc; ./install.sh"
+		    "cd azhpc-images/rhel/rhel-8.x/rhel-8.10-hpc; ./install.sh"
                 ]
             }
         ],
@@ -51,7 +47,7 @@
                 "runOutputName": "<runOutputName>",
                 "artifactTags": {
                     "source": "RHELImageBuilder",
-                    "baseosimg": "rhel86"
+                    "baseosimg": "rhel810"
                 },
                 "replicationRegions": [
                   "<region1>",

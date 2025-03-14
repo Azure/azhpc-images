@@ -7,6 +7,6 @@ network: {config: disabled}
 EOF
 
 # Remove Hardware Mac Address and DHCP Name
-cp /etc/sysconfig/network-scripts/ifcfg-eth0 tempFile
-grep -v -E "HWADDR=|DHCP_HOSTNAME=" /etc/sysconfig/network-scripts/ifcfg-eth0 > tempFile
-mv tempFile /etc/sysconfig/network-scripts/ifcfg-eth0
+sed -i '/^HWADDR=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
+sed -i '/^DHCP_HOSTNAME=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
+sed -i '/^IPV6INIT=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 

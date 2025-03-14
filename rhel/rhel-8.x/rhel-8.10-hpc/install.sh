@@ -67,13 +67,11 @@ $RHEL_COMMON_DIR/install_nccl.sh
 # Install NVIDIA docker container
 $RHEL_COMMON_DIR/install_docker.sh
 
-exit
-
 # Install DCGM
-$ALMA_COMMON_DIR/install_dcgm.sh
+$RHEL_COMMON_DIR/install_dcgm.sh
 
 # optimizations
-$ALMA_COMMON_DIR/hpc-tuning.sh
+$RHEL_COMMON_DIR/hpc-tuning.sh
 
 # Install AZNFS Mount Helper
 $COMMON_DIR/install_aznfs.sh
@@ -82,10 +80,10 @@ $COMMON_DIR/install_aznfs.sh
 $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 # add udev rule
-$ALMA_COMMON_DIR/add-udev-rules.sh
+$RHEL_COMMON_DIR/add-udev-rules.sh
 
 # add interface rules
-$ALMA_COMMON_DIR/network-config.sh
+$RHEL_COMMON_DIR/network-config.sh
 
 # install diagnostic script
 $COMMON_DIR/install_hpcdiag.sh
@@ -100,14 +98,14 @@ $COMMON_DIR/install_health_checks.sh
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
-$ALMA_COMMON_DIR/disable_cloudinit.sh
+$RHEL_COMMON_DIR/disable_cloudinit.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM
-# $COMMON_DIR/clear_history.sh
+$COMMON_DIR/clear_history.sh
 
 # add a security patch of CVE issue for AlmaLinux 8.7 only
 # ./disable_user_namespaces.sh

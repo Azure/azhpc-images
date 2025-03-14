@@ -61,13 +61,13 @@ rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
-exit
-
 # Install NCCL
-$ALMA_COMMON_DIR/install_nccl.sh
+$RHEL_COMMON_DIR/install_nccl.sh
 
 # Install NVIDIA docker container
-$ALMA_COMMON_DIR/install_docker.sh
+$RHEL_COMMON_DIR/install_docker.sh
+
+exit
 
 # Install DCGM
 $ALMA_COMMON_DIR/install_dcgm.sh

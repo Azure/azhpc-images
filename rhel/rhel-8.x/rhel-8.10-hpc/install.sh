@@ -92,7 +92,7 @@ $COMMON_DIR/install_hpcdiag.sh
 $COMMON_DIR/install_monitoring_tools.sh
 
 # install Azure/NHC Health Checks
-$COMMON_DIR/install_health_checks.sh
+$COMMON_DIR/install_health_checks.sh NVIDIA
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

@@ -3,10 +3,10 @@ set -ex
 
 
 # extend homedir to something usefull
-lvextend -L 12GB /dev/rootvg/homelv || echo "continuing...."
-lvextend -L 8GB /dev/rootvg/tmplv || echo "continuing...."
-lvextend -L 16GB /dev/rootvg/rootlv || echo "continuing...."
-lvextend -L 16GB /dev/rootvg/usrlv || echo "continuing...."
+lvextend -L 32GB /dev/rootvg/homelv || echo "continuing...."
+lvextend -L 16GB /dev/rootvg/tmplv || echo "continuing...."
+lvextend -L 32GB /dev/rootvg/rootlv || echo "continuing...."
+lvextend -L 32GB /dev/rootvg/usrlv || echo "continuing...."
 xfs_growfs /dev/rootvg/homelv
 xfs_growfs /dev/rootvg/tmplv
 xfs_growfs /dev/rootvg/rootlv
@@ -90,6 +90,8 @@ $COMMON_DIR/install_hpcdiag.sh
 
 #install monitoring tools
 $COMMON_DIR/install_monitoring_tools.sh
+
+df -h
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh NVIDIA

@@ -12,6 +12,8 @@ xfs_growfs /dev/rootvg/tmplv
 xfs_growfs /dev/rootvg/rootlv
 xfs_growfs /dev/rootvg/usrlv
 
+df -h
+
 # install pre-requisites
 ./install_prerequisites.sh
 

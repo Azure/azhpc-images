@@ -3,10 +3,10 @@ set -ex
 
 
 # extend homedir to something usefull
-lvextend -L 14GB /dev/rootvg/homelv || echo "continuing...."
-lvextend -L 14GB /dev/rootvg/tmplv || echo "continuing...."
-lvextend -L 14GB /dev/rootvg/rootlv || echo "continuing...."
-lvextend -L 14GB /dev/rootvg/varlv || echo "continuing...."
+lvextend -L 12GB /dev/rootvg/homelv || echo "continuing...."
+lvextend -L 12GB /dev/rootvg/tmplv || echo "continuing...."
+lvextend -L 12GB /dev/rootvg/rootlv || echo "continuing...."
+lvextend -L 12GB /dev/rootvg/varlv || echo "continuing...."
 lvextend -l +100%FREE /dev/rootvg/usrlv || echo "continuing...."
 xfs_growfs /dev/rootvg/homelv
 xfs_growfs /dev/rootvg/tmplv

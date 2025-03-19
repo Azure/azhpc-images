@@ -32,8 +32,6 @@ fi
 # set properties
 source ./set_properties.sh
 
-exit
-
 # install utils
 ./install_utils.sh
 

@@ -26,7 +26,7 @@ az sig image-definition create \
    --hyper-v-generation V2 \
    --publisher myRHEL \
    --offer myRHELhpc \
-   --sku 8.6-hpc \
+   --sku 8.10-hpc \
    --os-type Linux
 
 
@@ -49,6 +49,7 @@ az role assignment create \
     --assignee $imgBuilderCliId \
     --role "Contributor" \
     --scope /subscriptions/$subscriptionID/resourceGroups/$sigResourceGroup
+# do manually if this failes...
 
 # prep image template
 rm RHEL-hpc-sig.json

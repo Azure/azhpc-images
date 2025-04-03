@@ -283,9 +283,9 @@
     },
     "rocm": {
         "ubuntu22.04": {
-            "version": "6.2.4",
-            "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
-            "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
+            "version": "6.2.2",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb",
+            "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
         }
     },
     "rccl": {

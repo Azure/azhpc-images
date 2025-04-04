@@ -19,11 +19,8 @@ function test_component {
     case $component in
         check_impi_2021) verify_impi_2021_installation;;
         check_impi_2018) verify_impi_2018_installation;;
-        check_gdrcopy) verify_gdrcopy_installation;;
         check_cuda) verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
-	check_rocm) verify_rocm_installation;;
-        check_rccl) verify_rccl_installation;;
         check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
@@ -47,6 +44,7 @@ function verify_common_components {
     verify_hpcdiag_installation;
     verify_ipoib_status;
     verify_lustre_installation;
+    verify_gdrcopy_installation;
     verify_pssh_installation;
     verify_aznfs_installation;
 }
@@ -69,21 +67,10 @@ function initiate_test_suite {
 }
 
 function set_test_matrix {
-    gpu_platform="NVIDIA"
-    if [[ "$#" -gt 0 ]]; then
-       GPU_PLAT=$1
-       if [[ ${GPU_PLAT} == "AMD" ]]; then
-          gpu_platform="AMD"
-       elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
-          echo "${GPU_PLAT} is not a valid GPU platform"
-          exit 1
-
-       fi
-    fi
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
-    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
-
+    
     if [[ -z "$TEST_MATRIX" ]]; then
         echo "*****No test matrix found for distribution $distro!*****"
         exit 1
@@ -119,7 +106,7 @@ function set_module_files_path {
     almalinux) 
         export MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
         ;;
-    azurelinux)
+    azurelinux) 
         export MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
         ;;
     * ) ;;
@@ -140,8 +127,8 @@ set_component_versions
 # Set current SKU
 set_sku_configuration
 # Set test matrix
-set_test_matrix $1
+set_test_matrix
 # Initiate test suite
 initiate_test_suite
 
-echo "ALL OK!"
+echo "ALL OK!!"

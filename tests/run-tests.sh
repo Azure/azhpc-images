@@ -77,7 +77,7 @@ function set_test_matrix {
        fi
     fi
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
-    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_NVIDIA.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
 
     if [[ -z "$TEST_MATRIX" ]]; then

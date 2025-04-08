@@ -65,17 +65,17 @@ function initiate_test_suite {
 }
 
 function set_test_matrix {
-    gpu_platform="NVIDIA"
-    if [[ "$#" -gt 0 ]]; then
-       GPU_PLAT=$1
-       if [[ ${GPU_PLAT} == "AMD" ]]; then
-          gpu_platform="AMD"
-       elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
-          echo "${GPU_PLAT} is not a valid GPU platform"
-          exit 1
+    # gpu_platform="NVIDIA"
+    # if [[ "$#" -gt 0 ]]; then
+    #    GPU_PLAT=$1
+    #    if [[ ${GPU_PLAT} == "AMD" ]]; then
+    #       gpu_platform="AMD"
+    #    elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
+    #       echo "${GPU_PLAT} is not a valid GPU platform"
+    #       exit 1
 
-       fi
-    fi
+    #    fi
+    # fi
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
     test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_NVIDIA.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)

@@ -7,15 +7,15 @@ source ${COMMON_DIR}/utilities.sh
 # install rdma_rename with NAME_FIXED option
 # install rdma_rename monitor
 #
-
-pushd /tmp
 rdma_core_metadata=$(get_component_config "rdma_core")
 RDMA_CORE_VERSION=$(jq -r '.version' <<< $rdma_core_metadata)
 RDMA_CORE_SHA=$(jq -r '.sha256' <<< $rdma_core_metadata)
 
 TARBALL="v${RDMA_CORE_VERSION}.tar.gz"
 RDMA_CORE_DOWNLOAD_URL=https://github.com/linux-rdma/rdma-core/archive/refs/tags/${TARBALL}
-$COMMON_DIR/download_and_verify.sh ${RDMA_CORE_DOWNLOAD_URL} ${RDMA_CORE_SHA}
+$COMMON_DIR/download_and_verify.sh ${RDMA_CORE_DOWNLOAD_URL} ${RDMA_CORE_SHA} /tmp
+
+pushd /tmp
 mkdir rdma-core && tar -xvf $TARBALL --strip-components=1 -C rdma-core 
 
 pushd rdma-core

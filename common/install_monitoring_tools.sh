@@ -13,17 +13,13 @@ MONEO_SHA256=$(jq -r '.sha256' <<< $moneo_metadata)
 python3 -m pip install --upgrade pip
 
 MONITOR_DIR=/opt/azurehpc/tools
-
-mkdir -p $MONITOR_DIR
+TARBALL="v${MONEO_VERSION}.tar.gz"
+MONEO_DOWNLOAD_URL=https://github.com/Azure/Moneo/archive/refs/tags/${TARBALL}
+$COMMON_DIR/download_and_verify.sh ${MONEO_DOWNLOAD_URL} ${MONEO_SHA256} $MONITOR_DIR
 
 pushd $MONITOR_DIR
-
-    TARBALL="v${MONEO_VERSION}.tar.gz"
-    MONEO_DOWNLOAD_URL=https://github.com/Azure/Moneo/archive/refs/tags/${TARBALL}
-    $COMMON_DIR/download_and_verify.sh ${MONEO_DOWNLOAD_URL} ${MONEO_SHA256}
     mkdir Moneo && tar -xvf $TARBALL --strip-components=1 -C Moneo  
     chmod 777 Moneo
-
     pushd Moneo/linux_service
         ./configure_service.sh   
     popd

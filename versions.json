@@ -318,7 +318,7 @@
     },
     "rdma_core": {
         "common": {
-            "version": "v56.1",
+            "version": "56.1",
             "sha256": "0ebac5735bc38cafeba28a3124566b56606f11a8462c794411858efa7b407be0"
         }
     },

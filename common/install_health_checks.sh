@@ -11,30 +11,25 @@ AZHC_SHA=$(jq -r '.sha256' <<< $aznhc_metadata)
 DEST_TEST_DIR=/opt/azurehpc/test
 GPU_PLAT=$1
 
-mkdir -p $DEST_TEST_DIR
+TARBALL="v${AZHC_VERSION}.tar.gz"
+AZHC_DOWNLOAD_URL=https://github.com/Azure/azurehpc-health-checks/archive/refs/tags/${TARBALL}
+$COMMON_DIR/download_and_verify.sh ${AZHC_DOWNLOAD_URL} ${AZHC_SHA} $DEST_TEST_DIR
 
 pushd $DEST_TEST_DIR
-
 if [ "${GPU_PLAT}" = "NVIDIA" ]; then
-   TARBALL="v${AZHC_VERSION}.tar.gz"
-   AZHC_DOWNLOAD_URL=https://github.com/Azure/azurehpc-health-checks/archive/refs/tags/${TARBALL}
-   $COMMON_DIR/download_and_verify.sh ${AZHC_DOWNLOAD_URL} ${AZHC_SHA}
    mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azurehpc-health-checks  
-
    pushd azurehpc-health-checks
-
+   chmod +x ./dockerfile/pull-image-mcr.sh
    # Pull down docker container from MCR
-   ./dockerfile/pull-image-acr.sh cuda
+   ./dockerfile/pull-image-mcr.sh cuda
    popd
 else
    git clone https://github.com/Azure/azurehpc-health-checks.git
    pushd azurehpc-health-checks
    # Build docker image for AMD while waiting to be published on MCR
    ./dockerfile/build_image.sh rocm
-
    popd
 fi
-
 popd
 
 $COMMON_DIR/write_component_version.sh "AZ_HEALTH_CHECKS" ${AZHC_VERSION}

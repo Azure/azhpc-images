@@ -251,7 +251,8 @@
     },
     "moneo": {
         "common": {
-            "version": "0.3.5"
+            "version": "0.3.5",
+            "sha256": "69b5cb899bd6d7b911162931b012cd50548d71b5e68a8de191eff5cd1193377d"
         }
     },
     "pssh": {
@@ -311,12 +312,14 @@
     },
     "aznhc": {
         "common": {
-            "version": "0.4.4"
+            "version": "0.4.4",
+            "sha256": "37ffcb35ab7ae08ed863c7dd5f38a5bbb889fd75b438483fdc37e0017bac4366"
         }
     },
     "rdma_core": {
         "common": {
-            "branch": "v56.1"
+            "version": "v56.1",
+            "sha256": "0ebac5735bc38cafeba28a3124566b56606f11a8462c794411858efa7b407be0"
         }
     },
     "pmix": {

@@ -1,28 +1,28 @@
 {
     "azcopy": {
         "common": {
-            "version": "10.27.1",
-            "release": "10.27.1-20241113",
-            "sha256": "b66b35c564b88c2e89f0c6b179ea52c42f1dd35924e2f0ebbbc5ff39c94f1d2c"
+            "version": "10.28.1",
+            "release": "10.28.1-20250326",
+            "sha256": "0f637fd5cf8f5a041592bd2104234682cc0bc7a893298a5641b87d4bef96bc6d"
         }
     },
     "cmake": {
         "common": {
-            "version": "3.30.6",
-            "url": "https://github.com/Kitware/CMake/releases/download/v3.30.6/cmake-3.30.6-linux-x86_64.tar.gz",
-            "sha256": "528350c72d89f3b408d12869daa282960dec4dd18224a22bddb52da526655359"
+            "version": "4.0.1",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-linux-x86_64.tar.gz",
+            "sha256": "d66c11c010588c8256ee20a26b45977cd5b2f4aee2b742d4b8a353769940d147"
         }
     },
     "doca": {
         "ubuntu20.04": {
-            "version": "2.8.0",
-            "sha256": "00f76872fc1073ca83eccae519f284eaa9a241ea23b9bfd898b082460ddea595",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2004_amd64.deb"
+            "version": "2.10.0",
+            "sha256": "1ae8f69beeb599e9b3330a18ba568e6bbb62133505c49a6d84bea4a84ab662db",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "2.8.0",
-            "sha256": "289a3e00f676032b52afb1aab5f19d2a672bcca782daf9d30ade0b59975af582",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host_2.8.0-204000-24.07-ubuntu2204_amd64.deb"
+            "version": "2.10.0",
+            "sha256": "c9758f9029393b749908f0485827004dafa8cc0e24313f1f2bdae2406050ddfd",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
             "version": "2.8.0",
@@ -30,9 +30,9 @@
             "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel87.x86_64.rpm"
         },
         "almalinux8.10": {
-            "version": "2.8.0",
-            "sha256": "387d0b20311353a5833a029b3f8e7d64bf511ce88107be53f594f5c03e0ce26b",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel810.x86_64.rpm"
+            "version": "2.10.0",
+            "sha256": "075324dfb074c99bb947217af6469b7d091eec642217e4db4430ac96b1d16ddc",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host-2.10.0-093000_25.01_rhel810.x86_64.rpm"
         },
         "rhel8.10": {
             "version": "2.8.0",
@@ -42,14 +42,14 @@
     },
     "hpcx": {
         "ubuntu20.04": {
-            "version": "2.18",
-            "sha256": "8e088f5ae94576e1d845fbb4ef67c7dc54983555d3583c244dde7e19dc082074",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
+            "version": "2.21.2",
+            "sha256": "bafca09df069c787d5a351e88d9e129381697b1a3f318b06070805d261e841c2",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.18",
-            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.21.2",
+            "sha256": "d6e6f2d25236679deff29e9cf4a86bd36b3399393d0cff8b4bb8e79f0408d1e4",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
             "version": "2.18",
@@ -57,9 +57,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         },
         "almalinux8.10": {
-            "version": "2.18",
-            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+            "version": "2.21.2",
+            "sha256": "05d45935ce4862beb10ffadf4fc0de761ed80d7539b74f445ac8007bded4ed2c",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
         },
         "rhel8.10": {
             "version": "2.18",
@@ -75,39 +75,39 @@
     },
     "ompi": {
         "common": {
-            "version": "5.0.5",
-            "sha256": "5cbefa0780b84f4126743c40cdd6a334b2f0574cd7fd95050fb1ac0ddbb7f0b8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.5.tar.gz"
+            "version": "5.0.7",
+            "sha256": "67435fdb2560f897882e69fead171d38e7f44a6dfe1d3c90506f549a943050b8",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz"
         }
     },
     "impi": {
         "common": {
-            "version": "2021.13.1",
-            "sha256": "be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh"
+            "version": "2021.15.0",
+            "sha256": "d4ad297174ce3837444468645e13cfe78f11d9bf2ad9ade2057b2668cccd9385",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6b6e395e-8f38-4da3-913d-90a2bcf41028/intel-mpi-2021.15.0.495_offline.sh"
         }
     },
     "nvidia": {
         "ubuntu20.04": {
             "driver": {
-                "version": "560.35.03",
-                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
+                "version": "570.133.07",
+                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2004",
-                "version": "560.35.03-1",
-                "sha256": "ad68065a83e2d3a5b3c3b8121fdc146c2aea5cdcca77b1ab4f9a64ac932be966"        
+                "version": "570.124.06-1",
+                "sha256": "d4d83bada38e5760c6859f32b68de55e69acc1c7856aa9c3793dcb80651e09fd"        
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "560.35.03",
-                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
+                "version": "570.133.07",
+                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
-                "version": "560.35.03-1",
-                "sha256": "ad68065a83e2d3a5b3c3b8121fdc146c2aea5cdcca77b1ab4f9a64ac932be966"        
+                "version": "570.124.06-1",
+                "sha256": "d4d83bada38e5760c6859f32b68de55e69acc1c7856aa9c3793dcb80651e09fd"        
             }   
         },
         "almalinux8.7": {
@@ -123,13 +123,13 @@
         },
         "almalinux8.10": {
             "driver": {
-                "version": "560.35.03",
-                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
+                "version": "570.133.07",
+                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
             },
             "fabricmanager": {
                 "distribution": "rhel8",
-                "version": "560.35.03-1",
-                "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
+                "version": "570.124.06-1",
+                "sha256": "34430e9c6a902cad7a0c8273b59c985e5e242df210513c6ece7764236c57b39f"        
             }   
         },
         "rhel8.10": {
@@ -147,22 +147,22 @@
     "cuda": {
         "ubuntu20.04": {
             "driver": {
-                "version": "12.6",
+                "version": "12.8",
                 "distribution": "ubuntu2004"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "12.6",
+                "version": "12.8",
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "almalinux8.7": {
@@ -177,12 +177,12 @@
         },
         "almalinux8.10": {
             "driver": {
-                "version": "12.6",
+                "version": "12.8",
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "rhel8.10": {
@@ -199,12 +199,12 @@
     "gdrcopy": {
         "ubuntu20.04": {
             "version": "2.5-1",
-            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
             "version": "2.5-1",
-            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
@@ -214,7 +214,7 @@
         },
         "almalinux8.10": {
             "version": "2.5-1",
-            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "el8"
         },
         "rhel8.10": {
@@ -225,29 +225,28 @@
     },
     "nccl": {
         "common": {
-            "version": "2.22.3-1",
+            "version": "2.26.2-1",
             "rdmasharpplugins": {
-                "commit": "v2.7.x"
+                "commit": "master"
             }
         }
     },
     "dcgm": {
         "common": {
-            "version": "3.3.7"
+            "version": "4.2.2"
         }
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2024.2.1.105",
-            "sha256": "adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh"
+            "version": "2025.1.0.803",
+            "sha256": "80a4b1338b48b3fbee55a8dc784f92e5e88d618f1b99d80f5f207a00c86a6638",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc93af13-2b3f-40c3-a41b-2bc05a707a80/intel-onemkl-2025.1.0.803_offline.sh"
         }
     },
     "waagent": {
         "common": {
-            "_comment": "Beware upgrading waagent as there is a bug that causes IP address not to be set in ifconfig. There appears to be a fix in the pipeline but not released.",
-            "version": "2.9.0.4",
-            "sha256": "040969f507f73f3a2c95d5b0568225ad68f7f91bfec99bd92154c3fa9e28034b"
+            "version": "2.12.0.4",
+            "sha256": "88be3211a433e1d12d7212761a06b227e6bed551649abd62d4eebeae116ab26c"
         }
     },
     "moneo": {
@@ -272,28 +271,38 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "4.2.0",
-                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+                "version": "5.0.0",
+                "sha256": "604ae6c34ef2648504ba08d2f33e42b5a9cf4032eaefaa9253560747ebaeb1ca"
             },
             "aocc": {
-                "version": "4.2.0",
-                "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
+                "version": "5.0.0",
+                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
             } 
         }
     },
     "rocm": {
         "ubuntu22.04": {
-            "version": "6.2.2",
-            "url": "https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb",
-            "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
+            "version": "6.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.4/ubuntu/jammy/amdgpu-install_6.4.60400-1_all.deb",
+            "sha256": "4b5b14000a69194f055258a0d0aa4168af0cc7e80ea7570fc4871f465face4c0"
+        },
+        "almalinux8.10": {
+            "version": "6.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.4/rhel/8.10/amdgpu-install-6.4.60400-1.el8.noarch.rpm",
+            "sha256": "708d3dcfa9e317c50bc231ca4bac23994f6036e8c71aa0f47311601f7b89d012"
         }
     },
     "rccl": {
         "ubuntu22.04": {
-	    "version": "2.20.5",
-	    "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
-	    "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
-	}
+	        "version": "2.22.3",
+	        "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.0.tar.gz",
+	        "sha256": "d7efa6e2786fd63fd19804f45494410ea0c072d4d9ec82f19b1fda33fd5c0340"
+	    },
+        "almalinux8.10": {
+	        "version": "2.22.3",
+	        "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.0.tar.gz",
+	        "sha256": "d7efa6e2786fd63fd19804f45494410ea0c072d4d9ec82f19b1fda33fd5c0340"
+        }
     },
     "lustre": {
         "common": {
@@ -302,12 +311,12 @@
     },
     "aznhc": {
         "common": {
-            "version": "0.4.2"
+            "version": "0.4.4"
         }
     },
     "rdma_core": {
         "common": {
-            "branch": "v53.0"
+            "branch": "v56.1"
         }
     },
     "pmix": {
@@ -317,8 +326,8 @@
     },
     "aznfs": {
         "common": {
-            "version": "2.0.9",
-            "sha256": "36d9f34bb0554acad27f77dd2d1a7d1f8a2246a63a670d26ec2db3e680bf838f"
+            "version": "2.0.12",
+            "sha256": "5ad0f1986c4d211d2bd9626b2f246fbcd556c1fb0ca7be346adf660076c49210"
         }
     }
 }

@@ -16,9 +16,15 @@ dnf clean all
 
 # Install DOCA extras for compatibility
 dnf install -y doca-extra
-/opt/mellanox/doca/tools/doca-kernel-support
-dnf install -y doca-ofed-userspace
+KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g' | sed 's/x86_64/noarch/'))
+wget --retry-connrefused --tries=3 --waitretry=5 https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-abi-stablelists-${KERNEL}.rpm
+rpm -i kernel-abi-stablelists-${KERNEL}.rpm
 
+/opt/mellanox/doca/tools/doca-kernel-support
+FINAL_REPO_FILE=$(find /tmp/DOCA.*/ -name 'doca-kernel-repo-*.rpm' -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
+rpm -i $FINAL_REPO_FILE
+
+dnf -y install doca-ofed-userspace
 dnf -y install doca-ofed
 $COMMON_DIR/write_component_version.sh "DOCA" $DOCA_VERSION
 

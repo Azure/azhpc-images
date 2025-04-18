@@ -8,6 +8,10 @@ aznhc_metadata=$(get_component_config "aznhc")
 AZHC_VERSION=$(jq -r '.version' <<< $aznhc_metadata)
 AZHC_SHA=$(jq -r '.sha256' <<< $aznhc_metadata)
 
+hpcx_metadata=$(get_component_config "hpcx")
+HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
+
 DEST_TEST_DIR=/opt/azurehpc/test
 GPU_PLAT=$1
 
@@ -26,6 +30,7 @@ if [ "${GPU_PLAT}" = "NVIDIA" ]; then
 else
    git clone https://github.com/Azure/azurehpc-health-checks.git
    pushd azurehpc-health-checks
+   sed -i 's|hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64|'"$HPCX_FOLDER"'|g' ./dockerfile/build_image.sh
    # Build docker image for AMD while waiting to be published on MCR
    ./dockerfile/build_image.sh rocm
    popd

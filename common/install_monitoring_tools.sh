@@ -9,7 +9,8 @@ moneo_metadata=$(get_component_config "moneo")
 MONEO_VERSION=$(jq -r '.version' <<< $moneo_metadata)
 
 # Dependencies 
-python3 -m pip install --upgrade pip
+# python3 -m pip install --upgrade pip
+tdnf install -y python3-pip
 
 MONITOR_DIR=/opt/azurehpc/tools
 

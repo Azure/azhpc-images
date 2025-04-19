@@ -8,6 +8,8 @@ source ${COMMON_DIR}/utilities.sh
 # install rdma_rename monitor
 #
 
+tdnf install -y git
+
 pushd /tmp
 rdma_core_metadata=$(get_component_config "rdma_core")
 rdma_core_branch=$(jq -r '.branch' <<< $rdma_core_metadata)
@@ -23,6 +25,9 @@ popd
 # setup systemd service
 #
 
+echo "##### AZURE RDMA NAMING 1ST IBSTAT CHECK ######"
+sudo ibstat
+
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
@@ -30,6 +35,8 @@ rdma_rename=/usr/sbin/rdma_rename_${rdma_core_branch}
 
 an_index=0
 ib_index=0
+
+echo "RENAMING..."
 
 for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
 
@@ -72,5 +79,8 @@ EOF
 
 systemctl enable azure_persistent_rdma_naming.service
 systemctl start azure_persistent_rdma_naming.service
+
+echo "##### AZURE RDMA NAMING 1ST IBSTAT CHECK ######"
+sudo ibstat
 
 $COMMON_DIR/install_azure_persistent_rdma_naming_monitor.sh      

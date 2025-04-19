@@ -8,14 +8,14 @@ find_distro() {
     then
         local alma_distro=`find_alma_distro`
         echo "${os} ${alma_distro}"
-    elif [[ $os == "Red Hat Enterprise Linux" ]]
-    then
-        local rhel_distro=`find_rhel_distro`
-        echo "${os} ${rhel_distro}"
     elif [[ $os == "Ubuntu" ]]
     then
         local ubuntu_distro=`find_ubuntu_distro`
         echo "${os} ${ubuntu_distro}"
+    elif [[ $os == "Microsoft Azure Linux" ]]
+    then
+        local azurelinux_distro=`find_azurelinux_distro`
+        echo "${os} ${azurelinux_distro}"
     else
         echo "*** Error - invalid distro!"
         exit -1
@@ -27,14 +27,14 @@ find_alma_distro() {
     echo `cat /etc/redhat-release | awk '{print $3}'`
 }
 
-# Find RHEL distro
-find_rhel_distro() {
-    echo `cat /etc/redhat-release | awk '{print $3}'`
-}
-
 # Find Ubuntu distro
 find_ubuntu_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
+}
+
+# Find Azure Linux distro
+find_azurelinux_distro() {
+    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2$3}' | cut -d. -f1,2`
 }
 
 distro=`find_distro`
@@ -46,10 +46,10 @@ then
     yum history sync
 fi
 
-if [[ $distro == *"Red Hat"* ]]
+if [[ $distro == *"AzureLinux"* ]]
 then
     # Sync yum and rpmdb after installing rpm's outside yum
-    yum history sync
+    tdnf history sync
 fi
 
 # Remove Defender
@@ -57,7 +57,7 @@ if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get purge -y mdatp
 else
-    yum remove -y mdatp
+    tdnf remove -y mdatp
 fi
 
 # Clear History
@@ -95,7 +95,7 @@ if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get clean
 else
-    yum clean all
+    tdnf clean all
 fi
 
 # Zero out unused space to minimize actual disk usage

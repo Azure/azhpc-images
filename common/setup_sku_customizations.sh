@@ -7,14 +7,13 @@ cp $COMMON_DIR/../customizations/* /opt/azurehpc/customizations
 
 ## Copy topology files to /opt/microsoft
 mkdir -p /opt/microsoft
+chmod 644 $COMMON_DIR/../topology/* # Ensure read permission is set of others
 cp $COMMON_DIR/../topology/* /opt/microsoft
 
 if [ "$GPU" = "NVIDIA" ]; then
 ## Systemd service for setting up appropriate customizations based on SKU
 cat <<EOF >/usr/sbin/setup_sku_customizations.sh
 #!/bin/bash
-
-/opt/azurehpc/customizations/alma_disable_cloudinit.sh
 
 metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
 vmSize=\$(curl -H Metadata:true \$metadata_endpoint | jq -r ".compute.vmSize")
@@ -51,6 +50,9 @@ case \$vmSize in
     standard_nd96is*_h[1-2]00_v5)
         /opt/azurehpc/customizations/ndv5.sh;;
 
+    standard_nd96is*_mi300x_v5)
+        /opt/azurehpc/customizations/ndv5.sh;;
+
     *) echo "No SKU customization for \$vmSize";;
 esac
 EOF
@@ -67,10 +69,11 @@ then
     systemctl disable nvidia-fabricmanager
 fi
 
-# Remove NVIDIA peer memory module
-if lsmod | grep nvidia_peermem &> /dev/null
-then
-    rmmod nvidia_peermem
+# Azure Linux only
+# use nvidia_peermem kernel module
+if lsmod | grep nv_peer_mem &> /dev/null
+then 
+    rmmod nv_peer_mem
 fi
 
 # Clear topo and graph files
@@ -95,9 +98,20 @@ vmSize=\$(echo "\$vmSize" | awk '{print tolower(\$0)}')
 
 ## Topo file setup based on SKU
 case \$vmSize in
+    standard_nc96ads_a100_v4)
+        /opt/azurehpc/customizations/ncv4.sh;;
     
     standard_nd*v4)
         /opt/azurehpc/customizations/ndv4_rocm.sh;;
+        
+    standard_nd40rs_v2)
+        /opt/azurehpc/customizations/ndv2.sh;;
+
+    standard_hb176*v4)
+        /opt/azurehpc/customizations/hbv4.sh;;
+
+    standard_nd96is*_h100_v5)
+        /opt/azurehpc/customizations/ndv5_rocm.sh;;
 
     standard_nd96is*_mi300x_v5)
         /opt/azurehpc/customizations/ndv5_rocm.sh;;
@@ -151,7 +165,13 @@ if [ -f "$FMSYSPATH" ]; then
     echo "Removed multi-user.target in Unit section"
 fi
 
+echo "ENABLE sku-customizations"
 systemctl enable sku-customizations
+
+# sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile &&  sudo reboot
+# sleep 600
+# echo "Machine sleep for 600 seconds-- DONE"
+echo "START sku-customizations"
 systemctl start sku-customizations
 systemctl is-active --quiet sku-customizations
 

@@ -105,7 +105,7 @@ $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
 TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
 CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
 # $COMMON_DIR/download_and_verify.sh $CUDA_SAMPLES_DOWNLOAD_URL $CUDA_SAMPLES_SHA256
-cp /home/packer/azhpc-images/prebuilt/${TARBALL} .
+cp /home/packer/azurelinux-hpc/prebuilt/${TARBALL} .
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)

@@ -17,6 +17,13 @@ CUDA=/usr/local/cuda ./build-rpm-packages.sh
 rpm -Uvh gdrcopy-kmod-${GDRCOPY_VERSION}dkms.${GDRCOPY_DISTRIBUTION}.noarch.rpm
 rpm -Uvh gdrcopy-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
 rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.noarch.rpm
+modprobe gdrdrv
+major=`fgrep gdrdrv /proc/devices | cut -b 1-4`
+if [ -e /dev/gdrdrv ]; then
+    sudo rm /dev/gdrdrv
+fi
+mknod /dev/gdrdrv c $major 0
+chmod a+w+r /dev/gdrdrv
 sed -i "$ s/$/ gdrcopy*/" /etc/dnf/dnf.conf
 popd
 

@@ -42,60 +42,60 @@ CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # tdnf clean expire-cache
 
 # Install cuda-toolkit dependencies
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/nsight-systems-2024.5.1.113_3461954-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/nsight-compute-2024.3.2.3_34861637-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-systems-2024.5.1.113_3461954-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-compute-2024.3.2.3_34861637-1.azl3.x86_64.rpm
 
 # Install cuda-toolkit and sub-packages
 # Till we publish to PMC repo we need to install 
 # each individual package for cmdline installation
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cccl-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cudart-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cudart-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-driver-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvml-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvrtc-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvrtc-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-opencl-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-opencl-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-profiler-api-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcublas-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcublas-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcufft-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcufft-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcufile-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcufile-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcurand-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcurand-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvfatbin-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvfatbin-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvjitlink-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvjitlink-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvjpeg-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnvjpeg-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcusparse-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcusparse-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcusolver-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libcusolver-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnpp-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/libnpp-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cupti-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvdisasm-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvprof-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvtx-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nsight-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvvp-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nsight-systems-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nsight-compute-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cuobjdump-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-cuxxfilt-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvcc-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvvm-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-crt-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-nvprune-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-documentation-12.6.2_560.35.03-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/gds-tools-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cccl-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cudart-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cudart-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-driver-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvml-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvrtc-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvrtc-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-opencl-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-opencl-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-profiler-api-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcublas-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcublas-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcufft-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcufft-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcufile-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcufile-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcurand-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcurand-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvfatbin-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvfatbin-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvjitlink-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvjitlink-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvjpeg-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnvjpeg-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcusparse-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcusparse-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcusolver-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libcusolver-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnpp-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/libnpp-devel-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cupti-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvdisasm-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvprof-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvtx-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nsight-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvvp-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nsight-systems-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nsight-compute-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cuobjdump-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-cuxxfilt-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvcc-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvvm-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-crt-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-nvprune-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-documentation-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/gds-tools-12.6.2_560.35.03-1.azl3.x86_64.rpm
 
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/cuda-toolkit-12.6.2_560.35.03-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/cuda-toolkit-12.6.2_560.35.03-1.azl3.x86_64.rpm
 
 echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
@@ -105,7 +105,7 @@ $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
 TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
 CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
 # $COMMON_DIR/download_and_verify.sh $CUDA_SAMPLES_DOWNLOAD_URL $CUDA_SAMPLES_SHA256
-cp /home/packer/azurelinux-hpc/prebuilt/${TARBALL} .
+cp /home/packer/azhpc-images/prebuilt/${TARBALL} .
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 make -j $(nproc)

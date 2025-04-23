@@ -21,7 +21,7 @@ V100_CONF_UPD="$DEST_TEST_DIR/azurehpc-health-checks/conf/nd40rs_v2.conf"
 if [[ -f "$V100_CONF_UPD" ]]; then
     echo "updating conf"
     sed -i 's/check_gpu_bw 10/check_gpu_bw 9.5/' "$V100_CONF_UPD"
-    echo "bandwidth value changed from 10 to 9.5 for nd40_rs"
+    echo "bandwidth value changed from 10 to 9.5 for nd40rs_v2"
 fi
 
 # Pull down docker container from MCR

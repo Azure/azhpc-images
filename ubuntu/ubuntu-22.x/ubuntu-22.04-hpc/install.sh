@@ -109,13 +109,12 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
-if [ "$GPU" = "AMD" ]; then
-    #update cmake
-    $UBUNTU_COMMON_DIR/install_cmake.sh
+#update cmake
+$UBUNTU_COMMON_DIR/install_cmake.sh
 
+if [ "$GPU" = "AMD" ]; then
     #install rocm software stack
-    ./install_rocm.sh
-    
+    ./install_rocm.sh    
     #install rccl and rccl-tests
     ./install_rccl.sh
 fi

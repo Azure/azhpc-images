@@ -8,20 +8,19 @@ apt install libstdc++-12-dev
 apt remove -y rccl
 rccl_metadata=$(get_component_config "rccl")
 rccl_version=$(jq -r '.version' <<< $rccl_metadata)
-rccl_url=$(jq -r '.url' <<< $rccl_metadata)
-rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
-#the content of this tar ball is rccl but its name is misleading
-TARBALL="rocm-6.2.4.tar.gz"
+rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
 
-$COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
-tar -xzf ${TARBALL}
-mkdir ./rccl-rocm-6.2.4/build
-pushd ./rccl-rocm-6.2.4/build
+git clone --recursive https://github.com/ROCm/rccl.git
+cd rccl
+git checkout $rccl_commit
+mkdir build
+pushd build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install
-pushd ../..
-rm -rf ${TARBALL} rccl-rocm-6.2.4
+popd
+cd ..
+rm -rf rccl
 $COMMON_DIR/write_component_version.sh "RCCL" ${rccl_version}
 
 sysctl kernel.numa_balancing=0

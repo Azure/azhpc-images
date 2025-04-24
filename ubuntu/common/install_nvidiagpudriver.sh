@@ -43,7 +43,9 @@ NVIDIA_DRIVER_URL=https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_D
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
 bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
-
+# load the nvidia-peermem coming as a part of NVIDIA GPU driver
+# Reference - https://download.nvidia.com/XFree86/Linux-x86_64/570.133.07/README/nvidia-peermem.html
+modprobe nvidia-peermem
 $UBUNTU_COMMON_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)

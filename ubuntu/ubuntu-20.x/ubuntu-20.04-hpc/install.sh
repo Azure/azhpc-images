@@ -78,7 +78,7 @@ $COMMON_DIR/install_monitoring_tools.sh
 $COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
-$COMMON_DIR/install_health_checks.sh
+$COMMON_DIR/install_health_checks.sh $GPU
 
 # disable cloud-init
 $UBUNTU_COMMON_DIR/disable_cloudinit.sh
@@ -92,6 +92,8 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
+#update cmake
+$UBUNTU_COMMON_DIR/install_cmake.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh

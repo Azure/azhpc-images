@@ -1,4 +1,4 @@
-# usage: packer build -var-file="image.pkrvars.hcl" --use-sequential-evaluation -parallel-builds=1 image.pkr.hcl
+# usage: packer build -var-file="image.pkrvars.hcl" --use-sequential-evaluation -parallel-builds=1 -on-error=abort image.pkr.hcl
 packer {
   required_plugins {
     azure = {
@@ -58,7 +58,7 @@ variable "architecture" {
   type        = string
   description = "Architecture to use for the image"
   # TODO: find out what env var to use
-  default     = "amd64"
+  default = "amd64"
 }
 locals {
   architecture = coalesce(var.architecture, "amd64")
@@ -81,6 +81,17 @@ variable "gpu_size_option" {
 locals {
   gpu_size_option = coalesce(var.gpu_size_option, "Standard_ND96asr_v4")
 }
+
+variable "public_key" {
+  type        = string
+  description = "Public key to use for SSH access for debugging purposes"
+  default     = env("PUBLIC_KEY")
+}
+locals {
+  public_key = var.public_key
+}
+
+# TODO: allow specifying vnet and subnet
 
 locals {
   base_image_details = {
@@ -107,7 +118,7 @@ locals {
   image_offer     = local.base_image_details[local.architecture][local.os_version]["image_offer"]
   image_sku       = local.base_image_details[local.architecture][local.os_version]["image_sku"]
 
-  
+
   # TODO: image name and tags should include more metadata for provenance
   image_name = "HPC-Image-${local.os_version}"
 }
@@ -121,6 +132,13 @@ source "azure-arm" "hpc" {
   managed_image_name                = local.image_name
   os_type                           = "Linux"
   vm_size                           = local.gpu_size_option
+  os_disk_size_gb                   = 64
+  ssh_username                      = local.username
+  azure_tags = {
+    SkipASMAzSecPack   = "true"
+    SkipASMAV          = "true"
+    SkipLinuxAzSecPack = "true"
+  }
 }
 
 source "null" "rg" {
@@ -128,7 +146,7 @@ source "null" "rg" {
 }
 
 build {
-  name    = "resource_group"
+  name = "resource_group"
   sources = [
     "source.null.rg"
   ]
@@ -141,8 +159,31 @@ build {
 }
 
 build {
-  name    = "azhpc_images"
+  name = "azhpc_images"
   sources = [
     "source.azure-arm.hpc"
+  ]
+  provisioner "shell" {
+    name = "add SSH key"
+    inline = [
+      # add the public key to the VM
+      "echo \"${local.public_key}\" >> /home/${local.username}/.ssh/authorized_keys",
     ]
+  }
+
+  provisioner "shell" {
+    name = "clone azhpc-images repo"
+    inline = [
+      # if os_version is not ubuntu*, use yum to install git
+      "if [[ \"${local.os_version}\" != *\"ubuntu\"* ]]; then sudo yum install -y git; fi",
+      # clone the azhpc-images repo
+      "git clone --branch ${local.target_branch} ${local.images_repo_url} /home/${local.username}/azhpc-images",
+    ]
+  }
+
+  provisioner "shell-local" {
+    inline = [
+      "exit 1"
+    ]
+  }
 }

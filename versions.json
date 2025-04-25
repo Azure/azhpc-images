@@ -90,8 +90,8 @@
     "nvidia": {
         "ubuntu20.04": {
             "driver": {
-                "version": "570.133.07",
-                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
+                "version": "570.133.20",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2004",
@@ -101,8 +101,8 @@
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "570.133.07",
-                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
+                "version": "570.133.20",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
@@ -123,8 +123,8 @@
         },
         "almalinux8.10": {
             "driver": {
-                "version": "570.133.07",
-                "sha256": "2d43e64c581be5ef554de9888b1aa90037ef6d45f54284d3d9dcedc08dc4dc26"
+                "version": "570.133.20",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
             },
             "fabricmanager": {
                 "distribution": "rhel8",

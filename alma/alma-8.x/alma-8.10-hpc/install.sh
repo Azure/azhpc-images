@@ -20,6 +20,9 @@ source ./set_properties.sh
 # install utils
 ./install_utils.sh
 
+#update cmake
+$ALMA_COMMON_DIR/install_cmake.sh
+
 # install Lustre client
 $ALMA_COMMON_DIR/install_lustre_client.sh "8"
 

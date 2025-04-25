@@ -95,8 +95,8 @@
             },
             "fabricmanager": {
                 "distribution": "ubuntu2004",
-                "version": "570.124.06-1",
-                "sha256": "d4d83bada38e5760c6859f32b68de55e69acc1c7856aa9c3793dcb80651e09fd"        
+                "version": "570.133.20-1",
+                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
             }   
         },
         "ubuntu22.04": {
@@ -106,8 +106,8 @@
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
-                "version": "570.124.06-1",
-                "sha256": "d4d83bada38e5760c6859f32b68de55e69acc1c7856aa9c3793dcb80651e09fd"        
+                "version": "570.133.20-1",
+                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
             }   
         },
         "almalinux8.7": {
@@ -128,8 +128,8 @@
             },
             "fabricmanager": {
                 "distribution": "rhel8",
-                "version": "570.124.06-1",
-                "sha256": "34430e9c6a902cad7a0c8273b59c985e5e242df210513c6ece7764236c57b39f"        
+                "version": "570.133.20-1",
+                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
             }   
         },
         "rhel8.10": {
@@ -281,28 +281,6 @@
             } 
         }
     },
-    "rocm": {
-        "ubuntu22.04": {
-            "version": "6.4",
-            "url": "https://repo.radeon.com/amdgpu-install/6.4/ubuntu/jammy/amdgpu-install_6.4.60400-1_all.deb",
-            "sha256": "4b5b14000a69194f055258a0d0aa4168af0cc7e80ea7570fc4871f465face4c0"
-        },
-        "almalinux8.10": {
-            "version": "6.4",
-            "url": "https://repo.radeon.com/amdgpu-install/6.4/rhel/8.10/amdgpu-install-6.4.60400-1.el8.noarch.rpm",
-            "sha256": "708d3dcfa9e317c50bc231ca4bac23994f6036e8c71aa0f47311601f7b89d012"
-        }
-    },
-    "rccl": {
-        "ubuntu22.04": {
-	        "version": "2.22.3",
-	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
-	    },
-        "almalinux8.10": {
-	        "version": "2.22.3",
-	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
-        }
-    },
     "lustre": {
         "common": {
             "version": "2.15.4-42-gd6d405d"
@@ -329,6 +307,40 @@
         "common": {
             "version": "2.0.12",
             "sha256": "5ad0f1986c4d211d2bd9626b2f246fbcd556c1fb0ca7be346adf660076c49210"
+        }
+    },
+    "rocm": {
+        "ubuntu22.04": {
+            "version": "6.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.4/ubuntu/jammy/amdgpu-install_6.4.60400-1_all.deb",
+            "sha256": "4b5b14000a69194f055258a0d0aa4168af0cc7e80ea7570fc4871f465face4c0"
+        },
+        "almalinux8.10": {
+            "version": "6.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.4/rhel/8.10/amdgpu-install-6.4.60400-1.el8.noarch.rpm",
+            "sha256": "708d3dcfa9e317c50bc231ca4bac23994f6036e8c71aa0f47311601f7b89d012"
+        }
+    },
+    "rccl": {
+        "ubuntu22.04": {
+	        "version": "2.22.3",
+	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
+	    },
+        "almalinux8.10": {
+	        "version": "2.22.3",
+	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
+        }
+    },
+    "roctracer": {
+        "common": {
+            "version": "rocm-6.4.0",
+            "sha256": "e5c6e3b20ed3c0d2dca61ad472f9878107c9ce09a2108ff6583ae32031298022"
+        }
+    },
+    "rocm_smi_lib": {
+        "common": {
+            "version": "rocm-6.4.0",
+            "sha256": "0c462520b4fa0cf9b49515b207b0ead32a5f96ddba487c5d4fa07a403690c05a"
         }
     }
 }

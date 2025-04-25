@@ -12,8 +12,9 @@ DEBPACKAGE=$(echo "${rocm_url}" | awk -F '/' '{print $NF}')
 
 ${COMMON_DIR}/download_and_verify.sh ${rocm_url} ${rocm_sha256}
 apt install -y ./${DEBPACKAGE}
+apt-get update
+apt-get purge -y linux-headers-6.*
 apt-get install -y libucx0
-apt-get install -y amdgpu-dkms
 amdgpu-install -y --usecase=graphics,rocm
 apt install -y rocm-bandwidth-test
 rm -f ./${DEBPACKAGE}

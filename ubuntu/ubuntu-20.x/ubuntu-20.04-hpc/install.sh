@@ -23,6 +23,9 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 # install utils
 ./install_utils.sh
 
+#update cmake
+$UBUNTU_COMMON_DIR/install_cmake.sh
+
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
@@ -92,8 +95,6 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh
 
-#update cmake
-$UBUNTU_COMMON_DIR/install_cmake.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh

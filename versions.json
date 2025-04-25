@@ -129,7 +129,7 @@
             "fabricmanager": {
                 "distribution": "rhel8",
                 "version": "570.133.20-1",
-                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
+                "sha256": "64d01da1a0704fe226eeafcf97cdcab0dced8cadeb44b5d7778f9b96bf12a82f"        
             }   
         },
         "rhel8.10": {

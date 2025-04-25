@@ -3,6 +3,8 @@ set -ex
 
 source ${COMMON_DIR}/utilities.sh
 
+apt-get install -y libucx0
+
 #move to rocm package
 rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
@@ -14,7 +16,6 @@ ${COMMON_DIR}/download_and_verify.sh ${rocm_url} ${rocm_sha256}
 apt install -y ./${DEBPACKAGE}
 apt-get update
 apt-get purge -y linux-headers-6.*
-apt-get install -y libucx0
 amdgpu-install -y --usecase=graphics,rocm
 apt install -y rocm-bandwidth-test
 rm -f ./${DEBPACKAGE}

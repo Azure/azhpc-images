@@ -15,8 +15,22 @@ DEBPACKAGE=$(echo "${rocm_url}" | awk -F '/' '{print $NF}')
 ${COMMON_DIR}/download_and_verify.sh ${rocm_url} ${rocm_sha256}
 apt install -y ./${DEBPACKAGE}
 apt-get update
-apt-get purge -y linux-headers-6.*
-amdgpu-install -y --usecase=graphics,rocm
+amdgpu_count=0
+while [ $amdgpu_count -lt 3 ]; do
+   set +e  # Disable exit-on-error for this block
+   amdgpu-install -y --usecase=graphics,rocm
+   install_status=$?
+   set -e  # Re-enable it after
+   if [ $install_status -eq 0 ]; then
+      apt-get install -y "linux-headers-$(uname -r)" "linux-modules-extra-$(uname -r)"
+      echo "Installation successful!"
+      break
+   else
+      echo "Installation failed, purging conflicting headers..."
+      apt-get purge -y linux-headers-6.*
+      amdgpu_count=$((amdgpu_count + 1))
+   fi
+done
 apt install -y rocm-bandwidth-test
 rm -f ./${DEBPACKAGE}
 $COMMON_DIR/write_component_version.sh "ROCM" ${rocm_version}

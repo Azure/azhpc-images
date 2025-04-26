@@ -96,7 +96,7 @@
             "fabricmanager": {
                 "distribution": "ubuntu2004",
                 "version": "570.133.20-1",
-                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
+                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"        
             }   
         },
         "ubuntu22.04": {
@@ -107,7 +107,7 @@
             "fabricmanager": {
                 "distribution": "ubuntu2204",
                 "version": "570.133.20-1",
-                "sha256": "ebd39a0fc48df17b8e7c85ce87e35e87613c2a66c4b56ff02fd154effd5aa125"        
+                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"        
             }   
         },
         "almalinux8.7": {

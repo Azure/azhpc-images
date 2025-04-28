@@ -14,6 +14,6 @@ def get_component_versions():
     with open('/opt/azurehpc/component_versions.txt') as f:
         return json.load(f)
 
-print("Kernel=", get_os_version(), end=" ")
+print(f"Kernel={get_os_version()}", end=" ")
 for component, version in get_component_versions().items():
     print(f"{component}={version}", end=" ")

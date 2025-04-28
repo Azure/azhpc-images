@@ -23,9 +23,6 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 # install utils
 ./install_utils.sh
 
-#update cmake
-$UBUNTU_COMMON_DIR/install_cmake.sh
-
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
@@ -81,7 +78,7 @@ $COMMON_DIR/install_monitoring_tools.sh
 $COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
-$COMMON_DIR/install_health_checks.sh $GPU
+$COMMON_DIR/install_health_checks.sh
 
 # disable cloud-init
 $UBUNTU_COMMON_DIR/disable_cloudinit.sh

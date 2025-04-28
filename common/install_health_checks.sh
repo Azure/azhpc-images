@@ -32,7 +32,7 @@ else
    pushd azurehpc-health-checks
    sed -i 's|hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64|'"$HPCX_FOLDER"'|g' ./dockerfile/build_image.sh
    # Build docker image for AMD while waiting to be published on MCR
-   #./dockerfile/build_image.sh rocm
+   ./dockerfile/pull-image-mcr.sh rocm
    popd
 fi
 popd

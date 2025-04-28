@@ -283,7 +283,7 @@
     },
     "lustre": {
         "common": {
-            "version": "2.15.5-41-gc010524"
+            "version": "2.15.6-39-g3e00a10"
         }
     },
     "aznhc": {

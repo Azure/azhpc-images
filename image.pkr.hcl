@@ -121,6 +121,7 @@ locals {
 
   # TODO: image name and tags should include more metadata for provenance
   image_name = "HPC-Image-${local.os_version}"
+  inline_shebang = "/bin/bash -e"
 }
 
 source "azure-arm" "hpc" {
@@ -173,11 +174,72 @@ build {
 
   provisioner "shell" {
     name = "clone azhpc-images repo"
+    inline_shebang = local.inline_shebang
     inline = [
       # if os_version is not ubuntu*, use yum to install git
       "if [[ \"${local.os_version}\" != *\"ubuntu\"* ]]; then sudo yum install -y git; fi",
       # clone the azhpc-images repo
       "git clone --branch ${local.target_branch} ${local.images_repo_url} /home/${local.username}/azhpc-images",
+    ]
+  }
+
+  # provisioner "shell" {
+  #   name = "switch to 5.15 LTS kernel for Ubuntu 22.04"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #   <<-EOF
+  #   if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
+  #     sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
+
+  #     sudo apt update
+  #     sudo apt install -y linux-azure-lts-22.04
+  #     sudo apt-mark hold linux-azure-lts-22.04
+  #     sudo apt-get purge -y linux-azure
+  #     sudo apt-get purge -y linux-azure-6.*
+
+  #     sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
+
+  #     version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
+  #     sudo grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux $version-azure"
+  #     sudo update-grub
+  #   fi
+  #   EOF
+  #   ]
+  # }
+
+  # provisioner "shell" {
+  #   name = "adjust mariner settings"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "if [[ \"${local.os_version}\" == *\"mariner\"* ]]; then sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile; fi",
+  #   ]
+  # }
+
+  # provisioner "shell" {
+  #   name = "reboot"
+  #   expect_disconnect = true
+  #   inline = [
+  #     "sudo shutdown -r now",
+  #   ]
+  # }
+
+  # provisioner "shell" {
+  #   name = "list installed packages"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+  #   ]
+  # }
+
+  provisioner "shell-local" {
+    name = "SSH into remote machine and collect metadata for tagging"
+    inline_shebang = local.inline_shebang
+    inline = [
+      <<-EOF
+      temp_file=$(mktemp)
+      echo '${build.SSHPrivateKey}' > $temp_file
+      ssh -i $temp_file -o StrictHostKeyChecking=no ${build.User}@${build.Host} "/home/${local.username}/azhpc-images/common/collect_metadata.py" > /tmp/metadata-${local.resource_grp_name}.txt
+      EOF
     ]
   }
 

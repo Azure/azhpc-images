@@ -5,6 +5,11 @@
 # Description : This script performs initialization and testing for a specified platform.
 # Usage       : ./example.sh <platform> [debug_flag]
 #
+# Sample Usage:
+#   ./run-tests.sh 
+#   ./example.sh NVIDIA -d
+#   ./example.sh AMD -d
+
 # Arguments   :
 #   $1 - Platform type (optional):
 #        "AMD" or "NVIDIA"

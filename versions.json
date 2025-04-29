@@ -311,24 +311,16 @@
     },
     "rocm": {
         "ubuntu22.04": {
-            "version": "6.4",
-            "url": "https://repo.radeon.com/amdgpu-install/6.4/ubuntu/jammy/amdgpu-install_6.4.60400-1_all.deb",
-            "sha256": "4b5b14000a69194f055258a0d0aa4168af0cc7e80ea7570fc4871f465face4c0"
-        },
-        "almalinux8.10": {
-            "version": "6.4",
-            "url": "https://repo.radeon.com/amdgpu-install/6.4/rhel/8.10/amdgpu-install-6.4.60400-1.el8.noarch.rpm",
-            "sha256": "708d3dcfa9e317c50bc231ca4bac23994f6036e8c71aa0f47311601f7b89d012"
+            "version": "6.2.2",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb",
+            "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
         }
     },
     "rccl": {
         "ubuntu22.04": {
-	        "version": "2.22.3",
-	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
-	    },
-        "almalinux8.10": {
-	        "version": "2.22.3",
-	        "commit": "7b86f83d8468a577ed59d9b2a34a8d7639d36072"
+            "version": "2.20.5",
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
+            "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
         }
     },
     "roctracer": {

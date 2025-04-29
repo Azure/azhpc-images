@@ -30,8 +30,7 @@ if [ "${GPU_PLAT}" = "NVIDIA" ]; then
 else
    git clone https://github.com/Azure/azurehpc-health-checks.git
    pushd azurehpc-health-checks
-   sed -i 's|hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64|'"$HPCX_FOLDER"'|g' ./dockerfile/build_image.sh
-   # Build docker image for AMD while waiting to be published on MCR
+   # Pull down docker container from MCR
    ./dockerfile/pull-image-mcr.sh rocm
    popd
 fi

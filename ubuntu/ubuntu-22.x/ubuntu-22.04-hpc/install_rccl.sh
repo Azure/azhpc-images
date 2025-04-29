@@ -15,13 +15,13 @@ TARBALL=$(basename ${rccl_url})
 
 $COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
 tar -xzf ${TARBALL}
-mkdir ./rccl-rocm-6.2.4/build
-pushd ./rccl-rocm-6.2.4/build
+mkdir ./rccl-rocm-6.2.2/build
+pushd ./rccl-rocm-6.2.2/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install
 pushd ../..
-rm -rf ${TARBALL} rccl-rocm-6.2.4
+rm -rf ${TARBALL} rccl-rocm-6.2.2
 $COMMON_DIR/write_component_version.sh "RCCL" ${rccl_version}
 
 sysctl kernel.numa_balancing=0

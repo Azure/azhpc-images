@@ -314,8 +314,8 @@
     "rccl": {
         "ubuntu22.04": {
             "version": "2.20.5",
-            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
-            "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
+            "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
         }
     }
 }

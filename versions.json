@@ -231,11 +231,6 @@
             }
         }
     },
-    "dcgm": {
-        "common": {
-            "version": "4.2.2"
-        }
-    },
     "intel_one_mkl": {
         "common": {
             "version": "2025.1.0.803",

@@ -8,6 +8,7 @@ gdrcopy_metadata=$(get_component_config "gdrcopy")
 GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_COMMIT=$(jq -r '.commit' <<< $gdrcopy_metadata)
 GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
+nvidia_metadata=$(get_component_config "nvidia")
 nvidia_driver_metadata=$(jq -r '.driver' <<< $nvidia_metadata)
 NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)
 

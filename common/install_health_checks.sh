@@ -20,10 +20,10 @@ mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azureh
 pushd azurehpc-health-checks
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
-if [ "${GPU_PLAT}" = "NVIDIA" ]; then
-   ./dockerfile/pull-image-mcr.sh cuda
-else
+if [ "${GPU_PLAT}" = "AMD" ]; then
    ./dockerfile/pull-image-mcr.sh rocm
+else
+   ./dockerfile/pull-image-mcr.sh cuda
 fi
 popd
 popd

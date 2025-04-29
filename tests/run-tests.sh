@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# ------------------------------------------------------------------------------
+# Script Name : example.sh
+# Description : This script performs initialization and testing for a specified platform.
+# Usage       : ./example.sh <platform> [debug_flag]
+#
+# Sample Usage:
+#   ./run-tests.sh 
+#   ./example.sh NVIDIA -d
+#   ./example.sh AMD -d
+
+# Arguments   :
+#   $1 - Platform type (optional):
+#        "AMD" or "NVIDIA"
+#        "NVIDIA" when omitted
+#
+#   $2 - Debug mode flag (optional):
+#        Specify "-d" to enable debug mode. 
+#        In debug mode, the script continues running even if a single test fails.
+#        If omitted or not "-d", the script runs in normal mode (strict failure handling).
+
+# ------------------------------------------------------------------------------
 function test_service {
     local service=$1
     
@@ -142,6 +163,7 @@ set_sku_configuration
 # Set test matrix
 set_test_matrix $1
 # Initiate test suite
+if [[ -n "$2" && "$2" == "-d" ]]; then export HPC_DEBUG=$2; else export HPC_DEBUG=; fi 
 initiate_test_suite
 
 echo "ALL OK!"

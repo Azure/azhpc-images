@@ -7,14 +7,20 @@ source ${COMMON_DIR}/utilities.sh
 # install rdma_rename with NAME_FIXED option
 # install rdma_rename monitor
 #
+rdma_core_metadata=$(get_component_config "rdma_core")
+RDMA_CORE_VERSION=$(jq -r '.version' <<< $rdma_core_metadata)
+RDMA_CORE_SHA=$(jq -r '.sha256' <<< $rdma_core_metadata)
+
+TARBALL="v${RDMA_CORE_VERSION}.tar.gz"
+RDMA_CORE_DOWNLOAD_URL=https://github.com/linux-rdma/rdma-core/archive/refs/tags/${TARBALL}
+$COMMON_DIR/download_and_verify.sh ${RDMA_CORE_DOWNLOAD_URL} ${RDMA_CORE_SHA} /tmp
 
 pushd /tmp
-rdma_core_metadata=$(get_component_config "rdma_core")
-rdma_core_branch=$(jq -r '.branch' <<< $rdma_core_metadata)
-git clone -b $rdma_core_branch https://github.com/linux-rdma/rdma-core.git
+mkdir rdma-core && tar -xvf $TARBALL --strip-components=1 -C rdma-core 
+
 pushd rdma-core
 bash build.sh
-cp build/bin/rdma_rename /usr/sbin/rdma_rename_$rdma_core_branch
+cp build/bin/rdma_rename /usr/sbin/rdma_rename_$RDMA_CORE_VERSION
 popd
 rm -rf rdma-core
 popd
@@ -26,7 +32,7 @@ popd
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
-rdma_rename=/usr/sbin/rdma_rename_${rdma_core_branch}
+rdma_rename=/usr/sbin/rdma_rename_${RDMA_CORE_VERSION}
 
 an_index=0
 ib_index=0

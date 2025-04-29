@@ -3,14 +3,14 @@ set -ex
 
 source ${COMMON_DIR}/utilities.sh
 
-# Set DCGM version info
-dcgm_metadata=$(get_component_config "dcgm")
-DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+# Set CUDA version info
+CUDA_VERSION=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
 
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
-apt-get install -y datacenter-gpu-manager=1:${DCGM_VERSION}
+apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 $COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
 
 # Enable the dcgm service

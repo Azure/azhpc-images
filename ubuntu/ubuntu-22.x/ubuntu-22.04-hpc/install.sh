@@ -29,6 +29,9 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 # install utils
 ./install_utils.sh
 
+#update cmake
+$UBUNTU_COMMON_DIR/install_cmake.sh
+
 # install Lustre client
 $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
@@ -110,12 +113,8 @@ $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 $COMMON_DIR/setup_sku_customizations.sh
 
 if [ "$GPU" = "AMD" ]; then
-    #update cmake
-    $UBUNTU_COMMON_DIR/install_cmake.sh
-
     #install rocm software stack
-    ./install_rocm.sh
-    
+    ./install_rocm.sh    
     #install rccl and rccl-tests
     ./install_rccl.sh
 fi

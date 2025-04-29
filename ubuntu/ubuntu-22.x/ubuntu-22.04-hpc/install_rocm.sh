@@ -8,7 +8,7 @@ rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
 rocm_url=$(jq -r '.url' <<< $rocm_metadata)
 rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
-DEBPACKAGE=$(echo "${rocm_url}" | awk -F '/' '{print $NF}')
+DEBPACKAGE=$(basename ${rocm_url})
 
 ${COMMON_DIR}/download_and_verify.sh ${rocm_url} ${rocm_sha256}
 apt install -y ./${DEBPACKAGE}

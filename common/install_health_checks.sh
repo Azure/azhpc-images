@@ -19,15 +19,16 @@ if [ "${GPU_PLAT}" = "NVIDIA" ]; then
 
    pushd azurehpc-health-checks
 
-   # Pull down docker container from MCR
-   ./dockerfile/pull-image-acr.sh cuda
+   # Pull CUDA Docker image from MCR
+   ./dockerfile/pull-image-mcr.sh cuda
    popd
 else
-   git clone https://github.com/Azure/azurehpc-health-checks.git
+   git clone https://github.com/Azure/azurehpc-health-checks.git --branch v$AZHC_VERSION
+   
    pushd azurehpc-health-checks
-   # Build docker image for AMD while waiting to be published on MCR
-   ./dockerfile/build_image.sh rocm
-
+   
+   # Pull ROCm Docker image from MCR
+   ./dockerfile/pull-image-mcr.sh rocm
    popd
 fi
 

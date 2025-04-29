@@ -64,6 +64,15 @@ locals {
   architecture = coalesce(var.architecture, "amd64")
 }
 
+variable "gpu_platform" {
+  type        = string
+  description = "GPU platform to use for the image"
+  default     = env("GPU_PLATFORM")
+}
+locals {
+  gpu_platform = coalesce(var.gpu_platform, "NVIDIA")
+}
+
 variable "os_version" {
   type        = string
   description = "OS version to use for the image"
@@ -122,6 +131,12 @@ locals {
   # TODO: image name and tags should include more metadata for provenance
   image_name = "HPC-Image-${local.os_version}"
   inline_shebang = "/bin/bash -e"
+
+  hpc_install_command = {
+    "ubuntu_22.04" = "cd /home/${local.username}/azhpc-images/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc; sudo bash install.sh ${local.gpu_platform}"
+    "alma8" = "cd /home/${local.username}/azhpc-images/alma/alma-8.x/alma-8.10-hpc; sudo ./install.sh"
+    "mariner2.0" = "cd /home/${local.username}/azhpc-images/mariner/mariner-2.x/mariner-2.0-hpc; sudo ./install.sh"
+  }
 }
 
 source "azure-arm" "hpc" {
@@ -183,53 +198,77 @@ build {
     ]
   }
 
-  # provisioner "shell" {
-  #   name = "switch to 5.15 LTS kernel for Ubuntu 22.04"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #   <<-EOF
-  #   if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
-  #     sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
+  provisioner "shell" {
+    name = "switch to 5.15 LTS kernel for Ubuntu 22.04"
+    inline_shebang = local.inline_shebang
+    inline = [
+    <<-EOF
+    if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
+      sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
 
-  #     sudo apt update
-  #     sudo apt install -y linux-azure-lts-22.04
-  #     sudo apt-mark hold linux-azure-lts-22.04
-  #     sudo apt-get purge -y linux-azure
-  #     sudo apt-get purge -y linux-azure-6.*
+      sudo apt update
+      sudo apt install -y linux-azure-lts-22.04
+      sudo apt-mark hold linux-azure-lts-22.04
+      sudo apt-get purge -y linux-azure
+      sudo apt-get purge -y linux-azure-6.*
 
-  #     sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
+      sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
 
-  #     version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-  #     sudo grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux $version-azure"
-  #     sudo update-grub
-  #   fi
-  #   EOF
-  #   ]
-  # }
+      version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
+      sudo grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux $version-azure"
+      sudo update-grub
+    fi
+    EOF
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "adjust mariner settings"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "if [[ \"${local.os_version}\" == *\"mariner\"* ]]; then sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile; fi",
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "adjust mariner settings"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "if [[ \"${local.os_version}\" == *\"mariner\"* ]]; then sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile; fi",
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "reboot"
-  #   expect_disconnect = true
-  #   inline = [
-  #     "sudo shutdown -r now",
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "reboot"
+    expect_disconnect = true
+    inline = [
+      "sudo shutdown -r now",
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "list installed packages"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "list installed packages pre-specialization"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+    ]
+  }
+
+  provisioner "shell" {
+    name = "install HPC components onto the virtual machine"
+    inline_shebang = local.inline_shebang
+    inline = [
+      local.hpc_install_command[local.os_version],
+    ]
+  }
+
+  provisioner "shell" {
+    name = "list installed packages post-specialization"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+    ]
+  }
+
+  provisioner "shell" {
+    name = "display the build version of the image"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
+    ]
+  }
 
   provisioner "shell-local" {
     name = "SSH into remote machine and collect metadata for tagging"
@@ -238,7 +277,7 @@ build {
       <<-EOF
       temp_file=$(mktemp)
       echo '${build.SSHPrivateKey}' > $temp_file
-      ssh -i $temp_file -o StrictHostKeyChecking=no ${build.User}@${build.Host} "/home/${local.username}/azhpc-images/common/collect_metadata.py" > /tmp/metadata-${local.resource_grp_name}.txt
+      ssh -i $temp_file -o StrictHostKeyChecking=no ${build.User}@${build.Host} "/home/${local.username}/azhpc-images/common/collect_metadata.py ${local.os_version}" > /tmp/metadata-${local.resource_grp_name}.txt
       EOF
     ]
   }

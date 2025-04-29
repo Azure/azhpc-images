@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 import subprocess
 import json
 from datetime import datetime
@@ -22,6 +23,7 @@ def get_component_versions():
     with open('/opt/azurehpc/component_versions.txt') as f:
         return json.load(f)
 
+print(f"OS={sys.argv[1]}", end=" ")
 print(f"CommitID={get_commit_id()}", end=" ")
 print(f"Date={datetime.now().strftime('%m/%d/%Y')}", end=" ")
 print(f"Kernel={get_os_version()}", end=" ")

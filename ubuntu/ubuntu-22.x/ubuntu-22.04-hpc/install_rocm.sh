@@ -3,34 +3,16 @@ set -ex
 
 source ${COMMON_DIR}/utilities.sh
 
-apt-get install -y libucx0
-
 #move to rocm package
 rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
 rocm_url=$(jq -r '.url' <<< $rocm_metadata)
 rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
-DEBPACKAGE=$(echo "${rocm_url}" | awk -F '/' '{print $NF}')
+DEBPACKAGE=$(basename ${rocm_url})
 
 ${COMMON_DIR}/download_and_verify.sh ${rocm_url} ${rocm_sha256}
 apt install -y ./${DEBPACKAGE}
-apt-get update
-amdgpu_count=0
-while [ $amdgpu_count -lt 3 ]; do
-   set +e  # Disable exit-on-error for this block
-   amdgpu-install -y --usecase=graphics,rocm
-   install_status=$?
-   set -e  # Re-enable it after
-   if [ $install_status -eq 0 ]; then
-      apt-get install -y "linux-headers-$(uname -r)" "linux-modules-extra-$(uname -r)"
-      echo "Installation successful!"
-      break
-   else
-      echo "Installation failed, purging conflicting headers..."
-      apt-get purge -y linux-headers-6.*
-      amdgpu_count=$((amdgpu_count + 1))
-   fi
-done
+amdgpu-install -y --usecase=graphics,rocm
 apt install -y rocm-bandwidth-test
 rm -f ./${DEBPACKAGE}
 $COMMON_DIR/write_component_version.sh "ROCM" ${rocm_version}

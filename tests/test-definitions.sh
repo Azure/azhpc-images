@@ -43,7 +43,7 @@ function verify_ib_device_status {
     ibstatus | grep "LinkUp"
     check_exit_code "IB device state: LinkUp" "IB link not up"
 
-     # verify ifconfig
+    # verify ifconfig
     ifconfig | grep "ib[[:digit:]]:\|ibP"
     check_exit_code "IB device is configured" "IB device not configured"
 
@@ -101,7 +101,7 @@ function verify_ompi_installation {
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
     nvidia-smi
-    check_exit_code "Nvidia Driver ${VERSION_NVIDIA}" "Failed to run Nvidia SMI"
+    check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted
     sudo modprobe nvidia_peermem
@@ -153,6 +153,42 @@ function verify_nccl_installation {
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
+    module unload mpi/hpcx
+}
+
+function verify_rocm_installation {
+    # Verify AMD GPU Driver installation
+    # Verify if ROCM is installed
+    check_exists "/opt/rocm/"
+
+    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
+
+    # Verify if AMD GPU driver exists
+    amd_driver_version=$(modinfo amdgpu | grep "^version" | cut -d ":" -f 2 | tr -d '[:blank:]')
+    check_exit_code "AMD GPU driver ${amd_driver_version} found" "AMD GPU driver not found"
+}
+
+function verify_rccl_installation {
+
+    module load mpi/hpcx
+
+    amdgpumod=$(lsmod | grep "^amdgpu")
+    check_exit_code "amdgpu driver is loaded" "No amdgpu driver"
+    
+    case ${VMSIZE} in
+        standard_nd96isr_mi300x_v5) mpirun -np 8 \
+            --allow-run-as-root \
+            --map-by ppr:8:node \
+            -x LD_LIBRARY_PATH=/opt/rccl/lib:$LD_LIBRARY_PATH \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/rccl-tests/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        *) ;;
+    esac
+    check_exit_code "RCCL ${VERSION_RCCL}" "Failed to run RCCL all reduce perf"
+
     module unload mpi/hpcx
 }
 

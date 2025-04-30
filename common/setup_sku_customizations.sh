@@ -51,7 +51,7 @@ case \$vmSize in
         /opt/azurehpc/customizations/ndv5.sh;;
 
     standard_nd96is*_mi300x_v5)
-        /opt/azurehpc/customizations/ndv5.sh;;
+        /opt/azurehpc/customizations/ndv5_rocm.sh;;
 
     *) echo "No SKU customization for \$vmSize";;
 esac
@@ -111,7 +111,7 @@ case \$vmSize in
         /opt/azurehpc/customizations/hbv4.sh;;
 
     standard_nd96is*_h100_v5)
-        /opt/azurehpc/customizations/ndv5_rocm.sh;;
+        /opt/azurehpc/customizations/ndv5.sh;;
 
     standard_nd96is*_mi300x_v5)
         /opt/azurehpc/customizations/ndv5_rocm.sh;;

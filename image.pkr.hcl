@@ -137,6 +137,8 @@ locals {
     "alma8" = "cd /home/${local.username}/azhpc-images/alma/alma-8.x/alma-8.10-hpc; sudo ./install.sh"
     "mariner2.0" = "cd /home/${local.username}/azhpc-images/mariner/mariner-2.x/mariner-2.0-hpc; sudo ./install.sh"
   }
+
+  test_dir = "/opt/azurehpc/test"
 }
 
 source "azure-arm" "hpc" {
@@ -270,6 +272,49 @@ build {
     ]
   }
 
+  provisioner "shell" {
+    name = "run tests"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+    ]
+  }
+
+  provisioner "shell" {
+    name = "reboot"
+    expect_disconnect = true
+    inline = [
+      "sudo shutdown -r now",
+    ]
+  }
+
+  provisioner "shell" {
+    name = "run tests after reboot"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+    ]
+  }
+
+  provisioner "shell" {
+    name = "run health check after reboot"
+    inline_shebang = local.inline_shebang
+    inline = [
+      <<-EOF
+      health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
+      health_log="${local.test_dir}/azurehpc-health-checks/health.log"
+      sudo -i $health_check_script -o $health_log -v
+      if ! grep --ignore-case fail $health_log
+      then
+          echo "Health Check - Passed !"
+      else
+          echo "Health Check - Failed !"
+          exit 1
+      fi
+      EOF
+    ]
+  }
+
   provisioner "shell-local" {
     name = "SSH into remote machine and collect metadata for tagging"
     inline_shebang = local.inline_shebang
@@ -283,6 +328,7 @@ build {
   }
 
   provisioner "shell-local" {
+    # forcing an error exit prevents the VM from being deleted (and is currently the only way to do this).
     inline = [
       "exit 1"
     ]

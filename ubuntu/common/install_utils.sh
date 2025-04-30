@@ -50,10 +50,10 @@ apt-get -y install numactl \
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
 
 # Install azcopy tool
-$COMMON_DIR/install_azcopy.sh
+#$COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
-$COMMON_DIR/copy_kvp_client.sh
+#$COMMON_DIR/copy_kvp_client.sh
 
 # copy torset tool
-$COMMON_DIR/copy_torset_tool.sh
+#$COMMON_DIR/copy_torset_tool.sh

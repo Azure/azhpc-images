@@ -6,13 +6,15 @@ source ${COMMON_DIR}/utilities.sh
 #install the rccl library
 apt install libstdc++-12-dev
 apt remove -y rccl
+rocm_metadata=$(get_component_config "rocm")
+rocm_version=$(jq -r '.version' <<< $rocm_metadata)
 rccl_metadata=$(get_component_config "rccl")
 rccl_version=$(jq -r '.version' <<< $rccl_metadata)
 rccl_url=$(jq -r '.url' <<< $rccl_metadata)
 rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
 #the content of this tar ball is rccl but its name is misleading
 TARBALL=$(basename ${rccl_url})
-rccl_folder=$(tar -tzf $TARBALL | head -1 | sed 's:/$::')
+rccl_folder=rccl-rocm-$rocm_version
 
 $COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
 tar -xzf ${TARBALL}

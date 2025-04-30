@@ -24,16 +24,16 @@ $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 ./install_utils.sh
 
 # install Lustre client
-$UBUNTU_COMMON_DIR/install_lustre_client.sh
+# $UBUNTU_COMMON_DIR/install_lustre_client.sh
 
 # install DOCA OFED
-$UBUNTU_COMMON_DIR/install_doca.sh
+# $UBUNTU_COMMON_DIR/install_doca.sh
 
 # install PMIX
-$UBUNTU_COMMON_DIR/install_pmix.sh
+# $UBUNTU_COMMON_DIR/install_pmix.sh
 
 # install mpi libraries
-$UBUNTU_COMMON_DIR/install_mpis.sh
+# $UBUNTU_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
 $UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
@@ -42,7 +42,7 @@ $UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 $UBUNTU_COMMON_DIR/install_nccl.sh
 
 # Install NVIDIA docker container
-$UBUNTU_COMMON_DIR/install_docker.sh
+# $UBUNTU_COMMON_DIR/install_docker.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -66,10 +66,10 @@ $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
 # Install AZNFS Mount Helper
-$COMMON_DIR/install_aznfs.sh
+# $COMMON_DIR/install_aznfs.sh
 
 # copy test file
-$COMMON_DIR/copy_test_file.sh
+# $COMMON_DIR/copy_test_file.sh
 
 # install monitor tools
 $COMMON_DIR/install_monitoring_tools.sh
@@ -78,13 +78,13 @@ $COMMON_DIR/install_monitoring_tools.sh
 $COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
-$COMMON_DIR/install_health_checks.sh
+# $COMMON_DIR/install_health_checks.sh
 
 # disable cloud-init
-$UBUNTU_COMMON_DIR/disable_cloudinit.sh
+# $UBUNTU_COMMON_DIR/disable_cloudinit.sh
 
 # diable auto kernel updates
-$UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
+# $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
 # Disable Predictive Network interface renaming
 $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh

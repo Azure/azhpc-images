@@ -18,10 +18,10 @@ fi
 source ./set_properties.sh
 
 # remove packages requiring Ubuntu Pro for security updates
-$UBUNTU_COMMON_DIR/remove_unused_packages.sh
+time $UBUNTU_COMMON_DIR/remove_unused_packages.sh
 
 echo "Install utils"
-./install_utils.sh
+time ./install_utils.sh
 
 # install Lustre client
 # $UBUNTU_COMMON_DIR/install_lustre_client.sh
@@ -36,10 +36,10 @@ echo "Install utils"
 # $UBUNTU_COMMON_DIR/install_mpis.sh
 
 echo "Install nvidia gpu driver"
-$UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
+time $UBUNTU_COMMON_DIR/install_nvidiagpudriver.sh
 
 echo "Install NCCL"
-$UBUNTU_COMMON_DIR/install_nccl.sh
+time $UBUNTU_COMMON_DIR/install_nccl.sh
 
 # Install NVIDIA docker container
 # $UBUNTU_COMMON_DIR/install_docker.sh
@@ -51,19 +51,19 @@ rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
 echo "Install DCGM"
-$UBUNTU_COMMON_DIR/install_dcgm.sh
+time $UBUNTU_COMMON_DIR/install_dcgm.sh
 
 echo "Install Intel libraries"
-$COMMON_DIR/install_intel_libs.sh
+time $COMMON_DIR/install_intel_libs.sh
 
 echo "Install diagnostic script"
-$COMMON_DIR/install_hpcdiag.sh
+time $COMMON_DIR/install_hpcdiag.sh
 
 echo "Install persistent rdma naming"
-$COMMON_DIR/install_azure_persistent_rdma_naming.sh
+time $COMMON_DIR/install_azure_persistent_rdma_naming.sh
 
 echo "Install optimizations"
-$UBUNTU_COMMON_DIR/hpc-tuning.sh
+time $UBUNTU_COMMON_DIR/hpc-tuning.sh
 
 # Install AZNFS Mount Helper
 # $COMMON_DIR/install_aznfs.sh
@@ -75,7 +75,7 @@ $UBUNTU_COMMON_DIR/hpc-tuning.sh
 # $COMMON_DIR/install_monitoring_tools.sh
 
 echo "Install AMD libs"
-$COMMON_DIR/install_amd_libs.sh
+time $COMMON_DIR/install_amd_libs.sh
 
 # install Azure/NHC Health Checks
 # $COMMON_DIR/install_health_checks.sh
@@ -87,10 +87,10 @@ $COMMON_DIR/install_amd_libs.sh
 # $UBUNTU_COMMON_DIR/disable_auto_upgrade.sh
 
 # Disable Predictive Network interface renaming
-$UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
+time $UBUNTU_COMMON_DIR/disable_predictive_interface_renaming.sh
 
-# SKU Customization
-$COMMON_DIR/setup_sku_customizations.sh
+echo "Install SKU Customization"
+time $COMMON_DIR/setup_sku_customizations.sh
 
 # clear history
 # Uncomment the line below if you are running this on a VM

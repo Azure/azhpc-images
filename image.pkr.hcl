@@ -248,72 +248,72 @@ build {
     ]
   }
 
-  provisioner "shell" {
-    name = "install HPC components onto the virtual machine"
-    inline_shebang = local.inline_shebang
-    inline = [
-      local.hpc_install_command[local.os_version],
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "install HPC components onto the virtual machine"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     local.hpc_install_command[local.os_version],
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "list installed packages post-specialization"
-    inline_shebang = local.inline_shebang
-    inline = [
-      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "list installed packages post-specialization"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "display the build version of the image"
-    inline_shebang = local.inline_shebang
-    inline = [
-      "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "display the build version of the image"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "run tests"
-    inline_shebang = local.inline_shebang
-    inline = [
-      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "run tests"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "reboot"
-    expect_disconnect = true
-    inline = [
-      "sudo shutdown -r now",
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "reboot"
+  #   expect_disconnect = true
+  #   inline = [
+  #     "sudo shutdown -r now",
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "run tests after reboot"
-    inline_shebang = local.inline_shebang
-    inline = [
-      "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "run tests after reboot"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+  #   ]
+  # }
 
-  provisioner "shell" {
-    name = "run health check after reboot"
-    inline_shebang = local.inline_shebang
-    inline = [
-      <<-EOF
-      health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
-      health_log="${local.test_dir}/azurehpc-health-checks/health.log"
-      sudo -i $health_check_script -o $health_log -v
-      if ! grep --ignore-case fail $health_log
-      then
-          echo "Health Check - Passed !"
-      else
-          echo "Health Check - Failed !"
-          exit 1
-      fi
-      EOF
-    ]
-  }
+  # provisioner "shell" {
+  #   name = "run health check after reboot"
+  #   inline_shebang = local.inline_shebang
+  #   inline = [
+  #     <<-EOF
+  #     health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
+  #     health_log="${local.test_dir}/azurehpc-health-checks/health.log"
+  #     sudo -i $health_check_script -o $health_log -v
+  #     if ! grep --ignore-case fail $health_log
+  #     then
+  #         echo "Health Check - Passed !"
+  #     else
+  #         echo "Health Check - Failed !"
+  #         exit 1
+  #     fi
+  #     EOF
+  #   ]
+  # }
 
   provisioner "shell-local" {
     name = "SSH into remote machine and collect metadata for tagging"
@@ -327,10 +327,57 @@ build {
     ]
   }
 
-  provisioner "shell-local" {
-    # forcing an error exit prevents the VM from being deleted (and is currently the only way to do this).
+  provisioner "shell" {
+    name = "clear history and deprovision"
+    inline_shebang = local.inline_shebang
     inline = [
-      "exit 1"
+      <<-EOF
+      pushd /home/${local.username}/azhpc-images/common
+      # Clear installation, log and other unwanted files
+      sudo ./clear_history.sh
+      popd
+
+      # Remove the AzNHC log
+      sudo rm -f /opt/azurehpc/test/azurehpc-health-checks/health.log
+
+      # Uninstall the OMS Agent
+      wget https://raw.githubusercontent.com/microsoft/OMS-Agent-for-Linux/master/installer/scripts/uninstall.sh
+      sudo chmod +x ./uninstall.sh
+      sudo ./uninstall.sh
+    
+      # Switch to the root user
+      sudo -i
+    
+      # Disable root account
+      usermod root -p '!!'
+    
+      # Deprovision the user
+      waagent -deprovision+user -force
+    
+      # Delete the last line of the file /etc/sysconfig/network-scripts/ifcfg-eth0 -> cloud-init issue on alma distros
+      if [[ ${local.os_version} == "alma"* ]]
+      then
+          sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
+      fi
+
+      # Clear the sudoers.d folder - last user information
+      rm -rf /etc/sudoers.d/*
+    
+      # Delete /1 folder
+      rm -rf /1
+    
+      touch /var/run/utmp
+      # clear command history
+      export HISTSIZE=0 && history -c && sync
+      EOF
     ]
   }
+
+  # provisioner "shell-local" {
+  #   # forcing an error exit prevents the VM from being deleted (and is currently the only way to do this).
+  #   inline = [
+  #     "exit 1"
+  #   ]
+  # }
+
 }

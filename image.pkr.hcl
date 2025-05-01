@@ -346,8 +346,7 @@ build {
       sudo ./uninstall.sh
     
       # Switch to the root user
-      sudo -i
-    
+      sudo -s <<HERE
       # Disable root account
       usermod root -p '!!'
     
@@ -369,6 +368,7 @@ build {
       touch /var/run/utmp
       # clear command history
       export HISTSIZE=0 && history -c && sync
+      HERE
       EOF
     ]
   }
@@ -380,4 +380,16 @@ build {
   #   ]
   # }
 
+}
+
+build {
+  name = "cleanup_resource_group"
+  sources = [
+    "source.null.rg"
+  ]
+  provisioner "shell-local" {
+    inline = [
+      "az group delete --name ${local.resource_grp_name} --yes --no-wait",
+    ]
+  }
 }

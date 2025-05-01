@@ -1,4 +1,4 @@
-# usage: packer build -var-file="image.pkrvars.hcl" --use-sequential-evaluation -parallel-builds=1 -on-error=abort image.pkr.hcl
+# usage: packer build -var-file="image.pkrvars.hcl" --use-sequential-evaluation -parallel-builds=1 -on-error=run-cleanup-provisioner image.pkr.hcl
 packer {
   required_plugins {
     azure = {
@@ -98,6 +98,24 @@ variable "public_key" {
 }
 locals {
   public_key = var.public_key
+}
+
+variable "retain_vm_on_fail" {
+  type        = string
+  description = "Retain the VM (and the resource group) if the build fails"
+  default     = env("RETAIN_VM_ON_FAIL")
+}
+locals {
+  retain_vm_on_fail = coalesce(var.retain_vm_on_fail, false)
+}
+
+variable "retain_vm_always" {
+  type        = string
+  description = "Retain the VM (and the resource group) unconditionally. Injects an error to Packer to prevent deletion."
+  default     = env("RETAIN_VM_ALWAYS")
+}
+locals {
+  retain_vm_always = coalesce(var.retain_vm_always, false)
 }
 
 # TODO: allow specifying vnet and subnet
@@ -248,72 +266,72 @@ build {
     ]
   }
 
-  # provisioner "shell" {
-  #   name = "install HPC components onto the virtual machine"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     local.hpc_install_command[local.os_version],
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "install HPC components onto the virtual machine"
+    inline_shebang = local.inline_shebang
+    inline = [
+      local.hpc_install_command[local.os_version],
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "list installed packages post-specialization"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "list installed packages post-specialization"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "display the build version of the image"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "display the build version of the image"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "run tests"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "run tests"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "reboot"
-  #   expect_disconnect = true
-  #   inline = [
-  #     "sudo shutdown -r now",
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "reboot"
+    expect_disconnect = true
+    inline = [
+      "sudo shutdown -r now",
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "run tests after reboot"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "run tests after reboot"
+    inline_shebang = local.inline_shebang
+    inline = [
+      "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
+    ]
+  }
 
-  # provisioner "shell" {
-  #   name = "run health check after reboot"
-  #   inline_shebang = local.inline_shebang
-  #   inline = [
-  #     <<-EOF
-  #     health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
-  #     health_log="${local.test_dir}/azurehpc-health-checks/health.log"
-  #     sudo -i $health_check_script -o $health_log -v
-  #     if ! grep --ignore-case fail $health_log
-  #     then
-  #         echo "Health Check - Passed !"
-  #     else
-  #         echo "Health Check - Failed !"
-  #         exit 1
-  #     fi
-  #     EOF
-  #   ]
-  # }
+  provisioner "shell" {
+    name = "run health check after reboot"
+    inline_shebang = local.inline_shebang
+    inline = [
+      <<-EOF
+      health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
+      health_log="${local.test_dir}/azurehpc-health-checks/health.log"
+      sudo -i $health_check_script -o $health_log -v
+      if ! grep --ignore-case fail $health_log
+      then
+          echo "Health Check - Passed !"
+      else
+          echo "Health Check - Failed !"
+          exit 1
+      fi
+      EOF
+    ]
+  }
 
   provisioner "shell-local" {
     name = "SSH into remote machine and collect metadata for tagging"
@@ -373,23 +391,17 @@ build {
     ]
   }
 
-  # provisioner "shell-local" {
-  #   # forcing an error exit prevents the VM from being deleted (and is currently the only way to do this).
-  #   inline = [
-  #     "exit 1"
-  #   ]
-  # }
-
-}
-
-build {
-  name = "cleanup_resource_group"
-  sources = [
-    "source.null.rg"
-  ]
   provisioner "shell-local" {
+    # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this).
+    # note that this will also prevent the cleanup or image creation steps from running.
     inline = [
-      "az group delete --name ${local.resource_grp_name} --yes --no-wait",
+      "if [ ${local.retain_vm_always} = true ]; then exit 1; fi"
+    ]
+  }
+
+  error-cleanup-provisioner "shell-local" {
+    inline = [
+      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes --no-wait; fi"
     ]
   }
 }

@@ -21,7 +21,7 @@ function check_exit_code {
     else
         echo "*** Error - $2!" >&2
         echo "*** Failed with exit code - $exit_code" >&2
-        # exit -1
+        exit -1
     fi
 }
 

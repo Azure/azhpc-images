@@ -1,3 +1,26 @@
+#!/bin/bash
+
+# ------------------------------------------------------------------------------
+# Script Name : example.sh
+# Description : This script performs initialization and testing for a specified platform.
+# Usage       : ./example.sh <platform> [debug_flag]
+#
+# Sample Usage:
+#   ./run-tests.sh 
+#   ./example.sh NVIDIA -d
+#   ./example.sh AMD -d
+
+# Arguments   :
+#   $1 - Platform type (optional):
+#        "AMD" or "NVIDIA"
+#        "NVIDIA" when omitted
+#
+#   $2 - Debug mode flag (optional):
+#        Specify "-d" to enable debug mode. 
+#        In debug mode, the script continues running even if a single test fails.
+#        If omitted or not "-d", the script runs in normal mode (strict failure handling).
+
+# ------------------------------------------------------------------------------
 function test_service {
     local service=$1
     
@@ -20,6 +43,8 @@ function test_component {
         check_gdrcopy) verify_gdrcopy_installation;;
         check_cuda) verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
+        # check_rocm) verify_rocm_installation;;
+        # check_rccl) verify_rccl_installation;;
         check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
@@ -65,19 +90,19 @@ function initiate_test_suite {
 }
 
 function set_test_matrix {
-    # gpu_platform="NVIDIA"
-    # if [[ "$#" -gt 0 ]]; then
-    #    GPU_PLAT=$1
-    #    if [[ ${GPU_PLAT} == "AMD" ]]; then
-    #       gpu_platform="AMD"
-    #    elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
-    #       echo "${GPU_PLAT} is not a valid GPU platform"
-    #       exit 1
+    gpu_platform="NVIDIA"
+    if [[ "$#" -gt 0 ]]; then
+       GPU_PLAT=$1
+       if [[ ${GPU_PLAT} == "AMD" ]]; then
+          gpu_platform="AMD"
+       elif [[ ${GPU_PLAT} != "NVIDIA" ]]; then
+          echo "${GPU_PLAT} is not a valid GPU platform"
+          exit 1
 
-    #    fi
-    # fi
+       fi
+    fi
     export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
-    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_NVIDIA.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
     export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
 
     if [[ -z "$TEST_MATRIX" ]]; then

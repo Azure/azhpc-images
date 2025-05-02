@@ -25,8 +25,7 @@ popd
 # setup systemd service
 #
 
-echo "##### AZURE RDMA NAMING 1ST IBSTAT CHECK ######"
-sudo ibstat
+# sudo ibstat
 
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
@@ -80,7 +79,6 @@ EOF
 systemctl enable azure_persistent_rdma_naming.service
 systemctl start azure_persistent_rdma_naming.service
 
-echo "##### AZURE RDMA NAMING 1ST IBSTAT CHECK ######"
-sudo ibstat
+# sudo ibstat
 
 $COMMON_DIR/install_azure_persistent_rdma_naming_monitor.sh      

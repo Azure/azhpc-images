@@ -91,6 +91,119 @@ locals {
   gpu_size_option = coalesce(var.gpu_size_option, "Standard_ND96asr_v4")
 }
 
+variable "create_image" {
+  type        = string
+  description = "whether to create a compute gallery image or not"
+  default     = env("CREATE_IMAGE")
+}
+locals {
+  create_image = coalesce(var.create_image, false)
+}
+
+variable "create_vhd" {
+  type        = string
+  description = "whether to create a VHD or not"
+  default     = env("CREATE_VHD")
+  validation {
+    condition     = var.create_vhd != true
+    error_message = "Current Packer Plugin Azure relies on deprecated unmanaged disks, thus cannot build VHDs properly."
+  }
+}
+locals {
+  create_vhd = coalesce(var.create_vhd, false)
+}
+
+variable "is_experimental_image" {
+  type        = string
+  description = "whether the image is experimental or not"
+  default     = env("IS_EXPERIMENTAL_IMAGE")
+}
+locals {
+  is_experimental_image = coalesce(var.is_experimental_image, false)
+}
+
+variable "sig_subscription" {
+  type        = string
+  description = "Subscription ID for the Shared Image Gallery"
+  default     = env("SIG_SUBSCRIPTION")
+}
+locals {
+  sig_subscription = var.sig_subscription
+}
+
+variable "sig_resource_grp_name" {
+  type        = string
+  description = "Resource group name for the Shared Image Gallery"
+  default     = env("SIG_RESOURCE_GRP_NAME")
+}
+locals {
+  sig_resource_grp_name = coalesce(var.sig_resource_grp_name, "azhpc-images-rg")
+}
+
+variable "sig_gallery_name" {
+  type        = string
+  description = "Shared Image Gallery name"
+  default     = env("SIG_GALLERY_NAME")
+}
+locals {
+  sig_gallery_name = coalesce(var.sig_gallery_name, "AzHPCImageReleaseCandidates")
+}
+
+variable "sig_image_version" {
+  type        = string
+  description = "Shared Image Gallery image version"
+  default     = env("SIG_IMAGE_VERSION")
+}
+locals {
+  sig_image_version = coalesce(var.sig_image_version, "0.0.1")
+}
+
+variable "sig_use_shallow_replication" {
+  type        = string
+  description = "Use shallow replication for the Shared Image Gallery image. Useful for testing for faster builds."
+  default     = env("SIG_USE_SHALLOW_REPLICATION")
+}
+locals {
+  sig_use_shallow_replication = coalesce(var.sig_use_shallow_replication, true)
+}
+
+variable "sig_target_regions" {
+  type        = string
+  description = "Space-separated list of target regions for the Shared Image Gallery image."
+  default     = env("SIG_TARGET_REGIONS")
+}
+locals {
+  sig_target_regions = local.sig_use_shallow_replication ? [local.resource_grp_location] : (var.sig_target_region == null ? distinct([local.resource_grp_location, "southcentralus", "westus", "westus2", "westus3", "eastus", "centralus", "westeurope", "centraluseuap", "eastus2euap"]) : split(" ", var.sig_target_regions))
+}
+
+
+variable "vhd_resource_grp_name" {
+  type        = string
+  description = "Resource group name for the VHD storage account"
+  default     = env("VHD_RESOURCE_GRP_NAME")
+}
+locals {
+  vhd_resource_grp_name = coalesce(var.vhd_resource_grp_name, "azhpc-images-rg")
+}
+
+variable "vhd_storage_account_name" {
+  type        = string
+  description = "Storage account name for the VHD"
+  default     = env("VHD_STORAGE_ACCOUNT_NAME")
+}
+locals {
+  vhd_storage_account_name = coalesce(var.vhd_storage_account_name, "azhpcstor")
+}
+
+variable "vhd_container_name" {
+  type        = string
+  description = "Container name for the VHD blob"
+  default     = env("VHD_CONTAINER_NAME")
+}
+locals {
+  vhd_container_name = coalesce(var.vhd_container_name, "azhpc-vhd-store")
+}
+
 variable "public_key" {
   type        = string
   description = "Public key to use for SSH access for debugging purposes"
@@ -128,7 +241,7 @@ locals {
         "image_offer"     = "0001-com-ubuntu-server-jammy",
         "image_sku"       = "22_04-lts-gen2",
       },
-      "alma8" = {
+      "alma8.10" = {
         "image_publisher" = "almalinux",
         "image_offer"     = "almalinux-x86_64",
         "image_sku"       = "8-gen2"
@@ -147,19 +260,35 @@ locals {
 
 
   # TODO: image name and tags should include more metadata for provenance
-  image_name = "HPC-Image-${local.os_version}"
+  image_name     = "HPC-Image-${local.os_version}"
   inline_shebang = "/bin/bash -e"
 
   hpc_install_command = {
     "ubuntu_22.04" = "cd /home/${local.username}/azhpc-images/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc; sudo bash install.sh ${local.gpu_platform}"
-    "alma8" = "cd /home/${local.username}/azhpc-images/alma/alma-8.x/alma-8.10-hpc; sudo ./install.sh"
-    "mariner2.0" = "cd /home/${local.username}/azhpc-images/mariner/mariner-2.x/mariner-2.0-hpc; sudo ./install.sh"
+    "alma8.10"     = "cd /home/${local.username}/azhpc-images/alma/alma-8.x/alma-8.10-hpc; sudo ./install.sh"
+    "mariner2.0"   = "cd /home/${local.username}/azhpc-images/mariner/mariner-2.x/mariner-2.0-hpc; sudo ./install.sh"
   }
 
   test_dir = "/opt/azurehpc/test"
+
+  hpc_build_source = local.create_vhd ? "source.azure-arm.hpc-vhd" : (local.create_image ? "source.azure-arm.hpc-image" : "source.azure-arm.hpc-build-only")
+
+  build_date = formatdate("MMDDYY", timestamp())
+  hpc_vhd_destination_blob_name_prefix = {
+    "ubuntu_22.04" = "Ubuntu-2204${local.gpu_platform == "AMD" ? "-ROCm" : ""}-${local.build_date}",
+    "alma8.10"     = "AlmaLinux-8${local.gpu_platform == "AMD" ? "-ROCm" : ""}-${local.build_date}",
+    "mariner2.0"   = "Mariner-2-Exp${local.gpu_platform == "AMD" ? "-ROCm" : ""}-${local.build_date}"
+  }
+
+  image_definition_name_map = {
+    "ubuntu_22.04" = "UbuntuHPC-22.04${local.gpu_platform == "AMD" ? "-ROCm" : ""}-gen2",
+    "alma8.10"     = "AlmaLinuxHPC-8.10${local.gpu_platform == "AMD" ? "-ROCm" : ""}-gen2",
+    "mariner2.0"   = "MarinerHPC-2-Experimental-${local.gpu_platform == "AMD" ? "-ROCm" : ""}-gen2"
+  }
+  image_definition_name = local.is_experimental_image ? "Experimental" : local.image_definition_name_map[local.os_version]
 }
 
-source "azure-arm" "hpc" {
+source "azure-arm" "hpc-build-only" {
   image_publisher                   = local.image_publisher
   image_offer                       = local.image_offer
   image_sku                         = local.image_sku
@@ -175,6 +304,61 @@ source "azure-arm" "hpc" {
     SkipASMAV          = "true"
     SkipLinuxAzSecPack = "true"
   }
+}
+
+source "azure-arm" "hpc-image" {
+  image_publisher                   = local.image_publisher
+  image_offer                       = local.image_offer
+  image_sku                         = local.image_sku
+  build_resource_group_name         = local.resource_grp_name
+  managed_image_resource_group_name = local.resource_grp_name
+  managed_image_name                = local.image_name
+  os_type                           = "Linux"
+  vm_size                           = local.gpu_size_option
+  os_disk_size_gb                   = 64
+  ssh_username                      = local.username
+  # TODO: tags might need to be removed for non-VM resources
+  azure_tags = {
+    SkipASMAzSecPack   = "true"
+    SkipASMAV          = "true"
+    SkipLinuxAzSecPack = "true"
+  }
+  shared_image_gallery_destination {
+    subscription            = local.sig_subscription
+    resource_group          = local.sig_resource_grp_name
+    gallery_name            = local.sig_gallery_name
+    image_name              = local.image_definition_name
+    image_version           = local.sig_image_version
+    use_shallow_replication = local.sig_use_shallow_replication
+    dynamic "target_region" {
+      for_each = local.sig_target_regions
+      content {
+        name = target_region.value
+      }
+    }
+  }
+}
+
+# to create both a compute gallery image and a VHD, create a VHD first, then create a compute gallery image from the VHD
+source "azure-arm" "hpc-vhd" {
+  image_publisher                   = local.image_publisher
+  image_offer                       = local.image_offer
+  image_sku                         = local.image_sku
+  build_resource_group_name         = local.resource_grp_name
+  os_type                           = "Linux"
+  vm_size                           = local.gpu_size_option
+  os_disk_size_gb                   = 64
+  ssh_username                      = local.username
+  # TODO: tags might need to be removed for non-VM resources
+  azure_tags = {
+    SkipASMAzSecPack   = "true"
+    SkipASMAV          = "true"
+    SkipLinuxAzSecPack = "true"
+  }
+  capture_container_name = local.vhd_container_name
+  capture_name_prefix    = local.hpc_vhd_destination_blob_name_prefix[local.os_version]
+  resource_group_name    = local.vhd_resource_grp_name
+  storage_account        = local.vhd_storage_account_name
 }
 
 source "null" "rg" {
@@ -197,7 +381,7 @@ build {
 build {
   name = "azhpc_images"
   sources = [
-    "source.azure-arm.hpc"
+    local.hpc_build_source
   ]
   provisioner "shell" {
     name = "add SSH key"
@@ -208,7 +392,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "clone azhpc-images repo"
+    name           = "clone azhpc-images repo"
     inline_shebang = local.inline_shebang
     inline = [
       # if os_version is not ubuntu*, use yum to install git
@@ -219,10 +403,10 @@ build {
   }
 
   provisioner "shell" {
-    name = "switch to 5.15 LTS kernel for Ubuntu 22.04"
+    name           = "switch to 5.15 LTS kernel for Ubuntu 22.04"
     inline_shebang = local.inline_shebang
     inline = [
-    <<-EOF
+      <<-EOF
     if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
       sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
 
@@ -243,7 +427,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "adjust mariner settings"
+    name           = "adjust mariner settings"
     inline_shebang = local.inline_shebang
     inline = [
       "if [[ \"${local.os_version}\" == *\"mariner\"* ]]; then sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile; fi",
@@ -251,7 +435,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "reboot"
+    name              = "reboot"
     expect_disconnect = true
     inline = [
       "sudo shutdown -r now",
@@ -259,7 +443,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "list installed packages pre-specialization"
+    name           = "list installed packages pre-specialization"
     inline_shebang = local.inline_shebang
     inline = [
       "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
@@ -267,7 +451,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "install HPC components onto the virtual machine"
+    name           = "install HPC components onto the virtual machine"
     inline_shebang = local.inline_shebang
     inline = [
       local.hpc_install_command[local.os_version],
@@ -275,7 +459,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "list installed packages post-specialization"
+    name           = "list installed packages post-specialization"
     inline_shebang = local.inline_shebang
     inline = [
       "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
@@ -283,7 +467,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "display the build version of the image"
+    name           = "display the build version of the image"
     inline_shebang = local.inline_shebang
     inline = [
       "curl -s -H Metadata:true \"http://169.254.169.254/metadata/instance?api-version=2019-06-04\" | /usr/bin/env python3 -c \"import sys, json; print(json.load(sys.stdin)['compute']['version'])\""
@@ -291,7 +475,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "run tests"
+    name           = "run tests"
     inline_shebang = local.inline_shebang
     inline = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
@@ -299,7 +483,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "reboot"
+    name              = "reboot"
     expect_disconnect = true
     inline = [
       "sudo shutdown -r now",
@@ -307,7 +491,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "run tests after reboot"
+    name           = "run tests after reboot"
     inline_shebang = local.inline_shebang
     inline = [
       "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
@@ -315,7 +499,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "run health check after reboot"
+    name           = "run health check after reboot"
     inline_shebang = local.inline_shebang
     inline = [
       <<-EOF
@@ -334,7 +518,7 @@ build {
   }
 
   provisioner "shell-local" {
-    name = "SSH into remote machine and collect metadata for tagging"
+    name           = "SSH into remote machine and collect metadata for tagging"
     inline_shebang = local.inline_shebang
     inline = [
       <<-EOF
@@ -346,7 +530,7 @@ build {
   }
 
   provisioner "shell" {
-    name = "clear history and deprovision"
+    name           = "clear history and deprovision"
     inline_shebang = local.inline_shebang
     inline = [
       <<-EOF
@@ -390,7 +574,7 @@ build {
       EOF
     ]
   }
-
+  
   provisioner "shell-local" {
     # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this).
     # note that this will also prevent the cleanup or image creation steps from running.
@@ -399,9 +583,16 @@ build {
     ]
   }
 
+  # TODO: error-cleanup-provisioner isn't working in some cases (e.g. plugin error when talking to Azure API), need to remediate elsewhere
   error-cleanup-provisioner "shell-local" {
     inline = [
-      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes --no-wait; fi"
+      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
+    ]
+  }
+
+  post-processor "shell-local" {
+    inline = [
+      "if [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
     ]
   }
 }

@@ -258,8 +258,6 @@ locals {
   image_offer     = local.base_image_details[local.architecture][local.os_version]["image_offer"]
   image_sku       = local.base_image_details[local.architecture][local.os_version]["image_sku"]
 
-
-  # TODO: image name and tags should include more metadata for provenance
   image_name     = "HPC-Image-${local.os_version}"
   inline_shebang = "/bin/bash -e"
 
@@ -289,16 +287,17 @@ locals {
 }
 
 source "azure-arm" "hpc-build-only" {
-  image_publisher                   = local.image_publisher
-  image_offer                       = local.image_offer
-  image_sku                         = local.image_sku
-  build_resource_group_name         = local.resource_grp_name
-  managed_image_resource_group_name = local.resource_grp_name
-  managed_image_name                = local.image_name
-  os_type                           = "Linux"
-  vm_size                           = local.gpu_size_option
-  os_disk_size_gb                   = 64
-  ssh_username                      = local.username
+  image_publisher                    = local.image_publisher
+  image_offer                        = local.image_offer
+  image_sku                          = local.image_sku
+  build_resource_group_name          = local.resource_grp_name
+  managed_image_resource_group_name  = local.resource_grp_name
+  managed_image_name                 = local.image_name
+  managed_image_storage_account_type = "Premium_LRS"
+  os_type                            = "Linux"
+  vm_size                            = local.gpu_size_option
+  os_disk_size_gb                    = 64
+  ssh_username                       = local.username
   azure_tags = {
     SkipASMAzSecPack   = "true"
     SkipASMAV          = "true"
@@ -307,17 +306,17 @@ source "azure-arm" "hpc-build-only" {
 }
 
 source "azure-arm" "hpc-image" {
-  image_publisher                   = local.image_publisher
-  image_offer                       = local.image_offer
-  image_sku                         = local.image_sku
-  build_resource_group_name         = local.resource_grp_name
-  managed_image_resource_group_name = local.resource_grp_name
-  managed_image_name                = local.image_name
-  os_type                           = "Linux"
-  vm_size                           = local.gpu_size_option
-  os_disk_size_gb                   = 64
-  ssh_username                      = local.username
-  # TODO: tags might need to be removed for non-VM resources
+  image_publisher                    = local.image_publisher
+  image_offer                        = local.image_offer
+  image_sku                          = local.image_sku
+  build_resource_group_name          = local.resource_grp_name
+  managed_image_resource_group_name  = local.resource_grp_name
+  managed_image_name                 = local.image_name
+  managed_image_storage_account_type = "Premium_LRS"
+  os_type                            = "Linux"
+  vm_size                            = local.gpu_size_option
+  os_disk_size_gb                    = 64
+  ssh_username                       = local.username
   azure_tags = {
     SkipASMAzSecPack   = "true"
     SkipASMAV          = "true"
@@ -341,15 +340,14 @@ source "azure-arm" "hpc-image" {
 
 # to create both a compute gallery image and a VHD, create a VHD first, then create a compute gallery image from the VHD
 source "azure-arm" "hpc-vhd" {
-  image_publisher                   = local.image_publisher
-  image_offer                       = local.image_offer
-  image_sku                         = local.image_sku
-  build_resource_group_name         = local.resource_grp_name
-  os_type                           = "Linux"
-  vm_size                           = local.gpu_size_option
-  os_disk_size_gb                   = 64
-  ssh_username                      = local.username
-  # TODO: tags might need to be removed for non-VM resources
+  image_publisher           = local.image_publisher
+  image_offer               = local.image_offer
+  image_sku                 = local.image_sku
+  build_resource_group_name = local.resource_grp_name
+  os_type                   = "Linux"
+  vm_size                   = local.gpu_size_option
+  os_disk_size_gb           = 64
+  ssh_username              = local.username
   azure_tags = {
     SkipASMAzSecPack   = "true"
     SkipASMAV          = "true"
@@ -574,7 +572,7 @@ build {
       EOF
     ]
   }
-  
+
   provisioner "shell-local" {
     # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this).
     # note that this will also prevent the cleanup or image creation steps from running.
@@ -591,6 +589,20 @@ build {
   }
 
   post-processor "shell-local" {
+    name           = "apply tags on SIG image based on collected metadata"
+    inline_shebang = local.inline_shebang
+    inline = [
+      <<-EOF
+      if [ ${local.create_image} = true ] ; then
+        az tag delete --resource-id /subscriptions/${local.sig_subscription}/resourceGroups/${local.sig_resource_grp_name}/providers/Microsoft.Compute/galleries/${local.sig_gallery_name}/images/${local.image_definition_name}/versions/${local.sig_image_version} --yes
+        az tag create --resource-id /subscriptions/${local.sig_subscription}/resourceGroups/${local.sig_resource_grp_name}/providers/Microsoft.Compute/galleries/${local.sig_gallery_name}/images/${local.image_definition_name}/versions/${local.sig_image_version} --tags $(cat /tmp/metadata-${local.resource_grp_name}.txt)
+      fi
+      EOF
+    ]
+  }
+
+  post-processor "shell-local" {
+    inline_shebang = local.inline_shebang
     inline = [
       "if [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
     ]

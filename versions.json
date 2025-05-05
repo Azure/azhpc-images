@@ -303,7 +303,7 @@
             "version": "25.0.3-11",
             "sha256": "ec5629890e1c03bd88bc405e440680584a1dc6c06696025084c2641dc9b4f24b"
         },
-    "common": {
+        "common": {
             "version": "2.12.0.4",
             "sha256": "88be3211a433e1d12d7212761a06b227e6bed551649abd62d4eebeae116ab26c"
         }

@@ -19,6 +19,18 @@
             "version": "10.25.1",
             "release": "10.25.1-20240612",
             "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
+        },
+        "common": {
+            "version": "10.28.1",
+            "release": "10.28.1-20250326",
+            "sha256": "0f637fd5cf8f5a041592bd2104234682cc0bc7a893298a5641b87d4bef96bc6d"
+        }
+    },
+    "cmake": {
+        "common": {
+            "version": "3.31.7",
+            "url": "https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-linux-x86_64.tar.gz",
+            "sha256": "14e15d0b445dbeac686acc13fe13b3135e8307f69ccf4c5c91403996ce5aa2d4"
         }
     },
     "doca": {
@@ -76,9 +88,10 @@
         }
     },
     "mofed": {
-        "almalinux8.7": {
-            "version": "24.01-0.3.3.1",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
+        "almalinux8.10": {
+            "version": "2.21.2",
+            "sha256": "05d45935ce4862beb10ffadf4fc0de761ed80d7539b74f445ac8007bded4ed2c",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
         },
         "azurelinux3.0": {
             "version": "24.10.0.7.0",
@@ -86,27 +99,23 @@
         }
     },
     "mvapich2": {
-        "almalinux8.7": {
-            "version": "2.3.7-1",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
-        },
-        "azurelinux3.0": {
-            "version": "2.3.7-1",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
+        "common": {
+            "version": "2.3.7-2",
+            "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205"
         }
     },
     "ompi": {
-        "azurelinux3.0": {
-            "version": "5.0.5",
-            "sha256": "5cbefa0780b84f4126743c40cdd6a334b2f0574cd7fd95050fb1ac0ddbb7f0b8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.5.tar.gz"
+        "common": {
+            "version": "5.0.7",
+            "sha256": "67435fdb2560f897882e69fead171d38e7f44a6dfe1d3c90506f549a943050b8",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz"
         }
     },
     "impi": {
-        "azurelinux3.0": {
-            "version": "2021.13.1",
-            "sha256": "be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh"
+        "common": {
+            "version": "2021.15.0",
+            "sha256": "d4ad297174ce3837444468645e13cfe78f11d9bf2ad9ade2057b2668cccd9385",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6b6e395e-8f38-4da3-913d-90a2bcf41028/intel-mpi-2021.15.0.495_offline.sh"
         }
     },
     "nvidia": {
@@ -129,18 +138,29 @@
             "fabricmanager": {
                 "distribution": "ubuntu2204",
                 "version": "570.133.20-1",
-                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"
+                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"        
             }   
         },
         "almalinux8.7": {
             "driver": {
-                "version": "550.90.07",
-                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
+                "version": "560.35.03",
+                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
             },
             "fabricmanager": {
                 "distribution": "rhel8",
-                "version": "550.90.07-1",
-                "sha256": "e580c8b412de7a9f352c2eacce877b4cbccd494bfdee7a0e6c94010a06c91c92"        
+                "version": "560.35.03-1",
+                "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
+            }   
+        },
+        "almalinux8.10": {
+            "driver": {
+                "version": "570.133.20",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
+            },
+            "fabricmanager": {
+                "distribution": "rhel8",
+                "version": "570.133.20-1",
+                "sha256": "64d01da1a0704fe226eeafcf97cdcab0dced8cadeb44b5d7778f9b96bf12a82f"
             }   
         },
         "azurelinux3.0": {

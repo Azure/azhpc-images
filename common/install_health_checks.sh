@@ -49,7 +49,6 @@ else
    popd
 fi
 popd
-popd
 
 $COMMON_DIR/write_component_version.sh "AZ_HEALTH_CHECKS" ${AZHC_VERSION}
 

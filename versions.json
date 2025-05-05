@@ -160,7 +160,7 @@
             "fabricmanager": {
                 "distribution": "rhel8",
                 "version": "570.133.20-1",
-                "sha256": "64d01da1a0704fe226eeafcf97cdcab0dced8cadeb44b5d7778f9b96bf12a82f"
+                "sha256": "64d01da1a0704fe226eeafcf97cdcab0dced8cadeb44b5d7778f9b96bf12a82f"        
             }   
         },
         "azurelinux3.0": {
@@ -192,8 +192,8 @@
                 "distribution": "ubuntu2204"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "almalinux8.7": {
@@ -208,8 +208,8 @@
                 "distribution": "rhel8"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "azurelinux3.0": {
@@ -252,9 +252,9 @@
     },
     "nccl": {
         "common": {
-            "version": "2.22.3-1",
+            "version": "2.26.2-1",
             "rdmasharpplugins": {
-                "commit": "v2.7.x"
+                "commit": "master"
             }
         }
     },
@@ -265,9 +265,9 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2024.2.1.105",
-            "sha256": "adfb1391f87a0a638772ac3146db92126a4accf4da1fe8707a000b27dd2448ef",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6e00e368-b61d-4f87-a409-9b510c022a37/l_onemkl_p_2024.2.1.105_offline.sh"
+            "version": "2025.1.0.803",
+            "sha256": "80a4b1338b48b3fbee55a8dc784f92e5e88d618f1b99d80f5f207a00c86a6638",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc93af13-2b3f-40c3-a41b-2bc05a707a80/intel-onemkl-2025.1.0.803_offline.sh"
         }
     },
     "waagent": {
@@ -310,7 +310,8 @@
     },
     "moneo": {
         "common": {
-            "version": "0.3.5"
+            "version": "0.3.5",
+            "sha256": "69b5cb899bd6d7b911162931b012cd50548d71b5e68a8de191eff5cd1193377d"
         }
     },
     "pssh": {
@@ -326,28 +327,30 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "4.2.0",
-                "sha256": "d25aa17dec5b50b89414d7faff2d72a2c959987fe1a4a0a5842878a3fe079d5c"
+                "version": "5.0.0",
+                "sha256": "604ae6c34ef2648504ba08d2f33e42b5a9cf4032eaefaa9253560747ebaeb1ca"
             },
             "aocc": {
-                "version": "4.2.0",
-                "sha256": "ed5a560ec745b24dc0685ccdcbde914843fb2f2dfbfce1ba592de4ffbce1ccab"
+                "version": "5.0.0",
+                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
             } 
         }
     },
     "lustre": {
         "common": {
-            "version": "2.15.4-42-gd6d405d"
+            "version": "2.15.6-39-g3e00a10"
         }
     },
     "aznhc": {
         "common": {
-            "version": "0.4.2"
+            "version": "0.4.4",
+            "sha256": "37ffcb35ab7ae08ed863c7dd5f38a5bbb889fd75b438483fdc37e0017bac4366"
         }
     },
     "rdma_core": {
         "common": {
-            "branch": "v53.0"
+            "version": "56.1",
+            "sha256": "0ebac5735bc38cafeba28a3124566b56606f11a8462c794411858efa7b407be0"
         }
     },
     "pmix": {

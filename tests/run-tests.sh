@@ -163,6 +163,7 @@ set_sku_configuration
 # Set test matrix
 set_test_matrix $1
 # Initiate test suite
+if [[ -n "$2" && "$2" == "-d" ]]; then export HPC_DEBUG=$2; else export HPC_DEBUG=; fi 
 initiate_test_suite
 
 echo "ALL OK!"

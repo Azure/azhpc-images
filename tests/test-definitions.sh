@@ -7,8 +7,8 @@ function check_exists {
     then
         echo "$1 [OK]"
     else
-        echo "*** Error - $1 not found!" >&2
-        exit -1
+        echo "*** ${FUNCNAME[1]} Error - $1 not found!" >&2
+        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
     fi
 }
 
@@ -19,9 +19,9 @@ function check_exit_code {
     then
         echo "[OK] : $1"
     else
-        echo "*** Error - $2!" >&2
+        echo "*** ${FUNCNAME[1]}: Error - $2!" >&2
         echo "*** Failed with exit code - $exit_code" >&2
-        exit -1
+        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
     fi
 }
 

@@ -47,7 +47,6 @@ else
    ./dockerfile/build_image.sh rocm
 
    popd
-
 fi
 popd
 popd

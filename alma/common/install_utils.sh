@@ -58,7 +58,7 @@ yum install -y environment-modules-5.0.1-1.el9.x86_64.rpm
 rm -f environment-modules-5.0.1-1.el9.x86_64.rpm
 
 ## Disable kernel updates
-echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
+echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
 
 # Disable dependencies on kernel core
 sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf

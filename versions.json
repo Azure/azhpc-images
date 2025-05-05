@@ -41,6 +41,16 @@
             "version": "2.7.0",
             "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
             "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
+        },
+        "almalinux8.10": {
+            "version": "2.10.0",
+            "sha256": "075324dfb074c99bb947217af6469b7d091eec642217e4db4430ac96b1d16ddc",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host-2.10.0-093000_25.01_rhel810.x86_64.rpm"
+        },
+        "rhel8.10": {
+            "version": "2.8.0",
+            "sha256": "387d0b20311353a5833a029b3f8e7d64bf511ce88107be53f594f5c03e0ce26b",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel810.x86_64.rpm"
         }
     },  
     "hpcx": {
@@ -113,13 +123,13 @@
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "550.90.07",
-                "sha256": "51acf579d5a9884f573a1d3f522e7fafa5e7841e22a9cec0b4bbeae31b0b9733"
+                "version": "570.133.20",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
-                "version": "550.90.07-1",
-                "sha256": "f8321f47875fa79968cda38c77c1723ff9fa3ca010f250f17b0075d84f443058"        
+                "version": "570.133.20-1",
+                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"
             }   
         },
         "almalinux8.7": {
@@ -205,8 +215,13 @@
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
+            "distribution": "el8"
+        },
+        "almalinux8.10": {
+            "version": "2.5-1",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "el8"
         },
         "azurelinux3.0": {
@@ -267,6 +282,10 @@
         "azurelinux3.0": {
             "version": "25.0.3-11",
             "sha256": "ec5629890e1c03bd88bc405e440680584a1dc6c06696025084c2641dc9b4f24b"
+        },
+    "common": {
+            "version": "2.12.0.4",
+            "sha256": "88be3211a433e1d12d7212761a06b227e6bed551649abd62d4eebeae116ab26c"
         }
     },
     "moneo": {
@@ -318,8 +337,22 @@
     },
     "aznfs": {
         "common": {
-            "version": "2.0.8",
-            "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
+            "version": "2.0.12",
+            "sha256": "5ad0f1986c4d211d2bd9626b2f246fbcd556c1fb0ca7be346adf660076c49210"
+        }
+    },
+    "rocm": {
+        "ubuntu22.04": {
+            "version": "6.2.2",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb",
+            "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
+        }
+    },
+    "rccl": {
+        "ubuntu22.04": {
+            "version": "2.20.5",
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
+            "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
         }
     }
 }

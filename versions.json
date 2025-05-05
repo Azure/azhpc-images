@@ -194,8 +194,8 @@
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {

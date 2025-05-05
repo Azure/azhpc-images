@@ -28,9 +28,9 @@
             "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2004_amd64.deb"
         },
         "ubuntu22.04": {
-            "version": "2.7.0",
-            "sha256": "80eecc2efa414d41b9a8dc59404cd78eb81d3818f453007529847b5cfa29646f",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host_2.7.0-209000-24.04-ubuntu2204_amd64.deb"
+            "version": "2.10.0",
+            "sha256": "c9758f9029393b749908f0485827004dafa8cc0e24313f1f2bdae2406050ddfd",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2204_amd64.deb"
         },
         "almalinux8.7": {
             "version": "2.7.0",
@@ -50,9 +50,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.19",
-            "sha256": "40e370de8daf13e26ff9d59cc07f9f04748b34b9cee0d3a1610819af838b364d",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.21.2",
+            "sha256": "d6e6f2d25236679deff29e9cf4a86bd36b3399393d0cff8b4bb8e79f0408d1e4",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
             "version": "2.19",
@@ -158,7 +158,7 @@
         },
         "ubuntu22.04": {
             "driver": {
-                "version": "12.5",
+                "version": "12.8",
                 "distribution": "ubuntu2204"
             },
             "samples": {
@@ -169,6 +169,12 @@
         "almalinux8.7": {
             "driver": {
                 "version": "12.5",
+                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+            }   
+        },
+        "almalinux8.10": {
+            "driver": {
+                "version": "12.8",
                 "distribution": "rhel8"
             },
             "samples": {
@@ -194,8 +200,8 @@
             "distribution": "Ubuntu20_04"
         },
         "ubuntu22.04": {
-            "version": "2.4.1",
-            "sha256": "faa7e816e9bad3301e53d6721457f7ef5ab42b7aa3b01ffda51f8e5620bb20ed",
+            "version": "2.5-1",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "Ubuntu22_04"
         },
         "almalinux8.7": {

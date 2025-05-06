@@ -165,13 +165,13 @@
         },
         "azurelinux3.0": {
             "driver": {
-                "version": "560.35.03",
-                "sha256": "479028774249cbe119a2a65bba39d52cd4ad17c61491b9b2a7f8ce9e75ae1248"
+                "version": "570.124.06",
+                "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
             },
             "fabricmanager": {
                 "distribution": "azl3",
-                "version": "560.35.03-2",
-                "sha256": "9d6d246ce6e6af1710b9d0d2bc213143f1f4c914ff6d6f85822301f9d9a2182e"        
+                "version": "570.124.06",
+                "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"       
             }
         }
     },
@@ -214,12 +214,12 @@
         },
         "azurelinux3.0": {
             "driver": {
-                "version": "12.6.2",
+                "version": "12.8",
                 "distribution": "azl3"
             },
             "samples": {
-                "version": "12.5",
-                "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         }
     },

@@ -17,10 +17,15 @@ Following are the current supported HPC/AI VM images that are available in Azure
 
 # How to Use
 
-The high level steps to create your own HPC images using our repository are:
-1. Deploy a VM ([tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/)).
-2. Run install.sh (pick the corresponding install.sh in our repository for your OS, e.g., [Ubuntu 22.04](ubuntu/ubuntu-22.x/ubuntu-22.04-hpc/install.sh)).
-3. Generate an image from the VM ([tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-custom-images)).
+To build an image, you need to install [Packer](https://developer.hashicorp.com/packer/integrations/hashicorp/azure) and log in to [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/get-started-with-azure-cli). Create a Packer variable input file `image.pkrvars.hcl` like this:
+
+```
+# Use any appropriate VM SKU you have access to.
+# Check image.pkr.hcl for more input variables, e.g pushing to a compute gallery.
+gpu_size_option = "Standard_ND96asr_v4"
+```
+
+Then, run ` packer build -var-file="image.pkrvars.hcl" --use-sequential-evaluation -parallel-builds=1 -on-error=run-cleanup-provisioner image.pkr.hcl` to build an image. By default the command creates a VM, tries to run the scripts to create a managed image, then cleans up all Azure resources created. Use `retain_vm_always` or `retain_vm_on_fail` with `public_key` to access the build VM for troubleshooting.
 
 # Kernel Update/Patching
 

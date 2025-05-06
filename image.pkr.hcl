@@ -231,7 +231,42 @@ locals {
   retain_vm_always = coalesce(var.retain_vm_always, false)
 }
 
-# TODO: allow specifying vnet and subnet
+variable "private_virtual_network_with_public_ip" {
+  type        = string
+  description = "Also use a public IP when using a private virtual network."
+  default     = env("PRIVATE_VIRTUAL_NETWORK_WITH_PUBLIC_IP")
+}
+locals {
+  # existing setup defaults to having Public IP, presumably for debugging
+  private_virtual_network_with_public_ip = coalesce(var.private_virtual_network_with_public_ip, true)
+}
+
+variable "virtual_network_name" {
+  type        = string
+  description = "Use a pre-existing virtual network for the VM."
+  default     = env("VIRTUAL_NETWORK_NAME")
+}
+locals {
+  virtual_network_name = var.virtual_network_name
+}
+
+variable "virtual_network_subnet_name" {
+  type        = string
+  description = "Use a pre-existing subnet for the VM."
+  default     = env("VIRTUAL_NETWORK_SUBNET_NAME")
+}
+locals {
+  virtual_network_subnet_name = var.virtual_network_subnet_name
+}
+
+variable "virtual_network_resource_group_name" {
+  type        = string
+  description = "Resource group for the existing virtual network."
+  default     = env("VIRTUAL_NETWORK_RESOURCE_GROUP_NAME")
+}
+locals {
+  virtual_network_resource_group_name = var.virtual_network_resource_group_name
+}
 
 locals {
   base_image_details = {
@@ -303,6 +338,10 @@ source "azure-arm" "hpc-build-only" {
     SkipASMAV          = "true"
     SkipLinuxAzSecPack = "true"
   }
+  private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
+  virtual_network_name                 = local.virtual_network_name
+  virtual_network_subnet_name          = local.virtual_network_subnet_name
+  virtual_network_resource_group_name  = local.virtual_network_resource_group_name
 }
 
 source "azure-arm" "hpc-image" {
@@ -322,6 +361,10 @@ source "azure-arm" "hpc-image" {
     SkipASMAV          = "true"
     SkipLinuxAzSecPack = "true"
   }
+  private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
+  virtual_network_name                 = local.virtual_network_name
+  virtual_network_subnet_name          = local.virtual_network_subnet_name
+  virtual_network_resource_group_name  = local.virtual_network_resource_group_name
   shared_image_gallery_destination {
     subscription            = local.sig_subscription
     resource_group          = local.sig_resource_grp_name
@@ -338,7 +381,7 @@ source "azure-arm" "hpc-image" {
   }
 }
 
-# to create both a compute gallery image and a VHD, create a VHD first, then create a compute gallery image from the VHD
+# VHD support is not available yet and needs patching Packer's Azure Plugin
 source "azure-arm" "hpc-vhd" {
   image_publisher           = local.image_publisher
   image_offer               = local.image_offer
@@ -353,6 +396,10 @@ source "azure-arm" "hpc-vhd" {
     SkipASMAV          = "true"
     SkipLinuxAzSecPack = "true"
   }
+  private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
+  virtual_network_name                 = local.virtual_network_name
+  virtual_network_subnet_name          = local.virtual_network_subnet_name
+  virtual_network_resource_group_name  = local.virtual_network_resource_group_name
   capture_container_name = local.vhd_container_name
   capture_name_prefix    = local.hpc_vhd_destination_blob_name_prefix[local.os_version]
   resource_group_name    = local.vhd_resource_grp_name

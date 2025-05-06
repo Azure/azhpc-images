@@ -42,8 +42,8 @@ CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # tdnf clean expire-cache
 
 # Install cuda-toolkit dependencies
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
 
 # Install cuda-toolkit and sub-packages
 # Till we publish to PMC repo we need to install 

@@ -268,6 +268,15 @@ locals {
   virtual_network_resource_group_name = var.virtual_network_resource_group_name
 }
 
+variable "skip_hpc" {
+  type       = string
+  description = "Skip any HPC-specific tasks. Useful for testing."
+  default     = env("SKIP_HPC")
+}
+locals {
+  skip_hpc = coalesce(var.skip_hpc, false)
+}
+
 locals {
   base_image_details = {
     "amd64" = {
@@ -319,6 +328,7 @@ locals {
     "mariner2.0"   = "MarinerHPC-2-Experimental-${local.gpu_platform == "AMD" ? "-ROCm" : ""}-gen2"
   }
   image_definition_name = local.is_experimental_image ? "Experimental" : local.image_definition_name_map[local.os_version]
+  exit_if_skip_hpc = "if [ ${local.skip_hpc} = true ]; then exit 0; fi"
 }
 
 source "azure-arm" "hpc-build-only" {
@@ -451,23 +461,24 @@ build {
     name           = "switch to 5.15 LTS kernel for Ubuntu 22.04"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       <<-EOF
-    if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
-      sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
+      if [[ "${local.os_version}" == *"ubuntu_22.04"* ]]; then
+        sudo sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
 
-      sudo apt update
-      sudo apt install -y linux-azure-lts-22.04
-      sudo apt-mark hold linux-azure-lts-22.04
-      sudo apt-get purge -y linux-azure
-      sudo apt-get purge -y linux-azure-6.*
+        sudo apt update
+        sudo apt install -y linux-azure-lts-22.04
+        sudo apt-mark hold linux-azure-lts-22.04
+        sudo apt-get purge -y linux-azure
+        sudo apt-get purge -y linux-azure-6.*
 
-      sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
+        sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
 
-      version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-      sudo grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux $version-azure"
-      sudo update-grub
-    fi
-    EOF
+        version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
+        sudo grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux $version-azure"
+        sudo update-grub
+      fi
+      EOF
     ]
   }
 
@@ -475,6 +486,7 @@ build {
     name           = "adjust mariner settings"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       "if [[ \"${local.os_version}\" == *\"mariner\"* ]]; then sudo sed -i 's/lockdown=integrity//' /boot/grub2/grub.cfg &&  sudo sed -i '/umask 027/d' /etc/profile; fi",
     ]
   }
@@ -483,6 +495,7 @@ build {
     name              = "reboot"
     expect_disconnect = true
     inline = [
+      local.exit_if_skip_hpc,
       "sudo shutdown -r now",
     ]
   }
@@ -499,6 +512,7 @@ build {
     name           = "install HPC components onto the virtual machine"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       local.hpc_install_command[local.os_version],
     ]
   }
@@ -507,6 +521,7 @@ build {
     name           = "list installed packages post-specialization"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
     ]
   }
@@ -523,6 +538,7 @@ build {
     name           = "run tests"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} --mofed-lts false"
     ]
   }
@@ -531,6 +547,7 @@ build {
     name              = "reboot"
     expect_disconnect = true
     inline = [
+      local.exit_if_skip_hpc,
       "sudo shutdown -r now",
     ]
   }
@@ -539,6 +556,7 @@ build {
     name           = "run tests after reboot"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       "${local.test_dir}/run-tests.sh ${local.gpu_platform} --mofed-lts false"
     ]
   }
@@ -547,6 +565,7 @@ build {
     name           = "run health check after reboot"
     inline_shebang = local.inline_shebang
     inline = [
+      local.exit_if_skip_hpc,
       <<-EOF
       health_check_script="${local.test_dir}/azurehpc-health-checks/run-health-checks.sh"
       health_log="${local.test_dir}/azurehpc-health-checks/health.log"

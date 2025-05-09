@@ -17,7 +17,7 @@ Following are the current supported HPC/AI VM images that are available in Azure
 
 # How to Use
 
-To build an image, you need to install [Packer](https://developer.hashicorp.com/packer/integrations/hashicorp/azure) and log in to [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/get-started-with-azure-cli). Create a Packer variable input file `image.pkrvars.hcl` like this:
+To build an image, you need to install [Packer](https://developer.hashicorp.com/packer/integrations/hashicorp/azure) and configure its [authentication](https://developer.hashicorp.com/packer/integrations/hashicorp/azure#authentication). and log in to [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/get-started-with-azure-cli). Create a Packer variable input file `image.pkrvars.hcl` like this:
 
 ```
 # Use any appropriate VM SKU you have access to.

@@ -231,6 +231,15 @@ locals {
   retain_vm_always = coalesce(var.retain_vm_always, false)
 }
 
+variable "externally_managed_resource_group" {
+  type        = string
+  description = "Whether the resource group is externally managed by e.g. Azure Pipelines, in which case the pipeline itself is responsible for cleanup."
+  default     = env("EXTERNALLY_MANAGED_RESOURCE_GROUP")
+}
+locals {
+  externally_managed_resource_group = coalesce(var.externally_managed_resource_group, false)
+}
+
 variable "private_virtual_network_with_public_ip" {
   type        = string
   description = "Also use a public IP when using a private virtual network."
@@ -650,7 +659,7 @@ build {
   # TODO: error-cleanup-provisioner isn't working in some cases (e.g. plugin error when talking to Azure API), need to remediate elsewhere
   error-cleanup-provisioner "shell-local" {
     inline = [
-      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
+      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] || [ ${local.externally_managed_resource_group} = true ]; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
     ]
   }
 
@@ -670,7 +679,7 @@ build {
   post-processor "shell-local" {
     inline_shebang = local.inline_shebang
     inline = [
-      "if [ ${local.retain_vm_always} = true ] ; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
+      "if [ ${local.retain_vm_always} = true ] || [ ${local.externally_managed_resource_group} = true ]; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
     ]
   }
 }

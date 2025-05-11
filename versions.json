@@ -47,9 +47,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu20.04-cuda12-x86_64.tbz"
         },
         "ubuntu22.04": {
-            "version": "2.21.2",
-            "sha256": "d6e6f2d25236679deff29e9cf4a86bd36b3399393d0cff8b4bb8e79f0408d1e4",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "almalinux8.7": {
             "version": "2.18",
@@ -57,9 +57,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         },
         "almalinux8.10": {
-            "version": "2.21.2",
-            "sha256": "05d45935ce4862beb10ffadf4fc0de761ed80d7539b74f445ac8007bded4ed2c",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.21.2/hpcx-v2.21.2-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         },
         "rhel8.10": {
             "version": "2.18",
@@ -82,9 +82,9 @@
     },
     "impi": {
         "common": {
-            "version": "2021.15.0",
-            "sha256": "d4ad297174ce3837444468645e13cfe78f11d9bf2ad9ade2057b2668cccd9385",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6b6e395e-8f38-4da3-913d-90a2bcf41028/intel-mpi-2021.15.0.495_offline.sh"
+            "version": "2021.13.1",
+            "sha256": "be61c4792d25bd4a1b5f7b808c06a9f4676f1b247d7605ac6d3c6cffdb8f19b7",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/364c798c-4cad-4c01-82b5-e1edd1b476af/l_mpi_oneapi_p_2021.13.1.769_offline.sh"
         }
     },
     "nvidia": {

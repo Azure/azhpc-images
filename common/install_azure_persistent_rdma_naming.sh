@@ -71,7 +71,9 @@ chmod 755 /usr/sbin/azure_persistent_rdma_naming.sh
 cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming.service
 [Unit]
 Description=Azure persistent RDMA naming
-After=network.target
+DefaultDependencies=no
+Before=network-pre.target
+Wants=network-pre.target
 
 [Service]
 Type=oneshot
@@ -80,7 +82,7 @@ RemainAfterExit=true
 StandardOutput=journal
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=sysinit.target
 EOF
 
 systemctl enable azure_persistent_rdma_naming.service

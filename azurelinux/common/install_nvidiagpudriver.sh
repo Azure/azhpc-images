@@ -42,15 +42,15 @@ CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # tdnf clean expire-cache
 
 # Install cuda-toolkit dependencies
-tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-systems-2024.5.1.113_3461954-1.azl3.x86_64.rpm
-tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-compute-2024.3.2.3_34861637-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
+tdnf install -y /home/packer/azhpc-images/prebuilt/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
 
 # Install cuda-toolkit and sub-packages
 # Till we publish to PMC repo we need to install 
 # each individual package for cmdline installation
 
 path_var="/home/packer/azhpc-images/prebuilt"
-version_var="-12.6.2_560.35.03-1.azl3"
+version_var="-12.8.1_570.124.06-1.azl3"
 
 tdnf install -y $path_var/cuda-cccl$version_var.x86_64.rpm
 tdnf install -y $path_var/cuda-cudart$version_var.x86_64.rpm
@@ -112,9 +112,10 @@ CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/ta
 cp /home/packer/azhpc-images/prebuilt/${TARBALL} .
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
+mkdir build && cd build
+cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
 make -j $(nproc)
-mkdir -p /usr/local/cuda-${CUDA_SAMPLES_VERSION}
-mv -vT ./Samples /usr/local/cuda-${CUDA_SAMPLES_VERSION}/samples
+mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
 popd
 
 # Temporarily install NV Peer Memory

@@ -11,9 +11,7 @@ AZHC_SHA=$(jq -r '.sha256' <<< $aznhc_metadata)
 DEST_TEST_DIR=/opt/azurehpc/test
 GPU_PLAT=$1
 
-TARBALL="v${AZHC_VERSION}.tar.gz"
-AZHC_DOWNLOAD_URL=https://github.com/Azure/azurehpc-health-checks/archive/refs/tags/${TARBALL}
-$COMMON_DIR/download_and_verify.sh ${AZHC_DOWNLOAD_URL} ${AZHC_SHA} $DEST_TEST_DIR
+mkdir -p $DEST_TEST_DIR
 
 pushd $DEST_TEST_DIR
 

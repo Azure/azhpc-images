@@ -25,12 +25,11 @@ make -j$(nproc)
 make install
 popd
 rm -rf ${TARBALL} ${rccl_folder}
-pushd ~
 
 # sysctl kernel.numa_balancing=0
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 
-
+pushd ~
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 pushd ~/rccl-tests
 
@@ -67,15 +66,8 @@ pushd ~/rdma-perftest
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
 make -j $(nproc)
 make install
-
-pushd /home/packer/azhpc-images/common/
+popd
+popd
 
 echo "INSTALLED RCCL!! ${RCCL_VERSION}"
 $COMMON_DIR/write_component_version.sh "RCCL" $RCCL_VERSION
-
-popd 
-
-popd
-
-
-

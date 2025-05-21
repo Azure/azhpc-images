@@ -15,18 +15,14 @@ rccl_folder=rccl-$(basename $TARBALL .tar.gz)
 tdnf install -y libstdc++-devel
 
 # tdnf remove -y rccl
-
-pushd ~
 $COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
 tar -xzf ${TARBALL}
-
 
 mkdir ./${rccl_folder}/build
 pushd ./${rccl_folder}/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install
-popd
 popd
 rm -rf ${TARBALL} ${rccl_folder}
 pushd ~

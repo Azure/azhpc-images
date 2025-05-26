@@ -9,6 +9,7 @@ AZHC_VERSION=$(jq -r '.version' <<< $aznhc_metadata)
 AZHC_SHA=$(jq -r '.sha256' <<< $aznhc_metadata)
 
 DEST_TEST_DIR=/opt/azurehpc/test
+GHR_SOURCE_DIR=$(realpath $COMMON_DIR)
 GPU_PLAT=$1
 
 TARBALL="v${AZHC_VERSION}.tar.gz"
@@ -18,10 +19,10 @@ $COMMON_DIR/download_and_verify.sh ${AZHC_DOWNLOAD_URL} ${AZHC_SHA} $DEST_TEST_D
 pushd $DEST_TEST_DIR
 mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azurehpc-health-checks  
 pushd azurehpc-health-checks
-rm triggerGHR.sh
-cp ${COMMON_DIR}/trigger_aznhc_GHR.sh ./triggerGHR/triggerGHR.sh
+rm ./triggerGHR/triggerGHR.sh
+cp ${GHR_SOURCE_DIR}/trigger_aznhc_GHR.sh ./triggerGHR/triggerGHR.sh
 chmod +x ./triggerGHR/triggerGHR.sh
-cat > ./config/nhc_text_faultcode.json << EOF
+cat > ./triggerGHR/config/nhc_text_faultcode.json << EOF
 {
   "check_hw_ib:  No IB port": "NHC2004",
   "check_gpu_bw: Failed to run NVBandwidth": "NHC2020"

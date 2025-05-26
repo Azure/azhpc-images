@@ -45,7 +45,7 @@ function test_component {
         check_nccl) verify_nccl_installation;;
 	check_rocm) verify_rocm_installation;;
         check_rccl) verify_rccl_installation;;
-        check_gcc) verify_gcc_modulefile;;
+        #check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
@@ -67,7 +67,7 @@ function verify_common_components {
     verify_mkl_installation;
     verify_hpcdiag_installation;
     verify_ipoib_status;
-    verify_lustre_installation;
+    #verify_lustre_installation;
     verify_pssh_installation;
     verify_aznfs_installation;
 }

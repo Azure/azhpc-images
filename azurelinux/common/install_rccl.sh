@@ -69,5 +69,5 @@ make install
 popd
 popd
 
-echo "INSTALLED RCCL!! ${RCCL_VERSION}"
-$COMMON_DIR/write_component_version.sh "RCCL" $RCCL_VERSION
+echo "INSTALLED RCCL!! ${rccl_version}"
+$COMMON_DIR/write_component_version.sh "RCCL" $rccl_version

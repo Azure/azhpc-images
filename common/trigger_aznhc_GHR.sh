@@ -10,6 +10,7 @@ find "$script_directory" -type f \( -name "*.sh" -o -name "*.py" -o -name "*.cfg
 script_file_to_trigger_nhc="run-health-checks.sh" 
 health_log_file_name="./health.log" 
 fault_code_config_file_path="./config/nhc_fault_dictionary.cfg"
+fault_code_config_file_txt_path="./config/nhc_text_faultcode.json"
 trigger_ghr_log_file="triggerGHRlog.txt"
 env_file_path="./config/user.env"
 failure_report_file="" 
@@ -193,10 +194,24 @@ get_fault_code() {
     fault_code_in_logfile=$(tac $failure_report_file | awk '/Faultcode:/ && !/Faultcode:NHCNA/ {print $NF; exit}'| awk -F ':' '{print $2}')
     #faultcode is empty, then exit because without fault_code cannot trigger GHR  
     if [ -z "$fault_code_in_logfile" ]; then 
-        echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. Please check the log file provided \e[0m" 
+        echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. Trying to map fault code from log file text \e[0m"
+        flag=0
+        while read -r entry; do
+            key=$(echo "$entry" | jq -r '.key')
+            value=$(echo "$entry" | jq -r '.value')
+            if grep -qi "$key" "$failure_report_file"; then
+                fault_code="$value"
+                flag=1
+                break
+            fi
+        done < <(jq -c 'to_entries[]' "$config_file_ext")
+        if [ "$flag" -eq 0 ]; then
+            echo -e "\e[91m No failure found in log file. Please check the log file provided \e[0m"    
+        fi
         exit 0
+    else
+	    fault_code=$fault_code_in_logfile
     fi 
-	fault_code=$fault_code_in_logfile
     #Get the entire line of NHC error message from the fault code
     nhc_error=$(grep -m 1 "Faultcode:$fault_code" $failure_report_file | awk '{print}')   
     log "$FUNCNAME:The fault code is not empty: $fault_code" 
@@ -205,6 +220,7 @@ get_fault_code() {
 
 # The configuration file is fault_code.cfg file present in the config folder
 config_file=$(realpath -m "$fault_code_config_file_path")
+config_file_ext=$(realpath -m "$fault_code_config_file_ext_path")
 log "Configuration file in the $config_file"
 
 # Read the configuration file to find the value of fault_code and store it in fault_code_value. 

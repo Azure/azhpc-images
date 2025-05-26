@@ -19,8 +19,8 @@ pushd $DEST_TEST_DIR
 mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azurehpc-health-checks  
 pushd azurehpc-health-checks
 rm triggerGHR.sh
-cp ${COMMON_DIR}/trigger_aznhc_GHR.sh triggerGHR.sh
-chmox +x ./triggerGHR.sh
+cp ${COMMON_DIR}/trigger_aznhc_GHR.sh ./triggerGHR/triggerGHR.sh
+chmod +x ./triggerGHR/triggerGHR.sh
 cat > ./config/nhc_text_faultcode.json << EOF
 {
   "check_hw_ib:  No IB port": "NHC2004",

@@ -191,7 +191,7 @@ get_fault_code() {
         return
     fi
     # Read the health.log file in reverse order find the first occurrence of the fault_code and store it in fault_code_in_logfile variable
-    fault_code_in_logfile=$(tac $failure_report_file | awk '/Faultcode:/ && !/Faultcode:NHCNA/ {print $NF; exit}'| awk -F ':' '{print $2}')
+    fault_code_in_logfile=$(tac $failure_report_file | awk '/FaultCode:/ && !/FaultCode:NHCNA/ {print $NF; exit}')
     #faultcode is empty, then exit because without fault_code cannot trigger GHR  
     if [ -z "$fault_code_in_logfile" ]; then 
         echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. Trying to map fault code from log file text \e[0m"
@@ -265,7 +265,7 @@ get_impact_description() {
 
 #Function to get physical host name from kvp_pool registry and save it in variable physical_hostname
 # get physical host name
-pHostName=$(python3 ${AZ_NHC_ROOT}/getPhysHostName.py)
+pHostName=$(python3 ./../getPhysHostName.py)
 physical_hostname=$(echo $pHostName| awk '{print $4}')
 log "Physical hostname is $physical_hostname"
 

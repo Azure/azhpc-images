@@ -10,7 +10,7 @@ find "$script_directory" -type f \( -name "*.sh" -o -name "*.py" -o -name "*.cfg
 script_file_to_trigger_nhc="run-health-checks.sh" 
 health_log_file_name="./health.log" 
 fault_code_config_file_path="./config/nhc_fault_dictionary.cfg"
-fault_code_config_file_txt_path="./config/nhc_text_faultcode.json"
+fault_code_config_file_ext_path="./config/nhc_text_faultcode.json"
 trigger_ghr_log_file="triggerGHRlog.txt"
 env_file_path="./config/user.env"
 failure_report_file="" 
@@ -206,9 +206,9 @@ get_fault_code() {
             fi
         done < <(jq -c 'to_entries[]' "$config_file_ext")
         if [ "$flag" -eq 0 ]; then
-            echo -e "\e[91m No failure found in log file. Please check the log file provided \e[0m"    
+            echo -e "\e[91m No failure found in log file. Please check the log file provided \e[0m"
+            exit 0
         fi
-        exit 0
     else
 	    fault_code=$fault_code_in_logfile
     fi 

@@ -147,7 +147,7 @@
     "cuda": {
         "ubuntu20.04": {
             "driver": {
-                "version": "12.8",
+                "version": "12.6",
                 "distribution": "ubuntu2004"
             },
             "samples": {

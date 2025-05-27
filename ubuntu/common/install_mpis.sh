@@ -155,7 +155,6 @@ setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/inclu
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
 setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share/man
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
-setenv          I_MPI_STARTUP_MODE         pmi_shm
 EOF
 
 # Create symlinks for modulefiles

@@ -33,3 +33,6 @@ ctr plugin ls
 # Write the docker version to components file
 docker_version=$(docker --version | awk -F' ' '{print $3}')
 $COMMON_DIR/write_component_version.sh "docker" ${docker_version::-1}
+
+moby_engine_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
+$COMMON_DIR/write_component_version.sh "MOBY_ENGINE" ${moby_engine_version::-12}

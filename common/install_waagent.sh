@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
-
 function update_waagent_conf {
     key=$1
     value=$2

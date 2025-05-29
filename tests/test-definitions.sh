@@ -32,7 +32,7 @@ function ver {
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
-    ofed_info | grep ${VERSION_MOFED}
+    ofed_info | grep ${VERSION_OFED}
     check_exit_code "OFED installed" "OFED not installed"
 }
 
@@ -107,6 +107,7 @@ function verify_cuda_installation {
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted
+    sudo modprobe nvidia_peermem
     lsmod | grep nvidia_peermem
     check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 
@@ -208,8 +209,8 @@ function verify_package_updates {
         ubuntu) sudo apt -q --assume-no update;;
         almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
-        azurelinux) sudo dnf update -y --setopt tsflags=test;
-            sudo dnf clean packages;;
+        azurelinux) sudo tdnf update -y --setopt tsflags=test;
+            sudo tdnf clean packages;;
         * ) ;;
     esac
     check_exit_code "Package update works" "Package update fails!"
@@ -296,7 +297,7 @@ function verify_pssh_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
         almalinux) dnf list installed | grep pssh;;
-        azurelinux) dnf list installed | grep pssh;;
+        azurelinux) tdnf list installed | grep pssh;;
         * ) ;;
     esac
     check_exit_code "PSSH Installed" "PSSH not installed!"
@@ -312,7 +313,7 @@ function verify_dcgm_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
         almalinux) dnf list installed | grep datacenter-gpu-manager;;
-        azurelinux) dnf list installed | grep datacenter-gpu-manager;;
+        azurelinux) tdnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac
     check_exit_code "DCGM Installed" "DCGM not installed!"

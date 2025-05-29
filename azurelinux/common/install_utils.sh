@@ -6,8 +6,6 @@ echo ${COMMON_DIR}
 
 source ${COMMON_DIR}/utilities.sh
 
-tdnf install -y git
-
 # Install Kernel dependencies
 tdnf install -y kernel-headers-$(uname -r) \
                 kernel-devel-$(uname -r) \
@@ -111,3 +109,4 @@ $COMMON_DIR/copy_torset_tool.sh
 
 # Create alias for "ls -l"
 echo "alias ll='ls -l'" | tee -a /etc/bash.bashrc
+

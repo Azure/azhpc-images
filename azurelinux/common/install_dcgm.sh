@@ -11,7 +11,7 @@ DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 
-tdnf install -y /home/packer/azurelinux-hpc/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
+tdnf install -y /home/packer/azhpc-images/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
 
 $COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
 

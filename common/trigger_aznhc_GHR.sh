@@ -2,6 +2,7 @@
 
 # Get the absolute path of the directory containing the script
 script_directory=$(dirname "$(realpath "$0")")
+parent_directory=$(realpath "$script_directory/..")
 
 # Set execute permission recursively for all files with .sh or .py extension in the directory and subdirectories
 find "$script_directory" -type f \( -name "*.sh" -o -name "*.py" -o -name "*.cfg" \) -exec chmod u+rx {} \; -o -name "*.env" -exec chmod u+rwx {} \;
@@ -265,7 +266,7 @@ get_impact_description() {
 
 #Function to get physical host name from kvp_pool registry and save it in variable physical_hostname
 # get physical host name
-pHostName=$(python3 ./../getPhysHostName.py)
+pHostName=$(python3 ${parent_directory}/getPhysHostName.py)
 physical_hostname=$(echo $pHostName| awk '{print $4}')
 log "Physical hostname is $physical_hostname"
 

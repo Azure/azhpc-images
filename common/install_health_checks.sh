@@ -28,6 +28,7 @@ cat > ./triggerGHR/config/nhc_text_faultcode.json << EOF
   "check_gpu_bw: Failed to run NVBandwidth": "NHC2020"
 }
 EOF
+dos2unix ./triggerGHR/config/*
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then

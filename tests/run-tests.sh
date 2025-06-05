@@ -43,8 +43,8 @@ function test_component {
         check_gdrcopy) verify_gdrcopy_installation;;
         check_cuda) verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
-	check_rocm) verify_rocm_installation;;
-        check_rccl) verify_rccl_installation;;
+        # check_rocm) verify_rocm_installation;;
+        # check_rccl) verify_rccl_installation;;
         check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;

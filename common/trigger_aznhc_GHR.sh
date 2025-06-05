@@ -126,6 +126,7 @@ use_file_to_triggerGHR() {
             exit 0    
         else
             log "$FUNCNAME: Additional custom rule path set to $file_mode_custom_rule_path " 
+        fi    
     fi 
 }
 
@@ -215,7 +216,7 @@ get_fault_code() {
     #faultcode is empty, then exit because without fault_code cannot trigger GHR  
     if [ -z "$fault_code_in_logfile" ]; then 
         echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. \e[0m"
-        if [ -n $file_mode_custom_rule_path ]; then
+        if [ -n "$file_mode_custom_rule_path" ]; then
             echo -e "\e[91m Additional custom rule is enabled. Trying to map fault code from it \e[0m"
             flag=0
             while read -r entry; do
@@ -233,6 +234,7 @@ get_fault_code() {
             fi
         else
             echo -e "\e[91m Please check the log file provided \e[0m"
+            exit 0
         fi
     else
 	    fault_code=$fault_code_in_logfile

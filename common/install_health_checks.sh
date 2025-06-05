@@ -21,6 +21,8 @@ mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azureh
 pushd azurehpc-health-checks
 rm ./triggerGHR/triggerGHR.sh
 cp ${GHR_SOURCE_DIR}/trigger_aznhc_GHR.sh ./triggerGHR/triggerGHR.sh
+dos2unix ./triggerGHR/config/*
+chmod +x ./triggerGHR/triggerGHR.sh
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then

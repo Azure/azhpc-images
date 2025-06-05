@@ -11,12 +11,12 @@ find "$script_directory" -type f \( -name "*.sh" -o -name "*.py" -o -name "*.cfg
 script_file_to_trigger_nhc="run-health-checks.sh" 
 health_log_file_name="./health.log" 
 fault_code_config_file_path="./config/nhc_fault_dictionary.cfg"
-fault_code_config_file_ext_path="./config/nhc_text_faultcode.json"
 trigger_ghr_log_file="triggerGHRlog.txt"
 env_file_path="./config/user.env"
 failure_report_file="" 
 file_path="" 
 script_path="" 
+file_mode_custom_rule_path=""
 usage_color_code="\e[94m"
 object_id=""
 impact_category=""
@@ -48,7 +48,8 @@ usage() {
 echo -e "${usage_color_code} Usage: $0 can be run by using the option [-s <script_path>] or [-f <file_path>]." 
 echo   
 echo "Please provide appropriate Options:" 
-echo " -f <file_path>     Use -f option to trigger GHR through ImpactRP. Specify the path of health.log file as input" 
+echo " -f <file_path>     Use -f option to trigger GHR through ImpactRP. Specify the path of health.log file as input"
+echo " -c <file_mode_custom_rule_path>     (Optional, with -f) Specify an additional fault code detection rule file for ImpactRP processing" 
 echo " -s <script_path>   Use -s option to trigger NHC. Specify the path of azurehpc-health-checks folder as input" 
 echo " -r                 Use -r option to trigger the Impact reporting with user defined scenerio"
 echo -e "\e[0m" 
@@ -56,7 +57,7 @@ exit 1
 }
 
 #Parse command-line arguments
-while getopts "f:s:r" opt; do 
+while getopts "f:s:c:r" opt; do 
     case $opt in 
 	s) 
     script_path=$OPTARG 
@@ -65,6 +66,9 @@ while getopts "f:s:r" opt; do
     f) 
     file_path=$OPTARG 
 	impact_rp="true"
+    ;;
+    c)
+    file_mode_custom_rule_path="$OPTARG"
     ;;
     r)  
 	report_impact="true"
@@ -81,6 +85,14 @@ if [[ -z $file_path && -z $script_path && "$report_impact" != "true" ]]; then
 	echo 
     echo -e "\e[91m No options provided. Please provide appropriate options. \e[0m" 
  	usage
+fi
+
+if [[ -n "$file_mode_custom_rule_path" ]]; then
+    if [[ -n $report_impact || -n $script_path ]]; then
+        echo
+        echo -e "\e[91m Error: -c can only be used with -f option. \e[0m" 
+        usage
+    fi
 fi
 
 # Function to log messages
@@ -101,13 +113,20 @@ log_header
 # Check to see if file_path is not empty and also check file exists in the path provided 
 #File exists, then set the failure_report_file to file provided by the user
 use_file_to_triggerGHR() {
-#File dosent exist, then exit
-if ! [ -f "$file_path" ]; then 
-echo -e "\e[91m File does not exist in the path provided \e[0m" 
-exit 0    
-fi 
-failure_report_file=$file_path 
-log "$FUNCNAME:Log file set to $failure_report_file " 
+    #File dosent exist, then exit
+    if ! [ -f "$file_path" ]; then 
+        echo -e "\e[91m File does not exist in the path provided \e[0m" 
+        exit 0    
+    fi 
+    failure_report_file=$file_path
+    log "$FUNCNAME:Log file set to $failure_report_file "    
+    if [ -n "$file_mode_custom_rule_path" ]; then
+        if [ ! -f "$file_mode_custom_rule_path" ]; then
+            echo -e "\e[91m File mode custom rule path is specified, but does not exist \e[0m" 
+            exit 0    
+        else
+            log "$FUNCNAME: Additional custom rule path set to $file_mode_custom_rule_path " 
+    fi 
 }
 
 # Check if the script file exists and is executable from the path provided, otherwise exit the script
@@ -195,20 +214,25 @@ get_fault_code() {
     fault_code_in_logfile=$(tac $failure_report_file | awk '/FaultCode:/ && !/FaultCode:NHCNA/ {print $NF; exit}')
     #faultcode is empty, then exit because without fault_code cannot trigger GHR  
     if [ -z "$fault_code_in_logfile" ]; then 
-        echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. Trying to map fault code from log file text \e[0m"
-        flag=0
-        while read -r entry; do
-            key=$(echo "$entry" | jq -r '.key')
-            value=$(echo "$entry" | jq -r '.value')
-            if grep -qi "$key" "$failure_report_file"; then
-                fault_code="$value"
-                flag=1
-                break
+        echo -e "\e[91m Fault code not present in log file to trigger ImpactRP. \e[0m"
+        if [ -n $file_mode_custom_rule_path ]; then
+            echo -e "\e[91m Additional custom rule is enabled. Trying to map fault code from it \e[0m"
+            flag=0
+            while read -r entry; do
+                key=$(echo "$entry" | jq -r '.key')
+                value=$(echo "$entry" | jq -r '.value')
+                if grep -qi "$key" "$failure_report_file"; then
+                    fault_code="$value"
+                    flag=1
+                    break
+                fi
+            done < <(jq -c 'to_entries[]' "$file_mode_custom_rule_path")
+            if [ "$flag" -eq 0 ]; then
+                echo -e "\e[91m No failure mapped to the custom rule . Please check the log file provided \e[0m"
+                exit 0
             fi
-        done < <(jq -c 'to_entries[]' "$config_file_ext")
-        if [ "$flag" -eq 0 ]; then
-            echo -e "\e[91m No failure found in log file. Please check the log file provided \e[0m"
-            exit 0
+        else
+            echo -e "\e[91m Please check the log file provided \e[0m"
         fi
     else
 	    fault_code=$fault_code_in_logfile
@@ -221,7 +245,6 @@ get_fault_code() {
 
 # The configuration file is fault_code.cfg file present in the config folder
 config_file=$(realpath -m "$fault_code_config_file_path")
-config_file_ext=$(realpath -m "$fault_code_config_file_ext_path")
 log "Configuration file in the $config_file"
 
 # Read the configuration file to find the value of fault_code and store it in fault_code_value. 
@@ -271,22 +294,22 @@ physical_hostname=$(echo $pHostName| awk '{print $4}')
 log "Physical hostname is $physical_hostname"
 
 check_empty() { 
-while [ "$#" -gt 0 ]; do 
-  key="$1" 
-  value="$2" 
-  if [ -z "$value" ]; then 
-   log "Variable '$key' is empty" 
-  else 
-   log "Variable' $key' has value" 
-  fi 
+    while [ "$#" -gt 0 ]; do 
+    key="$1" 
+    value="$2" 
+    if [ -z "$value" ]; then 
+    log "Variable '$key' is empty" 
+    else 
+    log "Variable' $key' has value" 
+    fi 
 
-  shift 2     
-done
+    shift 2     
+    done
 }
 
 ####### Main script ########
 if [[ "$impact_rp" == "true" && ! -z "$file_path" ]]; then 
-use_file_to_triggerGHR "$impact_rp" "$file_path"
+use_file_to_triggerGHR "$impact_rp" "$file_path" "$file_mode_custom_rule_path"
 fi
 
 if [[ "$nhc" == "true" && ! -z "$script_path" ]]; then 

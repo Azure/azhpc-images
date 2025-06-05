@@ -21,14 +21,6 @@ mkdir azurehpc-health-checks && tar -xvf $TARBALL --strip-components=1 -C azureh
 pushd azurehpc-health-checks
 rm ./triggerGHR/triggerGHR.sh
 cp ${GHR_SOURCE_DIR}/trigger_aznhc_GHR.sh ./triggerGHR/triggerGHR.sh
-chmod +x ./triggerGHR/triggerGHR.sh
-cat > ./triggerGHR/config/nhc_text_faultcode.json << EOF
-{
-  "check_hw_ib:  No IB port": "NHC2004",
-  "check_gpu_bw: Failed to run NVBandwidth": "NHC2020"
-}
-EOF
-dos2unix ./triggerGHR/config/*
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then

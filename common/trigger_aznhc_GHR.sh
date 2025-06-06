@@ -240,7 +240,7 @@ get_fault_code() {
 	    fault_code=$fault_code_in_logfile
     fi 
     #Get the entire line of NHC error message from the fault code
-    nhc_error=$(grep -m 1 "Faultcode:$fault_code" $failure_report_file | awk '{print}')   
+    nhc_error=$(grep -m 1 "FaultCode: $fault_code" $failure_report_file | awk '{print}')   
     log "$FUNCNAME:The fault code is not empty: $fault_code" 
     log "$FUNCNAME:The error for faultcode '$fault_code' is '$nhc_error'"
 }

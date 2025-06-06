@@ -54,6 +54,10 @@ modprobe nvidia-peermem
 # verify if loaded
 lsmod | grep nvidia_peermem
 
+# for V100, seems like we need to explicitly specify the module to be loaded at boot time
+touch /etc/modules-load.d/nvidia-peermem.conf
+echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
+
 $ALMA_COMMON_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)

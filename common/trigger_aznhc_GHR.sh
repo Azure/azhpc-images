@@ -49,7 +49,7 @@ echo -e "${usage_color_code} Usage: $0 can be run by using the option [-s <scrip
 echo   
 echo "Please provide appropriate Options:" 
 echo " -f <file_path>     Use -f option to trigger GHR through ImpactRP. Specify the path of health.log file as input"
-echo " -c <file_mode_custom_rule_path>     (Optional, with -f) Specify an additional fault code detection rule file for ImpactRP processing" 
+echo " -c <file_mode_custom_rule_path>     (Optional, with -f or -s) Specify an additional fault code detection rule file for ImpactRP processing" 
 echo " -s <script_path>   Use -s option to trigger NHC. Specify the path of azurehpc-health-checks folder as input" 
 echo " -r                 Use -r option to trigger the Impact reporting with user defined scenerio"
 echo -e "\e[0m" 
@@ -88,9 +88,9 @@ if [[ -z $file_path && -z $script_path && "$report_impact" != "true" ]]; then
 fi
 
 if [[ -n "$file_mode_custom_rule_path" ]]; then
-    if [[ -n $report_impact || -n $script_path ]]; then
+    if [[ -n $report_impact ]]; then
         echo
-        echo -e "\e[91m Error: -c can only be used with -f option. \e[0m" 
+        echo -e "\e[91m Error: -c can only be used with -f or -s option. \e[0m" 
         usage
     fi
 fi
@@ -138,6 +138,14 @@ execute_nhc_to_triggerGHR(){
       echo -e "\e[91m Script does not exist or not executable in the provided path \e[0m" 
 	  exit 0 
     fi 
+    if [ -n "$file_mode_custom_rule_path" ]; then
+        if [ ! -f "$file_mode_custom_rule_path" ]; then
+            echo -e "\e[91m File mode custom rule path is specified, but does not exist \e[0m" 
+            exit 0    
+        else
+            log "$FUNCNAME: Additional custom rule path set to $file_mode_custom_rule_path " 
+        fi    
+    fi     
     echo "NHC script is being executed...."
     #Set the log file to the health.log file present in the current folder
     failure_report_file=$(realpath -m "$health_log_file_name")
@@ -315,7 +323,7 @@ use_file_to_triggerGHR "$impact_rp" "$file_path" "$file_mode_custom_rule_path"
 fi
 
 if [[ "$nhc" == "true" && ! -z "$script_path" ]]; then 
-execute_nhc_to_triggerGHR "$nhc" "$script_path"
+execute_nhc_to_triggerGHR "$nhc" "$script_path" "$file_mode_custom_rule_path"
 fi
 
 if [ "$report_impact" == "true" ]; then

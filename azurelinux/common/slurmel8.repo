@@ -1,0 +1,7 @@
+[slurm]
+name=Slurm Workload Manager
+baseurl=https://packages.microsoft.com/yumrepos/slurm-el8-insiders
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+priority=10

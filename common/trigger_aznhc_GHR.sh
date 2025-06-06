@@ -283,7 +283,7 @@ get_impact_category() {
 # Get the impact description from the NHC error message If NHC error message is empty, then set the impact description to generic_fault_code_value
 get_impact_description() {
     #Setting the impact description as the error message received from NHC
-    impact_description=$(echo "$nhc_error" | awk -F ': ' '{print $5}') 
+    impact_description=$(echo "$nhc_error" | awk -F ': ' '{for (i=5; i<=NF; i++) printf (i==5?"":" : ") $i; print ""}')
     # If impact description was not set based on NHC error message, then impact description is set based on generic_fault_code_value HPC Generic error
     if [ -z "$impact_description" ]; then
     #If impact description is empty and there is no user defined fault details, then set the impact description to generic_fault_code_value

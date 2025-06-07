@@ -49,6 +49,11 @@ NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
 bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE}
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
+
+# for V100, seems like we need to explicitly specify the module to be loaded at boot time
+touch /etc/modules-load.d/nvidia-peermem.conf
+echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
+
 $UBUNTU_COMMON_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)

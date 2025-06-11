@@ -10,6 +10,12 @@ CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
 CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 
+if [ "$1" = "V100" ]; then
+    KERNEL_MODULE_TYPE="proprietary"
+else
+    KERNEL_MODULE_TYPE="open"
+fi
+
 # Install Cuda
 dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
 dnf clean expire-cache
@@ -38,7 +44,7 @@ NVIDIA_DRIVER_SHA256=$(jq -r '.sha256' <<< $nvidia_driver_metadata)
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run
 
 $COMMON_DIR/download_and_verify.sh $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
-bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms
+bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE}
 dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
 $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 
@@ -47,6 +53,9 @@ $COMMON_DIR/write_component_version.sh "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 modprobe nvidia-peermem
 # verify if loaded
 lsmod | grep nvidia_peermem
+
+touch /etc/modules-load.d/nvidia-peermem.conf
+echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
 $ALMA_COMMON_DIR/install_gdrcopy.sh
 

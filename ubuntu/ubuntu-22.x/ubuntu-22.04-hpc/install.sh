@@ -1,21 +1,21 @@
 #!/bin/bash
 set -ex
 
-GPUi="NVIDIA"
-
-if [[ "$#" -gt 0 ]]; then
-    INPUT=$1
-    if [ "$INPUT" == "AMD" ]; then
-        GPUi="AMD"
-        echo "Configuring VM for AMD GPUs."
-    elif [ "$INPUT" != "NVIDIA" ]; then
-        echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
-	exit 1
-    fi
+# Check if arguments are passed
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Error: Missing arguments. Please provide both GPU type (NVIDIA/AMD) and SKU."
+    exit 1
 fi
 
+export GPU=$1
+export SKU=$2
 
-export GPU=$GPUi
+if [[ "$#" -gt 0 ]]; then
+   if [[ "$GPU" != "NVIDIA" && "$GPU" != "AMD" ]]; then
+       echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
+       exit 1
+    fi
+fi
 
 # install pre-requisites
 ./install_prerequisites.sh
@@ -46,7 +46,7 @@ $UBUNTU_COMMON_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
-    ./install_nvidiagpudriver.sh
+    ./install_nvidiagpudriver.sh "$SKU"
     
     # Install NCCL
     $UBUNTU_COMMON_DIR/install_nccl.sh

@@ -34,7 +34,7 @@ popd
 
 # Install the nccl rdma sharp plugin
 mkdir -p /usr/local/nccl-rdma-sharp-plugins
-apt install -y zlib1g-dev
+apt install -y zlib1g-dev libibverbs-dev  
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
 git checkout ${NCCL_RDMA_SHARP_COMMIT}

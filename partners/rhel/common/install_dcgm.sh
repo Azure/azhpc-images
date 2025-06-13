@@ -4,9 +4,8 @@ set -ex
 source ${COMMON_DIR}/utilities.sh
 
 # Set DCGM version info
-#dcgm_metadata=$(get_component_config "dcgm")
-#DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
+dcgm_metadata=$(get_component_config "dcgm")
+DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads

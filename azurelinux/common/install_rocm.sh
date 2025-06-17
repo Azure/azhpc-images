@@ -2,18 +2,19 @@
 set -ex
 source ${COMMON_DIR}/utilities.sh
 
+rocm_metadata=$(get_component_config "rocm")
+ROCM_VERSION=$(jq -r '.version' <<< $rocm_metadata)
+AMDGPU_VERSION=$(jq -r '.amdgpu' <<< $rocm_metadata)
 
 tdnf install -y azurelinux-repos-amd
 tdnf repolist --refresh
-
 tdnf -y install kernel-drivers-gpu-$(uname -r)
-# Install AMD GPU OOT modules and firmware packages from PMC
-tdnf -y install https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-6.10.5.60302_2109964-1_6.6.82.1.1.azl3.x86_64.rpm \
-        https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-firmware-6.10.5.60302_2109964-1.azl3.noarch.rpm \
-        https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-headers-6.10.5.60302_2109964-1.azl3.noarch.rpm
 
-rocm_metadata=$(get_component_config "rocm")
-ROCM_VERSION=$(jq -r '.version' <<< $rocm_metadata)
+tdnf -y install \
+   https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-${AMDGPU_VERSION}_$(uname -r | sed 's/-/./').x86_64.rpm \
+   https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-firmware-${AMDGPU_VERSION}.azl3.noarch.rpm \
+   https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-headers-${AMDGPU_VERSION}.azl3.noarch.rpm
+
 # Add Azure Linux 3 ROCM repo file
 cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
 [amd_rocm]
@@ -111,6 +112,3 @@ echo $PWD
 
 echo "INSTALLED ROCM!! ${ROCM_VERSION}"
 $COMMON_DIR/write_component_version.sh "ROCM" $ROCM_VERSION
-
-
-

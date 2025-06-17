@@ -36,8 +36,6 @@ pushd ~/rccl-tests
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
-HPCX="/opt/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64/"
-HPCX+="ompi/"
 RCCLLIB="/opt/rccl/lib/librccl.so"
 RCCLDIR="/opt/rccl"
 

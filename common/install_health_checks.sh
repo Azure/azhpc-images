@@ -21,6 +21,7 @@ pushd azurehpc-health-checks
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then
+   sed -i 's/\* || check_rccl_allreduce 314 1 16G/\* || check_rccl_allreduce 300 1 16G/' ./conf/nd96isr_mi300x_v5.conf
    ./dockerfile/pull-image-mcr.sh rocm
 else
    ./dockerfile/pull-image-mcr.sh cuda

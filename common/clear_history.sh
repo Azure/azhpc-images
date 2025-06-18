@@ -8,6 +8,10 @@ find_distro() {
     then
         local alma_distro=`find_alma_distro`
         echo "${os} ${alma_distro}"
+    elif [[ $os == "Red Hat Enterprise Linux" ]]
+    then
+        local rhel_distro=`find_rhel_distro`
+        echo "${os} ${rhel_distro}"
     elif [[ $os == "Ubuntu" ]]
     then
         local ubuntu_distro=`find_ubuntu_distro`
@@ -24,6 +28,11 @@ find_distro() {
 
 # Find Alma distro
 find_alma_distro() {
+    echo `cat /etc/redhat-release | awk '{print $3}'`
+}
+
+# Find RHEL distro
+find_rhel_distro() {
     echo `cat /etc/redhat-release | awk '{print $3}'`
 }
 
@@ -56,8 +65,12 @@ fi
 if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get purge -y mdatp
-else
+elif [[ $distro == *"AzureLinux"* ]]
+then
     tdnf remove -y mdatp
+else
+    yum remove -y mdatp
+
 fi
 
 # Clear History
@@ -94,8 +107,11 @@ cat /dev/null > /etc/machine-id
 if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get clean
-else
+elif [[ $distro == *"AzureLinux"* ]]
+then
     tdnf clean all
+else
+    yum clean all
 fi
 
 # Zero out unused space to minimize actual disk usage

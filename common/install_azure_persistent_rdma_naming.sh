@@ -15,8 +15,6 @@ TARBALL="v${RDMA_CORE_VERSION}.tar.gz"
 RDMA_CORE_DOWNLOAD_URL=https://github.com/linux-rdma/rdma-core/archive/refs/tags/${TARBALL}
 $COMMON_DIR/download_and_verify.sh ${RDMA_CORE_DOWNLOAD_URL} ${RDMA_CORE_SHA} /tmp
 
-tdnf install -y git
-
 pushd /tmp
 mkdir rdma-core && tar -xvf $TARBALL --strip-components=1 -C rdma-core 
 
@@ -31,9 +29,6 @@ popd
 # setup systemd service
 #
 
-echo "IBSTAT DEBUG:"
-sudo ibstat
-
 cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 #!/bin/bash
 
@@ -41,8 +36,6 @@ rdma_rename=/usr/sbin/rdma_rename_${RDMA_CORE_VERSION}
 
 an_index=0
 ib_index=0
-
-echo "RENAMING..."
 
 for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
 
@@ -85,8 +78,5 @@ EOF
 
 systemctl enable azure_persistent_rdma_naming.service
 systemctl start azure_persistent_rdma_naming.service
-
-echo "IBSTAT DEBUG:"
-sudo ibstat
 
 $COMMON_DIR/install_azure_persistent_rdma_naming_monitor.sh      

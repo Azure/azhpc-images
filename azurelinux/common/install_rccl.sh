@@ -1,26 +1,35 @@
 #!/bin/bash
 set -ex
+source ${COMMON_DIR}/utilities.sh
+
+echo $PWD
+
+rccl_metadata=$(get_component_config "rccl")
+rccl_version=$(jq -r '.version' <<< $rccl_metadata)
+rccl_url=$(jq -r '.url' <<< $rccl_metadata)
+rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
+#the content of this tar ball is rccl but its name is misleading
+TARBALL=$(basename ${rccl_url})
+rccl_folder=rccl-$(basename $TARBALL .tar.gz)
 
 tdnf install -y libstdc++-devel
 
 # tdnf remove -y rccl
+$COMMON_DIR/download_and_verify.sh ${rccl_url} ${rccl_sha256}
+tar -xzf ${TARBALL}
 
-pushd ~
-git clone https://github.com/rocm/rccl
-popd
-mkdir ~/rccl/build
-pushd ~/rccl/build
+mkdir ./${rccl_folder}/build
+pushd ./${rccl_folder}/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
-make -j $(nproc)
+make -j$(nproc)
 make install
 popd
-
-pushd ~
+rm -rf ${TARBALL} ${rccl_folder}
 
 # sysctl kernel.numa_balancing=0
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 
-
+pushd ~
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 pushd ~/rccl-tests
 
@@ -57,5 +66,8 @@ pushd ~/rdma-perftest
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
 make -j $(nproc)
 make install
-
 popd
+popd
+
+echo "INSTALLED RCCL!! ${rccl_version}"
+$COMMON_DIR/write_component_version.sh "RCCL" $rccl_version

@@ -29,20 +29,7 @@ tdnf install -y bison \
 
 mofed_metadata=$(get_component_config "mofed")
 MOFED_VERSION=$(jq -r '.version' <<< $mofed_metadata)
-# MOFED_SHA256=$(jq -r '.sha256' <<< $mofed_metadata)
-# TARBALL="MLNX_OFED_SRC-$MOFED_VERSION.tgz"
-# MOFED_DOWNLOAD_URL=https://www.mellanox.com/downloads/ofed/MLNX_OFED-$MOFED_VERSION/$TARBALL
-# MOFED_FOLDER=$(basename $MOFED_DOWNLOAD_URL .tgz)
-# kernel_without_arch="${KERNEL%.*}"
 
-# $COMMON_DIR/download_and_verify.sh $MOFED_DOWNLOAD_URL $MOFED_SHA256
-# tar zxvf $TARBALL
-
-# pushd $MOFED_FOLDER
-# ./install.pl --all --without-openmpi
-# popd
-
-# Install MOFED and its dependencies from PMC
 tdnf install -y libibumad \
                 infiniband-diags \
                 libibverbs \
@@ -86,10 +73,12 @@ tdnf install -y libibumad \
                 ucx-knem \
                 xpmem \
                 xpmem-modules \
-                ucx-xpmem
+                ucx-xpmem \
+                libunwind \
+                libunwind-devel
 
 echo "INSTALLED MOFED!! ${MOFED_VERSION}"
-$COMMON_DIR/write_component_version.sh "MOFED" $MOFED_VERSION
+$COMMON_DIR/write_component_version.sh "OFED" $MOFED_VERSION
 
 # Restarting openibd
 # /etc/init.d/openibd restart

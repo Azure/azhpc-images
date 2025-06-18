@@ -25,11 +25,14 @@ function check_exit_code {
     fi
 }
 
+function ver { 
+    printf "%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
-    echo "IN TEST DEFINITIONS: CHECKING WHAT VERSION_OFED VALUE IS : ${VERSION_MOFED}"
-    ofed_info | grep ${VERSION_MOFED}
+    ofed_info | grep ${VERSION_OFED}
     check_exit_code "OFED installed" "OFED not installed"
 }
 
@@ -100,7 +103,7 @@ function verify_ompi_installation {
 
 function verify_cuda_installation {
     # Verify NVIDIA Driver installation
-    nvidia-smi
+    nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted
@@ -114,9 +117,18 @@ function verify_cuda_installation {
     # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
     
+    # Check that the CUDA runtime version isn't newer than the driver CUDA version.
+    # Having a newer CUDA runtime breaks gpu-burn
+    if [[ $(ver ${VERSION_CUDA}) -gt $(ver ${nvidia_driver_cuda_version})  ]]; then
+        echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
+        exit -1
+    else
+        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"    
+    fi
+
     # Verify the compilation of CUDA samples
-    /usr/local/cuda-12.5/samples/0_Introduction/mergeSort/mergeSort
-    # check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
+    /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 
 function verify_nccl_installation {
@@ -227,16 +239,15 @@ function verify_gcc_installation {
 
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
-    echo "##CHECKING FOR GG MODULE FILE: ${VERSION_GCC}"
     # Verify GCC Software installation path
-    # check_exists "/opt/gcc-${VERSION_GCC}/"
+    check_exists "/opt/gcc-${VERSION_GCC}/"
     # Verify GCC module file path
-    # check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
+    check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
 }
 
 function verify_aocl_installation {
     # verify AMD modulefiles
-    # check_exists "${MODULE_FILES_ROOT}/amd/aocl"
+    check_exists "${MODULE_FILES_ROOT}/amd/aocl"
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
 }
@@ -249,7 +260,7 @@ function verify_aocc_installation {
 function verify_docker_installation {
     sudo docker pull hello-world
     sudo docker run hello-world
-    check_exit_code "docker ${VERSION_DOCKER}" "Problem with Docker!"
+    check_exit_code "Docker ${VERSION_DOCKER}" "Problem with Docker!"
     sudo docker rm $(sudo docker ps -aq)
     sudo docker rmi hello-world
 }
@@ -269,10 +280,10 @@ function verify_lustre_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
         almalinux) dnf list installed | grep lustre-client;;
-        # azurelinux) tdnf list installed | grep lustre-client;;
+        azurelinux) dnf list installed | grep lustre-client;;
         * ) ;;
     esac
-    # check_exit_code "Lustre Installed" "Lustre not installed!"
+    check_exit_code "Lustre Installed" "Lustre not installed!"
 }
 
 function verify_gdrcopy_installation {
@@ -295,7 +306,6 @@ function verify_pssh_installation {
 function verify_aznfs_installation {
     # verify AZNFS Mount Helper installation
     check_exists "/opt/microsoft/aznfs/"
-    echo "##### TEST SET DONE ... CONTINUING #####"
 }
 
 function verify_dcgm_installation {

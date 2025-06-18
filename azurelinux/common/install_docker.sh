@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-# source ${COMMON_DIR}/utilities.sh
-
 # Install Moby Engine + CLI
 tdnf install -y moby-engine
 tdnf install -y moby-cli
@@ -38,8 +36,3 @@ $COMMON_DIR/write_component_version.sh "docker" ${docker_version::-1}
 
 moby_engine_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
 $COMMON_DIR/write_component_version.sh "MOBY_ENGINE" ${moby_engine_version::-12}
-
-# moby_engine_metadata=$(get_component_config "moby_engine")
-# MOBY_ENGINE_VERSION=$(jq -r '.version' <<< $moby_engine_metadata)
-# $COMMON_DIR/write_component_version.sh "MOBY_ENGINE" ${MOBY_ENGINE_VERSION}
-

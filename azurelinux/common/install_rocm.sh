@@ -1,15 +1,19 @@
 #!/bin/bash
-# set -ex
+set -ex
+source ${COMMON_DIR}/utilities.sh
+
 
 tdnf install -y azurelinux-repos-amd
 tdnf repolist --refresh
 
 tdnf -y install kernel-drivers-gpu-$(uname -r)
 # Install AMD GPU OOT modules and firmware packages from PMC
-tdnf -y install amdgpu-firmware \
-                amdgpu \
-                amdgpu-headers
+tdnf -y install https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-6.10.5.60302_2109964-1_6.6.82.1.1.azl3.x86_64.rpm \
+        https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-firmware-6.10.5.60302_2109964-1.azl3.noarch.rpm \
+        https://packages.microsoft.com/azurelinux/3.0/prod/amd/x86_64/Packages/a/amdgpu-headers-6.10.5.60302_2109964-1.azl3.noarch.rpm
 
+rocm_metadata=$(get_component_config "rocm")
+ROCM_VERSION=$(jq -r '.version' <<< $rocm_metadata)
 # Add Azure Linux 3 ROCM repo file
 cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
 [amd_rocm]
@@ -29,6 +33,18 @@ tdnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validatio
 #Add self to render and video groups so they can access gpus.
 usermod -a -G render $(logname)
 usermod -a -G video $(logname)
+
+
+#Grant access to GPUs to all users via udev rules
+cat <<'EOF' > /etc/udev/rules.d/70-amdgpu.rules
+KERNEL=="kfd", MODE="0666"
+SUBSYSTEM=="drm", KERNEL=="renderD*", MODE="0666"
+EOF
+
+udevadm control --reload-rules && sudo udevadm trigger
+
+#Update cloud.cfg to add the first user to the render group
+#sed -i 's/groups: \[.*/groups: \[render, adm, audio, cdrom, dialout, dip, floppy, lxd, netdev, plugdev, sudo, video\]/' /etc/cloud/cloud.cfg
 
 #add future new users to the render and video groups.
 # echo 'ADD_EXTRA_GROUPS=1' | tee -a /etc/adduser.conf
@@ -90,3 +106,11 @@ systemctl start rocmstartup
 systemctl enable rocmstartup
 
 tdnf install -y rocm-bandwidth-test
+
+echo $PWD
+
+echo "INSTALLED ROCM!! ${ROCM_VERSION}"
+$COMMON_DIR/write_component_version.sh "ROCM" $ROCM_VERSION
+
+
+

@@ -32,4 +32,3 @@ $COMMON_DIR/write_component_version.sh "WAAGENT_EXTENSIONS" ${waagent_extensions
 
 systemctl daemon-reload
 # Restart waagent service in distribution specific file as its name differs between distributions
-

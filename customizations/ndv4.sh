@@ -11,6 +11,7 @@ ln -sf /opt/microsoft/ndv4-topo.xml /opt/microsoft/ndv4/topo.xml
 bash -c "cat > /etc/nccl.conf" <<'EOF'
 NCCL_IB_PCI_RELAXED_ORDERING=1
 NCCL_TOPO_FILE=/opt/microsoft/ndv4/topo.xml
+NCCL_IGNORE_CPU_AFFINITY=1
 EOF
 
 ## NVIDIA Fabric manager
@@ -26,9 +27,5 @@ then
 fi
 
 ## load nvidia-peermem module
-#os=$(cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $NF}')
-#if [ ${os} == "azurelinux" ]
-#then
-    #modprobe nvidia_peermem
-#fi
+# modprobe nvidia-peermem
 

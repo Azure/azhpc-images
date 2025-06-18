@@ -34,7 +34,7 @@
                 "inline": [
                     "sudo yum --disablerepo=* --enablerepo=rhui-microsoft-* update -y rhui*",
                     "sudo yum install -y git",
-                    "git clone https://github.com/hmeiland/azhpc-images.git -b rhel",
+                    "git clone https://github.com/Azure/azhpc-images.git -b rhel8.10-20250616",
 		    "cd azhpc-images/partners/rhel/rhel-8.x/rhel-8.10-hpc; ./install.sh"
                 ]
             }

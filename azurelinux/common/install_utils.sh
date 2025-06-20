@@ -73,7 +73,8 @@ tdnf install -y numactl \
     gtest-devel \
     gmock-devel \
     hwloc-devel \
-    rsyslog
+    rsyslog \
+    dos2unix
 
 # Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf

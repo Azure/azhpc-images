@@ -32,3 +32,10 @@ cat << EOF >> /etc/udev/rules.d/60-rdma-persistent-naming.rules
 # Suppressing/overwriting the udev rule rdma_core package. NAME_KERNEL leaves the IB devices names as provided by the kernel.
 ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_KERNEL"
 EOF
+
+cat << EOF >> /etc/udev/rules.d/99-issm.rules
+KERNEL=="issm*", NAME="infiniband/%k"
+EOF
+
+udevadm control --reload-rules
+udevadm trigger

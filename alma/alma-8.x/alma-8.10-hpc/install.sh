@@ -1,10 +1,29 @@
 #!/bin/bash
 set -ex
 
+# Check if arguments are passed
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Error: Missing arguments. Please provide both GPU type (NVIDIA/AMD) and SKU."
+    exit 1
+fi
+
+export GPU=$1
+export SKU=$2
+
+if [[ "$#" -gt 0 ]]; then
+    if [ "$GPU" == "AMD" ]; then
+        GPUi="AMD"
+        echo "Error: AMD GPU support is not implemented yet for AlmaLinux."
+        exit 1
+    elif [ "$GPU" != "NVIDIA" ]; then
+        echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
+	    exit 1
+    fi
+fi
+
 # install pre-requisites
 ./install_prerequisites.sh
 
-export GPU="NVIDIA"
 
 if [[ "$#" -gt 0 ]]; then
     INPUT=$1
@@ -39,7 +58,7 @@ $ALMA_COMMON_DIR/install_pmix.sh
 $ALMA_COMMON_DIR/install_mpis.sh
 
 # install nvidia gpu driver
-$ALMA_COMMON_DIR/install_nvidiagpudriver.sh
+$ALMA_COMMON_DIR/install_nvidiagpudriver.sh "$SKU"
 
 # install AMD tuned libraries
 $COMMON_DIR/install_amd_libs.sh

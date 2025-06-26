@@ -1,12 +1,12 @@
-# Resource group name - ibLinuxGalleryRG in this example
+# Resource group name 
 sigResourceGroup=RHEL-imagebuilder
 # Datacenter location - West US 2 in this example
 location=westus2
 # Additional region to replicate the image to - East US in this example
 additionalregion=eastus
-# Name of the Azure Compute Gallery - myGallery in this example
+# Name of the Azure Compute Gallery
 sigName=RHEL_hpc_gallery
-# Name of the image definition to be created - myImageDef in this example
+# Name of the image definition to be created
 imageDefName=RHEL-hpc
 # Reference name in the image distribution metadata
 runOutputName=RHEL-hpc-SIG

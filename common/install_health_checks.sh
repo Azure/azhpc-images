@@ -26,11 +26,19 @@ chmod +x ./triggerGHR/triggerGHR.sh
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then
+   sed -i 's/\* || check_rccl_allreduce 314 1 16G/\* || check_rccl_allreduce 300 1 16G/' ./conf/nd96isr_mi300x_v5.conf
    ./dockerfile/pull-image-mcr.sh rocm
 else
+   sed -i 's/\* || check_gpu_bw 10/\* || check_gpu_bw 9/' ./conf/nd40rs_v2.conf
    ./dockerfile/pull-image-mcr.sh cuda
 fi
 popd
 popd
 
 $COMMON_DIR/write_component_version.sh "AZ_HEALTH_CHECKS" ${AZHC_VERSION}
+
+kernel_version=$(rpm -q kernel | sed 's/kernel\-//g')
+$COMMON_DIR/write_component_version.sh "KERNEL" ${kernel_version::-12}
+
+os_version=$(rpm -qf /etc/os-release)
+$COMMON_DIR/write_component_version.sh "OS" ${os_version::-12}

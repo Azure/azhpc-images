@@ -107,7 +107,6 @@ function verify_cuda_installation {
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted
-    sudo modprobe nvidia_peermem
     lsmod | grep nvidia_peermem
     check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 

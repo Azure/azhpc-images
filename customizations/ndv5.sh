@@ -27,5 +27,4 @@ then
 fi
 
 ## load nvidia-peermem module
-DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 modprobe nvidia-peermem

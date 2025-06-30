@@ -238,7 +238,7 @@ function verify_gcc_installation {
 
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
-    if [[ $ID != "azurelinux"]]; then
+    if [[ $ID != "azurelinux" ]]; then
         # Verify GCC Software installation path
         check_exists "/opt/gcc-${VERSION_GCC}/"
         # Verify GCC module file path

@@ -10,7 +10,7 @@ AZNFS_SHA256=$(jq -r '.sha256' <<< $aznfs_metadata)
 AZNFS_DOWNLOAD_URL=https://github.com/Azure/AZNFS-mount/releases/download/${AZNFS_VERSION}/aznfs_install.sh
 
 ${COMMON_DIR}/download_and_verify.sh $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
-if [[ $DISTRIBUTION == "azurelinux3.0"]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     sed -i 's/yum/tdnf/' aznfs_install.sh
 fi
 

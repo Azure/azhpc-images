@@ -17,7 +17,7 @@ function update_waagent_conf {
     fi
 }
 
-if [[ $DISTRIBUTION == "azurelinux3.0"]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     update_waagent_conf "OS.EnableRDMA" "y"
     update_waagent_conf "Extensions.GoalStatePeriod" "300"
     update_waagent_conf "Extensions.GoalStatePeriod" "300"

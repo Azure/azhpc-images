@@ -37,8 +37,9 @@ popd
 
 $COMMON_DIR/write_component_version.sh "AZ_HEALTH_CHECKS" ${AZHC_VERSION}
 
-kernel_version=$(rpm -q kernel | sed 's/kernel\-//g')
-$COMMON_DIR/write_component_version.sh "KERNEL" ${kernel_version::-12}
-
-os_version=$(rpm -qf /etc/os-release)
-$COMMON_DIR/write_component_version.sh "OS" ${os_version::-12}
+if [[ $DISTRIBUTION == "azurelinux3.0"]]; then
+   kernel_version=$(rpm -q kernel | sed 's/kernel\-//g')
+   $COMMON_DIR/write_component_version.sh "KERNEL" ${kernel_version::-12}
+   os_version=$(rpm -qf /etc/os-release)
+   $COMMON_DIR/write_component_version.sh "OS" ${os_version::-12}
+fi

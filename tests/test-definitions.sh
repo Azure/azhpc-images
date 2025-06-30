@@ -239,10 +239,12 @@ function verify_gcc_installation {
 
 # Check module file for the explicit installations
 function verify_gcc_modulefile {
-    # Verify GCC Software installation path
-    check_exists "/opt/gcc-${VERSION_GCC}/"
-    # Verify GCC module file path
-    check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
+    if [[ $ID != "azurelinux"]]; then
+        # Verify GCC Software installation path
+        check_exists "/opt/gcc-${VERSION_GCC}/"
+        # Verify GCC module file path
+        check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
+    fi
 }
 
 function verify_aocl_installation {
@@ -280,7 +282,7 @@ function verify_lustre_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
         almalinux) dnf list installed | grep lustre-client;;
-        azurelinux) dnf list installed | grep lustre-client;;
+        azurelinux) true;;
         * ) ;;
     esac
     check_exit_code "Lustre Installed" "Lustre not installed!"

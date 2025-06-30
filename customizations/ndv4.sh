@@ -27,5 +27,7 @@ then
 fi
 
 ## load nvidia-peermem module
-# modprobe nvidia-peermem
-
+DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
+if [[ $DISTRIBUTION != "azurelinux3.0"]]; then
+    modprobe nvidia-peermem
+fi

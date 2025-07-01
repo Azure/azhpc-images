@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -x
 
 ## Copy customization scripts to /opt/azurehpc/customizations
 mkdir -p /opt/azurehpc/customizations

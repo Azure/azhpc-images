@@ -170,12 +170,12 @@
         },
         "azurelinux3.0": {
             "driver": {
-                "version": "570.124.06",
+                "version": "570.120.33",
                 "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
             },
             "fabricmanager": {
                 "distribution": "azl3",
-                "version": "570.124.06",
+                "version": "570.120.33",
                 "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"       
             }
         }
@@ -269,7 +269,7 @@
             "distribution": "el8"
         },
         "azurelinux3.0": {
-            "version": "2.5-1",
+            "version": "2.5",
             "sha256": "9f1ddefaf7ebf09f1f4cb04873ed9fb255ddfd819ab1cf5ec2e73ed96140565a",
             "distribution": "azl3"
         }

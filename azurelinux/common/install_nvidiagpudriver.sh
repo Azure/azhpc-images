@@ -42,14 +42,14 @@ CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 # tdnf clean expire-cache
 
 # Install cuda-toolkit dependencies
-tdnf install -y /home/hpcuser/azhpc-images/prebuilt/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
-tdnf install -y /home/hpcuser/azhpc-images/prebuilt/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
+tdnf install -y $TOP_DIR/prebuilt/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
+tdnf install -y $TOP_DIR/prebuilt/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
 
 # Install cuda-toolkit and sub-packages
 # Till we publish to PMC repo we need to install 
 # each individual package for cmdline installation
 
-path_var="/home/hpcuser/azhpc-images/prebuilt"
+path_var="$TOP_DIR/prebuilt"
 version_var="-12.8.1_570.124.06-1.azl3"
 
 tdnf install -y $path_var/cuda-cccl$version_var.x86_64.rpm
@@ -109,7 +109,7 @@ $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
 TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
 CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
 # $COMMON_DIR/download_and_verify.sh $CUDA_SAMPLES_DOWNLOAD_URL $CUDA_SAMPLES_SHA256
-cp /home/hpcuser/azhpc-images/prebuilt/${TARBALL} .
+cp $TOP_DIR/prebuilt/${TARBALL} .
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 mkdir build && cd build

@@ -21,7 +21,9 @@ systemctl restart docker
 
 # Working setup can be tested by running a base CUDA container
 # nvidia-docker run -e NVIDIA_VISIBLE_DEVICES=all nvidia/cuda:11.0-base nvidia-smi
-
+mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 nvidia-ctk runtime configure --runtime=containerd
 
 # restart containerd service

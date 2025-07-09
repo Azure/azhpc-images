@@ -30,6 +30,8 @@ tdnf install -y bison \
 mofed_metadata=$(get_component_config "mofed")
 MOFED_VERSION=$(jq -r '.version' <<< $mofed_metadata)
 
+kernel_version=$(uname -r | sed 's/\-/./g')
+
 tdnf install -y libibumad \
                 infiniband-diags \
                 libibverbs \
@@ -40,28 +42,28 @@ tdnf install -y libibumad \
                 librdmacm-utils \
                 rdma-core \
                 rdma-core-devel \
-                mlnx-ofa_kernel \
-                mlnx-ofa_kernel-modules \
-                mlnx-ofa_kernel-devel \
-                mlnx-ofa_kernel-source \
-                mft_kernel \
+                mlnx-ofa_kernel-24.10-20_$kernel_version.x86_64 \
+                mlnx-ofa_kernel-modules-24.10-20_$kernel_version.x86_64 \
+                mlnx-ofa_kernel-devel-24.10-20_$kernel_version.x86_64 \
+                mlnx-ofa_kernel-source-24.10-20_$kernel_version.x86_64 \
+                mft_kernell-4.30.0-20_$kernel_version.x86_64 \
                 mstflint \
-                fwctl \
+                fwctl-24.10-20_$kernel_version.x86_64 \
                 ibacm \
                 ibarr \
                 ibsim \
-                iser \
-                isert \
-                knem \
-                knem-modules \
+                iser-24.10-20_$kernel_version.x86_64 \
+                isert-24.10-20_$kernel_version.x86_64 \
+                knem-1.1.4.90mlnx3-20_$kernel_version.x86_64 \
+                knem-modules-1.1.4.90mlnx3-20_$kernel_version.x86_64 \
                 perftest \
-                libxpmem \
-                libxpmem-devel \
+                libxpmem-2.7.4-20_$kernel_version.x86_64 \
+                libxpmem-devel-2.7.4-20_$kernel_version.x86_64 \
                 mlnx-ethtool \
                 mlnx-iproute2 \
-                mlnx-nfsrdma \
+                mlnx-nfsrdma-24.10-20_$kernel_version.x86_64 \
                 multiperf \
-                srp \
+                srp-24.10-20_$kernel_version.x86_64 \
                 srp_daemon \
                 ucx \
                 ucx-cma \
@@ -71,8 +73,8 @@ tdnf install -y libibumad \
                 ucx-rdmacm \
                 ucx-static \
                 ucx-knem \
-                xpmem \
-                xpmem-modules \
+                xpmem-2.7.4-20_$kernel_version.x86_64 \
+                xpmem-modules-2.7.4-20_$kernel_version.x86_64 \
                 ucx-xpmem \
                 libunwind \
                 libunwind-devel

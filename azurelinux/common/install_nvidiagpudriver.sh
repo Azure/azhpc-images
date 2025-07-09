@@ -15,13 +15,16 @@ NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_driver_metadata)
 
 tdnf repolist --refresh
 
+kernel_version=$(uname -r | sed 's/\-/./g')
+
+
 echo "Install CUDA GPU driver package for SKU: $1"
 if [ "$1" = "V100" ]; then
     # Install Nvidia GPU propreitary variant for V100 and older SKUs
-    tdnf install -y cuda
+    tdnf install -y cuda-$NVIDIA_DRIVER_VERSION-1_$kernel_version.x86_64
 else
     # Install Nvidia GPU open source variant for A100, H100 
-    tdnf install -y cuda-open
+    tdnf install -y cuda-open-$NVIDIA_DRIVER_VERSION-1_$kernel_version.x86_64
 fi
 
 $COMMON_DIR/write_component_version.sh "nvidia" $NVIDIA_DRIVER_VERSION

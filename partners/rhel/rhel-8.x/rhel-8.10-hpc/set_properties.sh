@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export TOP_DIR=../..
-export COMMON_DIR=../../../../common
+export COMMON_DIR=../../../../components
 export TOOLS_DIR=../../../../tools
 export RHEL_COMMON_DIR=../../common
 export TEST_DIR=../../../../tests

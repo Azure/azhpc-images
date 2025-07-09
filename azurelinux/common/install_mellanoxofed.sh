@@ -46,7 +46,7 @@ tdnf install -y libibumad \
                 mlnx-ofa_kernel-modules-24.10-20_$kernel_version.x86_64 \
                 mlnx-ofa_kernel-devel-24.10-20_$kernel_version.x86_64 \
                 mlnx-ofa_kernel-source-24.10-20_$kernel_version.x86_64 \
-                mft_kernell-4.30.0-20_$kernel_version.x86_64 \
+                mft_kernel-4.30.0-20_$kernel_version.x86_64 \
                 mstflint \
                 fwctl-24.10-20_$kernel_version.x86_64 \
                 ibacm \

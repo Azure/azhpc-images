@@ -73,6 +73,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     libunwind-devel
 fi
 
-write_component_version.sh "OFED" $MOFED_VERSION
+write_component_version "OFED" $MOFED_VERSION
 
 systemctl enable openibd

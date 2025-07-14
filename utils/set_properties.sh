@@ -20,7 +20,7 @@ elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
     # Import the newest AlmaLinux 8 GPG key
     rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
     yum install -y jq    
-    export MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles
+    export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles

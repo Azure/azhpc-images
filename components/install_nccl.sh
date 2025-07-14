@@ -63,7 +63,6 @@ git checkout ${NCCL_RDMA_SHARP_COMMIT}
 make
 make install
 popd
-popd
 
 # Build the nccl tests
 source /etc/profile.d/modules.sh
@@ -74,6 +73,7 @@ make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
+popd
 
 write_component_version "NCCL" ${NCCL_VERSION}
 

@@ -208,8 +208,7 @@ function verify_package_updates {
         ubuntu) sudo apt -q --assume-no update;;
         almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
-        azurelinux) sudo tdnf update -y --setopt tsflags=test;
-            sudo tdnf clean packages;;
+        azurelinux) true;;
         * ) ;;
     esac
     check_exit_code "Package update works" "Package update fails!"

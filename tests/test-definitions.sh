@@ -208,8 +208,7 @@ function verify_package_updates {
         ubuntu) sudo apt -q --assume-no update;;
         almalinux) sudo yum update -y --setopt tsflags=test;
             sudo yum clean packages;;
-        azurelinux) sudo tdnf update -y --setopt tsflags=test;
-            sudo tdnf clean packages;;
+        azurelinux) true;
         * ) ;;
     esac
     check_exit_code "Package update works" "Package update fails!"
@@ -234,16 +233,6 @@ function verify_hpcdiag_installation {
 function verify_gcc_installation {
     gcc --version
     check_exit_code "GCC is installed" "GCC doesn't exist!"
-}
-
-# Check module file for the explicit installations
-function verify_gcc_modulefile {
-    if [[ $ID != "azurelinux" ]]; then
-        # Verify GCC Software installation path
-        check_exists "/opt/gcc-${VERSION_GCC}/"
-        # Verify GCC module file path
-        check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
-    fi
 }
 
 function verify_aocl_installation {

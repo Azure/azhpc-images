@@ -19,7 +19,7 @@ tdnf -y install \
 cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
 [amd_rocm]
 name="AMD ROCM packages repo for Azure Linux 3.0"
-baseurl=https://repo.radeon.com/.hidden/c5c79c1ea1d0aa6008ddbd29c3ea1523/rocm/azurelinux3/6.2.2.1/main/
+baseurl=https://repo.radeon.com/.hidden/c5c79c1ea1d0aa6008ddbd29c3ea1523/rocm/azurelinux3/${ROCM_VERSION}/main/
 enabled=1
 repo_gpgcheck=0
 gpgcheck=0
@@ -74,13 +74,17 @@ cat <<'EOF' > /tmp/tempinit.sh
 at_count=0
 while [ $at_count -le 90 ]
 do
-    if [ $(lspci -d 1002:74b5 | wc -l) -eq 8 -o $(lspci -d 1002:740c | wc -l) -eq 16 ]; then
+    if [ $(lspci -d 1002:74b5 | wc -l) -eq 8 -o $(lspci -d 1002:74bd | wc -l) -eq 8 -o $(lspci -d 1002:740c | wc -l) -eq 16 ]; then
        echo Required number of GPUs found
        at_count=91
        sleep 120s
        echo doing Modprobe for amdgpu
-       sudo modprobe -r hyperv_drm
-       sudo modprobe amdgpu ip_block_mask=0x7f
+       if [ $(lspci -d 1002:740c | wc -l) -eq 16 ]; then
+          sudo modprobe amdgpu
+       else
+          sudo modprobe -r hyperv_drm
+          sudo modprobe amdgpu ip_block_mask=0x7f
+       fi
     else
        sleep 10
        at_count=$(($at_count + 1))

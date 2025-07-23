@@ -152,12 +152,14 @@ if [ -f "$FMSYSPATH" ]; then
 fi
 
 systemctl enable sku-customizations
-systemctl start sku-customizations
-systemctl is-active --quiet sku-customizations
-
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "SKU Customizations service Inactive!"
-    exit ${error_code}
+# modprobe nvidia-peermem cannot work before first reboot. Starting sku-customizations will fail. 
+if [[ $DISTRIBUTION != "azurelinux3.0" ]]; then
+    systemctl start sku-customizations
+    systemctl is-active --quiet sku-customizations
+    error_code=$?
+    if [ ${error_code} -ne 0 ]
+    then
+        echo "SKU Customizations service Inactive!"
+        exit ${error_code}
+    fi
 fi

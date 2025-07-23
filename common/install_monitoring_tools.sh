@@ -10,7 +10,12 @@ MONEO_VERSION=$(jq -r '.version' <<< $moneo_metadata)
 MONEO_SHA256=$(jq -r '.sha256' <<< $moneo_metadata)
 
 # Dependencies 
-python3 -m pip install --upgrade pip
+# python3 -m pip install --upgrade pip
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    tdnf install -y python3-pip
+else
+    python3 -m pip install --upgrade pip
+fi
 
 MONITOR_DIR=/opt/azurehpc/tools
 TARBALL="v${MONEO_VERSION}.tar.gz"

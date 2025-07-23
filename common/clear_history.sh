@@ -16,6 +16,10 @@ find_distro() {
     then
         local ubuntu_distro=`find_ubuntu_distro`
         echo "${os} ${ubuntu_distro}"
+    elif [[ $os == "Microsoft Azure Linux" ]]
+    then
+        local azurelinux_distro=`find_azurelinux_distro`
+        echo "${os} ${azurelinux_distro}"
     else
         echo "*** Error - invalid distro!"
         exit -1
@@ -37,6 +41,11 @@ find_ubuntu_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2}' | cut -d. -f1,2`
 }
 
+# Find Azure Linux distro
+find_azurelinux_distro() {
+    echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2$3}' | cut -d. -f1,2`
+}
+
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
@@ -46,18 +55,27 @@ then
     yum history sync
 fi
 
-if [[ $distro == *"Red Hat"* ]]
+if [[ $distro == *"AzureLinux"* ]]
 then
     # Sync yum and rpmdb after installing rpm's outside yum
-    yum history sync
+    tdnf history sync
 fi
 
 # Remove Defender
 if [[ $distro == *"Ubuntu"* ]]
 then
-    apt-get purge -y mdatp
+    if dpkg -l | grep -qw mdatp; then
+        apt-get purge -y mdatp
+    fi
+elif [[ $distro == *"AzureLinux"* ]]
+then
+    if tdnf list installed | grep -qw mdatp; then
+        tdnf remove -y mdatp
+    fi
 else
-    yum remove -y mdatp
+    if yum list installed | grep -qw mdatp; then
+        yum remove -y mdatp
+    fi
 fi
 
 # Clear History
@@ -94,6 +112,9 @@ cat /dev/null > /etc/machine-id
 if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get clean
+elif [[ $distro == *"AzureLinux"* ]]
+then
+    tdnf clean all
 else
     yum clean all
 fi

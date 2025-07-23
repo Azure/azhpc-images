@@ -28,4 +28,3 @@ fi
 
 ## load nvidia-peermem module
 modprobe nvidia-peermem
-

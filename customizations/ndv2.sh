@@ -12,3 +12,5 @@ bash -c "cat > /etc/nccl.conf" <<'EOF'
 NCCL_TOPO_FILE=/opt/microsoft/ndv2/topo.xml
 NCCL_IGNORE_CPU_AFFINITY=1
 EOF
+
+modprobe nvidia-peermem

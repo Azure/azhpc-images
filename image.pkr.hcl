@@ -303,6 +303,17 @@ locals {
         "image_publisher" = "MicrosoftCBLMariner",
         "image_offer"     = "cbl-mariner",
         "image_sku"       = "cbl-mariner-2-gen2"
+      },
+      # TODO: add more AL3 base images (1PG, FIPS)
+      "azurelinux3.0" = {
+        "image_publisher" = "MicrosoftCBLMariner",
+        "image_offer"     = "azure-linux-3",
+        "image_sku"       = "azure-linux-3-gen2"
+      },
+      "built" = {
+        "image_publisher" = "microsoft-dsvm", # placeholder
+        "image_offer"     = "ubuntu-hpc", # placeholder
+        "image_sku"       = "2204" # placeholder
       }
     }
   }
@@ -318,6 +329,8 @@ locals {
     "ubuntu_22.04" = "cd /home/${local.username}/azhpc-images/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc; sudo bash install.sh ${local.gpu_platform}"
     "alma8.10"     = "cd /home/${local.username}/azhpc-images/alma/alma-8.x/alma-8.10-hpc; sudo ./install.sh"
     "mariner2.0"   = "cd /home/${local.username}/azhpc-images/mariner/mariner-2.x/mariner-2.0-hpc; sudo ./install.sh"
+    "azurelinux3.0" = "cd /home/${local.username}/azhpc-images/azurelinux/azurelinux-3.x/azurelinux-3.0-hpc; sudo ./install.sh ${local.gpu_platform} ${local.gpu_size_option}"
+    "built"        = ""
   }
 
   test_dir = "/opt/azurehpc/test"
@@ -460,7 +473,7 @@ build {
     inline_shebang = local.inline_shebang
     inline = [
       # if os_version is not ubuntu*, use yum to install git
-      "if [[ \"${local.os_version}\" != *\"ubuntu\"* ]]; then sudo yum install -y git; fi",
+      "if [[ \"${local.os_version}\" != *\"ubuntu\"* ]]; then sudo dnf install -y git; fi",
       # clone the azhpc-images repo
       "git clone --branch ${local.target_branch} ${local.images_repo_url} /home/${local.username}/azhpc-images",
     ]
@@ -513,7 +526,7 @@ build {
     name           = "list installed packages pre-specialization"
     inline_shebang = local.inline_shebang
     inline = [
-      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else yum list installed; fi",
+      "if [[ \"${local.os_version}\" == *\"ubuntu\"* ]]; then dpkg-query -l; else dnf list installed; fi",
     ]
   }
 
@@ -602,6 +615,14 @@ build {
     ]
   }
 
+  provisioner "shell-local" {
+    # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this).
+    # note that this will also prevent the cleanup or image creation steps from running.
+    inline = [
+      "if [ ${local.retain_vm_always} = true ]; then exit 1; fi"
+    ]
+  }
+
   provisioner "shell" {
     name           = "clear history and deprovision"
     inline_shebang = local.inline_shebang
@@ -681,5 +702,19 @@ build {
     inline = [
       "if [ ${local.retain_vm_always} = true ] || [ ${local.externally_managed_resource_group} = true ]; then exit 0; else az group delete --name ${local.resource_grp_name} --yes; fi"
     ]
+  }
+
+  post-processor "shell-local" {
+    inline_shebang = local.inline_shebang
+    inline = [
+      "mkdir -p /tmp/image_manifests",
+    ]
+  }
+
+  post-processor "manifest" {
+    output = "/tmp/image_manifests/manifest-${build.PackerRunUUID}.json"
+    custom_data = {
+      managed_image_shared_image_gallery_id = local.create_image ? "/subscriptions/${local.sig_subscription}/resourceGroups/${local.sig_resource_grp_name}/providers/Microsoft.Compute/galleries/${local.sig_gallery_name}/images/${local.image_definition_name}/versions/${local.sig_image_version}" : ""
+    }
   }
 }

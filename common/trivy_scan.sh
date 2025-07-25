@@ -11,6 +11,7 @@ TRIVY_DB_REPOSITORIES="mcr.microsoft.com/mirror/ghcr/aquasecurity/trivy-db:2,ghc
 
 declare -a SKIP_DIRS=(
     "/var/lib/waagent"
+    "/snap"
 )
 declare -a SKIP_FILES=(
     "$(pwd)/trivy"
@@ -37,6 +38,6 @@ tar -xvzf "trivy_${TRIVY_VERSION}_${TRIVY_ARCH}.tar.gz"
 rm "trivy_${TRIVY_VERSION}_${TRIVY_ARCH}.tar.gz"
 chmod a+x trivy 
 
-retrycmd_if_failure 10 30 600 ./trivy --scanners vuln rootfs -f json --db-repository ${TRIVY_DB_REPOSITORIES} --skip-files ${SKIP_FILES[@]} --skip-dirs ${SKIP_DIRS[@]} --ignore-unfixed -o "${TRIVY_REPORT_ROOTFS_JSON_PATH}" /
+retrycmd_if_failure 10 30 600 ./trivy --scanners vuln rootfs -f json --db-repository ${TRIVY_DB_REPOSITORIES} ${SKIP_FILES[@]/#/ --skip-files } ${SKIP_DIRS[@]/#/ --skip-dirs } --ignore-unfixed -o "${TRIVY_REPORT_ROOTFS_JSON_PATH}" /
 
 rm ./trivy

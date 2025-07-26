@@ -141,3 +141,6 @@ fi
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh
+
+# scan vulnerabilities using Trivy
+$COMMON_DIR/trivy_scan.sh

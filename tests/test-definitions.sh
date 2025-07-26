@@ -205,9 +205,8 @@ function verify_rccl_installation {
 
 function verify_package_updates {
     case ${ID} in
-        ubuntu) sudo apt -q --assume-no update;;
-        almalinux) sudo yum update -y --setopt tsflags=test;
-            sudo yum clean packages;;
+        ubuntu) sudo apt -s upgrade;;
+        almalinux) sudo dnf check-update --refresh;;
         azurelinux) true;;
         * ) ;;
     esac

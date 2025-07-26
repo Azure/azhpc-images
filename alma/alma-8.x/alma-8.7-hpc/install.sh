@@ -98,3 +98,6 @@ $COMMON_DIR/setup_sku_customizations.sh
 
 # add a security patch of CVE issue for AlmaLinux 8.7 only
 ./disable_user_namespaces.sh
+
+# scan vulnerabilities using Trivy
+$COMMON_DIR/trivy_scan.sh

@@ -1,16 +1,4 @@
 {
-    "azcopy": {
-        "common": {
-            "version": "10.28.1",
-            "release": "10.28.1-20250326",
-            "sha256": "0f637fd5cf8f5a041592bd2104234682cc0bc7a893298a5641b87d4bef96bc6d"
-        },
-        "azurelinux3.0": {
-            "version": "10.25.1",
-            "release": "10.25.1-20240612",
-            "sha256": "a5d29be02ca7176fb4e3afe3f5ba83ab2ef8d95ecab71629e0df48f34eff6c55"
-        }
-    },
     "cmake": {
         "common": {
             "version": "3.31.7",
@@ -408,6 +396,14 @@
             "version": "2.20.5",
             "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
             "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+        }
+    },
+    "trivy": {
+        "common": {
+            "version": "0.64.1",
+            "url": "https://github.com/aquasecurity/trivy/releases/download/v0.64.1/trivy_0.64.1_Linux-64bit.tar.gz",
+            "sha256": "1a09d86667b3885a8783d1877c9abc8061b2b4e9b403941b22cbd82f10d275a8",
+            "repo": "mcr.microsoft.com/mirror/ghcr/aquasecurity/trivy-db:2,ghcr.io/aquasecurity/trivy-db:2,public.ecr.aws/aquasecurity/trivy-db"
         }
     }
 }

@@ -93,6 +93,9 @@ $COMPONENT_DIR/install_health_checks.sh "$GPU"
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh
 
+# scan vulnerabilities using Trivy
+$COMPONENT_DIR/trivy_scan.sh
+
 # add udev rule
 ./add-udev-rules.sh
 

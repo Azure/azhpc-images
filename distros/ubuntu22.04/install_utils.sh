@@ -1,11 +1,15 @@
+#!/bin/bash
+set -ex
+
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
 curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > ./microsoft-prod.list
 # Copy the generated list to the sources.list.d directory
 cp ./microsoft-prod.list /etc/apt/sources.list.d/
 # Install the Microsoft GPG public key
-curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
+# Technically, per Debian Wiki guidance, this GPG isn't managed by a package, so it should go
+# into /etc/apt/keyrings, but this is what the above microsoft-prod.list expects in its signed-by
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-prod.gpg
 
 apt-get update
 apt-get -y install build-essential
@@ -52,10 +56,8 @@ apt-get -y install numactl \
                    libmount-dev \
                    nfs-common \
                    pssh \
-                   dos2unix
-
-# Install azcopy tool
-$COMPONENT_DIR/install_azcopy.sh
+                   dos2unix \
+                   azcopy
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

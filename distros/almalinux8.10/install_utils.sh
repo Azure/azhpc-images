@@ -68,7 +68,8 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
-    dos2unix
+    dos2unix \
+    azcopy
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm
@@ -94,9 +95,6 @@ yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/
 # Remove rpm files
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
-
-# Install azcopy tool
-$COMPONENT_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

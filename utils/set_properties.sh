@@ -5,9 +5,10 @@ export TOP_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 export COMPONENT_DIR=$TOP_DIR/components
 export TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
+export DISTRO_FAMILY=$(. /etc/os-release;echo $ID)
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     # Don't allow the kernel to be updated
     apt-mark hold linux-azure
     # upgrade pre-installed components

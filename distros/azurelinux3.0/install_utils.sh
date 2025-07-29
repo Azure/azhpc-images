@@ -72,7 +72,8 @@ tdnf install -y numactl \
     gmock-devel \
     hwloc-devel \
     rsyslog \
-    dos2unix
+    dos2unix \
+    azcopy
 
 # Disable kernel updates
 echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
@@ -100,9 +101,6 @@ tdnf install -y subunit-devel
 ## Install libmd and libmd-devel 
 tdnf install -y libmd
 tdnf install -y libmd-devel
-
-# Install azcopy tool
-$COMPONENT_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

@@ -46,12 +46,10 @@ apt-get -y install numactl \
                    libmount-dev \
                    nfs-common \
                    pssh \
-                   dos2unix
+                   dos2unix \
+                   azcopy
 
 if [[ $DISTRIBUTION != "ubuntu22.04" ]]; then apt-get install -y python-dev; fi
-
-# Install azcopy tool
-$COMMON_DIR/install_azcopy.sh
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

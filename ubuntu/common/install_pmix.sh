@@ -14,7 +14,7 @@ elif [ $UBUNTU_VERSION == 20.04 ]; then
 else echo "$UBUNTU_VERSION not supported for pmix installation."
 fi
 
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/$REPO/ insiders main" > /etc/apt/sources.list.d/slurm.list
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/repos/$REPO/ insiders main" > /etc/apt/sources.list.d/slurm.list
 
 # Set priority for pmix and slurm packages from PMC to be higher than upstream ubuntu.
 echo "\

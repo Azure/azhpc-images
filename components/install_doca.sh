@@ -11,7 +11,7 @@ DOCA_FILE=$(basename ${DOCA_URL})
 
 download_and_verify $DOCA_URL $DOCA_SHA256
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     dpkg -i $DOCA_FILE
     apt-get update
     apt-get -y install doca-ofed

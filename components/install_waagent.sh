@@ -63,7 +63,7 @@ write_component_version "WAAGENT_EXTENSIONS" $(waagent --version | sed '3q;d' | 
 systemctl daemon-reload
 # Restart waagent service in distribution specific file as its name differs between distributions
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     systemctl restart walinuxagent
 elif [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     systemctl restart waagent

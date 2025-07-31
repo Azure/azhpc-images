@@ -1,9 +1,9 @@
 {
     "cmake": {
         "common": {
-            "version": "3.31.7",
-            "url": "https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-linux-x86_64.tar.gz",
-            "sha256": "14e15d0b445dbeac686acc13fe13b3135e8307f69ccf4c5c91403996ce5aa2d4"
+            "version": "4.0.3",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.0.3/cmake-4.0.3-linux-x86_64.tar.gz",
+            "sha256": "585ae9e013107bc8e7c7c9ce872cbdcbdff569e675b07ef57aacfb88c886faac"
         }
     },
     "doca": {
@@ -16,6 +16,11 @@
             "version": "2.10.0",
             "sha256": "c9758f9029393b749908f0485827004dafa8cc0e24313f1f2bdae2406050ddfd",
             "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2204_amd64.deb"
+        },
+        "ubuntu24.04": {
+            "version": "3.0.0",
+            "sha256": "34bef7c4145f154e5b7230b099e1764eed169057f5f5b60d2a62d69ed94f563b",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.0.0/host/doca-host_3.0.0-058000-25.04-ubuntu2404_amd64.deb"
         },
         "almalinux8.7": {
             "version": "2.8.0",
@@ -49,6 +54,11 @@
             "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
+        "ubuntu24.04": {
+            "version": "2.23",
+            "sha256": "b8eea5189ff62125e60b23a6081686e6b98bc9f8cdc778cd179ca5680f7e9e7f",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.23/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+        },        
         "almalinux8.7": {
             "version": "2.18",
             "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
@@ -76,28 +86,35 @@
             "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
         }
     },
-    "mvapich2": {
+    "mvapich": {
         "common": {
             "version": "2.3.7-2",
-            "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205"
+            "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
+            "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
         },
         "azurelinux3.0": {
             "version": "2.3.7-1",
-            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4"
+            "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4",
+            "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-1.tar.gz"
+        },
+        "ubuntu24.04": {
+            "version": "4.0",
+            "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
+            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
         }
     },
     "ompi": {
         "common": {
-            "version": "5.0.7",
-            "sha256": "67435fdb2560f897882e69fead171d38e7f44a6dfe1d3c90506f549a943050b8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz"
+            "version": "5.0.8",
+            "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
         }
     },
     "impi": {
         "common": {
-            "version": "2021.15.0",
-            "sha256": "d4ad297174ce3837444468645e13cfe78f11d9bf2ad9ade2057b2668cccd9385",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6b6e395e-8f38-4da3-913d-90a2bcf41028/intel-mpi-2021.15.0.495_offline.sh"
+            "version": "2021.16.0",
+            "sha256": "b113eb4136ac806a3a5412e0edda0065a36e2d9b0ccbb69b7f3251867d1023fc",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/f334686e-b5ec-4378-b481-57759889b275/intel-mpi-2021.16.0.443_offline.sh"
         }
     },
     "nvidia": {
@@ -121,6 +138,17 @@
                 "distribution": "ubuntu2204",
                 "version": "570.133.20-1",
                 "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"        
+            }   
+        },
+        "ubuntu24.04": {
+            "driver": {
+                "version": "570.172.08",
+                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
+            },
+            "fabricmanager": {
+                "distribution": "ubuntu2404",
+                "version": "570.172.08-1",
+                "sha256": "36bbcce6130f46df6fd2cbc4f09df8207442a884ef726a40cf5e9edc13b2bfd9"        
             }   
         },
         "almalinux8.7": {
@@ -189,6 +217,16 @@
                 "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
+        "ubuntu24.04": {
+            "driver": {
+                "version": "12.9",
+                "distribution": "ubuntu2404"
+            },
+            "samples": {
+                "version": "12.9",
+                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+            }   
+        },        
         "almalinux8.7": {
             "driver": {
                 "version": "12.6",
@@ -241,6 +279,11 @@
             "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
             "distribution": "Ubuntu22_04"
         },
+        "ubuntu24.04": {
+            "version": "2.5-1",
+            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
+            "distribution": "Ubuntu24_04"
+        },
         "almalinux8.7": {
             "version": "2.5-1",
             "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
@@ -277,15 +320,15 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2025.1.0.803",
-            "sha256": "80a4b1338b48b3fbee55a8dc784f92e5e88d618f1b99d80f5f207a00c86a6638",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc93af13-2b3f-40c3-a41b-2bc05a707a80/intel-onemkl-2025.1.0.803_offline.sh"
+            "version": "2025.2.0.629",
+            "sha256": "7bfdde1379a9cd3c2784af4352931a0527a5c483c9da71e851a3f06e055af7c7",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/47c7d946-fca1-441a-b0df-b094e3f045ea/intel-onemkl-2025.2.0.629_offline.sh"
         }
     },
     "waagent": {
         "common": {
-            "version": "2.12.0.4",
-            "sha256": "88be3211a433e1d12d7212761a06b227e6bed551649abd62d4eebeae116ab26c"
+            "version": "2.14.0.1",
+            "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
         },
         "azurelinux3.0": {
             "version": "2.11.8.8",
@@ -353,8 +396,8 @@
     },
     "rdma_core": {
         "common": {
-            "version": "56.1",
-            "sha256": "0ebac5735bc38cafeba28a3124566b56606f11a8462c794411858efa7b407be0"
+            "version": "58.0",
+            "sha256": "08a554e0f95bb6869f9fbc2b1eb5521a85104dda9bf730db42b1a10d0b009e28"
         }
     },
     "pmix": {

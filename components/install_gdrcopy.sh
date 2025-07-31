@@ -23,7 +23,7 @@ else
     git clone https://github.com/NVIDIA/gdrcopy.git
     pushd gdrcopy/packages/
     git checkout ${GDRCOPY_COMMIT}
-    if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+    if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
         # Install gdrcopy
         apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 

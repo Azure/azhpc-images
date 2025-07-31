@@ -45,23 +45,23 @@ if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0"
     sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 fi
 
-# Install MVAPICH2
-mvapich2_metadata=$(get_component_config "mvapich2")
-MVAPICH2_VERSION=$(jq -r '.version' <<< $mvapich2_metadata)
-MVAPICH2_SHA256=$(jq -r '.sha256' <<< $mvapich2_metadata)
-MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-${MVAPICH2_VERSION}.tar.gz"
-TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
-MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
+# Install MVAPICH
+mvapich_metadata=$(get_component_config "mvapich")
+MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
+MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
+MVAPICH_DOWNLOAD_URL=$(jq -r '.url' <<< $mvapich_metadata)
+TARBALL=$(basename $MVAPICH_DOWNLOAD_URL)
+MVAPICH_FOLDER=$(basename $MVAPICH_DOWNLOAD_URL .tar.gz)
 
-download_and_verify $MVAPICH2_DOWNLOAD_URL $MVAPICH2_SHA256
+download_and_verify $MVAPICH_DOWNLOAD_URL $MVAPICH_SHA256
 tar -xvf ${TARBALL}
-cd ${MVAPICH2_FOLDER}
+pushd ${MVAPICH_FOLDER}
 # Error exclusive to Ubuntu 22.04
 # configure: error: The Fortran compiler gfortran will not compile files that call
 # the same routine with arguments of different types.
-./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich2-${MVAPICH2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
-cd ..
-write_component_version "MVAPICH2" ${MVAPICH2_VERSION}
+./configure $(if [[ ${DISTRO_FAMILY} == "ubuntu" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+popd
+write_component_version "MVAPICH" ${MVAPICH_VERSION}
 
 # Install Open MPI
 ompi_metadata=$(get_component_config "ompi")
@@ -74,7 +74,7 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure $(if [[ ${DISTRIBUTION} == "ubuntu22.04" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib"; fi) --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+./configure $(if [[ ${DISTRO_FAMILY} == "ubuntu" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib"; fi) --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..
@@ -123,21 +123,21 @@ conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
-# MVAPICH2
-cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich2-${MVAPICH2_VERSION}
+# MVAPICH
+cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
-#  MVAPICH2 ${MVAPICH2_VERSION}
+#  MVAPICH ${MVAPICH_VERSION}
 #
 conflict        mpi
-prepend-path    PATH            /opt/mvapich2-${MVAPICH2_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/mvapich2-${MVAPICH2_VERSION}/lib
-prepend-path    MANPATH         /opt/mvapich2-${MVAPICH2_VERSION}/share/man
-setenv          MPI_BIN         /opt/mvapich2-${MVAPICH2_VERSION}/bin
-setenv          MPI_INCLUDE     /opt/mvapich2-${MVAPICH2_VERSION}/include
-setenv          MPI_LIB         /opt/mvapich2-${MVAPICH2_VERSION}/lib
-setenv          MPI_MAN         /opt/mvapich2-${MVAPICH2_VERSION}/share/man
-setenv          MPI_HOME        /opt/mvapich2-${MVAPICH2_VERSION}
+prepend-path    PATH            /opt/mvapich-${MVAPICH_VERSION}/bin
+prepend-path    LD_LIBRARY_PATH /opt/mvapich-${MVAPICH_VERSION}/lib
+prepend-path    MANPATH         /opt/mvapich-${MVAPICH_VERSION}/share/man
+setenv          MPI_BIN         /opt/mvapich-${MVAPICH_VERSION}/bin
+setenv          MPI_INCLUDE     /opt/mvapich-${MVAPICH_VERSION}/include
+setenv          MPI_LIB         /opt/mvapich-${MVAPICH_VERSION}/lib
+setenv          MPI_MAN         /opt/mvapich-${MVAPICH_VERSION}/share/man
+setenv          MPI_HOME        /opt/mvapich-${MVAPICH_VERSION}
 EOF
 
 # OpenMPI

@@ -4,7 +4,7 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine and CLI
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
 elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then

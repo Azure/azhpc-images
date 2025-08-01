@@ -43,13 +43,13 @@ function test_component {
         check_gdrcopy) verify_gdrcopy_installation;;
         check_cuda) verify_cuda_installation;;
         check_nccl) verify_nccl_installation;;
-	    check_rocm) verify_rocm_installation;;
+        check_rocm) verify_rocm_installation;;
         check_rccl) verify_rccl_installation;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
-        check_lustre) verify_lustre_installation;
+        check_lustre) verify_lustre_installation;;
         * ) ;;
     esac
 }

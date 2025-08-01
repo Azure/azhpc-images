@@ -29,7 +29,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     echo cuda >> /etc/tdnf/locks.d/nvidia.conf
 else
     download_and_verify $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
-    bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE}
+    bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE} $(if [[ ${DISTRIBUTION} == "ubuntu24.04" ]]; then echo "--no-drm"; fi)
     if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
         dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
     fi

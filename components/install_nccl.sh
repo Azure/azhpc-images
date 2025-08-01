@@ -15,7 +15,7 @@ TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     apt install -y build-essential devscripts debhelper fakeroot
     apt install -y zlib1g-dev libibverbs-dev  
 elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
@@ -30,7 +30,7 @@ tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
 make -j src.build
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     make pkg.debian.build
     pushd build/pkg/deb/
     dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_amd64.deb

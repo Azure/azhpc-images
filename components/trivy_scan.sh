@@ -37,7 +37,8 @@ retrycmd_if_failure() {
 
 mkdir -p "${TRIVY_REPORT_DIRNAME}"
 
-download_and_verify ${TRIVY_URL} ${TRIVY_SHA256}
+download_and_verify ${TRIVY_URL} ${TRIVY_SHA256} /tmp
+pushd /tmp
 tar -xvzf $TARBALL
 rm $TARBALL
 chmod a+x trivy 
@@ -45,3 +46,4 @@ chmod a+x trivy
 retrycmd_if_failure 10 30 600 ./trivy --scanners vuln rootfs -f json --db-repository ${TRIVY_DB_REPOSITORIES} ${SKIP_FILES[@]/#/ --skip-files } ${SKIP_DIRS[@]/#/ --skip-dirs } --ignore-unfixed -o "${TRIVY_REPORT_ROOTFS_JSON_PATH}" /
 
 rm ./trivy
+popd

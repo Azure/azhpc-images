@@ -53,6 +53,8 @@ apt-get -y install numactl \
                    dos2unix \
                    azcopy
 
+echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh
 

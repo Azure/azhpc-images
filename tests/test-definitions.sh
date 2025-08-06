@@ -206,7 +206,10 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu) sudo apt -s upgrade;;
-        almalinux) sudo dnf check-update --refresh;;
+        # we aren't opinionated about packages that have divergent versions in upstream repos
+        # mft has different versions from cuda and doca repos
+        # javapackages-filesystem has different versions from appstream and powertools, a problem AlmaLinux team needs to fix
+        almalinux) sudo dnf check-update --refresh -x mft -x javapackages-filesystem;;
         azurelinux) true;;
         * ) ;;
     esac

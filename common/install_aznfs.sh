@@ -5,10 +5,10 @@ source ${COMMON_DIR}/utilities.sh
 
 # Install AZNFS Mount Helper
 # prefer PMC when possible
-if [[ $DISTRIBUTION == "*ubuntu*"]]
+if [[ $DISTRIBUTION == *"ubuntu"* ]]
 then
     apt install -y aznfs
-elif [[ $DISTRIBUTION == *"almalinux"* ||  $DISTRIBUTION == *"rhel"* ]]
+elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rhel"* ]]
 then
     dnf install -y aznfs
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]

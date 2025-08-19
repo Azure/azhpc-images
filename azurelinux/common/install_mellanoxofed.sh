@@ -29,9 +29,9 @@ tdnf install -y bison \
 
 mofed_metadata=$(get_component_config "mofed")
 MOFED_VERSION=$(jq -r '.version' <<< $mofed_metadata)
-XPMEM_VERSION=$(jq -r '.xpmem.version' <<< $mofed_metadata)
-KNEM_VERSION=$(jq -r '.knem.version' <<< $mofed_metadata)
-MFT_KERNEL_VERSION=$(jq -r '.mft_kernel.version' <<< $mofed_metadata)
+XPMEM_VERSION=$(jq -r '."xpmem.version"' <<< $mofed_metadata)
+KNEM_VERSION=$(jq -r '."knem.version"' <<< $mofed_metadata)
+MFT_KERNEL_VERSION=$(jq -r '."mft_kernel.version"' <<< $mofed_metadata)
 
 kernel_version=$(uname -r | sed 's/\-/./g')
 

@@ -29,9 +29,9 @@ tdnf install -y bison \
 
 mofed_metadata=$(get_component_config "mofed")
 MOFED_VERSION=$(jq -r '.version' <<< $mofed_metadata)
-XPMEM_VERSION=$(jq -r '.xpmem.version' <<< $mofed_metadata)
-KNEM_VERSION=$(jq -r '.knem.version' <<< $mofed_metadata)
-MFT_KERNEL_VERSION=$(jq -r '.mft_kernel.version' <<< $mofed_metadata)
+XPMEM_VERSION=$(jq -r '."xpmem.version"' <<< $mofed_metadata)
+KNEM_VERSION=$(jq -r '."knem.version"' <<< $mofed_metadata)
+MFT_KERNEL_VERSION=$(jq -r '."mft_kernel.version"' <<< $mofed_metadata)
 
 kernel_version=$(uname -r | sed 's/\-/./g')
 
@@ -82,8 +82,22 @@ tdnf install -y libibumad \
                 libunwind \
                 libunwind-devel
 
-echo "INSTALLED MOFED!! ${MOFED_VERSION}"
-$COMMON_DIR/write_component_version.sh "OFED" $MOFED_VERSION
+SOURCE_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+
+# MOFED_VERSION refers to the RPM package version used in tdnf install.
+#   - Example: "24.10-20"
+#   - Breakdown:
+#       * 24.10  -> OFED major version series
+#       * 20     -> RPM package release number (defined by the packager)
+#
+# SOURCE_VERSION refers to the upstream Mellanox source version, as reported by ofed_info.
+#   - Example: "0.7.0"
+#
+echo "INSTALLED MOFED!! Release Version: ${MOFED_VERSION}, Source Version: ${SOURCE_VERSION}"
+
+# Sanity check consumes the source package version printed by ofed_info. 
+# Therefore, though we use release version in versions.json for tdnf install, we need to write the SOURCE_VERSION to the component version file.
+$COMMON_DIR/write_component_version.sh "OFED" $SOURCE_VERSION
 
 # Restarting openibd
 # /etc/init.d/openibd restart

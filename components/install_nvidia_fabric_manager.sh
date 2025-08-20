@@ -27,7 +27,7 @@ elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
     sed -i "$ s/$/ nvidia-fabric-manager/" /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Install Nvidia Fabric Manager and devel packages from PMC
-    tdnf install -y nvidia-fabric-manager \
-                    nvidia-fabric-manager-devel
+    tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}-1.azl3.x86_64 \
+                    nvidia-fabric-manager-devel-${NVIDIA_FABRICMANAGER_VERSION}-1.azl3.x86_64
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

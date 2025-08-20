@@ -40,7 +40,7 @@ elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
     dnf config-manager --set-enabled powertools
     yum -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf -y install pmix pmix-devel pmix-tools
+    tdnf -y install pmix-${PMIX_VERSION}.azl3.x86_64 pmix-devel-${PMIX_VERSION}.azl3.x86_64 pmix-tools-${PMIX_VERSION}.azl3.x86_64
     tdnf -y install hwloc-devel libevent-devel munge-devel
 else echo "$DISTRIBUTION not supported for pmix installation."
 fi

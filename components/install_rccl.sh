@@ -22,7 +22,7 @@ popd
 rm -rf ${TARBALL} ${rccl_folder}
 write_component_version "RCCL" ${rccl_version}
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     sysctl kernel.numa_balancing=0
 fi
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
@@ -39,7 +39,7 @@ RCCLDIR="/opt/rccl"
 echo "gfx942" > target.lst
 echo "gfx90a" >> target.lst
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     ROCM_TARGET_LST=$(pwd)/target.lst make MPI=1 NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     mkdir -p build/hipify

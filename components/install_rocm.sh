@@ -10,7 +10,7 @@ rocm_url=$(jq -r '.url' <<< $rocm_metadata)
 rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
 DEBPACKAGE=$(basename ${rocm_url})
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
    download_and_verify ${rocm_url} ${rocm_sha256}
    apt install -y ./${DEBPACKAGE}
    amdgpu-install -y --usecase=graphics,rocm
@@ -55,7 +55,7 @@ EOF
 
 udevadm control --reload-rules && sudo udevadm trigger
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
    echo blacklist amdgpu | tee -a /etc/modprobe.d/blacklist.conf
    update-initramfs -c -k $(uname -r)
 fi

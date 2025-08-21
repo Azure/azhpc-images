@@ -427,6 +427,11 @@
             "url": "https://repo.radeon.com/amdgpu-install/6.2.2/ubuntu/jammy/amdgpu-install_6.2.60202-1_all.deb",
             "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
         },
+        "ubuntu24.04": {
+            "version": "6.2.4",
+            "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
+            "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
+        },
         "azurelinux3.0": {
             "version": "6.2.2.1",
             "amdgpu": "6.8.5.60202_2078359-7"
@@ -437,6 +442,11 @@
             "version": "2.20.5",
             "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
             "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+        },
+        "ubuntu24.04": {
+            "version": "2.22.3",
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+            "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         },
         "azurelinux3.0": {
             "version": "2.20.5",

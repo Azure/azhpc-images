@@ -55,19 +55,6 @@ EOF
 
 udevadm control --reload-rules && sudo udevadm trigger
 
-#add nofile limits
-string_so="*               soft    nofile          1048576"
-line=$(cat /etc/security/limits.conf | grep "soft    nofile")
-cat /etc/security/limits.conf | sed -e "s/$line/$string_so/" > temp_file.txt
-mv temp_file.txt /etc/security/limits.conf
-string_ha="*               hard    nofile          1048576"
-line=$(cat /etc/security/limits.conf | grep "hard    nofile")
-cat /etc/security/limits.conf | sed -e "s/$line/$string_ha/" > temp_file.txt
-mv temp_file.txt /etc/security/limits.conf
-
-cat /etc/security/limits.conf | grep -v "  stack" > tmplimits.conf
-mv tmplimits.conf /etc/security/limits.conf
-
 if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
    echo blacklist amdgpu | tee -a /etc/modprobe.d/blacklist.conf
    update-initramfs -c -k $(uname -r)

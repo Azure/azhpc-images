@@ -3,12 +3,6 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-#install the rccl library
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
-    apt install libstdc++-12-dev
-    apt remove -y rccl
-fi
-
 rccl_metadata=$(get_component_config "rccl")
 rccl_version=$(jq -r '.version' <<< $rccl_metadata)
 rccl_url=$(jq -r '.url' <<< $rccl_metadata)

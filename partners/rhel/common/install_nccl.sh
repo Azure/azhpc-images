@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Set NCCL versions
 nccl_metadata=$(get_component_config "nccl")
@@ -52,7 +52,7 @@ popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx
 
-$COMMON_DIR/write_component_version.sh "NCCL" ${NCCL_VERSION}
+write_component_version "NCCL" ${NCCL_VERSION}
 
 # Remove installation files
 rm -rf /tmp/${TARBALL}

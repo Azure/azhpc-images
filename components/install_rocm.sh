@@ -53,7 +53,7 @@ fi
 write_component_version "ROCM" ${rocm_version}
 
 #Grant access to GPUs to all users via udev rules
-cat <<'EOF' > /etc/udev/rules.d/70-amdgpu.rules
+cat <<'EOF' > /etc/udev/rules.d/99-amdgpu-permissive.rules
 KERNEL=="kfd", MODE="0666"
 SUBSYSTEM=="drm", KERNEL=="renderD*", MODE="0666"
 EOF

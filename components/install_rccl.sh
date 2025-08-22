@@ -26,6 +26,11 @@ else
 fi
 mkdir ./${rccl_folder}/build
 pushd ./${rccl_folder}/build
+
+# aggressively crank up the number of compiler and linker jobs given that we have 2TB of memory to spare on MI300X
+sed -i -E 's/(target_compile_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)12/\196/' ../CMakeLists.txt
+grep -q 'set(num_linker_jobs "96")' ../CMakeLists.txt || sed -i -E '/^[[:space:]]*message\([^)]*jobs for linking[^)]*\)/i set(num_linker_jobs "96")' ../CMakeLists.txt
+
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install

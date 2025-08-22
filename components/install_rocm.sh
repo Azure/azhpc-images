@@ -11,6 +11,10 @@ rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
 DEBPACKAGE=$(basename ${rocm_url})
 
 if [[ $DISTRIBUTION == ubuntu* ]]; then
+   if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+      # AMD's rocm drivers are still being built for 22.04, so we need to add the jammy repo's for the missing dependencies.
+      sudo add-apt-repository -y -s deb http://security.ubuntu.com/ubuntu jammy main universe
+   fi
    download_and_verify ${rocm_url} ${rocm_sha256}
    apt install -y ./${DEBPACKAGE}
    amdgpu-install -y --usecase=graphics,rocm

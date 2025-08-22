@@ -51,13 +51,17 @@ echo "gfx942" > target.lst
 echo "gfx90a" >> target.lst
 
 if [[ $DISTRIBUTION == ubuntu* ]]; then
-    ROCM_TARGET_LST=$(pwd)/target.lst make MPI=1 NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
+    ROCM_TARGET_LST=$(pwd)/target.lst make -j$(nproc) MPI=1 NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     mkdir -p build/hipify
     hipify-perl -quiet-warnings verifiable/verifiable.h > build/hipify/verifiable.h
-    ROCM_TARGET_LST=$(pwd)/target.lst make MPI=1 MPI_HOME=$HPCX NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
+    ROCM_TARGET_LST=$(pwd)/target.lst make -j$(nproc) MPI=1 MPI_HOME=$HPCX NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
 fi
 popd
+
+if [[ $DISTRIBUTION == ubuntu* ]]; then
+    apt install -y libpci-dev
+fi
 
 DEST_TEST_DIR=/opt/rccl-tests
 mkdir -p $DEST_TEST_DIR

@@ -4,6 +4,8 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 rccl_metadata=$(get_component_config "rccl")
+rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
+rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
 rccl_version=$(jq -r '.version' <<< $rccl_metadata)
 rccl_url=$(jq -r '.url' <<< $rccl_metadata)
 rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
@@ -11,8 +13,17 @@ rccl_sha256=$(jq -r '.sha256' <<< $rccl_metadata)
 TARBALL=$(basename ${rccl_url})
 rccl_folder=rccl-$(basename $TARBALL .tar.gz)
 
-download_and_verify ${rccl_url} ${rccl_sha256}
-tar -xzf ${TARBALL}
+# due to https://github.com/ROCm/rccl/issues/1877
+# we need to resort to doing a git clone instead of downloading the rccl tarball, by specifying a branch to clone
+if [[ $rccl_branch != "" && $rccl_branch != "null" ]]; then
+    git clone --branch ${rccl_branch} https://github.com/ROCm/rccl.git ${rccl_folder}
+    pushd ${rccl_folder}
+    git checkout ${rccl_commit}
+    popd
+else
+    download_and_verify ${rccl_url} ${rccl_sha256}
+    tar -xzf ${TARBALL}
+fi
 mkdir ./${rccl_folder}/build
 pushd ./${rccl_folder}/build
 CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..

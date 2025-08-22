@@ -445,6 +445,8 @@
         },
         "ubuntu24.04": {
             "version": "2.22.3",
+            "branch": "release/rocm-rel-6.4",
+            "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
             "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
             "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         },

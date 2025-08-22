@@ -14,6 +14,7 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
       # AMD's rocm drivers are still being built for 22.04, so we need to add the jammy repo's for the missing dependencies.
       sudo add-apt-repository -y -s deb http://security.ubuntu.com/ubuntu jammy main universe
+      sudo apt update
    fi
    download_and_verify ${rocm_url} ${rocm_sha256}
    apt install -y ./${DEBPACKAGE}

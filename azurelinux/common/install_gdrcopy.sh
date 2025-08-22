@@ -16,8 +16,8 @@ nvidia_driver_metadata=$(get_component_config "nvidia")
 NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_driver_metadata)
 
 # Install gdrcopy kmod and devel packages from PMC
-tdnf install -y gdrcopy \
-                gdrcopy-kmod-2.5-7_$kernel_version.$NVIDIA_DRIVER_VERSION.azl3.x86_64 \
-                gdrcopy-devel
+tdnf install -y gdrcopy-${GDRCOPY_VERSION}.azl3.x86_64 \
+                gdrcopy-kmod-${GDRCOPY_VERSION}_$kernel_version.$NVIDIA_DRIVER_VERSION.azl3.x86_64 \
+                gdrcopy-devel-${GDRCOPY_VERSION}.azl3.noarch
 
 $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}

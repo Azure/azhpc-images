@@ -13,7 +13,7 @@ NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metada
 # tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}
 
 # Install Nvidia Fabric Manager and devel packages from PMC
-tdnf install -y nvidia-fabric-manager \
-                nvidia-fabric-manager-devel
+tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}-1.azl3.x86_64 \
+                nvidia-fabric-manager-devel-${NVIDIA_FABRICMANAGER_VERSION}-1.azl3.x86_64
 
 $COMMON_DIR/write_component_version.sh "NVIDIA_FABRICMANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

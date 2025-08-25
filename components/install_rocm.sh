@@ -10,7 +10,12 @@ rocm_url=$(jq -r '.url' <<< $rocm_metadata)
 rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
 DEBPACKAGE=$(basename ${rocm_url})
 
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
+   if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+      # AMD's rocm drivers are still being built for 22.04, so we need to add the jammy repo's for the missing dependencies.
+      sudo add-apt-repository -y -s deb http://security.ubuntu.com/ubuntu jammy main universe
+      sudo apt update
+   fi
    download_and_verify ${rocm_url} ${rocm_sha256}
    apt install -y ./${DEBPACKAGE}
    amdgpu-install -y --usecase=graphics,rocm
@@ -48,27 +53,14 @@ fi
 write_component_version "ROCM" ${rocm_version}
 
 #Grant access to GPUs to all users via udev rules
-cat <<'EOF' > /etc/udev/rules.d/70-amdgpu.rules
+cat <<'EOF' > /etc/udev/rules.d/99-amdgpu-permissive.rules
 KERNEL=="kfd", MODE="0666"
 SUBSYSTEM=="drm", KERNEL=="renderD*", MODE="0666"
 EOF
 
 udevadm control --reload-rules && sudo udevadm trigger
 
-#add nofile limits
-string_so="*               soft    nofile          1048576"
-line=$(cat /etc/security/limits.conf | grep "soft    nofile")
-cat /etc/security/limits.conf | sed -e "s/$line/$string_so/" > temp_file.txt
-mv temp_file.txt /etc/security/limits.conf
-string_ha="*               hard    nofile          1048576"
-line=$(cat /etc/security/limits.conf | grep "hard    nofile")
-cat /etc/security/limits.conf | sed -e "s/$line/$string_ha/" > temp_file.txt
-mv temp_file.txt /etc/security/limits.conf
-
-cat /etc/security/limits.conf | grep -v "  stack" > tmplimits.conf
-mv tmplimits.conf /etc/security/limits.conf
-
-if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
    echo blacklist amdgpu | tee -a /etc/modprobe.d/blacklist.conf
    update-initramfs -c -k $(uname -r)
 fi

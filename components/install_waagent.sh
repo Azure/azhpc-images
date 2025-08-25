@@ -68,3 +68,6 @@ if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
 elif [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     systemctl restart waagent
 fi
+
+echo "Waiting to avoid waagent taking package manager locks..."
+sleep 60

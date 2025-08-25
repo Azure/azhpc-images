@@ -389,6 +389,9 @@
     "lustre": {
         "common": {
             "version": "2.15.6-39-g3e00a10"
+        },
+        "ubuntu24.04": {
+            "version": "2.16.1-14-gbc76088"
         }
     },
     "aznhc": {

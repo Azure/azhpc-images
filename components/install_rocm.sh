@@ -12,9 +12,29 @@ DEBPACKAGE=$(basename ${rocm_url})
 
 if [[ $DISTRIBUTION == ubuntu* ]]; then
    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-      # AMD's rocm drivers are still being built for 22.04, so we need to add the jammy repo's for the missing dependencies.
-      sudo add-apt-repository -y -s deb http://security.ubuntu.com/ubuntu jammy main universe
-      sudo apt update
+      # ROCm 6.4 depends on mivisionx-dev which depends on libopencv-dev which depends on libopenmpi3t64 which depends on libucx0, which is a Ubuntu upstream UCX that
+      # is older than and conflicts with the ucx package installed by doca-ofed and has unknown IB support status.
+      # We install this marker package to indicate to the package manager that ucx provides libucx0 so that ROCm can be installed.
+      # TODO: make sure a UCX that actually has proper IB, GDR and ROCm support is being used
+      # See https://askubuntu.com/a/218294/595565
+      apt install -y equivs
+      cat <<EOF > /tmp/ucx-provides-libucx0
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: ucx-provides-libucx0
+Depends: ucx
+Provides: libucx0
+Version: 1.0
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package in Azure HPC Image to work around ROCm dependency issue
+EOF
+      equivs-build /tmp/ucx-provides-libucx0
+      dpkg -i ucx-provides-libucx0_1.0_all.deb
+      rm -f ucx-provides-libucx0_1.0_all.deb
+      rm -f /tmp/ucx-provides-libucx0
    fi
    download_and_verify ${rocm_url} ${rocm_sha256}
    apt install -y ./${DEBPACKAGE}

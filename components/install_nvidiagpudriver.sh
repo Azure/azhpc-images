@@ -52,7 +52,7 @@ CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
 CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
 
 # Install Cuda
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     # Dependency for nvidia driver installation
     apt-get install -y libvulkan1
     # Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation

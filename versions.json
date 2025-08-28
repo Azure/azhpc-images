@@ -363,7 +363,7 @@
     "aznhc": {
         "common": {
             "version": "0.4.5",
-            "sha256": "5FC69A6DFDC50486DADC8AEC082A815DC64C737FBD164BF70AD5C7080D5C7879"
+            "sha256": "5fc69a6dfdc50486dadc8aec082a815dc64c737fbd164bf70ad5c7080d5c7879"
         }
     },
     "rdma_core": {

@@ -301,8 +301,8 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.0.0",
-                "sha256": "604ae6c34ef2648504ba08d2f33e42b5a9cf4032eaefaa9253560747ebaeb1ca"
+                "version": "5.0.1",
+                "sha256": "2a12eb1270fc1cf16618664008dc872d37cc2bd690c492e468c8f2c6937f9488"
             },
             "aocc": {
                 "version": "5.0.0",

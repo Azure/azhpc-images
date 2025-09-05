@@ -96,5 +96,8 @@ $COMMON_DIR/setup_sku_customizations.sh
 # Uncomment the line below if you are running this on a VM
 # $COMMON_DIR/clear_history.sh
 
+# generate SBOM using Syft
+$COMMON_DIR/syft_sbom.sh
+
 # scan vulnerabilities using Trivy
 $COMMON_DIR/trivy_scan.sh

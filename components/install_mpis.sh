@@ -40,7 +40,7 @@ else
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
-if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
     sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 fi
@@ -54,13 +54,17 @@ TARBALL=$(basename $MVAPICH_DOWNLOAD_URL)
 MVAPICH_FOLDER=$(basename $MVAPICH_DOWNLOAD_URL .tar.gz)
 
 download_and_verify $MVAPICH_DOWNLOAD_URL $MVAPICH_SHA256
-tar -xvf ${TARBALL}
-pushd ${MVAPICH_FOLDER}
-# Error exclusive to Ubuntu 22.04
-# configure: error: The Fortran compiler gfortran will not compile files that call
-# the same routine with arguments of different types.
-./configure $(if [[ ${DISTRO_FAMILY} == "ubuntu" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
-popd
+if [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    rpm --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} -Uvh --nodeps $TARBALL
+else
+    tar -xvf ${TARBALL}
+    pushd ${MVAPICH_FOLDER}
+    # Error exclusive to Ubuntu 22.04
+    # configure: error: The Fortran compiler gfortran will not compile files that call
+    # the same routine with arguments of different types.
+    ./configure $(if [[ $DISTRIBUTION == ubuntu* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+    popd
+fi
 write_component_version "MVAPICH" ${MVAPICH_VERSION}
 
 # Install Open MPI
@@ -74,13 +78,13 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure $(if [[ ${DISTRO_FAMILY} == "ubuntu" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib"; fi) --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+./configure $(if [[ $DISTRIBUTION == ubuntu* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib"; fi) --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
-if [[ $DISTRIBUTION == "almalinux8.10" ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi

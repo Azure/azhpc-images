@@ -9,8 +9,7 @@ CUDA_VERSION=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
-    # Test this within Joel Koreth require
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-get install -y datacenter-gpu-manager
     # apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')

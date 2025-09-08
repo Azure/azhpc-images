@@ -10,7 +10,7 @@ NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmana
 NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
 NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
 
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then    
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
     NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
@@ -18,7 +18,7 @@ if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     
     apt install -y ./${FILENAME}
     apt-mark hold nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then    
+elif [[ $DISTRIBUTION == almalinux* ]]; then    
     NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}

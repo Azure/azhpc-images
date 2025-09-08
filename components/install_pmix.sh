@@ -30,7 +30,7 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
-    cp ${COMPONENT_DIR}/slurm-el${OS_MAJOR_VERSION}.repo /etc/yum.repos.d/slurm.repo
+    cp ${COMPONENT_DIR}/slurm-repo/slurm-el${OS_MAJOR_VERSION}.repo /etc/yum.repos.d/slurm.repo
 
     if [ ! -e /etc/yum.repos.d/microsoft-prod.repo ];then
         curl -sSL -O https://packages.microsoft.com/config/rhel/${OS_MAJOR_VERSION}/packages-microsoft-prod.rpm
@@ -43,7 +43,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
         dnf config-manager --set-enabled powertools
     fi
-
+    yum update
     yum -y install pmix-${PMIX_VERSION}.el${OS_MAJOR_VERSION} hwloc-devel libevent-devel munge-devel
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf -y install pmix-${PMIX_VERSION}.azl3.x86_64 pmix-devel-${PMIX_VERSION}.azl3.x86_64 pmix-tools-${PMIX_VERSION}.azl3.x86_64

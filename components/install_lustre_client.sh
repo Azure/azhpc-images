@@ -16,7 +16,7 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-get update
     apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
     apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     ALMA_LUSTRE_VERSION=${LUSTRE_VERSION//-/_}
     DISTRIB_CODENAME="el8"
     REPO_PATH=/etc/yum.repos.d/amlfs.repo
@@ -29,7 +29,8 @@ elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
     echo -e "enabled=1" >> ${REPO_PATH}
     echo -e "gpgcheck=1" >> ${REPO_PATH}
     echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
-    
+    yum update
+
     dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${ALMA_LUSTRE_VERSION}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
     sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
 fi

@@ -54,17 +54,13 @@ TARBALL=$(basename $MVAPICH_DOWNLOAD_URL)
 MVAPICH_FOLDER=$(basename $MVAPICH_DOWNLOAD_URL .tar.gz)
 
 download_and_verify $MVAPICH_DOWNLOAD_URL $MVAPICH_SHA256
-if [[ $DISTRIBUTION == almalinux9.6 ]]; then
-    rpm --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} -Uvh --nodeps $TARBALL
-else
-    tar -xvf ${TARBALL}
-    pushd ${MVAPICH_FOLDER}
-    # Error exclusive to Ubuntu 22.04
-    # configure: error: The Fortran compiler gfortran will not compile files that call
-    # the same routine with arguments of different types.
-    ./configure $(if [[ $DISTRIBUTION == ubuntu* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
-    popd
-fi
+tar -xvf ${TARBALL}
+pushd ${MVAPICH_FOLDER}
+# Error exclusive to Ubuntu 22.04
+# configure: error: The Fortran compiler gfortran will not compile files that call
+# the same routine with arguments of different types.
+./configure $(if [[ $DISTRIBUTION == ubuntu* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+popd
 write_component_version "MVAPICH" ${MVAPICH_VERSION}
 
 # Install Open MPI

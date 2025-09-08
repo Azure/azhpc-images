@@ -86,9 +86,9 @@
             "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
         },
         "almalinux9.6": {
-            "version": "4.1",
-            "sha256": "684a592b1ba582483349b1d92ca629abe268eed920a64e7944f620ad77c0e86b",
-            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/plus/4.1/cuda/UCX/mofed24.10/mvapich-plus-4.1-cuda12.4.rhel9.ofed24.10.ucx.gcc13.2.0-4.1-1.el9.x86_64.rpm"            
+            "version": "4.0",
+            "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
+            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"      
         },
         "azurelinux3.0": {
             "version": "2.3.7-1",
@@ -216,12 +216,12 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "12.9",
+                "version": "12.8",
                 "distribution": "rhel9"
             },
             "samples": {
-                "version": "12.9",
-                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "version": "12.8",
+                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
             }   
         },
         "rhel8.10": {
@@ -358,6 +358,9 @@
     "lustre": {
         "common": {
             "version": "2.15.6-39-g3e00a10"
+        },
+        "almalinux9.6": {
+            "version": "2.15.7_33_g79ddf99"
         },
         "ubuntu24.04": {
             "version": "2.16.1-14-gbc76088"

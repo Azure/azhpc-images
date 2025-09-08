@@ -13,9 +13,10 @@ elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
     apt install -y python3-yaml
     systemctl disable ufw
 elif [[ $DISTRIBUTION == almalinux* ]]; then
-    # Disable some unneeded services by default (administrators can re-enable if desired)
-    systemctl disable firewalld
-
+    if [[ $DISTRIBUTION == almalinux8.10 ]]; then 
+        # Disable some unneeded services by default (administrators can re-enable if desired)
+        systemctl disable firewalld
+    fi
     # Remove auoms if exists - Prevent CPU utilization by auoms
     if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

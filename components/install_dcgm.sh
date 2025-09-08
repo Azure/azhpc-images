@@ -13,7 +13,7 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-get install -y datacenter-gpu-manager
     # apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')

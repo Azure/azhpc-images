@@ -26,6 +26,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
     yum-config-manager --enable nvidia-container-toolkit-experimental
+    yum update
 
     yum clean expire-cache
     yum install -y nvidia-container-toolkit

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
 curl https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-prod.repo
@@ -8,6 +10,7 @@ curl https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-prod.r
 cp ./microsoft-prod.repo /etc/yum.repos.d/
 
 yum repolist
+yum update
 
 # Install Kernel dependencies
 KERNEL=$(uname -r)

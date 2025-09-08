@@ -38,7 +38,7 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_amd64.deb
     apt-mark hold libnccl-dev
     popd
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     make pkg.redhat.build
     rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm

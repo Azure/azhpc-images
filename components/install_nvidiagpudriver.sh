@@ -64,6 +64,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
     dnf clean expire-cache
     dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
+    yum update
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
     path_var="$TOP_DIR/prebuilt"
     version_var="-12.8.1_570.124.06-1.azl3"

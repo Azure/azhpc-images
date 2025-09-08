@@ -18,7 +18,8 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     ALMA_LUSTRE_VERSION=${LUSTRE_VERSION//-/_}
-    DISTRIB_CODENAME="el8"
+    OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
+    DISTRIB_CODENAME=el$OS_MAJOR_VERSION
     REPO_PATH=/etc/yum.repos.d/amlfs.repo
 
     rpm --import https://packages.microsoft.com/keys/microsoft.asc

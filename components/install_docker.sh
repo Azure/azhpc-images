@@ -4,10 +4,10 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine and CLI
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     yum install -y moby-engine
     yum install -y moby-cli
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

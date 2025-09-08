@@ -23,7 +23,7 @@ else
     git clone https://github.com/NVIDIA/gdrcopy.git
     pushd gdrcopy/packages/
     git checkout ${GDRCOPY_COMMIT}
-    if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+    if [[ $DISTRIBUTION == ubuntu* ]]; then
         # Install gdrcopy
         apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 
@@ -39,7 +39,7 @@ else
         apt-mark hold gdrcopy-tests
         dpkg -i gdrcopy_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
         apt-mark hold gdrcopy
-    elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+    elif [[ $DISTRIBUTION == almalinux* ]]; then
         nvidia_metadata=$(get_component_config "nvidia")
         nvidia_driver_metadata=$(jq -r '.driver' <<< $nvidia_metadata)
         NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)

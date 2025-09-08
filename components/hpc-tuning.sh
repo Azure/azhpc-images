@@ -12,7 +12,7 @@ elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
     apt install -y python3-netifaces
     apt install -y python3-yaml
     systemctl disable ufw
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     # Disable some unneeded services by default (administrators can re-enable if desired)
     systemctl disable firewalld
 

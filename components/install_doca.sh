@@ -11,18 +11,21 @@ DOCA_FILE=$(basename ${DOCA_URL})
 
 download_and_verify $DOCA_URL $DOCA_SHA256
 
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     dpkg -i $DOCA_FILE
     apt-get update
     apt-get -y install doca-ofed
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
+    
     # Install DOCA extras for compatibility
+    VERSION_ID=$(. /etc/os-release;echo $VERSION_ID)
     KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g' | sed 's/x86_64/noarch/'))
-    wget --retry-connrefused --tries=3 --waitretry=5 https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-abi-stablelists-${KERNEL}.rpm
+    wget --retry-connrefused --tries=3 --waitretry=5 https://repo.almalinux.org/almalinux/$VERSION_ID/BaseOS/x86_64/os/Packages/kernel-abi-stablelists-${KERNEL}.rpm
     rpm -i kernel-abi-stablelists-${KERNEL}.rpm
     dnf install -y doca-extra
+    
     /opt/mellanox/doca/tools/doca-kernel-support
     FINAL_REPO_FILE=$(find /tmp/DOCA.*/ -name 'doca-kernel-repo-*.rpm' -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
     rpm -i $FINAL_REPO_FILE

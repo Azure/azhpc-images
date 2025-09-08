@@ -6,7 +6,7 @@ source ${UTILS_DIR}/utilities.sh
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == ubuntu* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble
@@ -28,17 +28,23 @@ if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
     # Hold versions of packages to prevent accidental updates. Packages can still be upgraded explictly by
     # '--allow-change-held-packages' flag.
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
-    cp ${COMPONENT_DIR}/slurm-repo/slurm-el8.repo /etc/yum.repos.d/slurm.repo
+elif [[ $DISTRIBUTION == almalinux* ]]; then
+    OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
+    cp ${COMPONENT_DIR}/slurm-el${OS_MAJOR_VERSION}.repo /etc/yum.repos.d/slurm.repo
 
     if [ ! -e /etc/yum.repos.d/microsoft-prod.repo ];then
-        curl -sSL -O https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        curl -sSL -O https://packages.microsoft.com/config/rhel/${OS_MAJOR_VERSION}/packages-microsoft-prod.rpm
         rpm -i packages-microsoft-prod.rpm
         rm packages-microsoft-prod.rpm
     fi
 
-    dnf config-manager --set-enabled powertools
-    yum -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
+    if [[ $OS_MAJOR_VERSION == "9" ]]; then 
+        dnf config-manager --set-enabled crb
+    elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
+        dnf config-manager --set-enabled powertools
+    fi
+
+    yum -y install pmix-${PMIX_VERSION}.el${OS_MAJOR_VERSION} hwloc-devel libevent-devel munge-devel
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf -y install pmix-${PMIX_VERSION}.azl3.x86_64 pmix-devel-${PMIX_VERSION}.azl3.x86_64 pmix-tools-${PMIX_VERSION}.azl3.x86_64
     tdnf -y install hwloc-devel libevent-devel munge-devel

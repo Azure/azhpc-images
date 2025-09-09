@@ -9,16 +9,16 @@ CUDA_VERSION=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Test this within Joel Koreth require
     apt-get install -y datacenter-gpu-manager
     # apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+elif  [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Set DCGM version info
     dcgm_metadata=$(get_component_config "dcgm")
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)

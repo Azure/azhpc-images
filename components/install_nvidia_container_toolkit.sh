@@ -4,7 +4,7 @@ set -ex
 # Install NVIDIA Container Toolkit
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
     && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
         sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
@@ -49,7 +49,7 @@ nvidia-ctk runtime configure --runtime=docker
 # Configure containerd to use NVIDIA runtime
 mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
-if [[ $DISTRO_FAMILY == "ubuntu" ]] || [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "almalinux8.10" ]]; then
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default

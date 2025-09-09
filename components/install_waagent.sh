@@ -31,6 +31,11 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"
     update_waagent_conf "Provisioning.MonitorHostNamePeriod" "60"
 else
+    if [[ $DISTRIBUTION == *"almalinux"* ]]; then
+        python3 -m ensurepip --upgrade  # Ensures pip is available
+        python3 -m pip install --upgrade pip setuptools
+        python3 -m pip install distro
+    fi
     # Set waagent version and sha256
     waagent_metadata=$(get_component_config "waagent")
     WAAGENT_VERSION=$(jq -r '.version' <<< $waagent_metadata)
@@ -63,7 +68,7 @@ write_component_version "WAAGENT_EXTENSIONS" $(waagent --version | sed '3q;d' | 
 systemctl daemon-reload
 # Restart waagent service in distribution specific file as its name differs between distributions
 
-if [[ $DISTRO_FAMILY == "ubuntu" ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     systemctl restart walinuxagent
 elif [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     systemctl restart waagent

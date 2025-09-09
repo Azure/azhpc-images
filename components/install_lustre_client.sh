@@ -30,7 +30,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     echo -e "enabled=1" >> ${REPO_PATH}
     echo -e "gpgcheck=1" >> ${REPO_PATH}
     echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
-    yum update
+    yum update -y
 
     dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${ALMA_LUSTRE_VERSION}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
     sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf

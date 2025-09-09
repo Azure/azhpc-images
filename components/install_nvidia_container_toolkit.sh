@@ -30,7 +30,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
         dnf config-manager --enable nvidia-container-toolkit-experimental
     fi
-    yum update
+    yum update -y
 
     yum clean expire-cache
     yum install -y nvidia-container-toolkit

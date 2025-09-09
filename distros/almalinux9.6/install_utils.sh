@@ -10,7 +10,7 @@ curl https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-prod.r
 cp ./microsoft-prod.repo /etc/yum.repos.d/
 
 yum repolist
-yum update
+yum update -y
 
 # Install Kernel dependencies
 KERNEL=$(uname -r)

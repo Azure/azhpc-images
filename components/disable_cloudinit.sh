@@ -2,7 +2,7 @@
 set -ex
 
 # Disable Cloud-Init
-if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+if [[ $DISTRIBUTION == *"almalinux"* ]]; then
     cat << EOF >> /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
 network: {config: disabled}
 EOF

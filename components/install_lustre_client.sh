@@ -7,7 +7,7 @@ source ${UTILS_DIR}/utilities.sh
 lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
-if [[ $DISTRIBUTION == ubuntu* ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/repos/amlfs-${DISTRIB_CODENAME}/ ${DISTRIB_CODENAME} main" | sudo tee /etc/apt/sources.list.d/amlfs.list
     # Enable these lines if the MS PMC repo was not already setup.

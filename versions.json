@@ -1,9 +1,9 @@
 {
     "cmake": {
         "common": {
-            "version": "3.31.7",
-            "url": "https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-linux-x86_64.tar.gz",
-            "sha256": "14e15d0b445dbeac686acc13fe13b3135e8307f69ccf4c5c91403996ce5aa2d4"
+            "version": "4.1.1",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
+            "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
         }
     },
     "doca": {
@@ -13,9 +13,9 @@
             "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2204_amd64.deb"
         },
         "ubuntu24.04": {
-            "version": "2.10.0",
-            "sha256": "d33944191d8333f86a3ce0d6531ab542429c0ca4513286046ae51d554001ef9f",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2404_amd64.deb"
+            "version": "3.1.0",
+            "sha256": "6a244de499f19869eb9d06455057cb95ed90745bd8c890ba1282df8d5c05a96e",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.1.0/host/doca-host_3.1.0-091000-25.07-ubuntu2404_amd64.deb"
         },
         "almalinux8.10": {
             "version": "2.10.0",
@@ -40,9 +40,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "ubuntu24.04": {
-            "version": "2.23",
-            "sha256": "b8eea5189ff62125e60b23a6081686e6b98bc9f8cdc778cd179ca5680f7e9e7f",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.23/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+            "version": "2.24.1",
+            "sha256": "1cf4cea6b7984a1c274ecc620b2b8f3fc697a05de6f3954ff40fe26939e03708",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
         },        
         "almalinux8.10": {
             "version": "2.18",
@@ -88,16 +88,16 @@
     },
     "ompi": {
         "common": {
-            "version": "5.0.7",
-            "sha256": "67435fdb2560f897882e69fead171d38e7f44a6dfe1d3c90506f549a943050b8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.7.tar.gz"
+            "version": "5.0.8",
+            "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
         }
     },
     "impi": {
         "common": {
-            "version": "2021.15.0",
-            "sha256": "d4ad297174ce3837444468645e13cfe78f11d9bf2ad9ade2057b2668cccd9385",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6b6e395e-8f38-4da3-913d-90a2bcf41028/intel-mpi-2021.15.0.495_offline.sh"
+            "version": "2021.16.1",
+            "sha256": "4165717608e90ae6123397ebf2a9b87a0b070842ce7d13378d1446a08966eb6e",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/203edae7-5269-4124-a1ed-09ad924f8b47/intel-mpi-2021.16.1.804_offline.sh"
         }
     },
     "nvidia": {
@@ -114,13 +114,13 @@
         },
         "ubuntu24.04": {
             "driver": {
-                "version": "570.133.20",
-                "sha256": "1253d17b1528e8a24bf1f34a8ac6591c924b98ad7a32344bde253aa622ac1605"
+                "version": "570.172.08",
+                "sha256": "0256867e082caf93d7b25fa7c8e69b316062a9c6c72c6e228fad7b238c6fa17d"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2404",
-                "version": "570.133.20-1",
-                "sha256": "f9e4bf0b03d37facd1cd41f4bfd667bfab40b8c378b18ea0d9ca301d74ac6862"        
+                "version": "570.172.08-1",
+                "sha256": "36bbcce6130f46df6fd2cbc4f09df8207442a884ef726a40cf5e9edc13b2bfd9"        
             }   
         },
         "almalinux8.10": {
@@ -170,12 +170,12 @@
         },
         "ubuntu24.04": {
             "driver": {
-                "version": "12.8",
+                "version": "12.9",
                 "distribution": "ubuntu2404"
             },
             "samples": {
-                "version": "12.8",
-                "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
+                "version": "12.9",
+                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
             }   
         },        
         "almalinux8.10": {
@@ -212,17 +212,17 @@
     "gdrcopy": {
         "ubuntu22.04": {
             "version": "2.5-1",
-            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
+            "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "Ubuntu22_04"
         },
         "ubuntu24.04": {
             "version": "2.5-1",
-            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
+            "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "Ubuntu24_04"
         },
         "almalinux8.10": {
             "version": "2.5-1",
-            "commit": "bda1f60346ffd564b12245662758286a6a5d18d6",
+            "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "el8"
         },
         "rhel8.10": {
@@ -238,7 +238,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.26.2-1",
+            "version": "2.28.3-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -258,8 +258,8 @@
     },
     "waagent": {
         "common": {
-            "version": "2.12.0.4",
-            "sha256": "88be3211a433e1d12d7212761a06b227e6bed551649abd62d4eebeae116ab26c"
+            "version": "2.14.0.1",
+            "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
         },
         "azurelinux3.0": {
             "version": "2.11.8.8",
@@ -339,10 +339,6 @@
         }
     },
     "aznfs": {
-        "common": {
-            "version": "2.0.12",
-            "sha256": "5ad0f1986c4d211d2bd9626b2f246fbcd556c1fb0ca7be346adf660076c49210"
-        },
         "azurelinux3.0": {
             "version": "2.0.8",
             "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"

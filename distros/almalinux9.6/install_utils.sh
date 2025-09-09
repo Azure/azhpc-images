@@ -97,6 +97,8 @@ yum localinstall ./dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/s/
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
+echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh
 

@@ -33,6 +33,12 @@ cat << EOF >> /etc/security/limits.conf
 *               soft    stack           unlimited
 EOF
 
+if [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/system.conf
+    echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/user.conf
+    sudo systemctl daemon-reexec
+fi
+
 # Enable reclaim mode
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf
 echo "net.ipv4.neigh.default.gc_thresh1 = 4096" >> /etc/sysctl.conf

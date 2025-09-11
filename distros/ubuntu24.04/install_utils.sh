@@ -41,6 +41,7 @@ apt-get -y install numactl \
                    python3 \
                    python3-pip \
                    python3-setuptools \
+                   python3-aiohttp \
                    libtiff-tools \
                    libtiff6 \
                    libxml2 \

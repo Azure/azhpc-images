@@ -211,22 +211,22 @@
     },
     "gdrcopy": {
         "ubuntu22.04": {
-            "version": "2.5-1",
+            "version": "2.5.1-1",
             "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "Ubuntu22_04"
         },
         "ubuntu24.04": {
-            "version": "2.5-1",
+            "version": "2.5.1-1",
             "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "Ubuntu24_04"
         },
         "almalinux8.10": {
-            "version": "2.5-1",
+            "version": "2.5.1-1",
             "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
             "distribution": "el8"
         },
         "rhel8.10": {
-            "version": "2.5-1",
+            "version": "2.5.1-1",
             "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"
         },

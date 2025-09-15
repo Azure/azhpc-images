@@ -41,11 +41,6 @@ apt-get -y install numactl \
                    python3 \
                    python3-pip \
                    python3-setuptools \
-                   python3-aiohttp \
-                   libtiff-tools \
-                   libtiff6 \
-                   libxml2 \
-                   libxml2-dev \
                    dkms \
                    jq \
                    curl \
@@ -57,7 +52,7 @@ apt-get -y install numactl \
                    nfs-common \
                    pssh \
                    dos2unix \
-                   azcopy \
+                   azcopy
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 

@@ -23,7 +23,9 @@ yum install -y wget \
                net-tools \
                python3.12
 
-ln -fs /usr/bin/python3.12 /usr/bin/python3
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 20
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 10
+alternatives --set python3 /usr/bin/python3.9
 
 # install pssh
 pssh_metadata=$(get_component_config "pssh")

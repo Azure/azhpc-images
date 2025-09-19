@@ -53,6 +53,8 @@ apt-get -y install numactl \
                    pssh \
                    dos2unix \
                    azcopy
+apt-get remove python3-aiohttp
+apt-get autoremove
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 

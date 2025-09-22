@@ -58,3 +58,7 @@ if [[ $DISTRIBUTION == ubuntu* ]] || [[ $DISTRIBUTION == almalinux* ]]; then
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.runc\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml
+    sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.nvidia\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml
+fi

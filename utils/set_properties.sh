@@ -16,9 +16,13 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # jq is needed to parse the component versions from the versions.json file
     apt install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
-    # Import the newest AlmaLinux 8 GPG key
-    rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
+elif [[ $DISTRIBUTION == almalinux* ]]; then
+    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+        # Import the newest AlmaLinux GPG key
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
+    elif [[ $DISTRIBUTION == "almalinux9.6" ]]; then
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-9
+    fi
     yum install -y jq    
     export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

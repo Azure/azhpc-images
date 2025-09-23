@@ -40,7 +40,7 @@ else
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
-if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
     sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 fi
@@ -80,7 +80,7 @@ make install
 cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
-if [[ $DISTRIBUTION == "almalinux8.10" ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi

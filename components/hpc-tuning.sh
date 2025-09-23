@@ -12,10 +12,11 @@ elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
     apt install -y python3-netifaces
     apt install -y python3-yaml
     systemctl disable ufw
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
-    # Disable some unneeded services by default (administrators can re-enable if desired)
-    systemctl disable firewalld
-
+elif [[ $DISTRIBUTION == almalinux* ]]; then
+    if [[ $DISTRIBUTION == almalinux8.10 ]]; then 
+        # Disable some unneeded services by default (administrators can re-enable if desired)
+        systemctl disable firewalld
+    fi
     # Remove auoms if exists - Prevent CPU utilization by auoms
     if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
@@ -31,6 +32,12 @@ cat << EOF >> /etc/security/limits.conf
 *               hard    stack           unlimited
 *               soft    stack           unlimited
 EOF
+
+if [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/system.conf
+    echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/user.conf
+    sudo systemctl daemon-reexec
+fi
 
 # Enable reclaim mode
 echo "vm.zone_reclaim_mode = 1" >> /etc/sysctl.conf

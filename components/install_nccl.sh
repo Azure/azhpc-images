@@ -18,7 +18,7 @@ NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y build-essential devscripts debhelper fakeroot
     apt install -y zlib1g-dev libibverbs-dev  
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     yum install -y rpm-build rpmdevtools
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rpm-build rpmdevtools autoconf automake git
@@ -38,7 +38,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_amd64.deb
     apt-mark hold libnccl-dev
     popd
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     make pkg.redhat.build
     rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm

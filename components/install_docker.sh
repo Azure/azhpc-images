@@ -7,7 +7,7 @@ source ${UTILS_DIR}/utilities.sh
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     yum install -y moby-engine
     yum install -y moby-cli
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
@@ -31,5 +31,11 @@ ctr plugin ls
 docker_version=$(docker --version | awk -F' ' '{print $3}')
 write_component_version "DOCKER" ${docker_version::-1}
 
-moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')
+if [[ $DISTRIBUTION == ubuntu* ]]; then
+    moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')
+elif [[ $DISTRIBUTION == almalinux* ]]; then
+    moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    moby_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
+fi
 write_component_version "MOBY_ENGINE" ${moby_version}

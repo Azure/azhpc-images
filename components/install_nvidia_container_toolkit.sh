@@ -21,11 +21,16 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 
     # Remove unwanted repos
     rm -f /etc/apt/sources.list.d/nvidia*
-elif [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]]; then
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    yum-config-manager --enable nvidia-container-toolkit-experimental
+    if [[ $DISTRIBUTION == almalinux8.10 ]]; then
+        yum-config-manager --enable nvidia-container-toolkit-experimental
+    elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
+        dnf config-manager --enable nvidia-container-toolkit-experimental
+    fi
+    yum update -y
 
     yum clean expire-cache
     yum install -y nvidia-container-toolkit
@@ -49,7 +54,11 @@ nvidia-ctk runtime configure --runtime=docker
 # Configure containerd to use NVIDIA runtime
 mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
-if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == *"almalinux"* ]]; then
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.runc\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml
+    sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.nvidia\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml
+fi

@@ -14,17 +14,18 @@ NCCL_TOPO_FILE=/opt/microsoft/ndv5/topo.xml
 NCCL_IGNORE_CPU_AFFINITY=1
 EOF
 
-## NVIDIA Fabric manager
-systemctl enable nvidia-fabricmanager
-systemctl start nvidia-fabricmanager
-systemctl is-active --quiet nvidia-fabricmanager
-
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "NVIDIA Fabic Manager Inactive!"
-    exit ${error_code}
-fi
+# Ensure NVIDIA Fabric Manager is active
+retries=0
+while ! systemctl is-active --quiet nvidia-fabricmanager; do
+    error_code=$?
+    if (( retries++ >= 5 )); then
+        echo "NVIDIA Fabic Manager Inactive!"
+        exit ${error_code}
+    fi
+    echo "Waiting for NVIDIA Fabric Manager..."
+    sleep 5
+done
+echo "NVIDIA Fabric Manager is active."
 
 ## load nvidia-peermem module
 modprobe nvidia-peermem

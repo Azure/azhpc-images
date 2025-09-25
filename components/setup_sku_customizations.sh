@@ -130,6 +130,7 @@ cat <<EOF >/etc/systemd/system/sku-customizations.service
 [Unit]
 Description=Customizations based on SKU
 After=network.target
+Wants=nvidia-fabricmanager.service
 
 [Service]
 Type=oneshot

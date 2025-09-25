@@ -20,7 +20,6 @@ then
 
     download_and_verify $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
     sed -i 's/yum/tdnf/' aznfs_install.sh
-    sed -i 's/-o "\$distro" == "ol"/-o "$distro" == "ol" -o "$distro" == "almalinux"/' aznfs_install.sh
     export AZNFS_NONINTERACTIVE_INSTALL=1
     bash aznfs_install.sh
 fi

@@ -122,8 +122,8 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y libnvidia-nscq
 fi
 
-echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/bash.bashrc
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/bash.bashrc
+echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee -a /etc/profile.d 
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile.d 
 write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
 
 # Download CUDA samples

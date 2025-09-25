@@ -426,13 +426,5 @@
             "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
             "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
         }
-    },
-    "trivy": {
-        "common": {
-            "version": "0.66.0",
-            "url": "https://github.com/aquasecurity/trivy/releases/download/v0.66.0/trivy_0.66.0_Linux-64bit.tar.gz",
-            "sha256": "93678741c3223c15120934ac00671ca7e797c9a5a4d89148db9ffca9184a5f0d",
-            "repo": "mcr.microsoft.com/mirror/ghcr/aquasecurity/trivy-db:2,ghcr.io/aquasecurity/trivy-db:2,public.ecr.aws/aquasecurity/trivy-db"
-        }
     }
 }

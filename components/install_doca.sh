@@ -31,6 +31,13 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     rpm -i $FINAL_REPO_FILE
     dnf -y install doca-ofed-userspace
     dnf -y install doca-ofed
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    rpm -i $DOCA_FILE
+    dnf clean all
+    dnf install -y doca-extra
+    /opt/mellanox/doca/tools/doca-kernel-support
+    dnf install -y doca-ofed-userspace
+    dnf -y install doca-ofed
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

@@ -10,11 +10,13 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble
+        SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
     elif [ $UBUNTU_VERSION == 22.04 ]; then
         REPO=slurm-ubuntu-jammy
+        SIGNED_BY="/etc/apt/trusted.gpg.d/microsoft-prod.gpg"
     else echo "$DISTRIBUTION not supported for pmix installation."
     fi
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/repos/$REPO/ insiders main" > /etc/apt/sources.list.d/slurm.list
+    echo "deb [arch=amd64 signed-by=$SIGNED_BY] https://packages.microsoft.com/repos/$REPO/ insiders main" > /etc/apt/sources.list.d/slurm.list
     cp ${COMPONENT_DIR}/slurm-repo/slurm-u.pin /etc/apt/preferences.d/slurm-repository-pin-990
     ## This package is pre-installed in all hpc images used by cyclecloud, but if customer wants to
     ## use generic ubuntu marketplace image then this package sets up the right gpg keys for PMC.

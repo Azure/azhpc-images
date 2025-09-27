@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Set Lustre version
 lustre_metadata=$(get_component_config "lustre")
@@ -16,4 +16,4 @@ source $RHEL_COMMON_DIR/setup_lustre_repo.sh "$1"
 dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${RHEL_LUSTRE_VERSION}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
 sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
 
-$COMMON_DIR/write_component_version.sh "LUSTRE" ${LUSTRE_VERSION}
+write_component_version "LUSTRE" ${LUSTRE_VERSION}

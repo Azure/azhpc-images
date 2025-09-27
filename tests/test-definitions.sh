@@ -76,14 +76,14 @@ function verify_hpcx_installation {
 }
 
 function verify_mvapich2_installation {
-    check_exists "${MODULE_FILES_ROOT}/mpi/mvapich2"
+    check_exists "${MODULE_FILES_ROOT}/mpi/mvapich"
 
-    module load mpi/mvapich2
+    module load mpi/mvapich
     # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
-    local mvapich2_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich2_omb_path}/osu_latency
-    check_exit_code "MVAPICH2 ${VERSION_MVAPICH2}" "Failed to run MVAPICH2"
-    module unload mpi/mvapich2
+    local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
+    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
+    module unload mpi/mvapich
 }
 
 function verify_impi_2021_installation {
@@ -206,10 +206,7 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu) sudo apt -s upgrade;;
-        # we aren't opinionated about packages that have divergent versions in upstream repos
-        # mft has different versions from cuda and doca repos
-        # javapackages-filesystem has different versions from appstream and powertools, a problem AlmaLinux team needs to fix
-        almalinux) sudo dnf check-update --refresh -x mft -x javapackages-filesystem;;
+        almalinux) sudo dnf check-update --refresh;;
         azurelinux) true;;
         * ) ;;
     esac
@@ -235,16 +232,6 @@ function verify_hpcdiag_installation {
 function verify_gcc_installation {
     gcc --version
     check_exit_code "GCC is installed" "GCC doesn't exist!"
-}
-
-# Check module file for the explicit installations
-function verify_gcc_modulefile {
-    if [[ $ID != "azurelinux" ]]; then
-        # Verify GCC Software installation path
-        check_exists "/opt/gcc-${VERSION_GCC}/"
-        # Verify GCC module file path
-        check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
-    fi
 }
 
 function verify_aocl_installation {

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Install Python 3.8
 yum install -y python3.8
@@ -12,7 +12,7 @@ pssh_metadata=$(get_component_config "pssh")
 pssh_version=$(jq -r '.version' <<< $pssh_metadata)
 pssh_sha256=$(jq -r '.sha256' <<< $pssh_metadata)
 pssh_download_url="https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/p/pssh-$pssh_version.el8.noarch.rpm"
-$COMMON_DIR/download_and_verify.sh $pssh_download_url $pssh_sha256
+download_and_verify $pssh_download_url $pssh_sha256
 
 yum install -y  pssh-$pssh_version.el8.noarch.rpm
 rm -f pssh-$pssh_version.el8.noarch.rpm
@@ -51,7 +51,8 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
-    azcopy
+    azcopy \
+    dos2unix
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Set DCGM version info
 dcgm_metadata=$(get_component_config "dcgm")
@@ -12,7 +12,7 @@ DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 # the repo is already added during nvidia/ cuda installations
 dnf clean expire-cache
 dnf install -y datacenter-gpu-manager-1:${DCGM_VERSION}
-$COMMON_DIR/write_component_version.sh "DCGM" ${DCGM_VERSION}
+write_component_version "DCGM" ${DCGM_VERSION}
 
 # Enable the dcgm service
 systemctl --now enable nvidia-dcgm

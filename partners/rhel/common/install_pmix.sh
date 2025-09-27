@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
@@ -20,4 +20,4 @@ fi
 # dnf config-manager --set-enabled powertools
 yum -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
 
-$COMMON_DIR/write_component_version.sh "PMIX" ${PMIX_VERSION}
+write_component_version "PMIX" ${PMIX_VERSION}

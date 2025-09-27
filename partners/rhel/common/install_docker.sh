@@ -1,5 +1,6 @@
 #!/bin/bash
 set -ex
+source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine + CLI
 yum install -y moby-engine
@@ -19,7 +20,7 @@ ctr plugin ls
 
 # Write the docker version to components file
 docker_version=$(docker --version | awk -F' ' '{print $3}')
-$COMMON_DIR/write_component_version.sh "DOCKER" ${docker_version::-1}
+write_component_version "DOCKER" ${docker_version::-1}
 
 moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
-$COMMON_DIR/write_component_version.sh "MOBY_ENGINE" ${moby_version}
+write_component_version "MOBY_ENGINE" ${moby_version}

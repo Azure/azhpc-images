@@ -25,11 +25,13 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    if [[ $DISTRIBUTION == almalinux8.10 ]]; then
-        yum-config-manager --enable nvidia-container-toolkit-experimental
-    elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
-        dnf config-manager --enable nvidia-container-toolkit-experimental
-    fi
+    # Enable these lines if you want use experimental repo
+    # if [[ $DISTRIBUTION == almalinux8.10 ]]; then
+    #    yum-config-manager --enable nvidia-container-toolkit-experimental
+    # elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    #    dnf config-manager --enable nvidia-container-toolkit-experimental
+    # fi
+
     yum update -y
 
     yum clean expire-cache

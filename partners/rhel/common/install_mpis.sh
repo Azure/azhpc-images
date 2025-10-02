@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Load gcc
 GCC_VERSION=gcc-9.2.0
@@ -24,7 +24,7 @@ HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
 TARBALL=$(basename $HPCX_DOWNLOAD_URL)
 HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
-$COMMON_DIR/download_and_verify.sh ${HPCX_DOWNLOAD_URL} ${HPCX_SHA256}
+download_and_verify ${HPCX_DOWNLOAD_URL} ${HPCX_SHA256}
 tar -xvf ${TARBALL}
 
 sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
@@ -32,7 +32,7 @@ mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 HCOLL_PATH=${HPCX_PATH}/hcoll
 UCX_PATH=${HPCX_PATH}/ucx
-$COMMON_DIR/write_component_version.sh "HPCX" $HPCX_VERSION
+write_component_version "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
 ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
@@ -49,12 +49,12 @@ MVAPICH2_DOWNLOAD_URL="http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mv
 TARBALL=$(basename $MVAPICH2_DOWNLOAD_URL)
 MVAPICH2_FOLDER=$(basename $MVAPICH2_DOWNLOAD_URL .tar.gz)
 
-$COMMON_DIR/download_and_verify.sh $MVAPICH2_DOWNLOAD_URL $MVAPICH2_SHA256
+download_and_verify $MVAPICH2_DOWNLOAD_URL $MVAPICH2_SHA256
 tar -xvf ${TARBALL}
 cd ${MVAPICH2_FOLDER}
 ./configure --prefix=${INSTALL_PREFIX}/mvapich2-${MVAPICH2_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
 cd ..
-$COMMON_DIR/write_component_version.sh "MVAPICH2" ${MVAPICH2_VERSION}
+write_component_version "MVAPICH2" ${MVAPICH2_VERSION}
 
 
 # Install Open MPI
@@ -65,14 +65,14 @@ OMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $ompi_metadata)
 TARBALL=$(basename $OMPI_DOWNLOAD_URL)
 OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 
-$COMMON_DIR/download_and_verify.sh $OMPI_DOWNLOAD_URL $OMPI_SHA256
+download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
 ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..
-$COMMON_DIR/write_component_version.sh "OMPI" ${OMPI_VERSION}
+write_component_version "OMPI" ${OMPI_VERSION}
 
 # exclude openmpi, perftest from updates
 sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
@@ -84,12 +84,12 @@ IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
 IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
 IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
 
-$COMMON_DIR/download_and_verify.sh $IMPI_DOWNLOAD_URL $IMPI_SHA256
+download_and_verify $IMPI_DOWNLOAD_URL $IMPI_SHA256
 bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
 
 impi_2021_version=${IMPI_VERSION:0:-2}
 mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
-$COMMON_DIR/write_component_version.sh "IMPI" ${IMPI_VERSION}
+write_component_version "IMPI" ${IMPI_VERSION}
 
 # Setup module files for MPIs
 MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi

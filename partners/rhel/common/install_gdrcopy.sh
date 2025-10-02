@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 # Install gdrcopy
 gdrcopy_metadata=$(get_component_config "gdrcopy")
@@ -20,4 +20,4 @@ rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.noarch.rpm
 sed -i "$ s/$/ gdrcopy*/" /etc/dnf/dnf.conf
 popd
 
-$COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
+write_component_version "GDRCOPY" ${GDRCOPY_VERSION}

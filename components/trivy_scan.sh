@@ -41,7 +41,7 @@ tar -xvzf "${TARFILE}" -C trivy
 rm "${TARFILE}"
 chmod a+x trivy/trivy
 
-retrycmd_if_failure 10 30 600 ./trivy/trivy --scanners vuln rootfs -f json --db-repository ${TRIVY_DB_REPOSITORIES} ${SKIP_FILES[@]/#/ --skip-files } ${SKIP_DIRS[@]/#/ --skip-dirs } --ignore-unfixed --list-all-pkgs false -o "${TRIVY_REPORT_ROOTFS_JSON_PATH}" /
+retrycmd_if_failure 10 30 600 ./trivy/trivy --scanners vuln rootfs -f json --db-repository ${TRIVY_DB_REPOSITORIES} ${SKIP_FILES[@]/#/ --skip-files } ${SKIP_DIRS[@]/#/ --skip-dirs } --ignore-unfixed --list-all-pkgs=false -o "${TRIVY_REPORT_ROOTFS_JSON_PATH}" /
 retrycmd_if_failure 10 30 600 ./trivy/trivy --scanners vuln rootfs -f cyclonedx --db-repository ${TRIVY_DB_REPOSITORIES} ${SKIP_FILES[@]/#/ --skip-files } ${SKIP_DIRS[@]/#/ --skip-dirs } --ignore-unfixed -o "${TRIVY_CYCLONEDX_ROOTFS_JSON_PATH}" /
 
 rm -rf ./trivy

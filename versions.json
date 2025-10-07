@@ -8,9 +8,9 @@
     },
     "doca": {
         "ubuntu22.04": {
-            "version": "2.10.0",
-            "sha256": "c9758f9029393b749908f0485827004dafa8cc0e24313f1f2bdae2406050ddfd",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host_2.10.0-093000-25.01-ubuntu2204_amd64.deb"
+            "version": "3.1.0",
+            "sha256": "5ba139cd07efee5769a2a39ee2797fc9183f3903d87f46385403e61f41076ac9",
+            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.1.0/host/doca-host_3.1.0-091000-25.07-ubuntu2204_amd64.deb"
         },
         "ubuntu24.04": {
             "version": "3.1.0",
@@ -40,9 +40,9 @@
     },
     "hpcx": {
         "ubuntu22.04": {
-            "version": "2.18",
-            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            "version": "2.24.1",
+            "sha256": "6a999297fda98ca833c47a09a6a13e92d4f759d75a9258ec2355304d479e4653",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
         },
         "ubuntu24.04": {
             "version": "2.24.1",

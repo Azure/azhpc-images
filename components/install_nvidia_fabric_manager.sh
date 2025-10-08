@@ -12,7 +12,14 @@ NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
-    NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+    
+    # Use different URL format for NVIDIA Fabric Manager major version 580 and above
+    if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
+        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+    else
+        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+    fi
+    
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     

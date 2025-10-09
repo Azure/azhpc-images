@@ -49,7 +49,7 @@ function test_component {
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
-        # check_lustre) verify_lustre_installation;;
+        check_lustre) verify_lustre_installation;;
         * ) ;;
     esac
 }

@@ -30,7 +30,7 @@ pushd ./${rccl_folder}/build
 # aggressively crank up the number of compiler given that we have 2TB of memory to spare on MI300X
 sed -i -E 's/(target_compile_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)12/\196/' ../CMakeLists.txt
 
-CXX=/opt/rocm/bin/hipcc cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
+CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
 make -j$(nproc)
 make install
 popd

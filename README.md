@@ -10,9 +10,10 @@
 
 This repository houses a collection of scripts meticulously crafted for installing High-Performance Computing (HPC) and Artificial Intelligence (AI) libraries, along with tools essential for building Azure HPC/AI images. Whether you're provisioning compute-intensive workloads or crafting advanced AI models in the cloud, these scripts streamline the process, ensuring efficiency and reliability in your deployments.
 
-Following are the current supported HPC/AI VM images that are available in Azure Marketplace:
-- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 (microsoft-dsvm:ubuntu-hpc:2204:latest)
-- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 (almalinux:almalinux-hpc:8_10-hpc-gen2:latest)
+Following are the current supported HPC/AI VM images that are available in Azure Marketplace, with the exception of Azure Linux (only available from Azure CLI for MSFT internal):
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 (`microsoft-dsvm:ubuntu-hpc:2204:latest`)
+- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 (`almalinux:almalinux-hpc:8_10-hpc-gen2:latest`)
+- AzureLinux-HPC 3.0 (`Please reach out internally for image URN`)
 
 # How to Use
 

@@ -45,6 +45,15 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
         systemctl daemon-reload
+        systemctl enable disable_cloudinit.service
+        systemctl start disable_cloudinit.service
+        systemctl is-active --quiet disable_cloudinit.service
+        error_code=$?
+        if [ ${error_code} -ne 0 ]
+        then
+            echo "Disable Cloud Init service Inactive!"
+            exit ${error_code}
+        fi
     fi
 else
     echo network: {config: disabled} | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg

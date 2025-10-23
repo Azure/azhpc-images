@@ -3,8 +3,10 @@
 |OS Version|Status Badge|
 |----------|------------|
 |Ubuntu 22.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_22.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|Ubuntu 24.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_24.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |AlmaLinux 8.10|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.10)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
-|Azure Linux 3.0|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20azurelinux_3.0)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|AlmaLinux 9.6|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma9.6)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|Azure Linux 3.0|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20azurelinux3.0)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 # Azure HPC/AI VM Images
 
@@ -12,7 +14,17 @@ This repository houses a collection of scripts meticulously crafted for installi
 
 Following are the current supported HPC/AI VM images that are available in Azure Marketplace:
 - [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 (microsoft-dsvm:ubuntu-hpc:2204:latest)
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 V100 (microsoft-dsvm:ubuntu-hpc:2204-v100:latest)
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 22.04 ROCm (microsoft-dsvm:ubuntu-hpc:2204-rocm:latest)
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 24.04 (microsoft-dsvm:ubuntu-hpc:2404:latest)
+- [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 24.04 ROCm (microsoft-dsvm:ubuntu-hpc:2404-rocm:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 (almalinux:almalinux-hpc:8_10-hpc-gen2:latest)
+- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 V100 (almalinux:almalinux-hpc:8_10-hpc-v100-gen2:latest)
+- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 9.6 (almalinux:almalinux-hpc:9-hpc-gen2:latest)
+- [AzureLinux-HPC]() 3 (azure-hpc:azurelinux-hpc:3:latest)
+- [AzureLinux-HPC]() 3-FIPS (azure-hpc:azurelinux-hpc:3-fips:latest)
+- [AzureLinux-HPC]() 3-V100 (azure-hpc:azurelinux-hpc:3-v100:latest)
+- [AzureLinux-HPC]() 3-V100-FIPS (azure-hpc:azurelinux-hpc:3-v100-fips:latest)  
 
 # How to Use
 

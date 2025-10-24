@@ -51,14 +51,6 @@ if [ "$GPU" = "NVIDIA" ]; then
 
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
-
-    if [ "$SKU" != "V100" ]; then
-        echo "BENJAMINLILOG reloading nvidia driver"
-        sudo systemctl stop nvidia-dcgm.service
-        sudo modprobe -r nvidia_drm nvidia_modeset gdrdrv nvidia_peermem nvidia_uvm nvidia  
-        sudo modprobe nvidia nvidia_modeset nvidia_uvm nvidia_peermem gdrdrv nvidia_drm
-        sudo systemctl start nvidia-dcgm.service
-    fi
 fi
 
 if [ "$GPU" = "AMD" ]; then

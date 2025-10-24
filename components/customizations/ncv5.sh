@@ -26,11 +26,11 @@ if nvidia-smi nvlink --status | grep -qa inActive; then
         sleep 1
     done
 
-    echo "Reload NVIDIA kernel modules..."
-    systemctl stop nvidia-dcgm.service
-    modprobe -r nvidia_drm nvidia_modeset gdrdrv nvidia_peermem nvidia_uvm nvidia  
-    modprobe nvidia nvidia_modeset nvidia_uvm nvidia_peermem gdrdrv nvidia_drm
-    systemctl start nvidia-dcgm.service
+    echo "Reloading NVIDIA kernel modules..."
+    sudo systemctl stop nvidia-dcgm.service
+    sudo modprobe -r nvidia_drm nvidia_modeset gdrdrv nvidia_peermem nvidia_uvm nvidia  
+    sudo modprobe nvidia nvidia_modeset nvidia_uvm nvidia_peermem gdrdrv nvidia_drm
+    sudo systemctl start nvidia-dcgm.service
 fi
 
 echo "Check NVLink status after reloading NVIDIA kernel modules..."

@@ -67,7 +67,10 @@ popd
 # Build the nccl tests
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
-git clone --revision=00f52811b818e751245303378a97db59fae083c1 --depth=1 https://github.com/NVIDIA/nccl-tests.git # TODO benjaminli revert
+git clone https://github.com/NVIDIA/nccl-tests.git
+cd nccl-tests # TODO benjaminli revert
+git checkout 00f52811b818e751245303378a97db59fae083c1 # TODO benjaminli revert
+cd .. # TODO benjaminli revert
 pushd nccl-tests
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd

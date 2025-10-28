@@ -272,8 +272,7 @@
             "distribution": "el8"
         },
         "azurelinux3.0": {
-            "version": "2.5-7",
-            "sha256": "9f1ddefaf7ebf09f1f4cb04873ed9fb255ddfd819ab1cf5ec2e73ed96140565a",
+            "version": "2.5-10",
             "distribution": "azl3"
         }
     },

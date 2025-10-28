@@ -404,8 +404,7 @@
             "sha256": "ce2a0216bba1a870999b2d56e3f876fb4c6b8da55efd7e230b73771efe7d2ca4"
         },
         "azurelinux3.0": {
-            "version": "6.2.2.1",
-            "amdgpu": "6.8.5.60202_2220492-3"
+            "version": "6.2.2.1"
         }
     },
     "rccl": {

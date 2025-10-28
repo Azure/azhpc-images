@@ -16,7 +16,6 @@ apt-get -y install numactl \
                    libxml2-dev \
                    m4 \
                    byacc \
-                   python-setuptools \
                    tcl \
                    environment-modules \
                    tk \

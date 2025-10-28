@@ -282,6 +282,12 @@
             "rdmasharpplugins": {
                 "commit": "master"
             }
+        },
+        "azurelinux3.0": {
+            "version": "2.26.2-1",
+            "rdmasharpplugins": {
+                "commit": "master"
+            }
         }
     },
     "dcgm": {

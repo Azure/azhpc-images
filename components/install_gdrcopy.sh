@@ -30,14 +30,19 @@ else
         cuda_metadata=$(get_component_config "cuda")
         CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
-        CUDA=/usr/local/cuda ./build-deb-packages.sh 
-        dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+        CUDA=/usr/local/cuda ./build-deb-packages.sh
+        if [ "$ARCH" == "x86_64" ]; then
+            ARCH_TAG="amd64"
+        elif [ "$ARCH" == "aarch64" ]; then
+            ARCH_TAG="arm64"
+        fi
+        dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_${ARCH_TAG}.${GDRCOPY_DISTRIBUTION}.deb
         apt-mark hold gdrdrv-dkms
-        dpkg -i libgdrapi_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+        dpkg -i libgdrapi_${GDRCOPY_VERSION}_${ARCH_TAG}.${GDRCOPY_DISTRIBUTION}.deb
         apt-mark hold libgdrapi
-        dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}+cuda${CUDA_DRIVER_VERSION}.deb
+        dpkg -i gdrcopy-tests_${GDRCOPY_VERSION}_${ARCH_TAG}.${GDRCOPY_DISTRIBUTION}+cuda${CUDA_DRIVER_VERSION}.deb
         apt-mark hold gdrcopy-tests
-        dpkg -i gdrcopy_${GDRCOPY_VERSION}_amd64.${GDRCOPY_DISTRIBUTION}.deb
+        dpkg -i gdrcopy_${GDRCOPY_VERSION}_${ARCH_TAG}.${GDRCOPY_DISTRIBUTION}.deb
         apt-mark hold gdrcopy
     elif [[ $DISTRIBUTION == almalinux* ]]; then
         nvidia_metadata=$(get_component_config "nvidia")

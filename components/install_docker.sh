@@ -15,7 +15,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-cli
 fi
 
-$COMPONENT_DIR/install_nvidia_container_toolkit.sh
+$COMPONENT_DIR/install_nvidia_container_toolkit.sh $SKU
 
 # enable and restart the docker daemon to complete the installation
 systemctl enable docker

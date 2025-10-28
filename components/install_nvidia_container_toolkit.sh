@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+SKU=$1
+
 # Install NVIDIA Container Toolkit
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
@@ -58,6 +60,10 @@ mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
 if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == *"almalinux"* ]]; then
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
+fi
+if [ "$SKU" == "GB200" ]; then
+    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
+    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.d/*.toml
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

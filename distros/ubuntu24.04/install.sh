@@ -22,7 +22,9 @@ source ../../utils/set_properties.sh
 ./install_utils.sh
 
 # update cmake
-$COMPONENT_DIR/install_cmake.sh
+if [ "$SKU" != "GB200" ]; then
+    $COMPONENT_DIR/install_cmake.sh
+fi
 
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
@@ -38,7 +40,18 @@ $COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
-    $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+
+    if [ "$SKU" = "GB200" ]; then
+        # For GB200, pass SKU to install the correct driver
+        $COMPONENT_DIR/install_nvidiagpudriver_gb200.sh
+
+        ./install_nvloom_gb200.sh
+
+        $COMPONENT_DIR/install_nvbandwidth_tool.sh
+
+    else
+        $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+    fi
     
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
@@ -62,11 +75,14 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
-# install AMD libs
-$COMPONENT_DIR/install_amd_libs.sh
+if [ "$ARCH" == "x86_64" ]; then
 
-# install Intel libraries
-$COMPONENT_DIR/install_intel_libs.sh
+    # install AMD libs
+    $COMPONENT_DIR/install_amd_libs.sh
+
+    # install Intel libraries
+    $COMPONENT_DIR/install_intel_libs.sh
+fi
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -77,26 +93,29 @@ rm -Rf -- */
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
 
-# Install AZNFS Mount Helper
-$COMPONENT_DIR/install_aznfs.sh
-
-# install diagnostic script
-$COMPONENT_DIR/install_hpcdiag.sh
-
-# install monitor tools
-$COMPONENT_DIR/install_monitoring_tools.sh
-
 # install persistent rdma naming
 $COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
+
+if [[ "$SKU" != "GB200" ]]; then
+
+    # Install AZNFS Mount Helper
+    $COMPONENT_DIR/install_aznfs.sh
+
+    # install diagnostic script
+    $COMPONENT_DIR/install_hpcdiag.sh
+
+    # install monitor tools
+    $COMPONENT_DIR/install_monitoring_tools.sh
+
+    # install Azure/NHC Health Checks
+    $COMPONENT_DIR/install_health_checks.sh "$GPU"
+fi 
 
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 
 # copy test file
 $COMPONENT_DIR/copy_test_file.sh
-
-# install Azure/NHC Health Checks
-$COMPONENT_DIR/install_health_checks.sh "$GPU"
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh

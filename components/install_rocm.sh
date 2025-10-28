@@ -43,6 +43,7 @@ EOF
    apt install -y rocm-bandwidth-test
    rm -f ./${DEBPACKAGE}
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+   AMDGPU_VERSION=$(jq -r '.amdgpu' <<< $rocm_metadata)
    tdnf install -y azurelinux-repos-amd
    tdnf -y install kernel-drivers-gpu-$(uname -r)
    tdnf -y install \

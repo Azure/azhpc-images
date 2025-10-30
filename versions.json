@@ -40,9 +40,16 @@
     },
     "hpcx": {
         "ubuntu22.04": {
-            "version": "2.24.1",
-            "sha256": "622be4b7fc739e42a70578fdc72784bfa8aac3c6a66e89d67142bdbf5227a7eb",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda13-x86_64.tbz"
+            "common": {
+                "version": "2.24.1",
+                "sha256": "622be4b7fc739e42a70578fdc72784bfa8aac3c6a66e89d67142bdbf5227a7eb",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda13-x86_64.tbz"
+            },
+            "nvidia-v100": {
+                "version": "2.24.1",
+                "sha256": "6a999297fda98ca833c47a09a6a13e92d4f759d75a9258ec2355304d479e4653",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+            }
         },
         "ubuntu24.04": {
             "version": "2.24.1",
@@ -185,14 +192,26 @@
     },
     "cuda": {
         "ubuntu22.04": {
-            "driver": {
-                "version": "13.0",
-                "distribution": "ubuntu2204"
+            "nvidia-v100": {
+                "driver": {
+                    "version": "12.9",
+                    "distribution": "ubuntu2204"
+                },
+                "samples": {
+                    "version": "12.9",
+                    "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                }
             },
-            "samples": {
-                "version": "13.0",
-                "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
-            }   
+            "common": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "ubuntu2204"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
         },
         "ubuntu24.04": {
             "driver": {

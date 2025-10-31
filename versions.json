@@ -159,7 +159,7 @@
         "almalinux9.6": {
             "driver": {
                 "version": "580.95.05",
-                "sha256": "a69e02b69160f47887595e98a49b0aa15ac1dab29b640695dabf37879165b9d9"            
+                "sha256": "849ef0ef8e842b9806b2cde9f11c1303d54f1a9a769467e4e5d961b2fe1182a7"            
             },
             "fabricmanager": {
                 "distribution": "rhel9",

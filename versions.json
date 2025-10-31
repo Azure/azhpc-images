@@ -93,9 +93,9 @@
             "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
         },
         "almalinux9.6": {
-            "version": "4.0",
-            "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
-            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"      
+            "version": "4.1",
+            "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"      
         },
         "azurelinux3.0": {
             "version": "2.3.7-1",
@@ -158,13 +158,13 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "570.172.08",
-                "sha256": "0256867e082caf93d7b25fa7c8e69b316062a9c6c72c6e228fad7b238c6fa17d"            
+                "version": "580.95.05",
+                "sha256": "a69e02b69160f47887595e98a49b0aa15ac1dab29b640695dabf37879165b9d9"            
             },
             "fabricmanager": {
                 "distribution": "rhel9",
-                "version": "570.172.08-1",
-                "sha256": "6e4e0860adfceff8ec8a9451620219b67ac84bfe2dfc9a77c1cd09e2aa2b7c00"        
+                "version": "580.95.05-1",
+                "sha256": "36d78cd5f2bacb37c286f7f6949968c48139fcbf76a03fafbe1860666c3e16fb"        
             }   
         },
         "rhel8.10": {

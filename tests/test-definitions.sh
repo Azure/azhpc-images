@@ -26,7 +26,7 @@ function check_exit_code {
 }
 
 function ver { 
-    printf "%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
+    printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
 # verify OFED installation
@@ -117,12 +117,12 @@ function verify_cuda_installation {
     check_exists "/usr/local/cuda/"
     
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
-    # Having a newer CUDA runtime breaks gpu-burn
-    if [[ $(ver ${VERSION_CUDA}) -gt $(ver ${nvidia_driver_cuda_version})  ]]; then
+    # Having a newer CUDA runtime breaks programs compiled to PTX with the cuda toolkit, such as gpu-burn
+    if [[ $(ver ${VERSION_CUDA}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
+        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"
+    else
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
         exit -1
-    else
-        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"    
     fi
 
     # Verify the compilation of CUDA samples

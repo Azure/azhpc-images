@@ -14,7 +14,8 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
 
     nvidia_driver_metadata=$(get_component_config "nvidia")
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_driver_metadata)
-
+    NVIDIA_DRIVER_VERSION=$(echo $NVIDIA_DRIVER_VERSION | cut -d'-' -f1 )
+    
     # Install gdrcopy kmod and devel packages from PMC
     tdnf install -y gdrcopy-${GDRCOPY_VERSION}.azl3.x86_64 \
                     gdrcopy-kmod-${GDRCOPY_VERSION}_$kernel_version.$NVIDIA_DRIVER_VERSION.azl3.x86_64 \

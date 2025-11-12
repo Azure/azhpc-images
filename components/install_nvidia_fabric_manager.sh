@@ -15,16 +15,21 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     
     # Use different URL format for NVIDIA Fabric Manager major version 580 and above
     if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
-        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+        PACKAGE_NAME="nvidia-fabricmanager"
     else
-        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+        PACKAGE_NAME="nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}"
     fi
+<<<<<<< HEAD
     
+=======
+
+    NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
+>>>>>>> f87832a (Fix the wrong fabricmanager package getting held in apt)
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     
     apt install -y ./${FILENAME}
-    apt-mark hold nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}
+    apt-mark hold $PACKAGE_NAME
 elif [[ $DISTRIBUTION == almalinux* ]]; then    
     NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)

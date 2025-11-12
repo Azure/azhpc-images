@@ -39,8 +39,10 @@ write_component_version "RCCL" ${rccl_version}
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     sysctl kernel.numa_balancing=0
+    sysctl vm.max_map_count=1048576
 fi
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
+echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 
 git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
 pushd ./rccl-tests

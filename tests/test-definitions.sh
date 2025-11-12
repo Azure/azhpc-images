@@ -160,6 +160,17 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        standard_nc80adis_h100_v5) mpirun -np 2 \
+                --allow-run-as-root \
+                --map-by ppr:2:node \
+                -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+                -mca coll_hcoll_enable 0 \
+                -x UCX_TLS=tcp \
+                -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+                -x NCCL_SOCKET_IFNAME=eth0 \
+                -x NCCL_DEBUG=WARN \
+                -x NCCL_NET_GDR_LEVEL=5 \
+                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"

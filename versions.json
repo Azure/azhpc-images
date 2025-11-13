@@ -103,9 +103,9 @@
             "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-1.tar.gz"
         },
         "ubuntu24.04": {
-            "version": "4.0",
-            "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
-            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
+            "version": "4.1",
+            "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+            "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
         }
     },
     "ompi": {
@@ -125,24 +125,24 @@
     "nvidia": {
         "ubuntu22.04": {
             "driver": {
-                "version": "580.95.05",
-                "sha256": "849ef0ef8e842b9806b2cde9f11c1303d54f1a9a769467e4e5d961b2fe1182a7"
+                "version": "580.105.08",
+                "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2204",
-                "version": "580.95.05-1",
-                "sha256": "b20e3a2bfa46fb8ae4adf19a265d07e962f03e4306ea3261f6c7e9adc678b442"
+                "version": "580.105.08-1",
+                "sha256": "83baeb04525fe32bd6e488d310c792c9c1d3bbb7014dc59611125af33a164068"
             }
         },
         "ubuntu24.04": {
             "driver": {
-                "version": "580.95.05",
-                "sha256": "849ef0ef8e842b9806b2cde9f11c1303d54f1a9a769467e4e5d961b2fe1182a7"
+                "version": "580.105.08",
+                "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
             },
             "fabricmanager": {
                 "distribution": "ubuntu2404",
-                "version": "580.95.05-1",
-                "sha256": "b20e3a2bfa46fb8ae4adf19a265d07e962f03e4306ea3261f6c7e9adc678b442"
+                "version": "580.105.08-1",
+                "sha256": "83baeb04525fe32bd6e488d310c792c9c1d3bbb7014dc59611125af33a164068"
             }
         },
         "almalinux8.10": {
@@ -214,13 +214,25 @@
             }
         },
         "ubuntu24.04": {
-            "driver": {
-                "version": "12.9",
-                "distribution": "ubuntu2404"
+            "nvidia-v100": {
+                "driver": {
+                    "version": "12.9",
+                    "distribution": "ubuntu2404"
+                },
+                "samples": {
+                    "version": "12.9",
+                    "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                }
             },
-            "samples": {
-                "version": "12.9",
-                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+            "common": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "ubuntu2404"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
             }
         },
         "almalinux8.10": {
@@ -297,7 +309,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.28.3-1",
+            "version": "2.28.9-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }

@@ -151,13 +151,13 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "570.172.08",
-                "sha256": "0256867e082caf93d7b25fa7c8e69b316062a9c6c72c6e228fad7b238c6fa17d"            
+                "version": "580.105.08",
+                "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"            
             },
             "fabricmanager": {
                 "distribution": "rhel9",
-                "version": "570.172.08-1",
-                "sha256": "6e4e0860adfceff8ec8a9451620219b67ac84bfe2dfc9a77c1cd09e2aa2b7c00"        
+                "version": "580.105.08-1",
+                "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"        
             }   
         },
         "rhel8.10": {
@@ -216,12 +216,12 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "12.9",
+                "version": "13.0",
                 "distribution": "rhel9"
             },
             "samples": {
-                "version": "12.9",
-                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "version": "13.0",
+                "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
             }   
         },
         "rhel8.10": {
@@ -278,7 +278,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.28.3-1",
+            "version": "2.28.9-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }

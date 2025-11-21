@@ -38,7 +38,7 @@ $COMPONENT_DIR/install_doca.sh
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
-$COMPONENT_DIR/install_mpis.sh
+$COMPONENT_DIR/install_mpis.sh "$GPU"
 
 # install nvidia gpu driver
 $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"

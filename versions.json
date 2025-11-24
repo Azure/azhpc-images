@@ -71,13 +71,6 @@
         }
     },
     "mofed": {
-        "azurelinux3.0": {
-            "version": "24.10-21",
-            "xpmem.version": "2.7.4-21",
-            "knem.version": "1.1.4.90mlnx3-21",
-            "mft_kernel.version": "4.30.0-20",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
-        }
     },
     "mvapich": {
         "common": {
@@ -172,10 +165,6 @@
 	        }
         },
         "azurelinux3.0": {
-            "driver": {
-                "version": "570.133.20-3",
-                "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
-            },
             "fabricmanager": {
                 "distribution": "azl3",
                 "version": "570.133.20-2",
@@ -270,10 +259,6 @@
             "version": "2.5.1-1",
             "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"
-        },
-        "azurelinux3.0": {
-            "version": "2.5-10",
-            "distribution": "azl3"
         }
     },
     "nccl": {

@@ -75,8 +75,6 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
-    "mofed": {
-    },
     "mvapich": {
         "common": {
             "version": "2.3.7-2",

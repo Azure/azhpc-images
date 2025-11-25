@@ -12,14 +12,15 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     kernel_version=$(uname -r | sed 's/\-/./g')
     kernel_version=${kernel_version%.*}
 
-    nvidia_driver_metadata=$(get_component_config "nvidia")
-    NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_driver_metadata)
-    NVIDIA_DRIVER_VERSION=$(echo $NVIDIA_DRIVER_VERSION | cut -d'-' -f1 )
-    
+    # tdnf will automatically pick the correct nvidia driver version for
+    # gdrcopy kmod package
+
     # Install gdrcopy kmod and devel packages from PMC
-    tdnf install -y gdrcopy-${GDRCOPY_VERSION}.azl3.x86_64 \
-                    gdrcopy-kmod-${GDRCOPY_VERSION}_$kernel_version.$NVIDIA_DRIVER_VERSION.azl3.x86_64 \
-                    gdrcopy-devel-${GDRCOPY_VERSION}.azl3.noarch
+    tdnf install -y gdrcopy \
+                    gdrcopy-kmod \
+                    gdrcopy-devel
+
+    GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
 else
     git clone https://github.com/NVIDIA/gdrcopy.git
     pushd gdrcopy/packages/

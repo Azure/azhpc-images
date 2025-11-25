@@ -1,4 +1,9 @@
 {
+    "note": {
+        "azurelinux3.0": {
+            "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"
+        }
+    },
     "cmake": {
         "common": {
             "version": "4.1.1",
@@ -394,8 +399,7 @@
             "sha256": "ce2a0216bba1a870999b2d56e3f876fb4c6b8da55efd7e230b73771efe7d2ca4"
         },
         "azurelinux3.0": {
-            "version": "6.2.2.1",
-            "amdgpu": "6.8.5.60202_2078359-7"
+            "version": "6.2.2.1"
         }
     },
     "rccl": {
@@ -412,9 +416,11 @@
             "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         },
         "azurelinux3.0": {
-            "version": "2.20.5",
-            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
-            "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+            "version": "2.22.3",
+            "branch": "release/rocm-rel-6.4",
+            "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+            "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         }
     }
 }

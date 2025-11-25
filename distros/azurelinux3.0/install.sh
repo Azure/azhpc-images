@@ -29,7 +29,7 @@ $COMPONENT_DIR/install_mofed.sh
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
-$COMPONENT_DIR/install_mpis.sh
+$COMPONENT_DIR/install_mpis.sh "$GPU"
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver

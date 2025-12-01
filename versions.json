@@ -1,4 +1,9 @@
 {
+    "note": {
+        "azurelinux3.0": {
+            "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"
+        }
+    },
     "cmake": {
         "common": {
             "version": "4.1.1",
@@ -70,13 +75,36 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
-    "mofed": {
+    "hpcx_amd": {
+        "ubuntu22.04": {
+            "version": "2.18",
+            "sha256": "1258c060d56a2b650dc697ce91a746976ab9f198e4d46cdba2a5315315214147",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+        },
+        "ubuntu24.04": {
+            "version": "2.23",
+            "sha256": "b8eea5189ff62125e60b23a6081686e6b98bc9f8cdc778cd179ca5680f7e9e7f",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.23/hpcx-v2.23-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+        },
+        "almalinux8.10": {
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+        },
+        "almalinux9.6": {
+            "version": "2.24.1",
+            "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+        },
+        "rhel8.10": {
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+        },
         "azurelinux3.0": {
-            "version": "24.10-21",
-            "xpmem.version": "2.7.4-21",
-            "knem.version": "1.1.4.90mlnx3-21",
-            "mft_kernel.version": "4.30.0-20",
-            "sha256": "34e826fea03d6505b50909959ed029282a6238c75830fbe5b2bc15442cf8f8b5"
+            "version": "2.18",
+            "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
         }
     },
     "mvapich": {
@@ -172,10 +200,6 @@
 	        }
         },
         "azurelinux3.0": {
-            "driver": {
-                "version": "570.133.20-3",
-                "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
-            },
             "fabricmanager": {
                 "distribution": "azl3",
                 "version": "570.133.20-2",
@@ -270,10 +294,6 @@
             "version": "2.5.1-1",
             "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
             "distribution": "el8"
-        },
-        "azurelinux3.0": {
-            "version": "2.5-10",
-            "distribution": "azl3"
         }
     },
     "nccl": {
@@ -409,8 +429,7 @@
             "sha256": "ce2a0216bba1a870999b2d56e3f876fb4c6b8da55efd7e230b73771efe7d2ca4"
         },
         "azurelinux3.0": {
-            "version": "6.2.2.1",
-            "amdgpu": "6.8.5.60202_2078359-7"
+            "version": "6.2.2.1"
         }
     },
     "rccl": {
@@ -427,9 +446,11 @@
             "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         },
         "azurelinux3.0": {
-            "version": "2.20.5",
-            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
-            "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+            "version": "2.22.3",
+            "branch": "release/rocm-rel-6.4",
+            "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+            "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+            "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
         }
     }
 }

@@ -367,6 +367,9 @@
         "almalinux9.6": {
             "version": "2.15.7-33-g79ddf99"
         },
+        "ubuntu22.04": {
+            "version": "2.15.7-33-g79ddf99"
+        },
         "ubuntu24.04": {
             "version": "2.16.1-14-gbc76088"
         }

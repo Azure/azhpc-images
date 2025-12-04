@@ -25,7 +25,6 @@ chmod +x ./triggerGHR/triggerGHR.sh
 chmod +x ./dockerfile/pull-image-mcr.sh
 # Pull down docker container from MCR
 if [ "${GPU_PLAT}" = "AMD" ]; then
-   sed -i 's/\* || check_rccl_allreduce 314 1 16G/\* || check_rccl_allreduce 300 1 16G/' ./conf/nd96isr_mi300x_v5.conf
    ./dockerfile/pull-image-mcr.sh rocm
 else
    sed -i 's/\* || check_gpu_bw 10/\* || check_gpu_bw 9/' ./conf/nd40rs_v2.conf

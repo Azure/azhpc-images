@@ -3,6 +3,8 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+GPU_PLAT=$1
+
 # Load gcc
 set CC=/usr/bin/gcc
 set GCC=/usr/bin/gcc
@@ -13,7 +15,12 @@ pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 # Install HPC-x
-hpcx_metadata=$(get_component_config "hpcx")
+if [[ "$GPU_PLAT" == "AMD" ]]; then
+    # AMD has regression on higher versions of HPC-X
+    hpcx_metadata=$(get_component_config "hpcx_amd")
+else
+    hpcx_metadata=$(get_component_config "hpcx")
+fi
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)

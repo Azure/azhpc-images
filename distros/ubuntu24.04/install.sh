@@ -43,7 +43,7 @@ if [ "$GPU" = "NVIDIA" ]; then
 
     if [ "$SKU" = "GB200" ]; then
         # For GB200, pass SKU to install the correct driver
-        $COMPONENT_DIR/install_nvidiagpudriver_gb200.sh
+        ./install_nvidiagpudriver_gb200.sh
 
         ./install_nvloom_gb200.sh
 

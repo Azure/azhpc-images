@@ -13,24 +13,27 @@ dpkg -i ./cuda-keyring_1.1-1_all.deb
 
 apt-get update
 
-apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
-# Set CUDA related environment variables to /etc/bash.bashrc
-echo 'export CUDA_HOME=/usr/local/cuda' | tee -a /etc/profile
-echo 'export PATH=$CUDA_HOME/bin:$PATH' | tee -a /etc/profile
-echo 'export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
-$COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
+if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
+    apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
+    # Set CUDA related environment variables to /etc/bash.bashrc
+    echo 'export CUDA_HOME=/usr/local/cuda' | tee -a /etc/profile
+    echo 'export PATH=$CUDA_HOME/bin:$PATH' | tee -a /etc/profile
+    echo 'export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
+    $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
 
-# Download CUDA samples
-TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
-CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-$COMMON_DIR/download_and_verify.sh ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
-tar -xvf ${TARBALL}
-pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
-mkdir build && cd build
-cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
-make -j $(nproc)
-mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
-popd
+    # Download CUDA samples
+    TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
+    CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
+    $COMMON_DIR/download_and_verify.sh ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
+    tar -xvf ${TARBALL}
+    pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
+    mkdir build && cd build
+    cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
+    make -j $(nproc)
+    mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
+    popd
+fi
+
 
 # Install NVIDIA GPU driver
 nvidia_gpu_driver_metadata=$(get_component_config "nvidia")
@@ -82,8 +85,11 @@ nvidia-smi
 nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n 1)
 $COMMON_DIR/write_component_version.sh "NVIDIA" $nvidia_driver_version
 
-$UBUNTU_COMMON_DIR/install_gdrcopy.sh
-
+if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
+    $COMPONENT_DIR/install_gdrcopy.sh
+else
+    $COMPONENT_DIR/install_gdrcopy_aks.sh
+fi
 # Install NVIDIA IMEX
 apt-get install nvidia-imex-$NVIDIA_GPU_DRIVER_MAJOR_VERSION -y
 

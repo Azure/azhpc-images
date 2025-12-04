@@ -144,6 +144,7 @@
                 "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
             }
+        }
     },
     "ompi": {
         "common": {

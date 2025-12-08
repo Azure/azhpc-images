@@ -234,6 +234,16 @@ function verify_gcc_installation {
     check_exit_code "GCC is installed" "GCC doesn't exist!"
 }
 
+# Check module file for the explicit installations
+function verify_gcc_modulefile {
+    if [[ $ID != "azurelinux" ]]; then
+        # Verify GCC Software installation path
+        check_exists "/opt/gcc-${VERSION_GCC}/"
+        # Verify GCC module file path
+        check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
+    fi
+}
+
 function verify_aocl_installation {
     # verify AMD modulefiles
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
@@ -336,4 +346,44 @@ function verify_sunrpc_tcp_settings_service {
     # Check if the sunrpc TCP settings service is active
     systemctl is-active --quiet sunrpc_tcp_settings
     check_exit_code "sunrpc TCP settings service is active" "sunrpc TCP settings service is inactive/dead!"
+}
+
+function verify_azure_persistent_rdma_naming_service {
+    # Check if the azure persistent rdma naming service is active
+    systemctl is-active --quiet azure_persistent_rdma_naming
+    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+}
+
+function verify_nvbandwidth_setup {
+    # Verify nvbandwidth setup
+    /opt/nvidia/nvbandwidth/nvbandwidth
+    check_exit_code "NV Bandwidth Installed!" "Issue with NV Bandwidth installation!"
+}
+
+function verify_nvloom_setup {
+    # Verify nvloom setup
+    module load mpi/hpcx
+    gpu_num=$(nvidia-smi -L | wc -l) 
+    mpirun -np $gpu_num /opt/nvidia/nvloom/nvloom_cli -s gpu-to-rack
+    check_exit_code "NV Loom Installed!" "Issue with NV Loom installation!"
+    module unload mpi/hpcx
+}
+
+function verify_nvlink_setup {
+    # Verify nvlink setup
+    nvidia-smi nvlink --status
+    check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
+
+    line_count=$(nvidia-smi nvlink -s|grep '50 GB/s' | wc -l)
+    check_exit_code "NVLINK Reports Healthy line count of $line_count" "Unhealthy NVLINK setup!"
+
+    nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
+    echo "$nvidia_smi_output"
+    echo "$nvidia_smi_output" | grep -q 'N/A'
+    if [ $? -eq 0 ]; then
+        echo "*** Error - Unhealthy NVLINK setup!!"
+        exit -1
+    else
+        echo "[OK] : NVLINK setup is healthy"
+    fi
 }

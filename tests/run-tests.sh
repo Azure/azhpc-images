@@ -28,6 +28,8 @@ function test_service {
         check_sku_customization) verify_sku_customization_service;;
         check_nvidia_fabricmanager) verify_nvidia_fabricmanager_service;;
         check_sunrpc_tcp_settings) verify_sunrpc_tcp_settings_service;;
+        check_nvidia_imex) verify_nvidia_imex_service;;
+        check_azure_persistent_rdma_naming) verify_azure_persistent_rdma_naming_service;;
         *) ;;
     esac
 }
@@ -45,11 +47,15 @@ function test_component {
         check_nccl) verify_nccl_installation;;
         check_rocm) verify_rocm_installation;;
         check_rccl) verify_rccl_installation;;
+        check_gcc) verify_gcc_modulefile;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
         check_lustre) verify_lustre_installation;;
+        check_nvlink) verify_nvlink_setup;;
+        check_nvbandwidth) verify_nvbandwidth_setup;;
+        check_nvloom) verify_nvloom_setup;;
         * ) ;;
     esac
 }
@@ -62,13 +68,15 @@ function verify_common_components {
     verify_ofed_installation;
     verify_ib_device_status;
     verify_hpcx_installation;
-    verify_mvapich2_installation;
     verify_ompi_installation;
-    verify_mkl_installation;
-    verify_hpcdiag_installation;
     verify_ipoib_status;
     verify_pssh_installation;
-    verify_aznfs_installation;
+    if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
+        verify_mvapich2_installation;
+        verify_mkl_installation;
+        verify_hpcdiag_installation;
+        verify_aznfs_installation;
+    fi
 }
 
 function initiate_test_suite {
@@ -100,20 +108,25 @@ function set_test_matrix {
 
        fi
     fi
-    export distro=$(. /etc/os-release;echo $ID$VERSION_ID)
     test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
-    export TEST_MATRIX=$(jq -r '."'"$distro"'" // empty' <<< $test_matrix_file)
+
+    case ${VMSIZE} in
+        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
+        *) sku="common";;
+    esac
+    export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" '(.[$d] // empty) | (.[$s] // empty)' <<< "$test_matrix_file")
 
     if [[ -z "$TEST_MATRIX" ]]; then
-        echo "*****No test matrix found for distribution $distro!*****"
+        echo "*****No test matrix found for sku $sku and distribution $DISTRIBUTION!*****"
         exit 1
     fi
 }
 
-function set_sku_configuration {
+function set_vm_properties {
     local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
     local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
     export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
+    export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 }
 
 # Function to set component versions from JSON file
@@ -157,8 +170,8 @@ HPC_ENV=/opt/azurehpc
 set_module_files_path
 # Set component versions
 set_component_versions
-# Set current SKU
-set_sku_configuration
+# Set current SKU and distro
+set_vm_properties
 # Set test matrix
 set_test_matrix $1
 # Initiate test suite

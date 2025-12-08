@@ -26,7 +26,7 @@ function check_exit_code {
 }
 
 function ver { 
-    printf "%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
+    printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
 # verify OFED installation
@@ -123,12 +123,12 @@ function verify_cuda_installation {
     check_exists "/usr/local/cuda/"
     
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
-    # Having a newer CUDA runtime breaks gpu-burn
-    if [[ $(ver ${VERSION_CUDA}) -gt $(ver ${nvidia_driver_cuda_version})  ]]; then
+    # Having a newer CUDA runtime breaks programs compiled to PTX with the cuda toolkit, such as gpu-burn
+    if [[ $(ver ${VERSION_CUDA}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
+        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"
+    else
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
         exit -1
-    else
-        echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"    
     fi
 
     # Verify the compilation of CUDA samples
@@ -166,6 +166,17 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        standard_nc80adis_h100_v5) mpirun -np 2 \
+                --allow-run-as-root \
+                --map-by ppr:2:node \
+                -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+                -mca coll_hcoll_enable 0 \
+                -x UCX_TLS=tcp \
+                -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+                -x NCCL_SOCKET_IFNAME=eth0 \
+                -x NCCL_DEBUG=WARN \
+                -x NCCL_NET_GDR_LEVEL=5 \
+                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"

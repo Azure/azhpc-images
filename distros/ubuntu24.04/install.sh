@@ -36,7 +36,7 @@ $COMPONENT_DIR/install_doca.sh
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
-$COMPONENT_DIR/install_mpis.sh "$GPU"
+$COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
@@ -50,7 +50,7 @@ if [ "$GPU" = "NVIDIA" ]; then
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
 
     else
-        $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+        $COMPONENT_DIR/install_nvidiagpudriver.sh
     fi
     
     # Install NCCL

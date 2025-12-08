@@ -1,8 +1,7 @@
 #!/bin/bash
 set -ex
 
-sku=$1
-aks_host_image=$2
+aks_host_image=$1
 
 source ${UTILS_DIR}/utilities.sh
 
@@ -14,7 +13,7 @@ NVIDIA_DRIVER_SHA256=$(jq -r '.sha256' <<< $nvidia_driver_metadata)
 NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run
 kernel_version=$(uname -r | sed 's/\-/./g')
 
-if [ "$sku" = "V100" ]; then
+if [ "$SKU" = "V100" ]; then
     KERNEL_MODULE_TYPE="proprietary"
     # Install Nvidia GPU propreitary variant for V100 and older SKUs
     AL3_GPU_DRIVER_PACKAGES="cuda"

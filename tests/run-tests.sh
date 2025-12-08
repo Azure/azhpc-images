@@ -1,21 +1,28 @@
 #!/bin/bash
 
 # ------------------------------------------------------------------------------
-# Script Name : example.sh
+# Script Name : run-tests.sh 
 # Description : This script performs initialization and testing for a specified platform.
-# Usage       : ./example.sh <platform> [debug_flag]
+# Usage       : ./run-tests.sh  <platform> [aks_host_image_flag] [debug_flag]
 #
 # Sample Usage:
 #   ./run-tests.sh 
-#   ./example.sh NVIDIA -d
-#   ./example.sh AMD -d
-
+#   ./run-tests.sh NVIDIA 
+#   ./run-tests.sh AMD
+#   ./run-tests.sh NVIDIA -aks-host
+#   ./run-tests.sh AMD -aks-host
+#   ./run-tests.sh NVIDIA -aks-host -d
+#   ./run-tests.sh AMD -aks-host -d
 # Arguments   :
 #   $1 - Platform type (optional):
 #        "AMD" or "NVIDIA"
 #        "NVIDIA" when omitted
 #
-#   $2 - Debug mode flag (optional):
+#   $2 - AKS-HOST image flag (optional):
+#        Specify "-aks-host" to do sanity check for aks host image.
+#        If omitted or not "-aks-host", the script does sanity check for regular vm image.
+#
+#   $3 - Debug mode flag (optional):
 #        Specify "-d" to enable debug mode. 
 #        In debug mode, the script continues running even if a single test fails.
 #        If omitted or not "-d", the script runs in normal mode (strict failure handling).
@@ -63,13 +70,14 @@ function test_component {
 # Verify common component installations accross all distros
 function verify_common_components {
     verify_package_updates;
-    verify_gcc_installation;
-    verify_azcopy_installation;
     verify_ofed_installation;
     verify_ib_device_status;
+    verify_ipoib_status;
+    if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
+    verify_gcc_installation;
+    verify_azcopy_installation;
     verify_hpcx_installation;
     verify_ompi_installation;
-    verify_ipoib_status;
     verify_pssh_installation;
     if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
         verify_mvapich2_installation;
@@ -123,10 +131,15 @@ function set_test_matrix {
 }
 
 function set_vm_properties {
+    aks_host=$2
     local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
     local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
     export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
-    export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
+    if [ "$aks_host" != "-aks-host" ]; then
+        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
+    else
+        export DISTRIBUTION=${DISTRIBUTION}-aks
+    fi
 }
 
 # Function to set component versions from JSON file
@@ -175,7 +188,7 @@ set_vm_properties
 # Set test matrix
 set_test_matrix $1
 # Initiate test suite
-if [[ -n "$2" && "$2" == "-d" ]]; then export HPC_DEBUG=$2; else export HPC_DEBUG=; fi 
+if [[ -n "$3" && "$3" == "-d" ]]; then export HPC_DEBUG=$2; else export HPC_DEBUG=; fi 
 initiate_test_suite
 
 echo "ALL OK!"

@@ -49,6 +49,10 @@ rm /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
 # Apply nvprofiling settings
 echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
+# Enable CDMM mode
+modprobe nvidia NVreg_CoherentGPUMemoryMode=driver 
+echo options nvidia NVreg_CoherentGPUMemoryMode=driver > /etc/modprobe.d/nvidia-openrm.conf
+
 # Configuring nvidia persistenced daemon
 if [ ! -f /etc/systemd/system/nvidia-persistenced.service ]; then
     cat <<EOF > /etc/systemd/system/nvidia-persistenced.service

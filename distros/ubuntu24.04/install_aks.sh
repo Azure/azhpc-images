@@ -35,7 +35,7 @@ if [ "$GPU" = "NVIDIA" ]; then
         ./install_nvidiagpudriver_gb200.sh
 
     else
-        $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+        $COMPONENT_DIR/install_nvidiagpudriver.sh
     fi
 fi
 
@@ -59,6 +59,3 @@ $COMPONENT_DIR/setup_sku_customizations.sh
 
 # scan vulnerabilities using Trivy
 $COMPONENT_DIR/trivy_scan.sh
-# clear history
-# Uncomment the line below if you are running this on a VM
-# $UTILS_DIR/clear_history.sh

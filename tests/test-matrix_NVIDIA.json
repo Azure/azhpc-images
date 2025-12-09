@@ -4,15 +4,17 @@
             "components": ["check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         },
-        "gb200":{
+        "gb-family":{
             "components": ["check_cuda", "check_nccl", "check_docker", "check_dcgm", "check_nvlink", "check_nvbandwidth", "check_nvloom"],
             "services": ["check_sku_customization", "check_nvidia_imex", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
-        },
-        "gb200-aks":{
+        }
+    },
+    "ubuntu24.04-aks": {
+        "gb-family":{
             "components": [ "check_nvlink"],
             "services": ["check_sku_customization", "check_nvidia_imex"]
         }        
-    },
+    },    
     "ubuntu22.04": {
         "common":{
             "components": ["check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],

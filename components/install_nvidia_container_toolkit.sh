@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-SKU=$1
-
 # Install NVIDIA Container Toolkit
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit

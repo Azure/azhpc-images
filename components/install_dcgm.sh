@@ -4,7 +4,17 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Set CUDA version info
-CUDA_VERSION=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
+cuda_lib_version=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
+cuda_toolkit_version=$(nvcc --version | sed -E -n 's/.*release ([0-9]+)[.].*/\1/p')
+
+# Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that’s installed on their system."
+# but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
+# of the user-mode driver (e.g. datacenter-gpu-manager-4-cuda12) rather than DCGM packages targeting major version 13."
+if [[${SKU,,} == "v100" ]]; then
+    CUDA_VERSION=$cuda_toolkit_version
+else
+    CUDA_VERSION=$cuda_lib_version
+fi
 
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads

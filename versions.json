@@ -280,10 +280,6 @@
         },
         "azurelinux3.0": {
             "x86_64":{
-                "driver": {
-                    "version": "570.133.20",
-                    "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
-                },
                 "fabricmanager": {
                     "distribution": "azl3",
                     "version": "570.133.20",
@@ -431,13 +427,6 @@
                 "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
                 "distribution": "el8"
             }
-        },
-        "azurelinux3.0": {
-            "x86_64":{
-                "version": "2.5-7",
-                "sha256": "9f1ddefaf7ebf09f1f4cb04873ed9fb255ddfd819ab1cf5ec2e73ed96140565a",
-                "distribution": "azl3"
-            }
         }
     },
     "nccl": {
@@ -445,6 +434,7 @@
             "version": "2.28.3-1",
             "rdmasharpplugins": {
                 "commit": "master"
+            }
         },
         "azurelinux3.0": {
             "x86_64": {
@@ -524,8 +514,8 @@
         },
         "almalinux9.6": {
             "x86_64":{
-                "version": "2.3.1-29",
-                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
+                "version": "2.3.4-1",
+                "sha256": "831c188a1c18107c289f78a62b3e00a0671f6fdaaa2cc4507ddae008e2157478"
             }
         },        
         "rhel8.10": {
@@ -544,8 +534,8 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.0.0",
-                "sha256": "604ae6c34ef2648504ba08d2f33e42b5a9cf4032eaefaa9253560747ebaeb1ca"
+                "version": "5.1.0",
+                "sha256": "2a12eb1270fc1cf16618664008dc872d37cc2bd690c492e468c8f2c6937f9488"
             },
             "aocc": {
                 "version": "5.0.0",
@@ -613,10 +603,16 @@
                 "sha256": "e997d1134d6e0c95dd71dd9453e78ded89016da7da6c6e8e0fdb4f204755b1e8"
             }
         },
+        "ubuntu24.04": {
+            "x86_64":{
+                "version": "6.4.3",
+                "url": "https://repo.radeon.com/amdgpu-install/6.4.3/ubuntu/noble/amdgpu-install_6.4.60403-1_all.deb",
+                "sha256": "ce2a0216bba1a870999b2d56e3f876fb4c6b8da55efd7e230b73771efe7d2ca4"
+            }
+        },        
         "azurelinux3.0": {
             "x86_64":{
                 "version": "6.2.2.1",
-                "amdgpu": "6.8.5.60202_2078359-7"
             }
         }
     },
@@ -628,11 +624,22 @@
                 "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
             }
         },
+        "ubuntu24.04": {
+            "x86_64": {
+                "version": "2.22.3",
+                "branch": "release/rocm-rel-6.4",
+                "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+                "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
+            }
+        },
         "azurelinux3.0": {
-            "x86_64":{
-                "version": "2.20.5",
-                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
-                "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+            "x86_64": {
+                "version": "2.22.3",
+                "branch": "release/rocm-rel-6.4",
+                "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+                "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
             }
         }
     }

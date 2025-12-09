@@ -14,16 +14,18 @@ kernel_version=$(uname -r | sed 's/\-/./g')
 if [ "$1" = "V100" ]; then
     KERNEL_MODULE_TYPE="proprietary"
     # Install Nvidia GPU propreitary variant for V100 and older SKUs
-    AL3_GPU_DRIVER_PACKAGES="cuda-${NVIDIA_DRIVER_VERSION}_${kernel_version}.x86_64"
+    AL3_GPU_DRIVER_PACKAGES="cuda"
 else
     KERNEL_MODULE_TYPE="open"
     # Install Nvidia GPU open source variant for A100, H100
-    AL3_GPU_DRIVER_PACKAGES="cuda-open-${NVIDIA_DRIVER_VERSION}_${kernel_version}.x86_64"
+    AL3_GPU_DRIVER_PACKAGES="cuda-open"
 fi
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     curl https://packages.microsoft.com/azurelinux/3.0/prod/nvidia/x86_64/config.repo > /etc/yum.repos.d/azurelinux-nvidia-prod.repo
     tdnf install -y $AL3_GPU_DRIVER_PACKAGES
+    NVIDIA_DRIVER_VERSION=$(sudo tdnf list installed | grep -i $AL3_GPU_DRIVER_PACKAGES | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+
     # Temp disable NVIDIA driver updates
     mkdir -p /etc/tdnf/locks.d
     echo cuda >> /etc/tdnf/locks.d/nvidia.conf

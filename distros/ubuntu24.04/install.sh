@@ -21,13 +21,14 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# update cmake
 if [ "$SKU" != "GB200" ]; then
+    # update cmake
     $COMPONENT_DIR/install_cmake.sh
-fi
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
+    # install Lustre client
+    # Note that lustre client is supported on GB200 but amlfs does not support latest 6.14 kernel so we temporarily skip it
+    $COMPONENT_DIR/install_lustre_client.sh
+fi
 
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh

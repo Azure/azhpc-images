@@ -12,7 +12,7 @@ DOCA_FILE=$(basename ${DOCA_URL})
 if [[ "$DISTRIBUTION" == *"ubuntu"* && "$SKU" == "GB200" ]]; then
     DOCA_FILE=$TOP_DIR/internal_bits/doca-host_${DOCA_VERSION}_arm64.deb
 else
-    $COMMON_DIR/download_and_verify.sh $DOCA_URL $DOCA_SHA256
+    download_and_verify $DOCA_URL $DOCA_SHA256
 fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then

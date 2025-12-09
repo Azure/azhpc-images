@@ -1,6 +1,6 @@
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
@@ -19,12 +19,12 @@ if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
     echo 'export CUDA_HOME=/usr/local/cuda' | tee -a /etc/profile
     echo 'export PATH=$CUDA_HOME/bin:$PATH' | tee -a /etc/profile
     echo 'export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
-    $COMMON_DIR/write_component_version.sh "CUDA" ${CUDA_DRIVER_VERSION}
+    write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
 
     # Download CUDA samples
     TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
     CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-    $COMMON_DIR/download_and_verify.sh ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
+    download_and_verify ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
     tar -xvf ${TARBALL}
     pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
     mkdir build && cd build
@@ -88,7 +88,7 @@ nvidia-smi
 
 # Write the driver versions to the component versions file
 nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n 1)
-$COMMON_DIR/write_component_version.sh "NVIDIA" $nvidia_driver_version
+write_component_version "NVIDIA" $nvidia_driver_version
 
 if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
     $COMPONENT_DIR/install_gdrcopy.sh
@@ -109,4 +109,4 @@ sudo update-initramfs -u -k all
 systemctl enable nvidia-imex.service
 
 nvidia_imex_version=$(nvidia-imex --version | grep -oP 'IMEX version is: \K[0-9.]+')
-$COMMON_DIR/write_component_version.sh "IMEX" $nvidia_imex_version
+write_component_version "IMEX" $nvidia_imex_version

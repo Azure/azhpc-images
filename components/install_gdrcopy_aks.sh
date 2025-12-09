@@ -20,5 +20,5 @@ if [[ "$DISTRIBUTION" == ubuntu2*-aks ]]; then
     wget https://developer.download.nvidia.com/compute/redist/gdrcopy/CUDA%20${CUDA_DRIVER_VERSION}/${GDRCOPY_DISTRIBUTION,}/${ARCH}/gdrdrv-dkms_${GDRCOPY_VERSION}_arm64.${GDRCOPY_DISTRIBUTION}.deb
     dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_arm64.${GDRCOPY_DISTRIBUTION}.deb
 
-    $COMMON_DIR/write_component_version.sh "GDRCOPY" ${GDRCOPY_VERSION}
+    write_component_version "GDRCOPY" ${GDRCOPY_VERSION}
 fi    

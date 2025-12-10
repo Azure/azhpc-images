@@ -14,3 +14,5 @@ apt-get -y install net-tools \
                    infiniband-diags \
                    dkms \
                    jq 
+
+echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf

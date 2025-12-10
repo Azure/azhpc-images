@@ -590,7 +590,9 @@
             "version": "4.2.9-1"
         },
         "azurelinux3.0": {
-            "version": "5.0.1-1"
+            "x86_64":{
+                "version": "5.0.1-1"
+            }
         }
     },
     "aznfs": {

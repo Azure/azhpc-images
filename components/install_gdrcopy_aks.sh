@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-source ${COMMON_DIR}/utilities.sh
+source ${UTILS_DIR}/utilities.sh
 
 
 if [[ "$DISTRIBUTION" == ubuntu2*-aks ]]; then

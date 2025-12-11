@@ -131,14 +131,14 @@ function set_test_matrix {
 }
 
 function set_vm_properties {
-    aks_host=$2
+    aks_host=$1
     local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
     local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
     export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
     if [ "$aks_host" != "-aks-host" ]; then
         export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
     else
-        export DISTRIBUTION=${DISTRIBUTION}-aks
+        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)-aks
     fi
 }
 
@@ -172,6 +172,10 @@ function set_module_files_path {
 esac
 }
 
+gpu_platform=$1
+aks_host_flag=$2
+debug_flag=$3
+
 # Load profile
 . /etc/profile
 # Set HPC environment
@@ -184,11 +188,11 @@ set_module_files_path
 # Set component versions
 set_component_versions
 # Set current SKU and distro
-set_vm_properties
+set_vm_properties $aks_host_flag
 # Set test matrix
-set_test_matrix $1
+set_test_matrix $gpu_platform
 # Initiate test suite
-if [[ -n "$3" && "$3" == "-d" ]]; then export HPC_DEBUG=$2; else export HPC_DEBUG=; fi 
+if [[ -n "$debug_flag" && "$debug_flag" == "-d" ]]; then export HPC_DEBUG=$debug_flag; else export HPC_DEBUG=; fi 
 initiate_test_suite
 
 echo "ALL OK!"

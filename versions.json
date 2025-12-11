@@ -178,9 +178,9 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "4.0",
-                "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
-                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         }
     },
@@ -215,13 +215,12 @@
         "ubuntu24.04": {
             "x86_64": {
                 "driver": {
-                    "version": "570.172.08",
-                    "sha256": "0256867e082caf93d7b25fa7c8e69b316062a9c6c72c6e228fad7b238c6fa17d"
+                    "version": "570.195.03",
+                    "sha256": "d47de81d9a513496a60adc9cfa72fe9e162c65f2722fb960c4f531bd7ac5dc1e"
                 },
                 "fabricmanager": {
-                    "distribution": "ubuntu2404",
-                    "version": "570.172.08-1",
-                    "sha256": "36bbcce6130f46df6fd2cbc4f09df8207442a884ef726a40cf5e9edc13b2bfd9"        
+                    "version": "570.195.03-1",
+                    "sha256": "4cd66890a2cbc7c115072910b45c476754ac3628778e9df9c16bc34585bd356d"
                 }
             },
             "aarch64":{
@@ -310,12 +309,12 @@
         "ubuntu24.04": {
             "x86_64":{
                 "driver": {
-                    "version": "12.9",
+                    "version": "12.8",
                     "distribution": "ubuntu2404"
                 },
                 "samples": {
-                    "version": "12.9",
-                    "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    "version": "12.8",
+                    "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
                 } 
             },
             "aarch64":{
@@ -437,7 +436,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.28.3-1",
+            "version": "2.28.9-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -546,7 +545,7 @@
             "aocc": {
                 "version": "5.0.0",
                 "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
-            } 
+            }
         }
     },
     "lustre": {

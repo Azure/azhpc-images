@@ -219,6 +219,7 @@
                     "sha256": "d47de81d9a513496a60adc9cfa72fe9e162c65f2722fb960c4f531bd7ac5dc1e"
                 },
                 "fabricmanager": {
+                    "distribution": "ubuntu2404",
                     "version": "570.195.03-1",
                     "sha256": "4cd66890a2cbc7c115072910b45c476754ac3628778e9df9c16bc34585bd356d"
                 }

@@ -156,7 +156,7 @@
             }
         }
     },
-    "mvapich2": {
+    "mvapich": {
         "common": {
             "version": "2.3.7-2",
             "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",

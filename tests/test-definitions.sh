@@ -101,7 +101,7 @@ function verify_ompi_installation {
     check_exit_code "Open MPI ${VERSION_OMPI}" "Failed to run Open MPI"
 }
 
-function verify_cuda_installation {
+function verify_nvidia_driver_installation {
     # Verify NVIDIA Driver installation
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
@@ -115,7 +115,10 @@ function verify_cuda_installation {
         cat /proc/driver/nvidia/params | grep -q  "CoherentGPUMemoryMode: \"driver\""
         check_exit_code "NVIDIA CDMM mode is enabled" "NVIDIA CDMM mode is not enabled!"
     fi
+}
 
+function verify_cuda_installation {
+    nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     # Verify if CUDA is installed
     # re-enable this after testing
     # nvcc --version
@@ -403,4 +406,19 @@ function verify_nvlink_setup {
     else
         echo "[OK] : NVLINK setup is healthy"
     fi
+}
+
+function verify_nvidia_imex_service {
+    # Check if the NVIDIA Imex service is active
+    local valid_sizes="standard_nd128isr_ndr_gb200_v6"
+    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
+    then
+        check_exists /usr/lib/systemd/system/nvidia-imex.service
+        # systemctl is-active --quiet nvidia-imex
+        # check_exit_code "NVIDIA Imex is active" "NVIDIA Imex is inactive/dead!"
+    fi
+
+    # Check if nvidia caps imex channel exists
+    ls -al /dev/nvidia-caps-imex-channels/channel0
+    check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
 }

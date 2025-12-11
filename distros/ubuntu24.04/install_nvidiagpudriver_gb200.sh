@@ -90,11 +90,9 @@ nvidia-smi
 nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n 1)
 write_component_version "NVIDIA" $nvidia_driver_version
 
-if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
-    $COMPONENT_DIR/install_gdrcopy.sh
-else
-    $COMPONENT_DIR/install_gdrcopy_aks.sh
-fi
+
+$COMPONENT_DIR/install_gdrcopy.sh
+
 # Install NVIDIA IMEX
 apt-get install nvidia-imex=${NVIDIA_IMEX_VERSION} -y
 

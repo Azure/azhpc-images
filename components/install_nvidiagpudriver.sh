@@ -151,12 +151,9 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
     popd
 
-    $COMPONENT_DIR/install_gdrcopy.sh
-else
-    $COMPONENT_DIR/install_gdrcopy_aks.sh
 fi
 
-
+$COMPONENT_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)
 $COMPONENT_DIR/install_nvidia_fabric_manager.sh

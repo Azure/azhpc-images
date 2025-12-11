@@ -18,7 +18,6 @@ fi
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
     apt-get update
-    unset ARCH
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     rpm -i $DOCA_FILE

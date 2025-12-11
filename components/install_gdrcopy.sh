@@ -33,9 +33,9 @@ else
         CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
         CUDA=/usr/local/cuda ./build-deb-packages.sh
-        if [ "$ARCH" == "x86_64" ]; then
+        if [ "$ARCHITECTURE" == "x86_64" ]; then
             ARCH_TAG="amd64"
-        elif [ "$ARCH" == "aarch64" ]; then
+        elif [ "$ARCHITECTURE" == "aarch64" ]; then
             ARCH_TAG="arm64"
         fi
         dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_${ARCH_TAG}.${GDRCOPY_DISTRIBUTION}.deb

@@ -92,7 +92,7 @@ if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]];
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi
 
-if [[ "$ARCH" != "aarch64" ]]; then
+if [[ "$ARCHITECTURE" != "aarch64" ]]; then
     # Install Intel MPI
     impi_metadata=$(get_component_config "impi")
     IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
@@ -170,7 +170,7 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 #IntelMPI-v2021
-if [[ "$ARCH" != "aarch64" ]]; then
+if [[ "$ARCHITECTURE" != "aarch64" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #

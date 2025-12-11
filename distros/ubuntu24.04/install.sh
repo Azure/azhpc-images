@@ -76,7 +76,7 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
-if [ "$ARCH" == "x86_64" ]; then
+if [ "$ARCHITECTURE" == "x86_64" ]; then
 
     # install AMD libs
     $COMPONENT_DIR/install_amd_libs.sh

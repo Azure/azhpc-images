@@ -6,7 +6,7 @@ export COMPONENT_DIR=$TOP_DIR/components
 export TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
-export ARCH=$(uname -m)
+export ARCHITECTURE=$(uname -m)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Don't allow the kernel to be updated

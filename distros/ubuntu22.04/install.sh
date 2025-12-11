@@ -28,7 +28,7 @@ source ../../utils/set_properties.sh
 $COMPONENT_DIR/install_cmake.sh
 
 # install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
+# $COMPONENT_DIR/install_lustre_client.sh
 
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh

@@ -287,7 +287,7 @@
             "x86_64":{
                 "fabricmanager": {
                     "distribution": "azl3",
-                    "version": "570.133.20",
+                    "version": "570.133.20-2",
                     "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"       
                 }
             }

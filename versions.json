@@ -428,7 +428,7 @@
         },
         "rhel8.10": {
             "x86_64":{
-                "version": "2.5-1",
+                "version": "2.5.1-1",
                 "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
                 "distribution": "el8"
             }

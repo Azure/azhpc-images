@@ -57,5 +57,8 @@ $COMPONENT_DIR/copy_test_file.sh
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh
 
+# Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
+
 # scan vulnerabilities using Trivy
 $COMPONENT_DIR/trivy_scan.sh

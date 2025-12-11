@@ -18,13 +18,7 @@ fi
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
     apt-get update
-    if [[ "$ARCH" == "aarch64" ]]; then
-        # Unset ARCH set by set_properties.sh. 
-        # ARCH == uname -m (aarch64)
-        # messes up some doca-ofed package post install scripts,
-        # since kernel source dir only has arch/arm64
-        unset ARCH
-    fi
+    unset ARCH
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     rpm -i $DOCA_FILE

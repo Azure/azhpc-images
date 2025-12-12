@@ -22,7 +22,24 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # apt-get update
     # apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
     # apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
-    exit 1
+
+    # temporary workaround to build AMLFS kmod from source, until we have AMLFS team publish DKMS packages usable on day-1 of new kernel module release
+    lustre_branch="arsdragonfly/dkms-$LUSTRE_VERSION"
+    git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
+    pushd amlFilesystem-lustre
+    sh ./autogen.sh
+    apt update
+    if [ $UBUNTU_VERSION == 24.04 ]; then
+        apt install -y module-assistant libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
+    elif [ $UBUNTU_VERSION == 22.04 ]; then
+        apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
+    fi
+    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
+    make dkms-debs
+    apt install -y ./debs/lustre-*.deb
+    popd
+    rm -rf amlFilesystem-lustre
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     ALMA_LUSTRE_VERSION=${LUSTRE_VERSION//-/_}
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)

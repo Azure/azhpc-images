@@ -6,13 +6,23 @@
 ############################################################################
 get_component_config(){
     component=$1
+    gpu_and_sku=${GPU,,}-${SKU,,}
   
     config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"' <<< "${COMPONENT_VERSIONS}")
     if [[ "$config" = "null" ]]; then
         config=$(jq -r '."'"${component}"'".common' <<< "${COMPONENT_VERSIONS}")
     fi
-    
-    echo "$config"
+
+    nested_gpu_config=$(jq -r '."'"${gpu_and_sku}"'"' <<< "${config}")
+    if [[ "$nested_gpu_config" = "null" ]]; then
+        nested_gpu_config=$(jq -r '.common' <<< "${config}")
+    fi
+
+    if [[ "$nested_gpu_config" != "null" ]]; then
+        echo "$nested_gpu_config"
+    else
+        echo "$config"
+    fi
 }
 
 ############################################################################

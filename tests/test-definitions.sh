@@ -254,16 +254,6 @@ function verify_gcc_installation {
     check_exit_code "GCC is installed" "GCC doesn't exist!"
 }
 
-# Check module file for the explicit installations
-function verify_gcc_modulefile {
-    if [[ $ID != "azurelinux" ]]; then
-        # Verify GCC Software installation path
-        check_exists "/opt/gcc-${VERSION_GCC}/"
-        # Verify GCC module file path
-        check_exists "${MODULE_FILES_ROOT}/gcc-${VERSION_GCC}"
-    fi
-}
-
 function verify_aocl_installation {
     # verify AMD modulefiles
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
@@ -394,30 +384,21 @@ function verify_nvlink_setup {
     nvidia-smi nvlink --status
     check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
 
-    line_count=$(nvidia-smi nvlink -s|grep '50 GB/s' | wc -l)
-    check_exit_code "NVLINK Reports Healthy line count of $line_count" "Unhealthy NVLINK setup!"
-
-    nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
-    echo "$nvidia_smi_output"
-    echo "$nvidia_smi_output" | grep -q 'N/A'
-    if [ $? -eq 0 ]; then
-        echo "*** Error - Unhealthy NVLINK setup!!"
-        exit -1
-    else
-        echo "[OK] : NVLINK setup is healthy"
-    fi
+    if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+        nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
+        echo "$nvidia_smi_output"
+        echo "$nvidia_smi_output" | grep -q 'N/A'
+        if [ $? -eq 0 ]; then
+            echo "*** Error - Unhealthy NVLINK setup!!"
+            exit -1
+        else
+            echo "[OK] : NVLINK setup is healthy"
+        fi
+    fi    
 }
 
 function verify_nvidia_imex_service {
-    # Check if the NVIDIA Imex service is active
-    local valid_sizes="standard_nd128isr_ndr_gb200_v6"
-    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
-    then
-        check_exists /usr/lib/systemd/system/nvidia-imex.service
-        # systemctl is-active --quiet nvidia-imex
-        # check_exit_code "NVIDIA Imex is active" "NVIDIA Imex is inactive/dead!"
-    fi
-
+    check_exists /usr/lib/systemd/system/nvidia-imex.service
     # Check if nvidia caps imex channel exists
     ls -al /dev/nvidia-caps-imex-channels/channel0
     check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"

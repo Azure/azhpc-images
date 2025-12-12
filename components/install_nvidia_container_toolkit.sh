@@ -56,15 +56,14 @@ nvidia-ctk runtime configure --runtime=docker
 # Configure containerd to use NVIDIA runtime
 mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
-nvidia-ctk runtime configure --runtime=containerd --set-as-default
-
-if [ "$SKU" == "GB200" ]; then
-    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
-    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml
-fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == *"almalinux"* ]]; then
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
+fi
+nvidia-ctk runtime configure --runtime=containerd --set-as-default
+if [ "$SKU" == "GB200" ]; then
+    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
+    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml
 fi
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.runc\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml

@@ -24,9 +24,6 @@ source ../../utils/set_properties.sh
 # update cmake
 $COMPONENT_DIR/install_cmake.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -61,6 +58,9 @@ if [ "$GPU" = "AMD" ]; then
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
+
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh
@@ -108,12 +108,11 @@ $COMPONENT_DIR/setup_sku_customizations.sh
 $COMPONENT_DIR/trivy_scan.sh
 
 # diable auto kernel updates
-# ./disable_auto_upgrade.sh
+./disable_auto_upgrade.sh
 
 # Disable Predictive Network interface renaming
 ./disable_predictive_interface_renaming.sh
 
-exit 1
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $UTILS_DIR/clear_history.sh

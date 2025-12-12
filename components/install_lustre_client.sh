@@ -28,15 +28,12 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     lustre_branch="arsdragonfly/dkms-$LUSTRE_VERSION"
     git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
     pushd amlFilesystem-lustre
-    sh ./autogen.sh
     apt update
     if [ $UBUNTU_VERSION == 24.04 ]; then
         apt install -y module-assistant libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     elif [ $UBUNTU_VERSION == 22.04 ]; then
         apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     fi
-    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
-
     # Protect ../tests from accidental deletion/move by make dkms-debs
     # We use a bind mount because mv cannot move a mount point
     # TEST_DIR is defined in utils/set_properties.sh
@@ -48,6 +45,8 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     fi
 
     set +e
+    sh ./autogen.sh
+    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
     make dkms-debs
     MAKE_RC=$?
     set -e

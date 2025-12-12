@@ -8,8 +8,9 @@ lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # source /etc/lsb-release
-    # UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+    source /etc/lsb-release
+    UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
     # if [ $UBUNTU_VERSION == 24.04 ]; then
     #     SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
     # elif [ $UBUNTU_VERSION == 22.04 ]; then

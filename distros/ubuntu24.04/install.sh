@@ -46,8 +46,13 @@ if [ "$GPU" = "NVIDIA" ]; then
         # For GB200, pass SKU to install the correct driver
         ./install_nvidiagpudriver_gb200.sh
 
+        # Install NVSHMEM
+        ./install_nvshmem_gb200.sh
+
+        # Install NVLOOM
         ./install_nvloom_gb200.sh
 
+        # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
 
     else

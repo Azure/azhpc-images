@@ -389,9 +389,6 @@
         },
         "almalinux9.6": {
             "version": "2.15.7-33-g79ddf99"
-        },
-        "common": {
-            "version": "2.15.6-39-g3e00a10"
         }
     },
     "aznhc": {

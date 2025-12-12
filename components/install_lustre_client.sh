@@ -36,7 +36,32 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     fi
     ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
+
+    # Protect ../tests from accidental deletion/move by make dkms-debs
+    # We use a bind mount because mv cannot move a mount point
+    # TEST_DIR is defined in utils/set_properties.sh
+    if [ -d "$TEST_DIR" ]; then
+        if mountpoint -q "$TEST_DIR"; then
+            umount "$TEST_DIR"
+        fi
+        mount --bind "$TEST_DIR" "$TEST_DIR"
+    fi
+
+    set +e
     make dkms-debs
+    MAKE_RC=$?
+    set -e
+
+    if [ -d "$TEST_DIR" ]; then
+        if mountpoint -q "$TEST_DIR"; then
+            umount "$TEST_DIR"
+        fi
+    fi
+
+    if [ $MAKE_RC -ne 0 ]; then
+        exit $MAKE_RC
+    fi
+
     apt install -y ./debs/lustre-*.deb
     popd
     rm -rf amlFilesystem-lustre

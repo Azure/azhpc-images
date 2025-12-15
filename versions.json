@@ -61,8 +61,8 @@
         },
         "almalinux9.6": {
             "version": "2.24.1",
-            "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+            "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
         },
         "rhel8.10": {
             "version": "2.18",
@@ -179,13 +179,13 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "570.172.08",
-                "sha256": "0256867e082caf93d7b25fa7c8e69b316062a9c6c72c6e228fad7b238c6fa17d"
+                "version": "580.105.08",
+                "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"            
             },
             "fabricmanager": {
                 "distribution": "rhel9",
-                "version": "570.172.08-1",
-                "sha256": "6e4e0860adfceff8ec8a9451620219b67ac84bfe2dfc9a77c1cd09e2aa2b7c00"
+                "version": "580.105.08-1",
+                "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"        
             }   
         },
         "rhel8.10": {
@@ -240,13 +240,13 @@
         },
         "almalinux9.6": {
             "driver": {
-                "version": "12.9",
+                "version": "13.0",
                 "distribution": "rhel9"
             },
             "samples": {
-                "version": "12.9",
-                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
-            }
+                "version": "13.0",
+                "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+            }   
         },
         "rhel8.10": {
             "driver": {

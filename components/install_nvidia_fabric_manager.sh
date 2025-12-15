@@ -28,14 +28,12 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Prevent package from being updated after installation
     apt-mark hold $PACKAGE_NAME
 elif [[ $DISTRIBUTION == almalinux* ]]; then
-    # Use different URL format for NVIDIA Fabric Manager major version 580 and above
+    # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
     if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
-        PACKAGE_NAME="nvidia-fabricmanager"
+        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     else
-        PACKAGE_NAME="nvidia-fabric-manager"
+        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     fi
-
-    NVIDIA_FABRIC_MNGR_PKG=https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     

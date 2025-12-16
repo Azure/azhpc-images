@@ -78,6 +78,14 @@ else
     fi
 fi
 
+# Remove azure-proxy-agent
+if [[ $distro == *"Ubuntu"* ]]
+then
+    if dpkg -l | grep -qw azure-proxy-agent; then
+        apt-get purge -y azure-proxy-agent
+    fi
+fi
+
 # Clear History
 # Stop syslog service
 systemctl stop syslog.socket rsyslog

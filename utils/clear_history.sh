@@ -61,12 +61,21 @@ then
     tdnf history sync
 fi
 
-# Remove Defender
 if [[ $distro == *"Ubuntu"* ]]
 then
+    # Remove Defender
     if dpkg -l | grep -qw mdatp; then
         apt-get purge -y mdatp
     fi
+
+    # Remove Azure Proxy Agent
+    # Azure Proxy Agent is introduced in from 24.04.202512100 of Ubuntu images. It provides process-level authentication and authorization 
+    # for access to Azure IMDS and WireServer metadata endpoint, which will block core-dns from accessing metadata endpoint causing issues in some scenarios
+    # and conflicts with eBPF programs intercepted by Kubernetes CNI. 
+    if dpkg -l | grep -qw azure-proxy-agent; then
+        apt-get purge -y azure-proxy-agent
+    fi
+
 elif [[ $distro == *"AzureLinux"* ]]
 then
     if tdnf list installed | grep -qw mdatp; then

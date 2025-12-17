@@ -1,7 +1,7 @@
 {
     "ubuntu24.04": {
         "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
+            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         },
         "gb-family":{
@@ -17,19 +17,19 @@
     },    
     "ubuntu22.04": {
         "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
+            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         }
     },
     "almalinux8.10": {
         "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
+            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         }
     },
     "almalinux9.6": {
         "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
+            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         }
     },

@@ -24,6 +24,9 @@ source ../../utils/set_properties.sh
 # update cmake
 $COMPONENT_DIR/install_cmake.sh
 
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
+
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -58,9 +61,6 @@ if [ "$GPU" = "AMD" ]; then
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
-
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
 
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh

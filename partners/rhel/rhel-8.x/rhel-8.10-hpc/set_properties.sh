@@ -4,7 +4,7 @@ export TOP_DIR=$(realpath ../../../../)
 export COMMON_DIR=$(realpath ../../../../components)
 export COMPONENT_DIR=$COMMON_DIR
 export RHEL_COMMON_DIR=$(realpath ../../common)
-export AZHPC_IMAGES_TEST_DIR=$(realpath ../../../../tests)
+export TEST_DIR=$(realpath ../../../../tests)
 export UTILS_DIR=$(realpath ../../../../utils)
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 

@@ -24,6 +24,8 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
 
     apt install -y ./${FILENAME}
+
+    # Prevent package from being updated after installation
     apt-mark hold $PACKAGE_NAME
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
@@ -37,6 +39,8 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     
     yum install -y ./${FILENAME}
+
+    # Prevent package from being updated after installation
     sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Install Nvidia Fabric Manager and devel packages from PMC

@@ -55,9 +55,9 @@
             "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
         },
         "almalinux8.10": {
-            "version": "2.25.1",
-            "sha256": "5af44cf5dba8efc33f4e596fdf838e217e5071ce6a355a3a75fc72b66a6e646c",
-            "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
+            "version": "2.24.1",
+            "sha256": "19cf620ae57608817a23558383a2721bd2221dd165ce81ccacc2011d5c7b819a",
+            "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
         },
         "almalinux9.6": {
             "version": "2.24.1",

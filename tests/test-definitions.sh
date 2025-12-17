@@ -217,7 +217,9 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu) sudo apt -s upgrade;;
-        almalinux) sudo dnf check-update --refresh;;
+        almalinux)
+            sudo dnf -y makecache 
+            sudo dnf check-update -y --refresh;;
         azurelinux) true;;
         * ) ;;
     esac

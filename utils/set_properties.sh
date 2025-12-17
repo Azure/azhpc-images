@@ -6,6 +6,12 @@ export COMPONENT_DIR=$TOP_DIR/components
 export TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
+
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    export ARCHITECTURE_DISTRO=$(dpkg --print-architecture)
+else    
+    export ARCHITECTURE_DISTRO=$(rpm --eval '%{_arch}')
+fi
 export ARCHITECTURE=$(uname -m)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then

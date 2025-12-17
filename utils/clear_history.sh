@@ -72,6 +72,7 @@ then
     # Azure Proxy Agent is introduced in from 24.04.202512100 of Ubuntu images. It provides process-level authentication and authorization 
     # for access to Azure IMDS and WireServer metadata endpoint, which will block core-dns from accessing metadata endpoint causing issues in some scenarios
     # and conflicts with eBPF programs intercepted by Kubernetes CNI. 
+    # See https://learn.microsoft.com/en-us/azure/virtual-machines/metadata-security-protocol/overview, https://github.com/Azure/GuestProxyAgent/issues/295
     if dpkg -l | grep -qw azure-proxy-agent; then
         apt-get purge -y azure-proxy-agent
     fi

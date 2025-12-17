@@ -7,7 +7,12 @@ TRIVY_CYCLONEDX_ROOTFS_JSON_PATH=${TRIVY_REPORT_DIRNAME}/trivy-cyclonedx-rootfs.
 
 TRIVY_VERSION=$(curl -L   -H "Accept: application/vnd.github+json"   -H "X-GitHub-Api-Version: 2022-11-28"   https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r ".name")
 TRIVY_VERSION=${TRIVY_VERSION:1} # remove the leading 'v'
-TRIVY_ARCH="Linux-64bit"
+
+if [[ "$ARCHITECTURE" == "aarch64" ]]; then
+    TRIVY_ARCH="Linux-ARM64"
+else
+    TRIVY_ARCH="Linux-64bit"
+fi
 
 TRIVY_DB_REPOSITORIES="mcr.microsoft.com/mirror/ghcr/aquasecurity/trivy-db:2,ghcr.io/aquasecurity/trivy-db:2,public.ecr.aws/aquasecurity/trivy-db"
 

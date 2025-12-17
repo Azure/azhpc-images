@@ -35,9 +35,11 @@
             }
         },
         "almalinux8.10": {
-            "version": "3.2.0",
-            "sha256": "1ceb64cfa21d70c38a1c1353a91cd3e7e353c37c20c96c6ea2bc486d6e943761",
-            "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.0/host/doca-host-3.2.0-125000_25.10_rhel8.x86_64.rpm"
+            "x86_64": {
+                "version": "3.2.0",
+                "sha256": "1ceb64cfa21d70c38a1c1353a91cd3e7e353c37c20c96c6ea2bc486d6e943761",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.0/host/doca-host-3.2.0-125000_25.10_rhel8.x86_64.rpm"
+            }
         },
         "almalinux9.6": {
             "x86_64": {

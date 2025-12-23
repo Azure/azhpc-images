@@ -14,16 +14,16 @@
     "doca": {
         "ubuntu22.04": {
             "x86_64": {
-                "version": "3.1.0",
-                "sha256": "5ba139cd07efee5769a2a39ee2797fc9183f3903d87f46385403e61f41076ac9",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.1.0/host/doca-host_3.1.0-091000-25.07-ubuntu2204_amd64.deb"
+                "version": "3.2.1",
+                "sha256": "75b8d4258b7239ef5021abaa25e7eeb4fcbc0c8117cab89ce1a766d2d218c8a0",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2204_amd64.deb"
             }
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "3.1.0",
-                "sha256": "6a244de499f19869eb9d06455057cb95ed90745bd8c890ba1282df8d5c05a96e",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.1.0/host/doca-host_3.1.0-091000-25.07-ubuntu2404_amd64.deb"
+                "version": "3.2.1",
+                "sha256": "f16f08572b3b2f513b80af66c881c6a60c19e74f0da50afafaa42b0c34116533",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
                 "version": "3.1.0-091513-25.07-ubuntu2404"
@@ -36,16 +36,16 @@
         },
         "almalinux8.10": {
             "x86_64": {
-                "version": "3.2.0",
-                "sha256": "1ceb64cfa21d70c38a1c1353a91cd3e7e353c37c20c96c6ea2bc486d6e943761",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.0/host/doca-host-3.2.0-125000_25.10_rhel8.x86_64.rpm"
+                "version": "3.2.1",
+                "sha256": "ce630bb2e98f4202ed041d8607c72caf9db2ea8a9d795b982823af5493e4cb4b",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel8.x86_64.rpm"
             }
         },
         "almalinux9.6": {
             "x86_64": {
-                "version": "3.1.0",
-                "sha256": "21e87fa331b8b7ed0805cb77d42c7a566e3a09530cb4658cd75d68126c66cfc4",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.1.0/host/doca-host-3.1.0-091000_25.07_rhel96.x86_64.rpm"
+                "version": "3.2.1",
+                "sha256": "7b9bee723c1bb37388814160a6970f4a24e76801765c4d235a1db240e9ebe307",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel9.x86_64.rpm"
             }
         },
         "rhel8.10": {
@@ -57,9 +57,9 @@
         },
         "azurelinux3.0": {
             "x86_64":{
-                "version": "2.7.0",
-                "sha256": "080275c6432725bff5ee819f564e801346cbd9da140dea6c26e5cae4e1b05fa7",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.7.0/host/doca-host-2.7.0-209000_24.04_rhel87.x86_64.rpm"
+                "version": "3.2.1",
+                "sha256": "dbf0ee79182c6ae00c99fc9089fa1d81fc6f406f64b2215bff7da9b8cc423ad5",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_alinux32.x86_64.rpm"
             }
         }
     },

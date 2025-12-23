@@ -30,10 +30,11 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
     if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
-        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
+        PACKAGE_NAME="nvidia-fabricmanager"
     else
-        NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
+        PACKAGE_NAME="nvidia-fabric-manager"
     fi
+    NVIDIA_FABRIC_MNGR_PKG=https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
     FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     

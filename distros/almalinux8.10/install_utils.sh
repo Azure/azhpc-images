@@ -24,6 +24,11 @@ sudo yum install -y wget
 # Install net-tools as AlmaLinux 8.10 does not have ifconfig by default
 sudo yum install -y net-tools
 
+sudo yum install -y python3.12
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 20
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 10
+alternatives --set python3 /usr/bin/python3.6
+
 # install pssh
 pssh_metadata=$(get_component_config "pssh")
 pssh_version=$(jq -r '.version' <<< $pssh_metadata)

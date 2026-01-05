@@ -89,4 +89,18 @@ echo "INSTALLED MOFED!! Release Version: ${MOFED_VERSION}, Source Version: ${SOU
 # Therefore, though we use release version in versions.json for tdnf install, we need to write the SOURCE_VERSION to the component version file.
 write_component_version "OFED" $SOURCE_VERSION
 
+# Create systemd drop-in configuration for openibd.service
+# This adds restart on failure and ensures it starts after udev settles
+mkdir -p /etc/systemd/system/openibd.service.d
+cat > /etc/systemd/system/openibd.service.d/override.conf <<EOF
+[Unit]
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Restart=on-failure
+RestartSec=5
+EOF
+
+systemctl daemon-reload
 systemctl enable openibd

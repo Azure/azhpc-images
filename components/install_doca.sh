@@ -53,6 +53,22 @@ write_component_version "DOCA" $DOCA_VERSION
 OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 write_component_version "OFED" $OFED_VERSION
 
+# Create systemd drop-in configuration for openibd.service
+# This adds restart on failure and ensures it starts after udev settles
+mkdir -p /etc/systemd/system/openibd.service.d
+cat > /etc/systemd/system/openibd.service.d/override.conf <<EOF
+[Unit]
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Restart=on-failure
+RestartSec=5
+EOF
+
+systemctl daemon-reload
+systemctl enable openibd
+
 /etc/init.d/openibd restart
 /etc/init.d/openibd status
 error_code=$?

@@ -44,7 +44,7 @@ cat << EOF >> /etc/security/limits.conf
 *               soft    stack           unlimited
 EOF
 
-if [[ $DISTRIBUTION == almalinux9.6 ]]; then
+if [[ $DISTRIBUTION == almalinux* ]]; then
     echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/system.conf
     echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/user.conf
     sudo systemctl daemon-reexec

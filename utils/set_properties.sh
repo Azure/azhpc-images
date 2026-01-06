@@ -15,12 +15,6 @@ fi
 export ARCHITECTURE=$(uname -m)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Don't allow the kernel to be updated
-    if [ "$SKU" = "GB200" ]; then
-        apt-mark hold linux-azure-nvidia
-    else
-        apt-mark hold linux-azure
-    fi
     # upgrade pre-installed components
     apt update
     apt upgrade -y

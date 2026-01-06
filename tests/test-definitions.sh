@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function exit_on_error {
+    if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi
+}
+
 # check if the file is present
 function check_exists {
     ls $1
@@ -8,7 +12,7 @@ function check_exists {
         echo "$1 [OK]"
     else
         echo "*** ${FUNCNAME[1]} Error - $1 not found!" >&2
-        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
+        exit_on_error
     fi
 }
 
@@ -21,7 +25,7 @@ function check_exit_code {
     else
         echo "*** ${FUNCNAME[1]}: Error - $2!" >&2
         echo "*** Failed with exit code - $exit_code" >&2
-        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
+        exit_on_error
     fi
 }
 
@@ -101,7 +105,7 @@ function verify_ompi_installation {
     check_exit_code "Open MPI ${VERSION_OMPI}" "Failed to run Open MPI"
 }
 
-function verify_cuda_installation {
+function verify_nvidia_driver_installation {
     # Verify NVIDIA Driver installation
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
@@ -110,6 +114,15 @@ function verify_cuda_installation {
     lsmod | grep nvidia_peermem
     check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 
+    if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+        # Verify if NVIDIA driver CDMM mode is enabled
+        cat /proc/driver/nvidia/params | grep -q  "CoherentGPUMemoryMode: \"driver\""
+        check_exit_code "NVIDIA CDMM mode is enabled" "NVIDIA CDMM mode is not enabled!"
+    fi
+}
+
+function verify_cuda_installation {
+    nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     # Verify if CUDA is installed
     # re-enable this after testing
     # nvcc --version
@@ -217,7 +230,9 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu) sudo apt -s upgrade;;
-        almalinux) sudo dnf check-update --refresh;;
+        almalinux)
+            sudo dnf -y makecache 
+            sudo dnf check-update -y --refresh;;
         azurelinux) true;;
         * ) ;;
     esac
@@ -265,10 +280,21 @@ function verify_docker_installation {
     sudo docker rmi hello-world
 }
 
-function verify_ipoib_status {
-    # Check if the module ib_ipoib is inserted
-    lsmod | grep ib_ipoib
-    check_exit_code "ib_ipoib module is inserted" "ip_ipoib module not inserted!"
+function verify_ib_modules_and_devices {
+    if ! systemctl is-active openibd > /dev/null 2>&1; then
+        echo "*** openibd service is not active!" >&2
+        systemctl status openibd >&2
+        exit_on_error
+    else
+        echo "[OK] : openibd service is active"
+    fi
+
+    # Check if all key IB modules are inserted
+    local ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
+    for module in "${ib_modules[@]}"; do
+        lsmod | grep "^${module}"
+        check_exit_code "${module} module is inserted" "${module} module not inserted!"
+    done
 
     # Check if ib devices are listed
     ip addr | grep ib
@@ -347,4 +373,50 @@ function verify_sunrpc_tcp_settings_service {
     # Check if the sunrpc TCP settings service is active
     systemctl is-active --quiet sunrpc_tcp_settings
     check_exit_code "sunrpc TCP settings service is active" "sunrpc TCP settings service is inactive/dead!"
+}
+
+function verify_azure_persistent_rdma_naming_service {
+    # Check if the azure persistent rdma naming service is active
+    systemctl is-active --quiet azure_persistent_rdma_naming
+    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+}
+
+function verify_nvbandwidth_setup {
+    # Verify nvbandwidth setup
+    /opt/nvidia/nvbandwidth/nvbandwidth
+    check_exit_code "NV Bandwidth Installed!" "Issue with NV Bandwidth installation!"
+}
+
+function verify_nvloom_setup {
+    # Verify nvloom setup
+    module load mpi/hpcx
+    gpu_num=$(nvidia-smi -L | wc -l) 
+    mpirun -np $gpu_num /opt/nvidia/nvloom/nvloom_cli -s gpu-to-rack
+    check_exit_code "NV Loom Installed!" "Issue with NV Loom installation!"
+    module unload mpi/hpcx
+}
+
+function verify_nvlink_setup {
+    # Verify nvlink setup
+    nvidia-smi nvlink --status
+    check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
+
+    if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+        nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
+        echo "$nvidia_smi_output"
+        echo "$nvidia_smi_output" | grep -q 'N/A'
+        if [ $? -eq 0 ]; then
+            echo "*** Error - Unhealthy NVLINK setup!!"
+            exit -1
+        else
+            echo "[OK] : NVLINK setup is healthy"
+        fi
+    fi    
+}
+
+function verify_nvidia_imex_service {
+    check_exists /usr/lib/systemd/system/nvidia-imex.service
+    # Check if nvidia caps imex channel exists
+    ls -al /dev/nvidia-caps-imex-channels/channel0
+    check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
 }

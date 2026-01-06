@@ -9,7 +9,11 @@ DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
 DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
 DOCA_FILE=$(basename ${DOCA_URL})
 
-download_and_verify $DOCA_URL $DOCA_SHA256
+if [[ "$DISTRIBUTION" == *"ubuntu"* && "$SKU" == "GB200" ]]; then
+    DOCA_FILE=$TOP_DIR/internal_bits/doca-host_${DOCA_VERSION}_arm64.deb
+else
+    download_and_verify $DOCA_URL $DOCA_SHA256
+fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
@@ -29,8 +33,13 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     /opt/mellanox/doca/tools/doca-kernel-support
     FINAL_REPO_FILE=$(find /tmp/DOCA.*/ -name 'doca-kernel-repo-*.rpm' -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
     rpm -i $FINAL_REPO_FILE
+    # Backup
+    cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
+    sed -i '/^exclude=/d' /etc/dnf/dnf.conf
     dnf -y install doca-ofed-userspace
     dnf -y install doca-ofed
+    # Restore exclusion
+    mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
@@ -43,6 +52,22 @@ fi
 write_component_version "DOCA" $DOCA_VERSION
 OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 write_component_version "OFED" $OFED_VERSION
+
+# Create systemd drop-in configuration for openibd.service
+# This adds restart on failure and ensures it starts after udev settles
+mkdir -p /etc/systemd/system/openibd.service.d
+cat > /etc/systemd/system/openibd.service.d/override.conf <<EOF
+[Unit]
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Restart=on-failure
+RestartSec=5
+EOF
+
+systemctl daemon-reload
+systemctl enable openibd
 
 /etc/init.d/openibd restart
 /etc/init.d/openibd status

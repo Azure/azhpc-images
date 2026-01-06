@@ -13,7 +13,12 @@ pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 # Install HPC-x
-hpcx_metadata=$(get_component_config "hpcx")
+if [[ "$GPU" == "AMD" ]]; then
+    # AMD has regression on higher versions of HPC-X
+    hpcx_metadata=$(get_component_config "hpcx_amd")
+else
+    hpcx_metadata=$(get_component_config "hpcx")
+fi
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
@@ -46,22 +51,24 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; 
 fi
 
 # Install MVAPICH
-mvapich_metadata=$(get_component_config "mvapich")
-MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
-MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
-MVAPICH_DOWNLOAD_URL=$(jq -r '.url' <<< $mvapich_metadata)
-TARBALL=$(basename $MVAPICH_DOWNLOAD_URL)
-MVAPICH_FOLDER=$(basename $MVAPICH_DOWNLOAD_URL .tar.gz)
+if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+    mvapich_metadata=$(get_component_config "mvapich")
+    MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
+    MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
+    MVAPICH_DOWNLOAD_URL=$(jq -r '.url' <<< $mvapich_metadata)
+    TARBALL=$(basename $MVAPICH_DOWNLOAD_URL)
+    MVAPICH_FOLDER=$(basename $MVAPICH_DOWNLOAD_URL .tar.gz)
 
-download_and_verify $MVAPICH_DOWNLOAD_URL $MVAPICH_SHA256
-tar -xvf ${TARBALL}
-pushd ${MVAPICH_FOLDER}
-# Error exclusive to Ubuntu 22.04
-# configure: error: The Fortran compiler gfortran will not compile files that call
-# the same routine with arguments of different types.
-./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
-popd
-write_component_version "MVAPICH" ${MVAPICH_VERSION}
+    download_and_verify $MVAPICH_DOWNLOAD_URL $MVAPICH_SHA256
+    tar -xvf ${TARBALL}
+    pushd ${MVAPICH_FOLDER}
+    # Error exclusive to Ubuntu 22.04
+    # configure: error: The Fortran compiler gfortran will not compile files that call
+    # the same routine with arguments of different types.
+    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+    popd
+    write_component_version "MVAPICH" ${MVAPICH_VERSION}
+fi
 
 # Install Open MPI
 ompi_metadata=$(get_component_config "ompi")
@@ -74,7 +81,7 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib"; fi) --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..
@@ -85,19 +92,21 @@ if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]];
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi
 
-# Install Intel MPI
-impi_metadata=$(get_component_config "impi")
-IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
-IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
-IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
-IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
+if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+    # Install Intel MPI
+    impi_metadata=$(get_component_config "impi")
+    IMPI_VERSION=$(jq -r '.version' <<< $impi_metadata)
+    IMPI_SHA256=$(jq -r '.sha256' <<< $impi_metadata)
+    IMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $impi_metadata)
+    IMPI_OFFLINE_INSTALLER=$(basename $IMPI_DOWNLOAD_URL)
 
-download_and_verify $IMPI_DOWNLOAD_URL $IMPI_SHA256
-bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
+    download_and_verify $IMPI_DOWNLOAD_URL $IMPI_SHA256
+    bash $IMPI_OFFLINE_INSTALLER -s -a -s --eula accept
 
-impi_2021_version=${IMPI_VERSION:0:-2}
-mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
-write_component_version "IMPI" ${IMPI_VERSION}
+    impi_2021_version=${IMPI_VERSION:0:-2}
+    mv ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/mpi ${INSTALL_PREFIX}/intel/oneapi/mpi/${impi_2021_version}/etc/modulefiles/impi
+    write_component_version "IMPI" ${IMPI_VERSION}
+fi    
 
 # Setup module files for MPIs
 MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
@@ -124,7 +133,8 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # MVAPICH
-cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
+if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+    cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
 #  MVAPICH ${MVAPICH_VERSION}
@@ -139,6 +149,8 @@ setenv          MPI_LIB         /opt/mvapich-${MVAPICH_VERSION}/lib
 setenv          MPI_MAN         /opt/mvapich-${MVAPICH_VERSION}/share/man
 setenv          MPI_HOME        /opt/mvapich-${MVAPICH_VERSION}
 EOF
+    ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich
+fi    
 
 # OpenMPI
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
@@ -158,7 +170,8 @@ setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 EOF
 
 #IntelMPI-v2021
-cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
+if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+    cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
 #  Intel MPI ${impi_2021_version}
@@ -172,19 +185,22 @@ setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
 EOF
 
-if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
-    cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
+    ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021
+
+    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+        cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 # see https://community.intel.com/t5/Intel-MPI-Library/Suspected-unfixed-Intel-MPI-race-condition-in-collectives/td-p/1693452 for Intel MPI bug
 setenv          I_MPI_STARTUP_MODE         pmi_shm
 EOF
-fi
+    fi
+fi    
+
+
 
 # Create symlinks for modulefiles
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
-ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
-ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021
 
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh

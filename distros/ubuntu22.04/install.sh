@@ -38,7 +38,7 @@ $COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
-    $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+    $COMPONENT_DIR/install_nvidiagpudriver.sh
     
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
@@ -92,6 +92,9 @@ $COMPONENT_DIR/install_monitoring_tools.sh
 
 # install persistent rdma naming
 $COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
+
+# add udev rule
+$COMPONENT_DIR/add-udev-rules.sh
 
 # copy test file
 $COMPONENT_DIR/copy_test_file.sh

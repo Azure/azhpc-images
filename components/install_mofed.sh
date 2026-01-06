@@ -3,12 +3,6 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-mofed_metadata=$(get_component_config "mofed")
-MOFED_VERSION=$(jq -r '.version' <<< $mofed_metadata)
-XPMEM_VERSION=$(jq -r '."xpmem.version"' <<< $mofed_metadata)
-KNEM_VERSION=$(jq -r '."knem.version"' <<< $mofed_metadata)
-MFT_KERNEL_VERSION=$(jq -r '."mft_kernel.version"' <<< $mofed_metadata)
-
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Packages for MOFED
     tdnf install -y iptables-devel \
@@ -26,7 +20,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         automake \
         autoconf
 
-    kernel_version=$(uname -r | sed 's/\-/./g')
 
     tdnf install -y libibumad \
                     infiniband-diags \
@@ -38,28 +31,28 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     librdmacm-utils \
                     rdma-core \
                     rdma-core-devel \
-                    mlnx-ofa_kernel-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    mlnx-ofa_kernel-modules-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    mlnx-ofa_kernel-devel-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    mlnx-ofa_kernel-source-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    mft_kernel-${MFT_KERNEL_VERSION}_$kernel_version.x86_64 \
+                    mlnx-ofa_kernel \
+                    mlnx-ofa_kernel-modules \
+                    mlnx-ofa_kernel-devel \
+                    mlnx-ofa_kernel-source \
+                    mft_kernel \
                     mstflint \
-                    fwctl-${MOFED_VERSION}_$kernel_version.x86_64 \
+                    fwctl \
                     ibacm \
                     ibarr \
                     ibsim \
-                    iser-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    isert-${MOFED_VERSION}_$kernel_version.x86_64 \
-                    knem-${KNEM_VERSION}_$kernel_version.x86_64 \
-                    knem-modules-${KNEM_VERSION}_$kernel_version.x86_64 \
+                    iser \
+                    isert \
+                    knem \
+                    knem-modules \
                     perftest \
-                    libxpmem-${XPMEM_VERSION}_$kernel_version.x86_64 \
-                    libxpmem-devel-${XPMEM_VERSION}_$kernel_version.x86_64 \
+                    libxpmem \
+                    libxpmem-devel \
                     mlnx-ethtool \
                     mlnx-iproute2 \
-                    mlnx-nfsrdma-${MOFED_VERSION}_$kernel_version.x86_64 \
+                    mlnx-nfsrdma \
                     multiperf \
-                    srp-${MOFED_VERSION}_$kernel_version.x86_64 \
+                    srp \
                     srp_daemon \
                     ucx \
                     ucx-cma \
@@ -69,12 +62,15 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     ucx-rdmacm \
                     ucx-static \
                     ucx-knem \
-                    xpmem-${XPMEM_VERSION}_$kernel_version.x86_64 \
-                    xpmem-modules-${XPMEM_VERSION}_$kernel_version.x86_64 \
+                    xpmem \
+                    xpmem-modules \
                     ucx-xpmem \
                     libunwind \
                     libunwind-devel
 fi
+
+# Extract mofed version from mlnx-ofa_kernel-devel package
+MOFED_VERSION=$(sudo tdnf list installed | grep mlnx-ofa_kernel-devel | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
 SOURCE_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 
@@ -93,4 +89,18 @@ echo "INSTALLED MOFED!! Release Version: ${MOFED_VERSION}, Source Version: ${SOU
 # Therefore, though we use release version in versions.json for tdnf install, we need to write the SOURCE_VERSION to the component version file.
 write_component_version "OFED" $SOURCE_VERSION
 
+# Create systemd drop-in configuration for openibd.service
+# This adds restart on failure and ensures it starts after udev settles
+mkdir -p /etc/systemd/system/openibd.service.d
+cat > /etc/systemd/system/openibd.service.d/override.conf <<EOF
+[Unit]
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Restart=on-failure
+RestartSec=5
+EOF
+
+systemctl daemon-reload
 systemctl enable openibd

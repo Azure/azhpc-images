@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function exit_on_error {
+    if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi
+}
+
 # check if the file is present
 function check_exists {
     ls $1
@@ -8,7 +12,7 @@ function check_exists {
         echo "$1 [OK]"
     else
         echo "*** ${FUNCNAME[1]} Error - $1 not found!" >&2
-        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
+        exit_on_error
     fi
 }
 
@@ -21,7 +25,7 @@ function check_exit_code {
     else
         echo "*** ${FUNCNAME[1]}: Error - $2!" >&2
         echo "*** Failed with exit code - $exit_code" >&2
-        if ! [[ -n "$HPC_DEBUG" && "$HPC_DEBUG" == "-d" ]]; then exit -1; fi 
+        exit_on_error
     fi
 }
 
@@ -276,10 +280,21 @@ function verify_docker_installation {
     sudo docker rmi hello-world
 }
 
-function verify_ipoib_status {
-    # Check if the module ib_ipoib is inserted
-    lsmod | grep ib_ipoib
-    check_exit_code "ib_ipoib module is inserted" "ip_ipoib module not inserted!"
+function verify_ib_modules_and_devices {
+    if ! systemctl is-active openibd > /dev/null 2>&1; then
+        echo "*** openibd service is not active!" >&2
+        systemctl status openibd >&2
+        exit_on_error
+    else
+        echo "[OK] : openibd service is active"
+    fi
+
+    # Check if all key IB modules are inserted
+    local ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
+    for module in "${ib_modules[@]}"; do
+        lsmod | grep "^${module}"
+        check_exit_code "${module} module is inserted" "${module} module not inserted!"
+    done
 
     # Check if ib devices are listed
     ip addr | grep ib

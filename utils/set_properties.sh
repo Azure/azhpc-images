@@ -31,7 +31,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
         # Import the newest AlmaLinux GPG key
         rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
-    elif [[ $DISTRIBUTION == "almalinux9.6" ]]; then
+    elif [[ $DISTRIBUTION == almalinux9* ]]; then
         rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-9
     fi
     yum install -y jq    

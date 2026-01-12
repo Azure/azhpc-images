@@ -288,8 +288,8 @@
             "x86_64":{
                 "fabricmanager": {
                     "distribution": "azl3",
-                    "version": "570.133.20-2",
-                    "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"       
+                    "version": "580.105.08",
+                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"       
                 }
             }
         }
@@ -376,12 +376,12 @@
         "azurelinux3.0": {
             "x86_64":{
                 "driver": {
-                    "version": "12.8",
+                    "version": "13.1",
                     "distribution": "azl3"
                 },
                 "samples": {
-                    "version": "12.8",
-                    "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
+                    "version": "13.1",
+                    "sha256": "03d7748a773fcd2350c2de88f2d167252c78ea90a52e229e7eb2a6922e3ba350"
                 }
             }  
         }

@@ -11,6 +11,32 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
+    # we need to make a marker package to tell apt that HPC-X provides its own OpenMPI, so that lustre-tests can install properly
+    apt install -y equivs
+    cat <<EOF > /tmp/hpcx-provides-openmpi-bin
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: hpcx-provides-openmpi-bin
+Provides: openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common
+Conflicts: openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common
+Version: 4.1
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package in Azure HPC Image to indicate that HPC-X provides OpenMPI binaries
+ Upstream OpenMPI (i.e. OpenMPI packaged by Ubuntu) is unsuitable for HPC purposes, and depends on vulnerable PMIx with fixes behind Ubuntu Pro paywall on Jammy.
+EOF
+
+    equivs-build /tmp/hpcx-provides-openmpi-bin
+    dpkg -i ./hpcx-provides-openmpi-bin_4.1_all.deb
+    rm -f ./hpcx-provides-openmpi-bin_4.1_all.deb
+    rm -f /tmp/hpcx-provides-openmpi-bin
+
+    # use dev headers from HPC-X OpenMPI installation for lustre-tests
+    source /etc/profile.d/modules.sh
+    module load mpi/hpcx
+
     # if [ $UBUNTU_VERSION == 24.04 ]; then
     #     SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
     # elif [ $UBUNTU_VERSION == 22.04 ]; then

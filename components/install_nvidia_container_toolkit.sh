@@ -28,7 +28,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     # Enable these lines if you want use experimental repo
     # if [[ $DISTRIBUTION == almalinux8.10 ]]; then
     #    yum-config-manager --enable nvidia-container-toolkit-experimental
-    # elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    # elif [[ $DISTRIBUTION == almalinux9* ]]; then
     #    dnf config-manager --enable nvidia-container-toolkit-experimental
     # fi
 

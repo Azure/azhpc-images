@@ -52,7 +52,7 @@ else
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install distro
         python3 setup.py install --register-service
-    elif [[ $DISTRIBUTION == almalinux9.6 ]]; then
+    elif [[ $DISTRIBUTION == almalinux9* ]]; then
         python3.12 -m ensurepip --upgrade  # Ensures pip is available
         python3.12 -m pip install --upgrade pip setuptools
         python3.12 -m pip install distro
@@ -90,7 +90,7 @@ else
     rm -rf WALinuxAgent-${WAAGENT_VERSION}
 fi
 
-if [[ $DISTRIBUTION == almalinux9.6 ]]; then
+if [[ $DISTRIBUTION == almalinux9* ]]; then
     write_component_version "WAAGENT" $(python3.12 -u /usr/sbin/waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
     write_component_version "WAAGENT_EXTENSIONS" $(python3.12 -u /usr/sbin/waagent --version | sed '3q;d' | awk -F' ' '{print $4}')
 else

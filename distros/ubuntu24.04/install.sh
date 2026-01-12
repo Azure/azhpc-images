@@ -24,10 +24,6 @@ source ../../utils/set_properties.sh
 if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
-
-    # install Lustre client
-    # Note that lustre client is supported on GB200 but amlfs does not support latest 6.14 kernel so we temporarily skip it
-    $COMPONENT_DIR/install_lustre_client.sh
 fi
 
 # install DOCA OFED
@@ -79,6 +75,12 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rocm.sh    
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
+fi
+
+if [ "$SKU" != "GB200" ]; then
+    # install Lustre client
+    # Note that lustre client is supported on GB200 but amlfs does not support latest 6.14 kernel so we temporarily skip it
+    $COMPONENT_DIR/install_lustre_client.sh
 fi
 
 if [ "$ARCHITECTURE" == "x86_64" ]; then

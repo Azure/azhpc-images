@@ -51,8 +51,8 @@ function verify_ib_device_status {
     check_exit_code "IB device state: LinkUp" "IB link not up"
 
     # verify ifconfig
-    ifconfig | grep "ib[[:digit:]]:\|ibP"
-    check_exit_code "IB device is configured" "IB device not configured"
+    ! ifconfig | grep "ib[[:digit:]]:\|ibP"
+    check_exit_code "IB Links are Down" "IB Links are Brought Up unexpectedly"
 
     #verify hostname -i returns IP address only
     hostname -i | grep -E "^([[:digit:]]{1,3}[\.]){3}[[:digit:]]{1,3}$"

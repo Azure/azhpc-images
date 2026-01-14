@@ -116,7 +116,7 @@ function set_test_matrix {
 
        fi
     fi
-    test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
+    test_matrix_file=$(jq -r . $HPC_ENV/sanity-check/test-matrix_${gpu_platform}.json)
 
     case ${VMSIZE} in
         standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
@@ -132,29 +132,18 @@ function set_test_matrix {
 
 function set_vm_properties {
     aks_host=$1
-    local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
-    local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
-    export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
-    if [ "$aks_host" != "-aks-host" ]; then
-        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
-    else
-        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)-aks
-    fi
+    export VMSIZE="standard_nd128isr_ndr_gb200_v6"
+    export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 }
 
 # Function to set component versions from JSON file
 function set_component_versions {
-    local component_versions_file=$HPC_ENV/component_versions.txt
-    # read and set the component versions
-    local component_versions=$(cat ${component_versions_file} | jq -r 'to_entries | .[] | "VERSION_\(.key)=\(.value)"')
-    echo "Component versions: $component_versions"
-
-    # Set the component versions based on the keys and values
-    while read -r component; do
-        if [[ ! -z "$component" ]]; then
-            eval "export $component" # Associates component name as variable and version as value
-        fi
-    done <<< "$component_versions"
+    export VERSION_OFED="25.10-1.7.1"
+    export VERSION_AZCOPY="10.31.1"
+    export VERSION_OMPI="5.0.8"
+    export VERSION_NVIDIA="580.105.08"
+    export VERSION_DOCKER="29.1.4-1"
+    export VERSION_NCCL="2.28.3-1"
 }
 
 function set_module_files_path {
@@ -179,9 +168,9 @@ debug_flag=$3
 # Load profile
 . /etc/profile
 # Set HPC environment
-HPC_ENV=/opt/azurehpc
+HPC_ENV=/home/hpcgb200
 # Set test definitions
-. $HPC_ENV/test/test-definitions.sh
+. $HPC_ENV/sanity-check/test-definitions.sh
 # Set module files directory
 . /etc/os-release
 set_module_files_path

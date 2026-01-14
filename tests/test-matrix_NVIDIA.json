@@ -6,37 +6,7 @@
         },
         "gb-family":{
             "components": ["check_nvidia_driver","check_cuda", "check_nccl", "check_docker", "check_dcgm", "check_nvlink", "check_nvbandwidth", "check_nvloom"],
-            "services": ["check_sku_customization", "check_nvidia_imex", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
-        }
-    },
-    "ubuntu24.04-aks": {
-        "gb-family":{
-            "components": ["check_nvidia_driver", "check_nvlink"],
-            "services": ["check_sku_customization", "check_nvidia_imex"]
-        }        
-    },    
-    "ubuntu22.04": {
-        "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
-            "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
-        }
-    },
-    "almalinux8.10": {
-        "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
-            "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
-        }
-    },
-    "almalinux9.7": {
-        "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre"],
-            "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
-        }
-    },
-    "azurelinux3.0": {
-        "common":{
-            "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
-            "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
+            "services": ["check_nvidia_imex", "check_sunrpc_tcp_settings"]
         }
     }
 }

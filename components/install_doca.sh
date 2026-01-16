@@ -62,6 +62,10 @@ Restart=on-failure
 RestartSec=5
 EOF
 
+if [[ "$SKU" == "GB200" ]]; then 
+    echo -e "\n# Load IPoIB\nIPOIB_LOAD=no" | sudo tee -a /etc/infiniband/openib.conf
+fi
+
 systemctl daemon-reload
 systemctl enable openibd
 

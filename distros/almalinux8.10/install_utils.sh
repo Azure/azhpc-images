@@ -101,6 +101,16 @@ yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
 
+# Install azure-vm-utils from source (no upstream package available for AL8)
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
+
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh
 

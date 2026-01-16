@@ -72,6 +72,7 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    azure-vm-utils \
     dos2unix \
     azcopy
 

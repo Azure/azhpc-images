@@ -42,7 +42,7 @@ NVIDIA_GPU_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_gpu_driver_metad
 NVIDIA_IMEX_VERSION=$(jq -r '.imex.version' <<< $nvidia_gpu_driver_metadata)
 
 # Install the NVIDIA driver and related packages
-apt install nvidia-dkms-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-driver-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-modprobe -y
+apt install nvidia-dkms-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open=$NVIDIA_GPU_DRIVER_VERSION-0ubuntu1 nvidia-driver-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open=$NVIDIA_GPU_DRIVER_VERSION-0ubuntu1 nvidia-modprobe -y
 
 # remove unused configuration file if the file was created by the NVIDIA driver
 rm /etc/modprobe.d/nvidia-graphics-drivers-kms.conf

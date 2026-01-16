@@ -40,9 +40,45 @@ nvidia_gpu_driver_metadata=$(get_component_config "nvidia")
 NVIDIA_GPU_DRIVER_MAJOR_VERSION=$(jq -r '.driver.major_version' <<< $nvidia_gpu_driver_metadata)
 NVIDIA_GPU_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_gpu_driver_metadata)
 NVIDIA_IMEX_VERSION=$(jq -r '.imex.version' <<< $nvidia_gpu_driver_metadata)
+NVIDIA_PKG_VERSION="${NVIDIA_GPU_DRIVER_VERSION}-0ubuntu1"
+
+# Pin the nvidia packages to the specified version to avoid unintended upgrades
+sudo tee /etc/apt/preferences.d/00-nvidia-580-pin <<EOF
+Package: nvidia-*
+Pin: version ${NVIDIA_PKG_VERSION}
+Pin-Priority: 1001
+
+Package: libnvidia-*
+Pin: version ${NVIDIA_PKG_VERSION}
+Pin-Priority: 1001
+
+Package: xserver-xorg-video-nvidia-*
+Pin: version ${NVIDIA_PKG_VERSION}
+Pin-Priority: 1001
+
+Package: nvidia-imex
+Pin: version ${NVIDIA_IMEX_VERSION}
+Pin-Priority: 1001
+EOF
 
 # Install the NVIDIA driver and related packages
-apt install nvidia-dkms-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open=$NVIDIA_GPU_DRIVER_VERSION-0ubuntu1 nvidia-driver-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open=$NVIDIA_GPU_DRIVER_VERSION-0ubuntu1 nvidia-modprobe -y
+sudo apt-get install -y --allow-downgrades \
+  nvidia-driver-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}-open=${NVIDIA_PKG_VERSION} \
+  nvidia-dkms-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}-open=${NVIDIA_PKG_VERSION} \
+  nvidia-kernel-common-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  nvidia-kernel-source-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}-open=${NVIDIA_PKG_VERSION} \
+  nvidia-firmware-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-common-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-cfg1-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-gpucomp-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-gl-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-compute-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-extra-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-decode-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-encode-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  libnvidia-fbc1-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  xserver-xorg-video-nvidia-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}=${NVIDIA_PKG_VERSION} \
+  nvidia-modprobe
 
 # remove unused configuration file if the file was created by the NVIDIA driver
 rm /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
@@ -94,7 +130,7 @@ write_component_version "NVIDIA" $nvidia_driver_version
 $COMPONENT_DIR/install_gdrcopy.sh
 
 # Install NVIDIA IMEX
-apt-get install nvidia-imex=${NVIDIA_IMEX_VERSION} -y
+apt-get install nvidia-imex=${NVIDIA_IMEX_VERSION} -y --allow-downgrades
 
 # Add configuration to /etc/modprobe.d/nvidia.conf
 cat <<EOF >> /etc/modprobe.d/nvidia.conf

@@ -226,11 +226,8 @@
             },
             "aarch64":{
                 "driver": {
-                    "version": "580.105.08",
+                    "version": "580.126.09",
                     "major_version": "580"
-                },
-                "imex": {
-                    "version": "580.105.08-1"
                 }
             }
         },

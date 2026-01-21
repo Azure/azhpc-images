@@ -5,8 +5,15 @@ source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine and CLI
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt-get install -y moby-engine
-    apt-get install -y moby-cli
+    if [[ "$ARCHITECTURE" == "aarch64" ]]; then
+        moby_metadata=$(get_component_config "moby")
+        MOBY_VERSION=$(jq -r '.version' <<< $moby_metadata)
+        apt-get install -y moby-engine=${MOBY_VERSION}
+        apt-get install -y moby-cli=${MOBY_VERSION}
+    else
+        apt-get install -y moby-engine
+        apt-get install -y moby-cli
+    fi
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     yum install -y moby-engine
     yum install -y moby-cli

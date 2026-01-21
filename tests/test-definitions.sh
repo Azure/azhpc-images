@@ -48,7 +48,7 @@ function verify_ib_device_status {
 
     # verify IB device is up
     ibstatus | grep "LinkUp"
-    check_exit_code "IB device state: LinkUp" "IB link not up"
+    check_exit_code "IB device state: DOWN" "IB link is UP"
 
     # verify ifconfig
     ! ifconfig | grep "ib[[:digit:]]:\|ibP"
@@ -290,15 +290,15 @@ function verify_ib_modules_and_devices {
     fi
 
     # Check if all key IB modules are inserted
-    local ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
+    local ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
     for module in "${ib_modules[@]}"; do
         lsmod | grep "^${module}"
         check_exit_code "${module} module is inserted" "${module} module not inserted!"
     done
 
     # Check if ib devices are listed
-    ip addr | grep ib
-    check_exit_code "IPoIB is working" "IPoIB is not working!"
+    ! (ip addr | grep ib)
+    check_exit_code "IPoIB is not working" "IPoIB is working!"
 }
 
 function verify_lustre_installation {

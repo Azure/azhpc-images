@@ -506,11 +506,16 @@
             }
         }
     },
-    "moby_engine": {
+    "moby": {
         "azurelinux3.0": {
             "x86_64":{
                 "version": "25.0.3-11",
                 "sha256": "ec5629890e1c03bd88bc405e440680584a1dc6c06696025084c2641dc9b4f24b"
+            }
+        },
+        "ubuntu24.04": {
+            "aarch64":{
+                "version": "29.1.4-ubuntu24.04u1"
             }
         }
     },

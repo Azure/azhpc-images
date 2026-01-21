@@ -19,18 +19,19 @@ fi
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
+
+# Get DCGM version from versions.json
+dcgm_metadata=$(get_component_config "dcgm")
+DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y datacenter-gpu-manager
-    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
-    DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
+    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} datacenter-gpu-manager-4-core=${DCGM_VERSION}  datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
 elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 elif  [[ $DISTRIBUTION == *"azurelinux"* ]]; then
-    # Set DCGM version info
-    dcgm_metadata=$(get_component_config "dcgm")
-    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     tdnf install -y $TOP_DIR/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
 fi
 

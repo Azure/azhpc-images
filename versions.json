@@ -728,6 +728,13 @@
             }
         }
     },
+    "dcgm4": {
+        "ubuntu24.04": {
+            "aarch64":{
+                "version": "1:4.4.2-1"
+            }
+        }
+    },
     "intel_one_mkl": {
         "common": {
             "version": "2025.1.0.803",

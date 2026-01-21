@@ -483,6 +483,11 @@
     "dcgm": {
         "common": {
             "version": "3.3.9"
+        },
+        "ubuntu22.04": {
+            "x86_64": {
+                "version": "1:4.4.2-1"
+            }
         }
     },
     "intel_one_mkl": {

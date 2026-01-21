@@ -15,7 +15,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [[ "$ARCHITECTURE" == "aarch64" ]]; then
         dcgm_metadata=$(get_component_config "dcgm4")
         DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-        apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION}
+        apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} datacenter-gpu-manager-4-core=${DCGM_VERSION}  datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
     else
         apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
         DCGM_VERSION=$(dcgmi --version | awk '{print $3}')

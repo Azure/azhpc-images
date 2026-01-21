@@ -22,8 +22,15 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     #    apt-mark hold linux-azure
     # fi
     # upgrade pre-installed components
-    apt update
-    apt upgrade -y
+    # GB200 offline installer: Skip apt upgrade when running from offline ISO.
+    # The upgrade pulls packages from online mirrors that may be unavailable,
+    # causing the install to fail. The base image is already validated.
+    if [[ "${GB200_SKIP_APT_UPGRADE:-0}" != "1" ]]; then
+        apt update
+        apt upgrade -y
+    else
+        echo "[set_properties.sh] Skipping apt update/upgrade (GB200_SKIP_APT_UPGRADE=1)"
+    fi
     # jq is needed to parse the component versions from the versions.json file
     apt install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles

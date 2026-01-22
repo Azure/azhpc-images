@@ -27,8 +27,10 @@ dcgm_metadata=$(get_component_config "dcgm")
 DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt-get install -y datacenter-gpu-manager
-    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} datacenter-gpu-manager-4-core=${DCGM_VERSION}  datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
+    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-core=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
 elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}

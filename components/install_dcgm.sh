@@ -10,9 +10,8 @@ CUDA_VERSION=$(nvidia-smi | sed -E -n 's/.*CUDA Version: ([0-9]+)[.].*/\1/p')
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt-get install -y datacenter-gpu-manager
-    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}
-    DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
+    DCGM_VERSION="1:4.4.2-1"
+    apt-get install -y datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} datacenter-gpu-manager-4-core=${DCGM_VERSION}  datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
 elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}

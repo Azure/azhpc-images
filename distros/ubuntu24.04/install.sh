@@ -24,10 +24,10 @@ source ../../utils/set_properties.sh
 if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
-fi
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
+    # install Lustre client
+    $COMPONENT_DIR/install_lustre_client.sh
+fi
 
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh

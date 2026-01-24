@@ -24,11 +24,6 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
-    apt-mark hold \
-        datacenter-gpu-manager-4-cuda${CUDA_VERSION} \
-        datacenter-gpu-manager-4-core \
-        datacenter-gpu-manager-4-proprietary \
-        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
@@ -39,9 +34,6 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y \
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
             datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
-        apt-mark hold \
-            datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}
     fi
 elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
     dnf clean expire-cache

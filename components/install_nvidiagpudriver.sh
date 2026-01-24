@@ -153,6 +153,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
 
 fi
 
+$COMPONENT_DIR/configure_nvidia_persistence.sh
+
 $COMPONENT_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)

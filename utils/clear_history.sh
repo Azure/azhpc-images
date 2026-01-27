@@ -95,6 +95,9 @@ systemctl stop syslog.socket rsyslog
 rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
+# Delete AzurePolicyforLinux related files
+rm -rf /usr/lib/systemd/system/gcd.service
+rm -rf /var/lib/GuestConfig
 # Clear contents of rest of systemd services related log files
 for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
 

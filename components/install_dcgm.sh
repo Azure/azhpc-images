@@ -24,10 +24,12 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
-    # Install DCGM packages for lower SKU-specific CUDA version if exists
-    # We only need to additionally install the cuda-versioned support packages
-    # (datacenter-gpu-manager-4-core and datacenter-gpu-manager-4-proprietary are already installed)
-    if [[ -n "${SKU_CUDA_VERSION}" && "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
+
+    # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
+    # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
+    # of the user-mode driver (e.g. datacenter-gpu-manager-4-cuda12) rather than DCGM packages targeting major version 13."
+    # In practice though, DCGM requires both cuda12 and cuda13 support packages (https://github.com/NVIDIA/DCGM/issues/254).
+    if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         apt-get install -y \
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \

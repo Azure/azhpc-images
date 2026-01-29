@@ -54,34 +54,7 @@ echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.
 modprobe nvidia NVreg_CoherentGPUMemoryMode=driver 
 echo options nvidia NVreg_CoherentGPUMemoryMode=driver > /etc/modprobe.d/nvidia-openrm.conf
 
-# Configuring nvidia persistenced daemon
-if [ ! -f /etc/systemd/system/nvidia-persistenced.service ]; then
-    cat <<EOF > /etc/systemd/system/nvidia-persistenced.service
-[Unit]
-Description=NVIDIA Persistence Daemon
-Wants=syslog.target
- 
-[Service]
-Type=forking
-PIDFile=/var/run/nvidia-persistenced/nvidia-persistenced.pid
-Restart=always
-ExecStart=/usr/bin/nvidia-persistenced --verbose --persistence-mode
-ExecStopPost=/bin/rm -rf /var/run/nvidia-persistenced
- 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    systemctl daemon-reload
-    systemctl enable nvidia-persistenced.service
-fi
-
-systemctl restart nvidia-persistenced.service
-systemctl status nvidia-persistenced.service
-if ! systemctl is-active --quiet nvidia-persistenced.service; then
-    echo "nvidia-persistenced service is not running. Exiting."
-    exit 1
-fi
+$COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # Verify the installation
 nvidia-smi

@@ -72,6 +72,7 @@ tdnf install -y numactl \
     gmock-devel \
     hwloc-devel \
     rsyslog \
+    azure-nvme-utils \
     dos2unix \
     azcopy
 

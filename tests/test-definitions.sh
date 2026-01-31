@@ -228,15 +228,16 @@ function verify_rccl_installation {
 }
 
 function verify_package_updates {
+    # TODO: wait for pre-depends bug to be fixed in apt
     case ${ID} in
-        ubuntu) sudo apt -s upgrade;;
+        ubuntu) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" 2>/dev/null | grep -q .;;
         almalinux)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;
         azurelinux) true;;
         * ) ;;
     esac
-    check_exit_code "Package update works" "Package update fails!"
+    check_exit_code "No stale packages" "Stale packages found!"
 }
 
 function verify_azcopy_installation {

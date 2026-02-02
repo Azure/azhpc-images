@@ -125,6 +125,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         tdnf install -y $path_var/cuda-toolkit$version_var.x86_64.rpm
         # Install libnvidia-nscq
         tdnf install -y libnvidia-nscq
+
     fi
 
     echo 'export PATH=$PATH:/usr/local/cuda/bin' | sudo tee /etc/profile.d/cuda.sh > /dev/null

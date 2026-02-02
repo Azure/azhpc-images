@@ -60,6 +60,7 @@ tdnf install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    json-c-devel \
     pciutils \
     dnf-plugins-core \
     vim \
@@ -72,7 +73,6 @@ tdnf install -y numactl \
     gmock-devel \
     hwloc-devel \
     rsyslog \
-    azure-nvme-utils \
     dos2unix \
     azcopy
 
@@ -102,6 +102,16 @@ tdnf install -y subunit-devel
 ## Install libmd and libmd-devel 
 tdnf install -y libmd
 tdnf install -y libmd-devel
+
+# Install azure-vm-utils from source (upstream package for AZL3 is too outdated right now, see https://github.com/microsoft/azurelinux/issues/15661)
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake -DENABLE_TESTS=0 ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

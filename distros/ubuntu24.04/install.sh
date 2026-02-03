@@ -38,6 +38,9 @@ $COMPONENT_DIR/install_pmix.sh
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
 
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
+
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
 

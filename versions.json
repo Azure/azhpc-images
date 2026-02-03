@@ -1,4 +1,11 @@
 {
+    "mpifileutils": {
+        "common": {
+            "version": "0.12",
+            "sha256": "7a5ed469be579bc0e9480febc127991467bc71aa37ded083265b859245300206",
+            "url": "https://github.com/hpc/mpifileutils/releases/download/v0.12/mpifileutils-v0.12.tgz"
+        }
+    },
     "note": {
         "azurelinux3.0": {
             "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"

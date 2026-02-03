@@ -50,7 +50,8 @@ cmake "${SRC_DIR}/mpifileutils-v${MPIFILEUTILS_VERSION}" \
     -DENABLE_XATTRS=ON \
     -DENABLE_LIBARCHIVE=ON \
     -DENABLE_LUSTRE=OFF \
-    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
 make -j$(nproc)
 make install

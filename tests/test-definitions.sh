@@ -426,7 +426,9 @@ function verify_mpifileutils_installation {
     check_exists "/opt/mpifileutils/bin/dbcast"
     check_exists "/opt/mpifileutils/bin/dcp"
     check_exists "/opt/mpifileutils/bin/dsync"
-    # Verify it runs
+    # Verify it runs (requires MPI libraries)
+    module load mpi/hpcx
     /opt/mpifileutils/bin/dbcast --help > /dev/null 2>&1
     check_exit_code "mpifileutils ${VERSION_MPIFILEUTILS}" "mpifileutils not working!"
+    module unload mpi/hpcx
 }

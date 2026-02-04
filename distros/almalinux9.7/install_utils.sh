@@ -77,7 +77,8 @@ yum install -y numactl \
     perl \
     azure-vm-utils \
     dos2unix \
-    azcopy
+    azcopy \
+    mdadm
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.4/BaseOS/x86_64/os/Packages/environment-modules-5.3.0-1.el9.x86_64.rpm

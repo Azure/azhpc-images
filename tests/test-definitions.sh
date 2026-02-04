@@ -284,7 +284,7 @@ function verify_docker_installation {
 function verify_ib_modules_and_devices {
     if ! systemctl is-active openibd > /dev/null 2>&1; then
         echo "*** openibd service is not active!" >&2
-        systemctl status openibd >&2
+        systemctl status --no-pager openibd >&2
         exit_on_error
     else
         echo "[OK] : openibd service is active"

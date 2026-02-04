@@ -39,6 +39,9 @@ download_and_verify $pssh_download_url $pssh_sha256
 yum install -y  pssh-$pssh_version.el8.noarch.rpm
 rm -f pssh-$pssh_version.el8.noarch.rpm
 
+dnf -y install dnf-plugins-core
+dnf config-manager --set-enabled powertools
+
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
 yum install -y numactl \
@@ -73,6 +76,7 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    json-c-devel \
     dos2unix \
     azcopy \
     mdadm
@@ -101,6 +105,16 @@ yum localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/
 # Remove rpm files
 rm -rf ./dl.fedoraproject.org/
 rm -rf ./repo.almalinux.org/
+
+# Install azure-vm-utils from source (no upstream package available for AL8)
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake -DENABLE_TESTS=0 ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

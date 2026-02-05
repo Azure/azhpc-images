@@ -59,6 +59,7 @@ function test_component {
         check_nvlink) verify_nvlink_setup;;
         check_nvbandwidth) verify_nvbandwidth_setup;;
         check_nvloom) verify_nvloom_setup;;
+        check_mpifileutils) verify_mpifileutils_installation;;
         * ) ;;
     esac
 }

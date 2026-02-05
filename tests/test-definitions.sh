@@ -421,3 +421,15 @@ function verify_nvidia_imex_service {
     ls -al /dev/nvidia-caps-imex-channels/channel0
     check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
 }
+
+function verify_mpifileutils_installation {
+    # Verify mpifileutils binaries exist
+    check_exists "/opt/mpifileutils/bin/dbcast"
+    check_exists "/opt/mpifileutils/bin/dcp"
+    check_exists "/opt/mpifileutils/bin/dsync"
+    # Verify it runs (requires MPI libraries)
+    module load mpi/hpcx
+    /opt/mpifileutils/bin/dbcast --help > /dev/null 2>&1
+    check_exit_code "mpifileutils ${VERSION_MPIFILEUTILS}" "mpifileutils not working!"
+    module unload mpi/hpcx
+}

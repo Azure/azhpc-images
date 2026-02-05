@@ -3,30 +3,26 @@
 # ------------------------------------------------------------------------------
 # Script Name : run-tests.sh 
 # Description : This script performs initialization and testing for a specified platform.
-# Usage       : ./run-tests.sh  <platform> [aks_host_image_flag] [debug_flag]
+# Usage       : ./run-tests.sh [PLATFORM] [-a] [-d] [-v]
 #
 # Sample Usage:
 #   ./run-tests.sh 
 #   ./run-tests.sh NVIDIA 
 #   ./run-tests.sh AMD
-#   ./run-tests.sh NVIDIA -aks-host
-#   ./run-tests.sh AMD -aks-host
-#   ./run-tests.sh NVIDIA -aks-host -d
-#   ./run-tests.sh AMD -aks-host -d
-# Arguments   :
-#   $1 - Platform type (optional):
-#        "AMD" or "NVIDIA"
-#        "NVIDIA" when omitted
+#   ./run-tests.sh NVIDIA -a
+#   ./run-tests.sh AMD -a
+#   ./run-tests.sh NVIDIA -a -d
+#   ./run-tests.sh AMD -a -d
+#   ./run-tests.sh NVIDIA -v
 #
-#   $2 - AKS-HOST image flag (optional):
-#        Specify "-aks-host" to do sanity check for aks host image.
-#        If omitted or not "-aks-host", the script does sanity check for regular vm image.
+# Arguments:
+#   PLATFORM     GPU platform type: "AMD" or "NVIDIA" (default: NVIDIA)
 #
-#   $3 - Debug mode flag (optional):
-#        Specify "-d" to enable debug mode. 
-#        In debug mode, the script continues running even if a single test fails.
-#        If omitted or not "-d", the script runs in normal mode (strict failure handling).
-
+# Options:
+#   -a           AKS host image mode - run sanity check for AKS host image
+#   -d           Debug mode - continue running even if a single test fails
+#   -v           Validation pipeline mode - skip build-time only checks
+#
 # ------------------------------------------------------------------------------
 function test_service {
     local service=$1
@@ -70,7 +66,10 @@ function test_component {
 
 # Verify common component installations accross all distros
 function verify_common_components {
-    verify_package_updates;
+    # Skip package updates check in validation mode (only run at build time)
+    if [[ -z "${validation_mode:-}" ]]; then
+        verify_package_updates;
+    fi
     verify_ofed_installation;
     verify_ib_device_status;
     verify_ib_modules_and_devices;
@@ -173,9 +172,31 @@ function set_module_files_path {
 esac
 }
 
-gpu_platform=$1
-aks_host_flag=$2
-debug_flag=$3
+# Parse command line arguments
+gpu_platform="${1:-NVIDIA}"
+shift 2>/dev/null || true
+
+aks_host_flag=""
+debug_flag=""
+validation_mode=""
+
+while getopts "adv" opt; do
+    case $opt in
+        a)
+            aks_host_flag="-aks-host"
+            ;;
+        d)
+            debug_flag="-d"
+            ;;
+        v)
+            validation_mode="true"
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
 
 # Load profile
 . /etc/profile

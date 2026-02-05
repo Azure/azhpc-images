@@ -38,6 +38,9 @@ download_and_verify $pssh_download_url $pssh_sha256
 yum install -y  pssh-$pssh_version.el9.noarch.rpm
 rm -f pssh-$pssh_version.el9.noarch.rpm
 
+dnf -y install dnf-plugins-core
+dnf config-manager --set-enabled crb
+
 # Install pre-reqs and development tools
 yum groupinstall -y "Development Tools"
 yum install -y numactl \
@@ -72,8 +75,10 @@ yum install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    azure-vm-utils \
     dos2unix \
-    azcopy
+    azcopy \
+    mdadm
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.4/BaseOS/x86_64/os/Packages/environment-modules-5.3.0-1.el9.x86_64.rpm

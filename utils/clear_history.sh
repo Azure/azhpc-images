@@ -90,28 +90,52 @@ fi
 
 # Clear History
 # Stop syslog service
-systemctl stop syslog.socket rsyslog
+systemctl stop syslog.socket rsyslog auditd systemd-journald
 # Delete Defender related files
 rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
+# Clean journald logs
+if command -v journalctl >/dev/null 2>&1; then
+    log_info "Rotating and vacuuming journald logs..."
+    journalctl --rotate 2>/dev/null || true
+    journalctl --vacuum-time=1s --vacuum-size=1M 2>/dev/null || true
+fi
+# Remove journald persistent logs
+rm -rf /var/log/journal/* 2>/dev/null || true
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Delete AzurePolicyforLinux related files
 rm -rf /usr/lib/systemd/system/gcd.service
 rm -rf /var/lib/GuestConfig
-# Clear contents of rest of systemd services related log files
-for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
+# Truncate all log files
+find /var/log -type f \( -name "*.log" -o -name "*.log.*" -o -name "*.gz" -o -regex ".*/[a-zA-Z._-]*[0-9]+" \) -exec truncate -s 0 {} + 2>/dev/null || true
+# Clear utmp/wtmp/btmp
+: > /var/run/utmp || true
+: > /var/log/wtmp || true
+: > /var/log/btmp || true
 
 rm -rf /var/lib/systemd/random-seed 
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
 rm -rf /var/lib/hyperv/.kvp_pool_0
-rm -f /etc/ssh/ssh_host_* /etc/*-
-rm -f ~/.ssh/authorized_keys
+rm -f /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 rm -rf /run/cloud-init
-rm -rf /root/*
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
+
+# Clean user histories
+# Root user
+for history_file in .bash_history .lesshst .viminfo .python_history; do
+    rm -f "/root/${history_file}" 2>/dev/null || true
+done
+# All users in /home
+for user_home in /home/*; do
+    if [[ -d "${user_home}" ]]; then
+        for history_file in .bash_history .lesshst .viminfo .python_history; do
+            rm -f "${user_home}/${history_file}" 2>/dev/null || true
+        done
+    fi
+done
 
 if systemctl is-active --quiet sku-customizations
 then

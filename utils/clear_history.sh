@@ -90,12 +90,15 @@ fi
 
 # Clear History
 # Stop syslog service
-systemctl stop syslog.socket rsyslog auditd systemd-journald
+systemctl stop systemd-journald-dev-log.socket
+systemctl stop systemd-journald.socket
+systemctl stop systemd-journald.service
+systemctl stop syslog.socket rsyslog systemd-journald
+#systemctl stop auditd 2>/dev/null
 # Delete Defender related files
 rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
 # Clean journald logs
 if command -v journalctl >/dev/null 2>&1; then
-    log_info "Rotating and vacuuming journald logs..."
     journalctl --rotate 2>/dev/null || true
     journalctl --vacuum-time=1s --vacuum-size=1M 2>/dev/null || true
 fi
@@ -119,6 +122,8 @@ rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
+cloud-init clean --logs
+rm -rf /var/lib/cloud/instances/* || true
 rm -rf /run/cloud-init
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
@@ -142,9 +147,6 @@ then
     # Stop the sku-customizations service
     systemctl stop sku-customizations
 fi
-
-# Empty machine information
-cat /dev/null > /etc/machine-id
 
 if [[ $distro == *"Ubuntu"* ]]
 then

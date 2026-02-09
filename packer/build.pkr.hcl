@@ -231,32 +231,13 @@ build {
   # Deprovision: Prepare VM for image capture
   # --------------------------------------------------------------------------
   provisioner "shell" {
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
-    skip_clean      = true
+    name           = "Clear history and deprovision"
+    skip_clean      = true  # waagent deprovision kills SSH, so Packer can't clean up
+    inline_shebang = "/bin/bash -e"
     inline = [
-      "echo '=========================================='",
-      "echo 'Deprovisioning VM for image capture'",
-      "echo '=========================================='",
-      # Uninstall OMS Agent if present
-      "wget -q https://raw.githubusercontent.com/microsoft/OMS-Agent-for-Linux/master/installer/scripts/uninstall.sh -O /tmp/oms_uninstall.sh 2>/dev/null || true",
-      "chmod +x /tmp/oms_uninstall.sh 2>/dev/null || true",
-      "/tmp/oms_uninstall.sh 2>/dev/null || true",
-      "rm -f /tmp/oms_uninstall.sh",
-      # Disable root account
-      "usermod root -p '!!'",
-      # Clear sudoers.d
-      "rm -rf /etc/sudoers.d/*",
-      # Delete /1 folder if it exists
-      "rm -rf /1 2>/dev/null || true",
-      # Touch utmp file
-      "touch /var/run/utmp",
-      # Clear command history
-      "export HISTSIZE=0",
-      # Run waagent deprovision
-      "/usr/sbin/waagent -force -deprovision+user && sync",
-      "echo 'Deprovision complete'"
+      "cd /opt/azhpc-images/utils",
+      "sudo ./clear_history.sh"
     ]
-    inline_shebang = "/bin/sh -x"
   }
   
   # --------------------------------------------------------------------------

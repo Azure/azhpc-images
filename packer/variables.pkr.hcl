@@ -24,6 +24,27 @@ variable "os_version" {
   default     = "22.04"
 }
 
+variable "gpu_size_option" {
+  type        = string
+  description = "VM SKU to use for image building"
+  default     = env("GPU_SIZE_OPTION")
+}
+locals {
+  gpu_size_option = coalesce(var.gpu_size_option, "Standard_ND96asr_v4")
+}
+
+locals {
+  gpu_sku = (
+    local.gpu_size_option == "Standard_ND40rs_v2" ? "V100" :
+    local.gpu_size_option == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
+    local.gpu_size_option == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    "A100"
+  )
+  gpu_platform = (
+    local.gpu_sku == "MI300X" ? "AMD" : "NVIDIA"
+  )
+}
+
 variable "gpu_vendor" {
   type        = string
   description = "GPU vendor: nvidia or amd"

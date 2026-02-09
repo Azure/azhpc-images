@@ -199,6 +199,13 @@
                 "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
+        },
+        "ubuntu22.04": {
+            "x86_64": {
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
+            }
         }
     },
     "ompi": {
@@ -219,13 +226,13 @@
         "ubuntu22.04": {
             "x86_64":{
                 "driver": {
-                    "version": "580.95.05",
-                    "sha256": "849ef0ef8e842b9806b2cde9f11c1303d54f1a9a769467e4e5d961b2fe1182a7"
+                    "version": "580.126.16",
+                    "sha256": "1bd17b0855021e528b646df4ada910ccd28286cfef46086abc2beda3e7b27142"
                 },
                 "fabricmanager": {
                     "distribution": "ubuntu2204",
-                    "version": "580.95.05-1",
-                    "sha256": "b20e3a2bfa46fb8ae4adf19a265d07e962f03e4306ea3261f6c7e9adc678b442"
+                    "version": "580.126.16-1",
+                    "sha256": "8619be3044b4c85572543948df265a0d9fef92051853120aa60237118d3e4944"
                 }
             }
         },
@@ -482,7 +489,7 @@
                     "commit": "v2.7.x"
                 }
             }
-        }        
+        }       
     },
     "nvbandwidth": {
         "common": {
@@ -496,7 +503,7 @@
         },
         "ubuntu22.04": {
             "x86_64": {
-                "version": "1:4.4.2-1"
+                "version": "1:4.5.2-1"
             }
         },
         "ubuntu24.04": {

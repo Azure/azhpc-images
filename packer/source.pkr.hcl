@@ -40,7 +40,7 @@ source "azure-arm" "hpc" {
     for_each = local.publish_to_sig ? [1] : []
     content {
       subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
-      resource_group       = var.sig_resource_group
+      resource_group       = var.sig_resource_group_name
       gallery_name         = var.sig_gallery_name
       image_name           = var.sig_image_name != "" ? var.sig_image_name : local.sig_image_definition
       image_version        = var.sig_image_version != "" ? var.sig_image_version : local.sig_version

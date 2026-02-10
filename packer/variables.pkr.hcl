@@ -200,7 +200,7 @@ variable "sig_subscription_id" {
   default     = ""
 }
 
-variable "sig_resource_group" {
+variable "sig_resource_group_name" {
   type        = string
   description = "Resource group containing the Shared Image Gallery"
   default     = "hpc-images-rg"

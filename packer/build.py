@@ -74,7 +74,7 @@ def build_image(args, git):
         packer_args.append(f'-var=vhd_storage_account={args.storage_account}')
     if args.publish_to_sig:
         packer_args.append('-var=publish_to_sig=true')
-        packer_args.append(f'-var=sig_resource_group={args.sig_resource_group}')
+        packer_args.append(f'-var=sig_resource_group_name={args.sig_resource_group_name}')
         packer_args.append(f'-var=sig_gallery_name={args.sig_gallery_name}')
         if args.sig_image_name:
             packer_args.append(f'-var=sig_image_name={args.sig_image_name}')
@@ -148,7 +148,7 @@ def main():
     # Shared Image Gallery options
     parser.add_argument('--publish-to-sig', action='store_true',
                         help='Publish image to Shared Image Gallery')
-    parser.add_argument('--sig-resource-group', default='hpc-images-rg',
+    parser.add_argument('--sig-resource-group-name', default='hpc-images-rg',
                         help='Resource group containing the SIG')
     parser.add_argument('--sig-gallery-name', default='AzHPCImageReleaseCandidates',
                         help='Name of the Shared Image Gallery')

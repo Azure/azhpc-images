@@ -1,0 +1,11 @@
+[packages-microsoft-com-prod]
+name=Microsoft Production
+baseurl=https://packages.microsoft.com/rhel/9/prod/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+# If installing the bare repo file consider installing the gpg key once and then updating
+# this to point to the on-disk location. For example:
+# gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Microsoft
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+sslverify=1

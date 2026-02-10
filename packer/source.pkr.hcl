@@ -26,8 +26,8 @@ source "azure-arm" "hpc" {
   build_resource_group_name = local.build_resource_group_name
   
   # Output: Create managed image in your resource group
-  managed_image_resource_group_name = var.azure_resource_group
-  managed_image_name                = local.image_name
+  managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
+  managed_image_name                = local.create_image ? local.image_name : null
   
   # Output: Also create VHD in storage account (optional)
   capture_container_name = var.create_vhd ? var.vhd_container_name : null

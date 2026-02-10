@@ -69,7 +69,7 @@ variable "externally_managed_resource_group" {
   default     = env("EXTERNALLY_MANAGED_RESOURCE_GROUP")
 }
 locals {
-  externally_managed_resource_group = try(convert(var.externally_managed_resource_group, bool), false)
+  externally_managed_resource_group = try(convert(lower(var.externally_managed_resource_group), bool), false)
 }
 
 locals {
@@ -135,10 +135,33 @@ variable "image_version" {
 }
 
 variable "create_vhd" {
-  type        = bool
+  type        = string
   description = "Whether to export image to VHD after build"
-  default     = false
+  default     = env("CREATE_VHD")
 }
+locals {
+  create_vhd = try(convert(lower(var.create_vhd), bool), false)
+}
+
+variable "create_image" {
+  type        = string
+  description = "Whether to create managed image or SIG image after build"
+  default     = env("CREATE_IMAGE")
+}
+locals {
+  create_image = try(convert(lower(var.create_image), bool), true)
+}
+
+variable "managed_image_resource_group_name" {
+  type        = string
+  description = "Azure resource group for the managed image output"
+  default     = null
+}
+locals {
+  # defaults to capturing into the build resource group (note that SIG capture requires managed image capture ATM, VM-to-SIG is yet to be implemented by Packer)
+  managed_image_resource_group_name = coalesce(var.managed_image_resource_group_name, local.azure_resource_group)
+}
+
 
 variable "vhd_storage_account" {
   type        = string

@@ -226,8 +226,11 @@ variable "sig_image_version" {
 
 variable "sig_replication_regions" {
   type        = list(string)
-  description = "Regions to replicate the image to"
-  default     = ["westus2"]
+  description = "Regions to replicate the image to (defaults to the build VM's region if not set)"
+  default     = null
+}
+locals {
+  sig_replication_regions = var.sig_replication_regions == null ? [local.azure_location] : var.sig_replication_regions
 }
 
 variable "sig_storage_account_type" {

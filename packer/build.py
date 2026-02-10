@@ -55,7 +55,7 @@ def build_image(args, git):
         f'-var=os_version={args.version}',
         f'-var=gpu_vendor={args.gpu}',
         f'-var=gpu_model={args.model}',
-        f'-var=vhd_resource_group_name={args.resource_group}',
+        f'-var=vhd_resource_group_name={args.vhd_resource_group_name}',
         f'-var=azure_location={args.location}',
         f'-var=skip_validation={str(args.skip_validation).lower()}',
         f'-var=azhpc_commit={git["commit"]}',
@@ -133,8 +133,8 @@ def main():
                         help='Build AKS host image (uses install_aks.sh)')
     parser.add_argument('--gb200-partuuid', default='None',
                         help='Disk PARTUUID for GB200 builds (required for GB200 non-AKS)')
-    parser.add_argument('--rg', '--resource-group', dest='resource_group', default='hpc-images-rg',
-                        help='Azure resource group')
+    parser.add_argument('--vhd-resource-group-name', default='hpc-images-rg',
+                        help='Resource group containing the VHD storage account')
     parser.add_argument('--location', default='westus2',
                         help='Azure location')
     parser.add_argument('--skip-validation', action='store_true',
@@ -181,7 +181,7 @@ def main():
     header("HPC Image Builder")
     info("OS:", f"{args.os} {args.version}")
     info("GPU:", f"{C.MAGENTA}{args.gpu} {args.model}{C.RESET}")
-    info("Resource Group:", args.resource_group)
+    info("VHD Resource Group:", args.vhd_resource_group_name)
     info("azhpc-images:", f"{git['branch']} @ {C.YELLOW}{git['commit_short']}{C.RESET}")
     if args.mdatp_path:
         info("MDATP:", f"{C.GREEN}Found{C.RESET}")

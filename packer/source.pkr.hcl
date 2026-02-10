@@ -19,6 +19,11 @@ source "azure-arm" "hpc" {
   # Authentication - uses Azure CLI credentials
   # Make sure you're logged in with: az login
   use_azure_cli_auth = true
+
+  # RG for build VM; see locals for distinction
+  temp_resource_group_name  = local.temp_resource_group_name
+  location                  = local.location
+  build_resource_group_name = local.build_resource_group_name
   
   # Output: Create managed image in your resource group
   managed_image_resource_group_name = var.azure_resource_group
@@ -61,7 +66,6 @@ source "azure-arm" "hpc" {
   os_type         = "Linux"
   vm_size         = local.vm_size
   os_disk_size_gb = 128
-  location        = var.azure_location
   
   # SSH Configuration
   communicator           = "ssh"
@@ -79,7 +83,4 @@ source "azure-arm" "hpc" {
     BuildTime = local.timestamp
     Source    = "azhpc-images"
   }
-  
-  # Temporary resource group name for build VM
-  temp_resource_group_name = var.build_id != "" ? "pkr-hpc-${var.build_id}" : "pkr-hpc-${local.timestamp}"
 }

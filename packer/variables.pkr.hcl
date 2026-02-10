@@ -47,14 +47,35 @@ locals {
 
 variable "azure_resource_group" {
   type        = string
-  description = "Azure resource group where images will be created"
-  default     = "hpc-images-rg"
+  description = "Azure resource group where the build VM will be created (will be created if it doesn't exist)"
+  default     = env("RESOURCE_GRP_NAME")
+}
+locals {
+  azure_resource_group = coalesce(var.azure_resource_group, "hpc-image-build-${substr(replace(lower(uuidv4()), "-", ""), 0, 6)}-rg")
 }
 
 variable "azure_location" {
   type        = string
   description = "Azure location for the build VM and resulting image"
-  default     = "westus2"
+  default     = env("RESOURCE_GRP_LOCATION")
+}
+locals {
+  azure_location = coalesce(var.azure_location, "southcentralus")
+}
+
+variable "externally_managed_resource_group" {
+  type        = string
+  description = "Whether the resource group is externally managed by e.g. Azure Pipelines, in which case the pipeline itself is responsible for cleanup."
+  default     = env("EXTERNALLY_MANAGED_RESOURCE_GROUP")
+}
+locals {
+  externally_managed_resource_group = try(convert(var.externally_managed_resource_group, bool), false)
+}
+
+locals {
+  temp_resource_group_name = local.externally_managed_resource_group ? null : local.azure_resource_group # create rg if not externally managed
+  location = local.externally_managed_resource_group ? null : local.azure_location # location is only needed if Packer is creating the RG
+  build_resource_group_name = local.externally_managed_resource_group ? local.azure_resource_group : null # use existing rg if externally managed
 }
 
 variable "skip_validation" {

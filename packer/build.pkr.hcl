@@ -38,7 +38,6 @@ build {
   #     "echo 'SKU:                     ${local.image_sku}'",
   #     "echo ''",
   #     "echo '=== GPU Configuration ==='",
-  #     "echo 'GPU Vendor:              ${var.gpu_vendor}'",
   #     "echo 'GPU Model:               ${var.gpu_model}'",
   #     "echo 'GPU Platform:            ${local.gpu_platform}'",
   #     "echo ''",
@@ -146,7 +145,7 @@ build {
   # # --------------------------------------------------------------------------
   # provisioner "shell" {
   #   inline = [
-  #     "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu ${var.gpu_vendor} --model ${var.gpu_model}${var.aks_host_image ? " --aks" : ""}${var.image_version != "" ? " --image-version ${var.image_version}" : ""}"
+  #     "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu ${local.gpu_platform} --model ${var.gpu_model}${var.aks_host_image ? " --aks" : ""}${var.image_version != "" ? " --image-version ${var.image_version}" : ""}"
   #   ]
   #   environment_vars = [
   #     "DEBIAN_FRONTEND=noninteractive"
@@ -217,7 +216,7 @@ build {
   #     "echo '=========================================='",
   #     "echo 'Image: ${local.image_name}'",
   #     "echo 'OS: ${var.os_family} ${var.os_version}'",
-  #     "echo 'GPU: ${var.gpu_vendor} ${var.gpu_model}'",
+  #     "echo 'GPU: ${local.gpu_platform} ${var.gpu_model}'",
   #     "echo ''",
   #     "cat /opt/packer/azhpc-build-info.txt 2>/dev/null || true",
   #     "echo ''",
@@ -249,7 +248,7 @@ build {
     custom_data = {
       os_family  = var.os_family
       os_version = var.os_version
-      gpu_vendor = var.gpu_vendor
+      gpu_platform = local.gpu_platform
       gpu_model  = var.gpu_model
       image_name = local.image_name
     }

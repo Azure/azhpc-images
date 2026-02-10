@@ -48,7 +48,7 @@ def main():
                         help='OS family')
     parser.add_argument('--version', required=True,
                         help='OS version (e.g., 22.04, 24.04, 8.10)')
-    parser.add_argument('--gpu', required=True, choices=['nvidia', 'amd'],
+    parser.add_argument('--gpu', required=True, choices=['NVIDIA', 'AMD'],
                         help='GPU vendor (required)')
     parser.add_argument('--model', required=True,
                         help='GPU model (e.g., a100, h100, gb200, mi300x)')

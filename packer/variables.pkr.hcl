@@ -24,35 +24,25 @@ variable "os_version" {
   default     = "22.04"
 }
 
-variable "gpu_size_option" {
+variable "vm_size" {
   type        = string
   description = "VM SKU to use for image building"
   default     = env("GPU_SIZE_OPTION")
 }
 locals {
-  gpu_size_option = coalesce(var.gpu_size_option, "Standard_ND96asr_v4")
+  vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
 }
 
 locals {
   gpu_sku = (
-    local.gpu_size_option == "Standard_ND40rs_v2" ? "V100" :
-    local.gpu_size_option == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.gpu_size_option == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.vm_size == "Standard_ND40rs_v2" ? "V100" :
+    local.vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
+    local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
     "A100"
   )
   gpu_platform = (
     local.gpu_sku == "MI300X" ? "AMD" : "NVIDIA"
   )
-}
-
-variable "gpu_vendor" {
-  type        = string
-  description = "GPU vendor: nvidia or amd"
-  
-  validation {
-    condition     = contains(["nvidia", "amd"], var.gpu_vendor)
-    error_message = "GPU vendor must be one of: nvidia, amd."
-  }
 }
 
 variable "gpu_model" {
@@ -333,17 +323,6 @@ variable "mdatp_blob_name" {
 locals {
   timestamp = formatdate("YYYYMMDDHHmm", timestamp())
   
-  # VM size based on GPU requirements
-  # Uses GPU VMs when building GPU images for full hardware validation
-  vm_size = (
-    var.gpu_vendor == "nvidia" && var.gpu_model == "v100" ? "Standard_ND40rs_v2" :
-    var.gpu_vendor == "nvidia" && var.gpu_model == "a100" ? "Standard_ND96asr_v4" :
-    var.gpu_vendor == "nvidia" && var.gpu_model == "h100" ? "Standard_NC40ads_H100_v5" :
-    var.gpu_vendor == "nvidia" && var.gpu_model == "gb200" ? "Standard_ND128isr_NDR_GB200_v6" :
-    var.gpu_vendor == "amd" && var.gpu_model == "mi300x" ? "Standard_ND96isr_MI300X_v5" :
-    "Standard_D8s_v5"  # Fallback for unknown GPU models
-  )
-  
   # Image naming components
   os_version_safe = replace(var.os_version, ".", "-")
   
@@ -358,7 +337,7 @@ locals {
   
   # Final image name construction
   # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_vendor}-{gpu_model}-x86_64-{timestamp}
-  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${var.gpu_vendor}-${var.gpu_model}-hpc-x86_64-${local.timestamp}"
+  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${var.gpu_model}-hpc-x86_64-${local.timestamp}"
 
   # Marketplace image mappings
   image_publisher = (
@@ -397,15 +376,12 @@ locals {
     ""
   )
 
-  # GPU platform for scripts (uppercase for compatibility)
-  gpu_platform = var.gpu_vendor == "nvidia" ? "NVIDIA" : "AMD"
-
   # Distribution string for azhpc-images scripts
   distribution = "${var.os_family}${var.os_version}"
 
   # Shared Image Gallery (SIG) computed values
   # Image definition: {os_family}-{os_version}-hpc-{gpu_vendor}-{gpu_model}
-  sig_image_definition = "${var.os_family}-${local.os_version_safe}-hpc-${var.gpu_vendor}-${var.gpu_model}"
+  sig_image_definition = "${var.os_family}-${local.os_version_safe}-hpc-${local.gpu_platform}-${var.gpu_model}"
   
   # Auto-generate version from timestamp: YYYY.MMDD.HHmm (e.g., 2026.0205.1002)
   sig_version = formatdate("YYYY.MMDD.hhmm", timestamp())

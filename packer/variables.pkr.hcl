@@ -291,13 +291,12 @@ variable "pipeline_start_time" {
 
 variable "azl_base_image_type" {
   type        = string
-  description = "Azure Linux base image type: Marketplace (FIPS), Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS"
-  default     = "Marketplace"
-  
-  validation {
-    condition     = contains(["Marketplace", "Marketplace-Non-FIPS", "1P-FIPS", "1P-Non-FIPS"], var.azl_base_image_type)
-    error_message = "Azure Linux base image type must be one of: Marketplace, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS."
-  }
+  description = "Azure Linux base image type: Marketplace-FIPS, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS (Marketplace-Non-FIPS for non-Azure Linux distros)"
+  default     = env("BASE_IMAGE")
+}
+locals {
+  valid_base_image_types = ["Marketplace-FIPS", "Marketplace-Non-FIPS", "1P-FIPS", "1P-Non-FIPS"]
+  azl_base_image_type = valid_base_image_types[index(valid_base_image_types, coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS"))]
 }
 
 variable "azl_prebuilt_version" {
@@ -374,10 +373,10 @@ locals {
   
   # Azure Linux base image type suffix (only for azurelinux)
   azl_type_suffix = var.os_family == "azurelinux" ? (
-    var.azl_base_image_type == "Marketplace" ? "-mkt-fips" :
-    var.azl_base_image_type == "Marketplace-Non-FIPS" ? "-mkt" :
-    var.azl_base_image_type == "1P-FIPS" ? "-1p-fips" :
-    var.azl_base_image_type == "1P-Non-FIPS" ? "-1p" :
+    local.azl_base_image_type == "Marketplace" ? "-mkt-fips" :
+    local.azl_base_image_type == "Marketplace-Non-FIPS" ? "-mkt" :
+    local.azl_base_image_type == "1P-FIPS" ? "-1p-fips" :
+    local.azl_base_image_type == "1P-Non-FIPS" ? "-1p" :
     ""
   ) : ""
   
@@ -407,18 +406,18 @@ locals {
     var.os_family == "alma" && var.os_version == "8.10" ? "8-gen2" :
     var.os_family == "alma" && var.os_version == "9.6" ? "9-gen2" :
     var.os_family == "alma" && var.os_version == "9.7" ? "9-gen2" :
-    var.os_family == "azurelinux" && var.os_version == "3.0" && var.azl_base_image_type == "Marketplace" ? "azure-linux-3-gen2-fips" :
-    var.os_family == "azurelinux" && var.os_version == "3.0" && var.azl_base_image_type == "Marketplace-Non-FIPS" ? "azure-linux-3-gen2" :
+    var.os_family == "azurelinux" && var.os_version == "3.0" && local.azl_base_image_type == "Marketplace" ? "azure-linux-3-gen2-fips" :
+    var.os_family == "azurelinux" && var.os_version == "3.0" && local.azl_base_image_type == "Marketplace-Non-FIPS" ? "azure-linux-3-gen2" :
     var.os_family == "azurelinux" && var.os_version == "3.0" ? "azure-linux-3-gen2-fips" :
     "22_04-lts-gen2"
   )
 
   # Azure Linux 1P Shared Gallery image support
-  use_azl_shared_gallery = var.os_family == "azurelinux" && (var.azl_base_image_type == "1P-FIPS" || var.azl_base_image_type == "1P-Non-FIPS")
+  use_azl_shared_gallery = var.os_family == "azurelinux" && (local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS")
   
   azl_sig_image_name = (
-    var.azl_base_image_type == "1P-FIPS" ? "azure-linux-3-gen2-fips" :
-    var.azl_base_image_type == "1P-Non-FIPS" ? "azure-linux-3-gen2" :
+    local.azl_base_image_type == "1P-FIPS" ? "azure-linux-3-gen2-fips" :
+    local.azl_base_image_type == "1P-Non-FIPS" ? "azure-linux-3-gen2" :
     ""
   )
 

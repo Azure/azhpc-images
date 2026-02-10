@@ -30,14 +30,14 @@ source "azure-arm" "hpc" {
   managed_image_name                = local.create_image ? local.image_name : null
   
   # Output: Also create VHD in storage account (optional)
-  capture_container_name = var.create_vhd ? var.vhd_container_name : null
-  capture_name_prefix    = var.create_vhd ? local.image_name : null
-  resource_group_name    = var.create_vhd ? var.azure_resource_group : null
-  storage_account        = var.create_vhd ? var.vhd_storage_account : null
+  resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
+  storage_account        = local.create_vhd ? var.vhd_storage_account : null
+  capture_container_name = local.create_vhd ? var.vhd_container_name : null
+  capture_name_prefix    = local.create_vhd ? local.image_name : null
   
   # Output: Publish to Shared Image Gallery (optional)
   dynamic "shared_image_gallery_destination" {
-    for_each = var.publish_to_sig ? [1] : []
+    for_each = local.publish_to_sig ? [1] : []
     content {
       subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
       resource_group       = var.sig_resource_group

@@ -148,8 +148,17 @@ variable "create_image" {
   description = "Whether to create managed image or SIG image after build"
   default     = env("CREATE_IMAGE")
 }
+
+variable "publish_to_sig" {
+  type        = string
+  description = "Publish image to Shared Image Gallery"
+  default     = env("CREATE_IMAGE")
+}
 locals {
-  create_image = try(convert(lower(var.create_image), bool), true)
+  publish_to_sig = try(convert(lower(var.publish_to_sig), bool), false)
+  # SIG currently takes dependency on managed image creation
+  # Packer requires you to create at least "something" so we default to true for an ephemeral managed image
+  create_image = try(convert(lower(var.create_image), bool), true) || local.publish_to_sig
 }
 
 variable "managed_image_resource_group_name" {
@@ -158,32 +167,32 @@ variable "managed_image_resource_group_name" {
   default     = null
 }
 locals {
-  # defaults to capturing into the build resource group (note that SIG capture requires managed image capture ATM, VM-to-SIG is yet to be implemented by Packer)
+  # defaults to capturing into the build resource group, which may be ephemeral
+  # (note that SIG capture requires managed image capture ATM, VM-to-SIG is yet to be implemented by Packer)
   managed_image_resource_group_name = coalesce(var.managed_image_resource_group_name, local.azure_resource_group)
 }
 
+variable "vhd_resource_group_name" {
+  type        = string
+  description = "Azure resource group for the storage account holding VHD blob output"
+  default     = "azhpc-images-rg"
+}
 
 variable "vhd_storage_account" {
   type        = string
-  description = "Azure storage account for VHD output (required when using hpc_vhd source)"
-  default     = ""
+  description = "Azure storage account for VHD blob output"
+  default     = "azhpcstor"
 }
 
 variable "vhd_container_name" {
   type        = string
-  description = "Azure storage container name for VHD output"
-  default     = "vhds"
+  description = "Azure storage container name for VHD blob output"
+  default     = "azhpc-vhd-store"
 }
 
 # =============================================================================
 # Shared Image Gallery (SIG) Variables
 # =============================================================================
-
-variable "publish_to_sig" {
-  type        = bool
-  description = "Publish image to Shared Image Gallery"
-  default     = false
-}
 
 variable "sig_subscription_id" {
   type        = string

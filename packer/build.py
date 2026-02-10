@@ -55,7 +55,7 @@ def build_image(args, git):
         f'-var=os_version={args.version}',
         f'-var=gpu_vendor={args.gpu}',
         f'-var=gpu_model={args.model}',
-        f'-var=azure_resource_group={args.resource_group}',
+        f'-var=vhd_resource_group_name={args.resource_group}',
         f'-var=azure_location={args.location}',
         f'-var=skip_validation={str(args.skip_validation).lower()}',
         f'-var=azhpc_commit={git["commit"]}',

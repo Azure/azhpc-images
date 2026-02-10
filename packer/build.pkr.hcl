@@ -43,7 +43,7 @@ build {
       "echo ''",
       "echo '=== Azure Infrastructure ==='",
       "echo 'VM Size:                 ${local.vm_size}'",
-      "echo 'Resource Group:          ${var.azure_resource_group}'",
+      "echo 'VHD Resource Group:      ${var.vhd_resource_group_name}'",
       "echo 'Location:                ${var.azure_location}'",
       "echo ''",
       "echo '=== Image Naming ==='",

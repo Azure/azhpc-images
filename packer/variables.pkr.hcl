@@ -233,12 +233,7 @@ variable "sig_replication_regions" {
 variable "sig_storage_account_type" {
   type        = string
   description = "Storage account type for the gallery image version"
-  default     = "Standard_LRS"
-  
-  validation {
-    condition     = contains(["Standard_LRS", "Standard_ZRS", "Premium_LRS"], var.sig_storage_account_type)
-    error_message = "Storage account type must be one of: Standard_LRS, Standard_ZRS, Premium_LRS."
-  }
+  default     = "Premium_LRS"
 }
 
 variable "build_id" {

@@ -38,7 +38,7 @@ build {
   #     "echo 'SKU:                     ${local.image_sku}'",
   #     "echo ''",
   #     "echo '=== GPU Configuration ==='",
-  #     "echo 'GPU Model:               ${var.gpu_model}'",
+  #     "echo 'GPU SKU:                 ${local.gpu_sku}'",
   #     "echo 'GPU Platform:            ${local.gpu_platform}'",
   #     "echo ''",
   #     "echo '=== Azure Infrastructure ==='",
@@ -96,7 +96,7 @@ build {
   #   environment_vars = [
   #     "OS_FAMILY=${var.os_family}",
   #     "OS_VERSION=${var.os_version}",
-  #     "GPU_MODEL=${var.gpu_model}",
+  #     "GPU_SKU=${local.gpu_sku}",
   #     "INSTALL_MDATP=${var.install_mdatp}",
   #     "GB200_PARTUUID=${var.gb200_partuuid}",
   #     "AKS_HOST_IMAGE=${var.aks_host_image}",
@@ -131,7 +131,7 @@ build {
   #   script = "scripts/prepare-azhpc-environment.sh"
   #   environment_vars = [
   #     "AZHPC_SUBMODULE_PATH=/tmp/azhpc-images",
-  #     "GPU_MODEL=${var.gpu_model}",
+  #     "GPU_SKU=${local.gpu_sku}",
   #     "AZHPC_COMMIT=${var.azhpc_commit}",
   #     "AZHPC_REPO_URL=${var.azhpc_repo_url}",
   #     "AZHPC_BRANCH=${var.azhpc_branch}",
@@ -145,7 +145,7 @@ build {
   # # --------------------------------------------------------------------------
   # provisioner "shell" {
   #   inline = [
-  #     "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu ${local.gpu_platform} --model ${var.gpu_model}${var.aks_host_image ? " --aks" : ""}${var.image_version != "" ? " --image-version ${var.image_version}" : ""}"
+  #     "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""}${var.image_version != "" ? " --image-version ${var.image_version}" : ""}"
   #   ]
   #   environment_vars = [
   #     "DEBIAN_FRONTEND=noninteractive"
@@ -181,7 +181,7 @@ build {
   # # --------------------------------------------------------------------------
   # provisioner "shell" {
   #   inline = [
-  #     "python3 /opt/azhpc-images/packer/scripts/validate-image.py pre-reboot --gpu-platform ${local.gpu_platform} --gpu-model ${var.gpu_model}${var.aks_host_image ? " --aks" : ""}${var.skip_validation ? " --skip" : ""}"
+  #     "python3 /opt/azhpc-images/packer/scripts/validate-image.py pre-reboot --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""}${var.skip_validation ? " --skip" : ""}"
   #   ]
   #   execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
   # }
@@ -201,7 +201,7 @@ build {
   #   pause_before = "900s"
   #   max_retries  = 10
   #   inline = [
-  #     "python3 /opt/azhpc-images/packer/scripts/validate-image.py post-reboot --gpu-platform ${local.gpu_platform} --gpu-model ${var.gpu_model}${var.aks_host_image ? " --aks" : ""}${var.skip_validation ? " --skip" : ""}"
+  #     "python3 /opt/azhpc-images/packer/scripts/validate-image.py post-reboot --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""}${var.skip_validation ? " --skip" : ""}"
   #   ]
   #   execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
   # }
@@ -216,7 +216,7 @@ build {
   #     "echo '=========================================='",
   #     "echo 'Image: ${local.image_name}'",
   #     "echo 'OS: ${var.os_family} ${var.os_version}'",
-  #     "echo 'GPU: ${local.gpu_platform} ${var.gpu_model}'",
+  #     "echo 'GPU: ${local.gpu_platform} ${local.gpu_sku}'",
   #     "echo ''",
   #     "cat /opt/packer/azhpc-build-info.txt 2>/dev/null || true",
   #     "echo ''",
@@ -249,7 +249,7 @@ build {
       os_family  = var.os_family
       os_version = var.os_version
       gpu_platform = local.gpu_platform
-      gpu_model  = var.gpu_model
+      gpu_sku  = local.gpu_sku
       image_name = local.image_name
     }
   }

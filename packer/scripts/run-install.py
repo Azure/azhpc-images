@@ -48,10 +48,10 @@ def main():
                         help='OS family')
     parser.add_argument('--version', required=True,
                         help='OS version (e.g., 22.04, 24.04, 8.10)')
-    parser.add_argument('--gpu', required=True, choices=['NVIDIA', 'AMD'],
-                        help='GPU vendor (required)')
-    parser.add_argument('--model', required=True,
-                        help='GPU model (e.g., a100, h100, gb200, mi300x)')
+    parser.add_argument('--gpu-platform', required=True, choices=['NVIDIA', 'AMD'],
+                        help='GPU platform (required)')
+    parser.add_argument('--gpu-sku', required=True,
+                        help='GPU SKU (e.g., a100, h100, gb200, mi300x)')
     parser.add_argument('--aks', action='store_true',
                         help='Build AKS host image (uses install_aks.sh if available)')
     parser.add_argument('--image-version', default='',
@@ -60,7 +60,7 @@ def main():
     
     header("Running azhpc-images install")
     info("OS:", f"{args.os} {args.version}")
-    info("GPU:", f"{args.gpu} {args.model}")
+    info("GPU:", f"{args.gpu_platform} {args.gpu_sku}")
     info("AKS Host:", str(args.aks))
     if args.image_version:
         info("Image Version:", args.image_version)
@@ -70,8 +70,8 @@ def main():
         error(f"Unknown OS family: {args.os}")
         sys.exit(1)
     
-    gpu_platform = get_gpu_platform(args.gpu)
-    sku = get_sku(args.model)
+    gpu_platform = get_gpu_platform(args.gpu_platform)
+    sku = get_sku(args.gpu_sku)
     
     install_dir = f'/opt/azhpc-images/distros/{distro}'
     

@@ -100,8 +100,8 @@ echo "  TOP_DIR: ${TOP_DIR}"
 echo "  COMPONENT_DIR: ${COMPONENT_DIR}"
 echo "  AKS_HOST_IMAGE: ${AKS_HOST_IMAGE:-false}"
 
-# Set SKU based on GPU_MODEL (required)
-export SKU=$(echo "${GPU_MODEL}" | tr '[:lower:]' '[:upper:]')
+# Set SKU based on GPU_SKU (required)
+export SKU=$(echo "${GPU_SKU}" | tr '[:lower:]' '[:upper:]')
 echo "SKU set to: '${SKU}'"
 
 # Source set_properties.sh to set up environment

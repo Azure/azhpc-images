@@ -14,7 +14,7 @@ set -euo pipefail
 # Environment variables:
 #   OS_FAMILY        - OS family (ubuntu, alma, azurelinux)
 #   OS_VERSION       - OS version (22.04, 24.04, etc.)
-#   GPU_MODEL        - GPU model (a100, h100, gb200, mi300x) - required
+#   GPU_SKU          - GPU SKU (a100, h100, gb200, mi300x) - required
 #   INSTALL_MDATP    - Install Microsoft Defender (true/false)
 #   GB200_PARTUUID   - Disk PARTUUID for GB200 builds (None for non-GB200)
 #   AKS_HOST_IMAGE   - Building AKS host image (true/false)
@@ -54,7 +54,7 @@ fi
 echo "========================================="
 echo "Prerequisites: Kernel, MDATP, Package Updates"
 echo "OS: ${OS_FAMILY:-unknown} ${OS_VERSION:-unknown}"
-echo "GPU Model: ${GPU_MODEL:?GPU_MODEL is required}"
+echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
 echo "Install mdatp: ${INSTALL_MDATP:-true}"
 echo "AKS Host Image: ${AKS_HOST_IMAGE:-false}"
 echo "=========================================="
@@ -256,10 +256,10 @@ OS_TYPE="${OS_FAMILY}${OS_VERSION}"
 ####
 install_ubuntu_lts_kernel() {
     local version=$1
-    local gpu_model="${GPU_MODEL}"
+    local gpu_sku="${GPU_SKU}"
     
     # GB200 uses a special nvidia kernel, not LTS
-    if [[ "${gpu_model,,}" == "gb200" ]]; then
+    if [[ "${gpu_sku,,}" == "gb200" ]]; then
         install_ubuntu_gb200_kernel
         return $?
     fi

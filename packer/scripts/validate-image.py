@@ -47,10 +47,10 @@ def run_tests(gpu_platform: str, aks_host: bool) -> None:
         success("Tests passed")
 
 
-def run_health_checks(gpu_model: str) -> None:
+def run_health_checks(gpu_sku: str) -> None:
     """Run health checks (matching old pipeline: run-health-checks.sh -o health.log -v)"""
     # Skip for GB200 (matching old pipeline)
-    if gpu_model.lower() == "gb200":
+    if gpu_sku.lower() == "gb200":
         info("Health Check:", "Skipped for GB200")
         return
     
@@ -83,10 +83,10 @@ def main():
     parser.add_argument('phase', nargs='?', default='pre-reboot',
                         choices=['pre-reboot', 'post-reboot'],
                         help='Validation phase: pre-reboot or post-reboot')
-    parser.add_argument('--gpu-platform', '--gpu', dest='gpu_platform', required=True,
+    parser.add_argument('--gpu-platform', dest='gpu_platform', required=True,
                         help='GPU platform (NVIDIA/AMD)')
-    parser.add_argument('--gpu-model', '--model', dest='gpu_model', required=True,
-                        help='GPU model (a100, h100, gb200, mi300x)')
+    parser.add_argument('--gpu-sku', dest='gpu_sku', required=True,
+                        help='GPU SKU (a100, h100, gb200, mi300x)')
     parser.add_argument('--aks', action='store_true',
                         help='AKS host image build')
     parser.add_argument('--skip', action='store_true',
@@ -94,7 +94,7 @@ def main():
     args = parser.parse_args()
     
     gpu_platform = args.gpu_platform
-    gpu_model = args.gpu_model
+    gpu_sku = args.gpu_sku
     aks_host = args.aks
     
     if args.skip:
@@ -103,13 +103,13 @@ def main():
     
     header(f"Image Validation: {args.phase}")
     info("GPU Platform:", gpu_platform)
-    info("GPU Model:", gpu_model)
+    info("GPU SKU:", gpu_sku)
     info("AKS Host:", str(aks_host))
     print()
     
     if args.phase == "pre-reboot":
         # Old pipeline: runs tests before reboot if not GB200
-        if gpu_model.lower() != "gb200":
+        if gpu_sku.lower() != "gb200":
             run_tests(gpu_platform, aks_host)
     
     elif args.phase == "post-reboot":
@@ -121,7 +121,7 @@ def main():
         
         # Old pipeline: runs tests and health checks after reboot
         run_tests(gpu_platform, aks_host)
-        run_health_checks(gpu_model)
+        run_health_checks(gpu_sku)
     
     print()
     print("Validation Complete")

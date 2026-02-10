@@ -74,7 +74,7 @@ source "azure-arm" "hpc" {
   azure_tags = {
     Owner     = var.owner_alias != "" ? var.owner_alias : "packer-user"
     OS        = "${var.os_family}-${var.os_version}"
-    GPU       = "${local.gpu_platform}-${var.gpu_model}"
+    GPU       = "${local.gpu_platform}-${local.gpu_sku}"
     ManagedBy = "Packer"
     BuildTime = local.timestamp
     Source    = "azhpc-images"

@@ -45,11 +45,6 @@ locals {
   )
 }
 
-variable "gpu_model" {
-  type        = string
-  description = "GPU model (e.g., a100, h100, v100, gb200, mi300x)"
-}
-
 variable "azure_resource_group" {
   type        = string
   description = "Azure resource group where images will be created"
@@ -336,8 +331,8 @@ locals {
   ) : ""
   
   # Final image name construction
-  # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_vendor}-{gpu_model}-x86_64-{timestamp}
-  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${var.gpu_model}-hpc-x86_64-${local.timestamp}"
+  # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-x86_64-{timestamp}
+  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-x86_64-${local.timestamp}"
 
   # Marketplace image mappings
   image_publisher = (
@@ -380,8 +375,8 @@ locals {
   distribution = "${var.os_family}${var.os_version}"
 
   # Shared Image Gallery (SIG) computed values
-  # Image definition: {os_family}-{os_version}-hpc-{gpu_vendor}-{gpu_model}
-  sig_image_definition = "${var.os_family}-${local.os_version_safe}-hpc-${local.gpu_platform}-${var.gpu_model}"
+  # Image definition: {os_family}-{os_version}-hpc-{gpu_platform}-{gpu_sku}
+  sig_image_definition = "${var.os_family}-${local.os_version_safe}-hpc-${local.gpu_platform}-${local.gpu_sku}"
   
   # Auto-generate version from timestamp: YYYY.MMDD.HHmm (e.g., 2026.0205.1002)
   sig_version = formatdate("YYYY.MMDD.hhmm", timestamp())

@@ -56,7 +56,7 @@ locals {
 
 variable "azure_resource_group" {
   type        = string
-  description = "Azure resource group where the build VM will be created (will be created if it doesn't exist)"
+  description = "Azure resource group where the build VM will be created"
   default     = env("RESOURCE_GRP_NAME")
 }
 locals {
@@ -74,7 +74,7 @@ locals {
 
 variable "externally_managed_resource_group" {
   type        = string
-  description = "Whether the resource group is externally managed by e.g. Azure Pipelines, in which case the pipeline itself is responsible for cleanup."
+  description = "Whether the resource group already exists, hence externally managed by e.g. Azure Pipelines, in which case the pipeline itself is responsible for cleanup."
   default     = env("EXTERNALLY_MANAGED_RESOURCE_GROUP")
 }
 locals {

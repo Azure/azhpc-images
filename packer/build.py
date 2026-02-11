@@ -54,8 +54,6 @@ def build_image(args, git):
         f'-var=image_version={args.image_version}',
         f'-var=os_family={args.os}',
         f'-var=os_version={args.version}',
-        f'-var=gpu_vendor={args.gpu}',
-        f'-var=gpu_model={args.model}',
         f'-var=vhd_resource_group_name={args.vhd_resource_group_name}',
         f'-var=azure_location={args.location}',
         f'-var=skip_validation={str(args.skip_validation).lower()}',
@@ -124,10 +122,6 @@ def main():
                         help='OS family')
     parser.add_argument('-v', '--version', default='22.04',
                         help='OS version (e.g., 22.04, 24.04, 8.10, 9.7, 3.0)')
-    parser.add_argument('-g', '--gpu', required=True, choices=['nvidia', 'amd'],
-                        help='GPU vendor (required)')
-    parser.add_argument('-m', '--model', required=True,
-                        help='GPU model (e.g., a100, h100, v100, gb200, mi300x)')
     parser.add_argument('--aks-host', action='store_true',
                         help='Build AKS host image (uses install_aks.sh)')
     parser.add_argument('--gb200-partuuid', default='None',
@@ -179,7 +173,6 @@ def main():
     
     header("HPC Image Builder")
     info("OS:", f"{args.os} {args.version}")
-    info("GPU:", f"{C.MAGENTA}{args.gpu} {args.model}{C.RESET}")
     info("VHD Resource Group:", args.vhd_resource_group_name)
     info("azhpc-images:", f"{git['branch']} @ {C.YELLOW}{git['commit_short']}{C.RESET}")
     if args.mdatp_path:

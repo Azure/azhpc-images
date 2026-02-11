@@ -8,7 +8,7 @@ This Packer configuration allows you to create custom Azure HPC images with:
 - **NVIDIA GPU support**: A100, H100, V100, GB200
 - **AMD GPU support**: MI300X
 - **AKS Host Images**: For Azure Kubernetes Service nodes
-- **Multiple OS options**: Ubuntu 22.04/24.04, AlmaLinux 8.10/9.6/9.7, Azure Linux 3.0
+- **Multiple OS options**: Ubuntu 22.04/24.04, AlmaLinux 8.10/9.7, Azure Linux 3.0
 
 ## Prerequisites
 
@@ -52,21 +52,21 @@ cd azhpc-images/packer
 packer init .
 
 # Build Ubuntu 22.04 HPC image with NVIDIA A100
-python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --rg my-resource-group
+python build.py -o ubuntu -v 22.04 -g nvidia -m a100
 
 # Build AlmaLinux 9.7 HPC image with AMD MI300X
-python build.py -o alma -v 9.7 -g amd -m mi300x --rg my-resource-group
+python build.py -o alma -v 9.7 -g amd -m mi300x
 
 # Build and export to VHD
 python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
-  --create-vhd --storage-account mystorageaccount --rg my-resource-group
+  --create-vhd --storage-account mystorageaccount
 
 # Build and publish to Shared Image Gallery
 python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
-  --publish-to-sig --sig-gallery-name AzHPCImageReleaseCandidates --rg my-resource-group
+  --publish-to-sig --sig-gallery-name AzHPCImageReleaseCandidates
 
 # Build GB200 AKS host image
-python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 --aks-host --rg my-resource-group
+python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 --aks-host
 ```
 
 ## Usage Examples
@@ -74,20 +74,20 @@ python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 --aks-host --rg my-resourc
 ### Build Ubuntu 22.04 for NVIDIA A100
 
 ```bash
-python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --rg my-rg
-# Output: ubuntu-22-04-nvidia-a100-hpc-x86_64-202502041530
+python build.py -o ubuntu -v 22.04 -g nvidia -m a100
+# Output: ubuntu-22-04-NVIDIA-A100-hpc-x86_64-202502041530
 ```
 
 ### Build AlmaLinux 8.10 for AMD MI300X
 
 ```bash
-python build.py -o alma -v 8.10 -g amd -m mi300x --rg my-rg
+python build.py -o alma -v 8.10 -g amd -m mi300x
 ```
 
 ### Quick Debug Build (Skip Validation)
 
 ```bash
-python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --skip-validation --rg my-rg
+python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --skip-validation
 ```
 
 ### Build GB200 Image
@@ -96,8 +96,7 @@ For NVIDIA GB200, you must specify the PARTUUID for non-AKS builds:
 
 ```bash
 python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 \
-  --gb200-partuuid "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" \
-  --rg my-rg
+  --gb200-partuuid "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
 ### Build AKS Host Image
@@ -105,7 +104,7 @@ python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 \
 For AKS host images (uses `install_aks.sh`), add `--aks-host`. PARTUUID is not needed for AKS:
 
 ```bash
-python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 --aks-host --rg my-rg
+python build.py -o ubuntu -v 24.04 -g nvidia -m gb200 --aks-host
 ```
 
 ### Export Image to VHD
@@ -114,7 +113,6 @@ Packer can create a VHD blob alongside the managed image during the build:
 
 ```bash
 python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
-  --rg my-rg \
   --create-vhd \
   --storage-account mystorageaccount
 ```
@@ -140,7 +138,6 @@ az sig image-definition create \
 
 # Then build and publish
 python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
-  --rg my-rg \
   --publish-to-sig \
   --sig-gallery-name AzHPCImageReleaseCandidates \
   --sig-image-name ubuntu-22-04-hpc-nvidia-a100
@@ -151,11 +148,11 @@ python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--publish-to-sig` | false | Enable publishing to SIG |
-| `--sig-resource-group` | `hpc-images-rg` | Resource group containing the gallery |
+| `--sig-resource-group-name` | `hpc-images-rg` | Resource group containing the gallery |
 | `--sig-gallery-name` | `AzHPCImageReleaseCandidates` | Gallery name |
 | `--sig-image-name` | auto | Image definition (auto-generated if empty) |
 | `--image-version` | auto | Version (auto-generated as `YYYY.MMDD.hhmmss`) |
-| `--sig-replication-regions` | `westus2` | Comma-separated list of replication regions |
+| `--sig-replication-regions` | build location | Comma-separated list of replication regions |
 
 ## Command Reference
 
@@ -164,23 +161,23 @@ python build.py [OPTIONS]
 
 IMAGE OPTIONS:
     -o, --os OS             OS family: ubuntu, alma, azurelinux
-    -v, --version VERSION   OS version (22.04, 24.04, 8.10, 9.6, 9.7, 3.0)
+    -v, --version VERSION   OS version (22.04, 24.04, 8.10, 9.7, 3.0)
     -g, --gpu VENDOR        GPU vendor: nvidia, amd (required)
     -m, --model MODEL       GPU model: a100, h100, v100, gb200, mi300x (required)
 
 AZURE OPTIONS:
-    --rg RESOURCE_GROUP     Azure resource group
     --location LOCATION     Azure location (default: westus2)
     --owner ALIAS           Owner tag for resources
 
 OUTPUT OPTIONS:
     --create-vhd            Also create VHD in storage account
+    --vhd-resource-group-name RG  Resource group for VHD storage (default: hpc-images-rg)
     --storage-account NAME  Storage account for VHD output
     --publish-to-sig        Publish image to Shared Image Gallery
-    --sig-resource-group RG Resource group containing the SIG
+    --sig-resource-group-name RG  Resource group containing the SIG
     --sig-gallery-name NAME Gallery name (default: AzHPCImageReleaseCandidates)
     --sig-image-name NAME   Image definition name (auto-generated if empty)
-    --sig-image-version VER Image version (auto-generated if empty)
+    --image-version VER     Image version (auto-generated if empty)
     --sig-replication-regions REGIONS  Comma-separated replication regions
 
 SPECIAL BUILD OPTIONS:
@@ -198,8 +195,7 @@ DEBUG OPTIONS:
 ```
 packer/
 ├── build.py                    # Main entry point (cross-platform)
-├── variables.pkr.hcl           # Packer input variables
-├── locals.pkr.hcl              # Computed values
+├── variables.pkr.hcl           # Packer input variables and computed locals
 ├── source.pkr.hcl              # Azure ARM builder config
 ├── build.pkr.hcl               # Build provisioners
 └── scripts/
@@ -245,7 +241,11 @@ All component versions are defined in `../versions.json`:
 Use `--hold-on-error` to keep the VM running for debugging:
 
 ```bash
-python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --hold-on-error --rg my-rg
+python build.py -o ubuntu -v 22.04 -g nvidia -m a100 --hold-on-error
+```
+
+### Quota Issues
+
 1. Check your subscription quota in Azure Portal
 2. Request quota increase for the required VM SKU
 3. Consider using a different region with more capacity

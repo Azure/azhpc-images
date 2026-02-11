@@ -285,24 +285,6 @@ variable "upload_sbom_to_kusto" {
   default     = false
 }
 
-variable "major_version" {
-  type        = string
-  description = "Major version (YYMM format) for SBOM metadata"
-  default     = ""
-}
-
-variable "minor_version" {
-  type        = string
-  description = "Minor version (DD format) for SBOM metadata"
-  default     = ""
-}
-
-variable "patch_version" {
-  type        = string
-  description = "Patch version (counter) for SBOM metadata"
-  default     = ""
-}
-
 variable "is_experimental_image" {
   type        = bool
   description = "Flag indicating if this is an experimental image"

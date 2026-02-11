@@ -339,12 +339,6 @@ variable "upload_sbom_to_kusto" {
   default     = false
 }
 
-variable "is_experimental_image" {
-  type        = bool
-  description = "Flag indicating if this is an experimental image"
-  default     = false
-}
-
 variable "pipeline_start_time" {
   type        = string
   description = "ISO format pipeline start time (ADO pipeline)"

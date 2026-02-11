@@ -99,6 +99,12 @@ variable "skip_validation" {
   default     = false
 }
 
+variable "build_requestedforemail" {
+  type        = string
+  description = "Email of the user who requested the build. Auto-populated in environment by Azure DevOps."
+  default     = env("BUILD_REQUESTEDFOREMAIL")
+}
+
 variable "build_requestedfor" {
   type        = string
   description = "Alias of the user who requested the build. Auto-populated in environment by Azure DevOps."

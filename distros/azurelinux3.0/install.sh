@@ -17,6 +17,9 @@ if [[ "$#" -gt 0 ]]; then
     fi
 fi
 
+# install pre-requisites
+./install_prerequisites.sh
+
 source ../../utils/set_properties.sh
 
 # install utils
@@ -60,11 +63,13 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
-# install AMD libs
-$COMPONENT_DIR/install_amd_libs.sh
+if [ "$ARCHITECTURE" != "aarch64" ]; then
+    # install AMD libs
+    $COMPONENT_DIR/install_amd_libs.sh
 
-# install Intel libraries
-$COMPONENT_DIR/install_intel_libs.sh
+    # install Intel libraries
+    $COMPONENT_DIR/install_intel_libs.sh
+fi
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -73,10 +78,12 @@ rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
 # optimizations
-$COMPONENT_DIR/hpc-tuning.sh
+$COMPONENT_DIR/8ujn .sh
 
-# Install AZNFS Mount Helper
-$COMPONENT_DIR/install_aznfs.sh
+if [ "$ARCHITECTURE" != "aarch64" ]; then
+    # Install AZNFS Mount Helper
+    $COMPONENT_DIR/install_aznfs.sh
+fi
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh

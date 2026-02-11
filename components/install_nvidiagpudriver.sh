@@ -16,15 +16,28 @@ kernel_version=$(uname -r | sed 's/\-/./g')
 if [ "$SKU" = "V100" ]; then
     KERNEL_MODULE_TYPE="proprietary"
     # Install Nvidia GPU propreitary variant for V100 and older SKUs
-    AL3_GPU_DRIVER_PACKAGES="cuda"
+    AL3_GPU_DRIVER_PACKAGES="cuda-${NVIDIA_DRIVER_VERSION}"
 else
     KERNEL_MODULE_TYPE="open"
     # Install Nvidia GPU open source variant for A100, H100
-    AL3_GPU_DRIVER_PACKAGES="cuda-open"
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        # Install Nvidia GPU open source variant for GB200 GB300
+        AL3_GPU_DRIVER_PACKAGES="cuda-open-hwe"
+    else
+        # Install Nvidia GPU open source variant for A100, H100 
+        AL3_GPU_DRIVER_PACKAGES="cuda-open"
+    fi
 fi
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    curl https://packages.microsoft.com/azurelinux/3.0/prod/nvidia/x86_64/config.repo > /etc/yum.repos.d/azurelinux-nvidia-prod.repo
+    if [[ "$ARCHITECTURE" == "aarch64" ]]; then
+        curl https://packages.microsoft.com/azurelinux/3.0/prod/nvidia/aarch64/config.repo > /etc/yum.repos.d/azurelinux-nvidia-prod.repo
+        curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/sbsa/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
+    else
+        curl https://packages.microsoft.com/azurelinux/3.0/prod/nvidia/x86_64/config.repo > /etc/yum.repos.d/azurelinux-nvidia-prod.repo
+        curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
+    fi
+
     tdnf install -y $AL3_GPU_DRIVER_PACKAGES
     NVIDIA_DRIVER_VERSION=$(sudo tdnf list installed | grep -i $AL3_GPU_DRIVER_PACKAGES | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
@@ -70,59 +83,13 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
-        path_var="$TOP_DIR/prebuilt"
-        version_var="-12.8.1_570.124.06-1.azl3"
-        # Install cuda-toolkit dependencies
-        tdnf install -y $path_var/nsight-systems-2025.2.1.130_3569061-1.azl3.x86_64.rpm
-        tdnf install -y $path_var/nsight-compute-2025.1.1.2_35528883-1.azl3.x86_64.rpm
-        # Install cuda-toolkit and sub-packages
-        tdnf install -y $path_var/cuda-cccl$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-cudart$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-cudart-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-driver-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvml-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvrtc$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvrtc-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-opencl$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-opencl-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-profiler-api$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcublas$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcublas-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcufft$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcufft-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcufile$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcufile-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcurand$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcurand-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvfatbin$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvfatbin-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvjitlink$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvjitlink-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvjpeg$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnvjpeg-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcusparse$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcusparse-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcusolver$version_var.x86_64.rpm
-        tdnf install -y $path_var/libcusolver-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnpp$version_var.x86_64.rpm
-        tdnf install -y $path_var/libnpp-devel$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-cupti$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvdisasm$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvprof$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvtx$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nsight$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvvp$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nsight-systems$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nsight-compute$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-cuobjdump$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-cuxxfilt$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvcc$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvvm$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-crt$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-nvprune$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-documentation$version_var.x86_64.rpm
-        tdnf install -y $path_var/gds-tools$version_var.x86_64.rpm
-        tdnf install -y $path_var/cuda-toolkit$version_var.x86_64.rpm
+        # Install cuda-toolkit
+        # V100 does not support CUDA 13.0, so use CUDA 12.9.
+        if [ "$1" = "V100" ]; then
+            tdnf install -y cuda-toolkit-12-9-12.9.1
+        else
+            tdnf install -y cuda-toolkit-13-0-13.0.2
+        fi        
         # Install libnvidia-nscq
         tdnf install -y libnvidia-nscq
     fi
@@ -137,12 +104,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
 
     # Download CUDA samples
     TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
-    if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-        cp $TOP_DIR/prebuilt/${TARBALL} .
-    else
-        CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-        download_and_verify ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
-    fi
+    CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
+    download_and_verify ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
     tar -xvf ${TARBALL}
     pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
     mkdir build && cd build
@@ -153,12 +116,20 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
 
 fi
 
-$COMPONENT_DIR/configure_nvidia_persistence.sh
-
 $COMPONENT_DIR/install_gdrcopy.sh
 
-# Install nvidia fabric manager (required for ND96asr_v4)
-$COMPONENT_DIR/install_nvidia_fabric_manager.sh
+if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+    # Install nvidia fabric manager (required for ND96asr_v4)
+    $COMPONENT_DIR/install_nvidia_fabric_manager.sh
+else
+    # Apply nvprofiling settings
+    echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
+
+    # Enable CDMM mode
+    echo 'options nvidia NVreg_CoherentGPUMemoryMode=driver' | tee /etc/modprobe.d/nvidia-openrm.conf
+fi
+
+$COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files
 rm -rf *.run *tar.gz *.rpm

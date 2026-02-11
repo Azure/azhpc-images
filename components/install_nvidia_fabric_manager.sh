@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 set -ex
 
 source ${UTILS_DIR}/utilities.sh
@@ -44,8 +44,8 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Install Nvidia Fabric Manager and devel packages from PMC
-    tdnf install -y nvidia-fabric-manager \
-                    nvidia-fabric-manager-devel
-    NVIDIA_FABRICMANAGER_VERSION=$(sudo tdnf list installed | grep -i nvidia-fabric-manager.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+    tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}
+    tdnf install -y nvidia-fabric-manager-devel-${NVIDIA_FABRICMANAGER_VERSION}
+    tdnf install -y libnvidia-nscq-${NVIDIA_FABRICMANAGER_VERSION}
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

@@ -46,9 +46,16 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     make pkg.redhat.build
-    tdnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
-    tdnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
-    tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
+    if [ "$ARCH" = "aarch64" ]; then
+        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
+        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
+        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
+    else
+        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
+        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
+        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
+    fi
+
     sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 fi
 popd
@@ -58,12 +65,16 @@ mkdir -p /usr/local/nccl-rdma-sharp-plugins
 git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
 pushd nccl-rdma-sharp-plugins
 git checkout ${NCCL_RDMA_SHARP_COMMIT}
-if [[ "$SKU" == "GB200" ]]; then
+
+# Run libtoolize
+if [[ "$DISTRIBUTION" == "ubuntu22.04" && "$SKU" == "GB200" ]]; then
     # To get around configure.ac:44: error: required file './ltmain.sh' not found
-    # Run libtoolize
     apt install libtool -y
     libtoolize
+else if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
+    libtoolize --verbose
 fi
+
 ./autogen.sh
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make

@@ -506,10 +506,38 @@ locals {
   # Distribution string for azhpc-images scripts
   distribution = "${var.os_family}${var.os_version}"
 
-  # Shared Image Gallery (SIG) computed values
-  # Image definition: {os_family}-{os_version}-hpc-{gpu_platform}-{gpu_sku}
-  sig_image_definition = "${var.os_family}-${local.os_version_safe}-hpc-${local.gpu_platform}-${local.gpu_sku}"
-  
-  # Auto-generate version from timestamp: YYYY.MMDD.HHmm (e.g., 2026.0205.1002)
-  sig_version = formatdate("YYYY.MMDD.hhmm", timestamp())
+  # These values are reserved for 1P internal SIG
+  internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
+  internal_sig_image_definition_sku = local.gpu_sku == "V100" ? "V100-" : (local.gpu_sku == "GB200" ? "GB200-" : "")
+  internal_sig_image_definition_details = {
+    "Marketplace-Non-FIPS" = {
+      "ubuntu" = {
+        "22.04" = "UbuntuHPC-22.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+      },
+      "alma" = {
+        "8.10"  = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "9.7"   = "AlmaLinuxHPC-9.7-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+      },
+      "azurelinux" = {
+        "3.0"   = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+      }
+    },
+    "Marketplace-FIPS" = {
+      "azurelinux" = {
+        "3.0"   = "AzureLinuxHPC-3.0-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+      }
+    },
+    "1P-FIPS" = {
+      "azurelinux" = {
+        "3.0"   = "AzureLinuxHPC-3.0-1P-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+      }
+    },
+    "1P-Non-FIPS" = {
+      "azurelinux" = {
+        "3.0"   = "AzureLinuxHPC-3.0-1P-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+      }
+    }
+  }
+  internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][var.os_family][var.os_version]
 }

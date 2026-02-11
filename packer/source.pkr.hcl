@@ -41,7 +41,7 @@ source "azure-arm" "hpc" {
       subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
       resource_group       = var.sig_resource_group_name
       gallery_name         = var.sig_gallery_name
-      image_name           = var.sig_image_name != "" ? var.sig_image_name : local.sig_image_definition
+      image_name           = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
       image_version        = local.image_version
       replication_regions  = local.sig_replication_regions
       storage_account_type = var.sig_storage_account_type
@@ -64,7 +64,7 @@ source "azure-arm" "hpc" {
   # VM Configuration
   os_type         = "Linux"
   vm_size         = local.vm_size
-  os_disk_size_gb = 128
+  os_disk_size_gb = 64
   
   # SSH Configuration
   communicator           = "ssh"

@@ -16,8 +16,7 @@ packer {
 }
 
 source "azure-arm" "hpc" {
-  # Authentication - uses Azure CLI credentials
-  # Make sure you're logged in with: az login
+  # TODO: support additional authentication methods
   use_azure_cli_auth = true
 
   # RG for build VM; see locals for distinction

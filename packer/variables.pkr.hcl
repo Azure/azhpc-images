@@ -230,6 +230,15 @@ variable "create_image" {
   default     = env("CREATE_IMAGE")
 }
 
+variable "is_experimental_image" {
+  type        = string
+  description = "1P internally-used experimental image marker for publishing to fallback catch-all SIG image definition"
+  default     = env("IS_EXPERIMENTAL_IMAGE")
+}
+locals {
+  is_experimental_image = try(convert(lower(var.is_experimental_image), bool), false)
+}
+
 variable "publish_to_sig" {
   type        = string
   description = "Publish image to Shared Image Gallery"

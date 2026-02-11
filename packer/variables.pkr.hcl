@@ -125,6 +125,36 @@ variable "azhpc_branch" {
 }
 
 # =============================================================================
+# Custom Base Image Details
+# =============================================================================
+
+# TODO: allow building from custom SIG or community gallery
+
+variable "image_publisher" {
+  type        = string
+  description = "Custom base image publisher"
+  default     = null
+}
+
+variable "image_offer" {
+  type        = string
+  description = "Custom base image offer"
+  default     = null
+}
+
+variable "image_sku" {
+  type        = string
+  description = "Custom base image SKU"
+  default     = null
+}
+
+variable "direct_shared_gallery_image_id" {
+  type        = string
+  description = "Direct Shared Gallery Image ID for base image"
+  default     = null
+}
+
+# =============================================================================
 # Image Metadata Variables
 # =============================================================================
 
@@ -380,9 +410,11 @@ locals {
     ""
   ) : ""
   
+  architecture = local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "aarch64" : "x86_64"
+
   # Final image name construction
-  # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-x86_64-{timestamp}
-  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-x86_64-${local.timestamp}"
+  # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-{architecture}-{timestamp}
+  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.timestamp}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {
@@ -430,42 +462,13 @@ locals {
     }
   }
 
-  # Marketplace image mappings
-  image_publisher = (
-    var.os_family == "ubuntu" ? "Canonical" :
-    var.os_family == "alma" ? "almalinux" :
-    var.os_family == "azurelinux" ? "microsoftcblmariner" :
-    "Canonical"
-  )
-  
-  image_offer = (
-    var.os_family == "ubuntu" && var.os_version == "22.04" ? "0001-com-ubuntu-server-jammy" :
-    var.os_family == "ubuntu" && var.os_version == "24.04" ? "ubuntu-24_04-lts" :
-    var.os_family == "alma" ? "almalinux-x86_64" :
-    var.os_family == "azurelinux" ? "azure-linux-3" :
-    "0001-com-ubuntu-server-jammy"
-  )
-  
-  image_sku = (
-    var.os_family == "ubuntu" && var.os_version == "22.04" ? "22_04-lts-gen2" :
-    var.os_family == "ubuntu" && var.os_version == "24.04" ? "server" :
-    var.os_family == "alma" && var.os_version == "8.10" ? "8-gen2" :
-    var.os_family == "alma" && var.os_version == "9.6" ? "9-gen2" :
-    var.os_family == "alma" && var.os_version == "9.7" ? "9-gen2" :
-    var.os_family == "azurelinux" && var.os_version == "3.0" && local.azl_base_image_type == "Marketplace" ? "azure-linux-3-gen2-fips" :
-    var.os_family == "azurelinux" && var.os_version == "3.0" && local.azl_base_image_type == "Marketplace-Non-FIPS" ? "azure-linux-3-gen2" :
-    var.os_family == "azurelinux" && var.os_version == "3.0" ? "azure-linux-3-gen2-fips" :
-    "22_04-lts-gen2"
-  )
-
-  # Azure Linux 1P Shared Gallery image support
-  use_azl_shared_gallery = var.os_family == "azurelinux" && (local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS")
-  
-  azl_sig_image_name = (
-    local.azl_base_image_type == "1P-FIPS" ? "azure-linux-3-gen2-fips" :
-    local.azl_base_image_type == "1P-Non-FIPS" ? "azure-linux-3-gen2" :
-    ""
-  )
+  use_direct_shared_gallery_base_image = local.azl3_base_image_type == "1P-FIPS" || local.azl3_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
+  custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
+  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (local.custom_base_image_detail != [] ? local.custom_base_image_detail : builtin_marketplace_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.os_version])
+  image_publisher = marketplace_base_image_detail[0]
+  image_offer = marketplace_base_image_detail[1]
+  image_sku = marketplace_base_image_detail[2]
+  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.os_version]) : null
 
   # Distribution string for azhpc-images scripts
   distribution = "${var.os_family}${var.os_version}"

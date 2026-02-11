@@ -49,16 +49,16 @@ source "azure-arm" "hpc" {
     }
   }
   
-  # Marketplace image selection (when NOT using 1P shared gallery)
-  image_publisher = !local.use_azl_shared_gallery ? local.image_publisher : null
-  image_offer     = !local.use_azl_shared_gallery ? local.image_offer : null
-  image_sku       = !local.use_azl_shared_gallery ? local.image_sku : null
+  # Base Marketplace image info
+  image_publisher = local.image_publisher
+  image_offer     = local.image_offer
+  image_sku       = local.image_sku
   
-  # Azure Linux 1P Shared Gallery support (for Azure-internal 1P images)
+  # Base Direct Shared Gallery image info
   dynamic "shared_image_gallery" {
-    for_each = local.use_azl_shared_gallery ? [1] : []
+    for_each = (local.direct_shared_gallery_image_id != null && local.direct_shared_gallery_image_id != "") ? [1] : []
     content {
-      direct_shared_gallery_image_id = "/sharedGalleries/CblMariner.1P/images/${local.azl_sig_image_name}/versions/latest"
+      direct_shared_gallery_image_id = local.direct_shared_gallery_image_id
     }
   }
   

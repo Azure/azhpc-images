@@ -384,6 +384,52 @@ locals {
   # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-x86_64-{timestamp}
   image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-x86_64-${local.timestamp}"
 
+  builtin_marketplace_base_image_details = {
+    "aarch64" = {
+      "Marketplace-Non-FIPS" = {
+        "ubuntu" = {
+          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server-arm64"]
+        }
+      }
+    },
+    "x86_64" = {
+      "Marketplace-Non-FIPS" = {
+        "ubuntu" = {
+          "22.04" = ["Canonical", "0001-com-ubuntu-server-jammy", "22_04-lts-gen2"],
+          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server"]
+        },
+        "alma" = {
+          "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
+          "9.7" = ["almalinux", "almalinux-x86_64", "9-gen2"]
+        },
+        "azurelinux" = {
+          "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
+        }
+      },
+      "Marketplace-FIPS" = {
+        "azurelinux" = {
+          "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2-fips"]
+        }
+      }
+    }
+  }
+
+  # these images are only accessible by 1P
+  builtin_direct_shared_gallery_base_image_details = {
+    "x86_64" = {
+      "1P-Non-FIPS" = {
+        "azurelinux" = {
+          "3.0" = "/sharedGalleries/CblMariner.1P/images/azure-linux-3-gen2/versions/latest"
+        }
+      },
+      "1P-FIPS" = {
+        "azurelinux" = {
+          "3.0" = "/sharedGalleries/CblMariner.1P/images/azure-linux-3-gen2-fips/versions/latest"
+        }
+      }
+    }
+  }
+
   # Marketplace image mappings
   image_publisher = (
     var.os_family == "ubuntu" ? "Canonical" :

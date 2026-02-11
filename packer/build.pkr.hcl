@@ -252,7 +252,21 @@ build {
       "sudo ./clear_history_epilog.sh"
     ]
   }
+
+  provisioner "shell-local" {
+    # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this)
+    # This has the slight side effect of always "failing" the build, but since build-only + always retain is for debugging purposes only, this is an acceptable tradeoff
+    inline = [
+      "if [ ${local.retain_vm_always} = true ] && [ ${local.skip_create_artifacts} = true ]; then exit 1; fi"
+    ]
+  }
   
+  error-cleanup-provisioner "shell-local" {
+    inline = [
+      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] || [ ${local.externally_managed_resource_group} = true ]; then exit 0; else az group delete --name ${local.azure_resource_group} --yes; fi"
+    ]
+  }
+
   # --------------------------------------------------------------------------
   # Post-processor: Generate build manifest
   # --------------------------------------------------------------------------

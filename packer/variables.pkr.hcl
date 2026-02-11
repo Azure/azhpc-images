@@ -227,6 +227,24 @@ locals {
   image_version = coalesce(var.image_version, formatdate("YYYY.MMDD.hhmmss", local.iso_format_start_time))
 }
 
+variable "retain_vm_on_fail" {
+  type        = string
+  description = "Retain the VM (and the resource group) if the build fails"
+  default     = env("RETAIN_VM_ON_FAIL")
+}
+locals {
+  retain_vm_on_fail = try(convert(lower(var.retain_vm_on_fail), bool), true)
+}
+
+variable "retain_vm_always" {
+  type        = string
+  description = "Retain the VM (and the resource group) even if an artifact-less build succeeds. Useful for manual experimentation purposes."
+  default     = env("RETAIN_VM_ALWAYS")
+}
+locals {
+  retain_vm_always = try(convert(lower(var.retain_vm_always), bool), false)
+}
+
 variable "create_vhd" {
   type        = string
   description = "Whether to export image to VHD after build"

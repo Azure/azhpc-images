@@ -154,7 +154,7 @@ python build.py -o ubuntu -v 22.04 -g nvidia -m a100 \
 | `--sig-resource-group` | `hpc-images-rg` | Resource group containing the gallery |
 | `--sig-gallery-name` | `AzHPCImageReleaseCandidates` | Gallery name |
 | `--sig-image-name` | auto | Image definition (auto-generated if empty) |
-| `--sig-image-version` | auto | Version (auto-generated as `YYYY.MMDD.HHmm`) |
+| `--image-version` | auto | Version (auto-generated as `YYYY.MMDD.hhmmss`) |
 | `--sig-replication-regions` | `westus2` | Comma-separated list of replication regions |
 
 ## Command Reference

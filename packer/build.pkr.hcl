@@ -47,7 +47,7 @@ build {
       "echo ''",
       "echo '=== Image Naming ==='",
       "echo 'Image Name:              ${local.image_name}'",
-      "echo 'Timestamp:               ${local.timestamp}'",
+      "echo 'Timestamp:               ${local.iso_format_start_time}'",
       "echo ''",
       "echo '=== Source Code Info ==='",
       "echo 'azhpc-images Repo:       ${var.azhpc_repo_url}'",
@@ -145,7 +145,7 @@ build {
   # --------------------------------------------------------------------------
   provisioner "shell" {
     inline = [
-      "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""}${var.image_version != "" ? " --image-version ${var.image_version}" : ""}"
+      "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""} --image-version ${local.image_version}"
     ]
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive"
@@ -243,7 +243,7 @@ build {
   # Post-processor: Generate build manifest
   # --------------------------------------------------------------------------
   post-processor "manifest" {
-    output     = "build-manifest-${local.timestamp}.json"
+    output     = "build-manifest-${local.numeric_timestamp}.json"
     strip_path = true
     custom_data = {
       os_family  = var.os_family

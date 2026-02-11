@@ -51,6 +51,7 @@ def build_image(args, git):
         'packer', 'build',
         '-on-error=abort' if args.hold_on_error else '-on-error=cleanup',
         f'-var=build_id={build_id}',
+        f'-var=image_version={args.image_version}',
         f'-var=os_family={args.os}',
         f'-var=os_version={args.version}',
         f'-var=gpu_vendor={args.gpu}',
@@ -78,8 +79,6 @@ def build_image(args, git):
         packer_args.append(f'-var=sig_gallery_name={args.sig_gallery_name}')
         if args.sig_image_name:
             packer_args.append(f'-var=sig_image_name={args.sig_image_name}')
-        if args.sig_image_version:
-            packer_args.append(f'-var=sig_image_version={args.sig_image_version}')
         # Convert comma-separated regions to HCL list format
         regions = [r.strip() for r in args.sig_replication_regions.split(',')]
         regions_hcl = json.dumps(regions)
@@ -154,7 +153,7 @@ def main():
                         help='Name of the Shared Image Gallery')
     parser.add_argument('--sig-image-name', default='',
                         help='Image definition name (auto-generated if empty)')
-    parser.add_argument('--sig-image-version', default='',
+    parser.add_argument('--image-version', default='',
                         help='Image version (auto-generated if empty)')
     parser.add_argument('--sig-replication-regions', default='westus2',
                         help='Comma-separated list of replication regions')

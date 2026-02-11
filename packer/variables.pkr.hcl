@@ -7,6 +7,15 @@
 # same scripts used for official Azure Marketplace HPC images.
 # =============================================================================
 
+variable "iso_format_start_time" {
+  type        = string
+  description = "ISO format start time (e.g., 2024-02-05T10:02:00Z), optionally passed from pipeline for tracking purposes"
+  default     = env("ISO_FORMAT_START_TIME")
+}
+locals {
+  iso_format_start_time = coalesce(var.iso_format_start_time, timestamp())
+}
+
 variable "os_family" {
   type        = string
   description = "OS family: ubuntu, alma, or azurelinux"
@@ -161,7 +170,14 @@ variable "direct_shared_gallery_image_id" {
 variable "image_version" {
   type        = string
   description = "Image version string (e.g., 2412.22.1)"
-  default     = ""
+  default     = env("IMAGE_VERSION")
+  validation {
+    condition     = var.image_version == null || var.image_version == "" || can(regex("^\\d+\\.\\d+\\.\\d+$", var.image_version))
+    error_message = "Image version must be in the format major.minor.patch (e.g., 2412.22.1)."
+  }
+}
+locals {
+  image_version = coalesce(var.image_version, formatdate("YYYY.MMDD.hhmmss", local.iso_format_start_time))
 }
 
 variable "create_vhd" {
@@ -248,12 +264,6 @@ variable "sig_image_name" {
   default     = ""
 }
 
-variable "sig_image_version" {
-  type        = string
-  description = "Image version (e.g., 1.0.0). Auto-generated from timestamp if empty"
-  default     = ""
-}
-
 variable "sig_replication_regions" {
   type        = list(string)
   description = "Regions to replicate the image to (defaults to the build VM's region if not set)"
@@ -305,10 +315,13 @@ variable "azl_base_image_type" {
   type        = string
   description = "Azure Linux base image type: Marketplace-FIPS, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS (Marketplace-Non-FIPS for non-Azure Linux distros)"
   default     = env("BASE_IMAGE")
+  validation {
+    condition     = var.azl_base_image_type == null || contains(["Marketplace-FIPS", "Marketplace-Non-FIPS", "1P-FIPS", "1P-Non-FIPS", ""], var.azl_base_image_type)
+    error_message = "Azure Linux base image type must be one of the following if set: Marketplace-FIPS, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS."
+  }
 }
 locals {
-  valid_base_image_types = ["Marketplace-FIPS", "Marketplace-Non-FIPS", "1P-FIPS", "1P-Non-FIPS"]
-  azl_base_image_type = valid_base_image_types[index(valid_base_image_types, coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS"))]
+  azl_base_image_type = coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS")
 }
 
 variable "azl_prebuilt_version" {
@@ -378,7 +391,7 @@ variable "mdatp_blob_name" {
 # =============================================================================
 
 locals {
-  timestamp = formatdate("YYYYMMDDHHmm", timestamp())
+  numeric_timestamp = formatdate("YYYYMMDDHHmm", locals.iso_format_start_time)
   
   # Image naming components
   os_version_safe = replace(var.os_version, ".", "-")
@@ -396,7 +409,7 @@ locals {
 
   # Final image name construction
   # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-{architecture}-{timestamp}
-  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.timestamp}"
+  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {

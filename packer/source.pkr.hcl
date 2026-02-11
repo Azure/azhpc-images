@@ -43,7 +43,7 @@ source "azure-arm" "hpc" {
       resource_group       = var.sig_resource_group_name
       gallery_name         = var.sig_gallery_name
       image_name           = var.sig_image_name != "" ? var.sig_image_name : local.sig_image_definition
-      image_version        = var.sig_image_version != "" ? var.sig_image_version : local.sig_version
+      image_version        = local.image_version
       replication_regions  = local.sig_replication_regions
       storage_account_type = var.sig_storage_account_type
     }
@@ -80,7 +80,7 @@ source "azure-arm" "hpc" {
     OS        = "${var.os_family}-${var.os_version}"
     GPU       = "${local.gpu_platform}-${local.gpu_sku}"
     ManagedBy = "Packer"
-    BuildTime = local.timestamp
+    BuildTime = local.iso_format_start_time
     Source    = "azhpc-images"
   }
 }

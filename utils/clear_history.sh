@@ -140,29 +140,5 @@ do
 done
 sync;
 
-# Remove the AzNHC log
-sudo rm -f /opt/azurehpc/test/azurehpc-health-checks/health.log
-
-# Uninstall the OMS Agent
-wget -qO- https://raw.githubusercontent.com/microsoft/OMS-Agent-for-Linux/master/installer/scripts/uninstall.sh | sudo bash
-
-# Switch to the root user
-sudo -s <<EOF
-# Disable root account
-usermod root -p '!!'
-# Deprovision the user
-waagent -deprovision+user -force
-# Delete the last line of the file /etc/sysconfig/network-scripts/ifcfg-eth0 -> cloud-init issue on alma distros
-if [[ "$distro" == *"AlmaLinux"*  ]]
-then
-    sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
-fi
-# Clear the sudoers.d folder - last user information
-rm -rf /etc/sudoers.d/*
-# Delete /1 folder
-rm -rf /1
-touch /var/run/utmp
-# clear command history
 cat /dev/null > ~/.bash_history
 export HISTSIZE=0 && history -c && sync
-EOF

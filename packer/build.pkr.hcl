@@ -231,11 +231,21 @@ build {
   # --------------------------------------------------------------------------
   provisioner "shell" {
     name           = "Clear history and deprovision"
-    skip_clean      = true  # waagent deprovision kills SSH, so Packer can't clean up
+    # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     inline = [
       "cd /opt/azhpc-images/utils",
       "sudo ./clear_history.sh"
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "Clear history and deprovision (temporary epilog)"
+    skip_clean     = true
+    inline_shebang = "/bin/bash -e"
+    inline = [
+      "cd /opt/azhpc-images/utils",
+      "sudo ./clear_history_epilog.sh"
     ]
   }
   

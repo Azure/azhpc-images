@@ -253,8 +253,8 @@ variable "publish_to_sig" {
 locals {
   publish_to_sig = try(convert(lower(var.publish_to_sig), bool), false)
   # SIG currently takes dependency on managed image creation
-  # Packer requires you to create at least "something" so we default to true for an ephemeral managed image
   create_image = try(convert(lower(var.create_image), bool), true) || local.publish_to_sig
+  skip_create_artifacts = !local.create_vhd && !local.create_image
 }
 
 variable "managed_image_resource_group_name" {

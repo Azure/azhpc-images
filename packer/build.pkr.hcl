@@ -233,7 +233,9 @@ build {
     name           = "Clear history and deprovision"
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
-    inline = [
+    inline = local.skip_create_artifacts ? [
+      "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
+    ] : [
       "cd /opt/azhpc-images/utils",
       "sudo ./clear_history.sh"
     ]
@@ -243,7 +245,9 @@ build {
     name           = "Clear history and deprovision (temporary epilog)"
     skip_clean     = true
     inline_shebang = "/bin/bash -e"
-    inline = [
+    inline = local.skip_create_artifacts ? [
+      "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
+    ] : [
       "cd /opt/azhpc-images/utils",
       "sudo ./clear_history_epilog.sh"
     ]

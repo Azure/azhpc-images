@@ -23,10 +23,12 @@ source "azure-arm" "hpc" {
   temp_resource_group_name  = local.temp_resource_group_name
   location                  = local.location
   build_resource_group_name = local.build_resource_group_name
+  skip_create_image         = local.skip_create_artifacts
   
   # Output: Create managed image in your resource group
-  managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
-  managed_image_name                = local.create_image ? local.image_name : null
+  # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables
+  managed_image_resource_group_name = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
+  managed_image_name                = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
   
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null

@@ -76,7 +76,7 @@ source "azure-arm" "hpc" {
 
   # Resource tagging for tracking and governance
   azure_tags = {
-    Owner     = var.owner_alias != "" ? var.owner_alias : "packer-user"
+    Owner     = local.owner_alias
     OS        = "${var.os_family}-${var.os_version}"
     GPU       = "${local.gpu_platform}-${local.gpu_sku}"
     ManagedBy = "Packer"

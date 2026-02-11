@@ -93,10 +93,45 @@ variable "skip_validation" {
   default     = false
 }
 
+variable "build_requestedfor" {
+  type        = string
+  description = "Alias of the user who requested the build. Auto-populated in environment by Azure DevOps."
+  default     = env("BUILD_REQUESTEDFOR")
+}
+
+variable "build_buildid" {
+  type        = string
+  description = "Build ID of the current build. Auto-populated in environment by Azure DevOps."
+  default     = env("BUILD_BUILDID")
+}
+
 variable "owner_alias" {
   type        = string
   description = "Your alias for Azure resource tagging"
-  default     = ""
+  default     = null
+}
+
+variable "current_user" {
+  type        = string
+  description = "current user as specified in environment variable (Linux)"
+  default     = env("USER")
+}
+
+variable "current_username" {
+  type        = string
+  description = "current username as specified in environment variable (Windows)"
+  default     = env("USERNAME")
+}
+
+locals {
+  owner_alias   = coalesce(
+    var.owner_alias,
+    var.build_requestedforemail,
+    var.build_requestedfor,
+    var.current_user,
+    var.current_username,
+    "packer-user"
+  )
 }
 
 # =============================================================================

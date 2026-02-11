@@ -87,6 +87,12 @@ locals {
   build_resource_group_name = local.externally_managed_resource_group ? local.azure_resource_group : null # use existing rg if externally managed
 }
 
+variable "enable_first_party_specifics" {
+  type        = bool
+  description = "Whether to enable first-party-specific operations, such as certain Azure tags, MDE installation, etc."
+  default     = false
+}
+
 variable "skip_validation" {
   type        = bool
   description = "Skip test and health check validation (useful for faster debugging)"
@@ -326,22 +332,6 @@ variable "sig_storage_account_type" {
 variable "build_id" {
   type        = string
   description = "Build identifier for tracking"
-  default     = ""
-}
-
-# =============================================================================
-# ADO Pipeline Variables (used by Azure DevOps pipelines)
-# =============================================================================
-
-variable "upload_sbom_to_kusto" {
-  type        = bool
-  description = "Upload SBOM and Trivy reports to Kusto after build (ADO pipeline)"
-  default     = false
-}
-
-variable "pipeline_start_time" {
-  type        = string
-  description = "ISO format pipeline start time (ADO pipeline)"
   default     = ""
 }
 

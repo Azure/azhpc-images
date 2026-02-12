@@ -19,6 +19,8 @@ source "azure-arm" "hpc" {
   # TODO: support additional authentication methods
   use_azure_cli_auth = true
 
+  # TODO: support accelerated networking
+
   # RG for build VM; see locals for distinction
   temp_resource_group_name  = local.temp_resource_group_name
   location                  = local.location

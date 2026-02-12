@@ -20,17 +20,26 @@ variable "os_family" {
   type        = string
   description = "OS family: ubuntu, alma, or azurelinux"
   default     = "ubuntu"
-  
-  validation {
-    condition     = contains(["ubuntu", "alma", "azurelinux"], var.os_family)
-    error_message = "OS family must be one of: ubuntu, alma, or azurelinux."
-  }
 }
 
 variable "distro_version" {
   type        = string
   description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.6, 3.0)"
-  default     = "22.04"
+  default     = "24.04"
+}
+
+variable "os_version" {
+  type        = string
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, azurelinux3.0)"
+  default     = env("OS_VERSION")
+}
+
+locals {
+  # derive os_version from os_family + distro_version if not explicitly set
+  os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
+  os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
+  os_family  = regex(local.os_version_regex, var.os_version)[0]
+  distro_version = regex(local.os_version_regex, var.os_version)[1]
 }
 
 variable "vm_size" {

@@ -63,6 +63,15 @@ locals {
   )
 }
 
+variable "use_spot_instances" {
+  type        = string
+  description = "Whether to use spot instances for the build VM"
+  default     = env("USE_SPOT_INSTANCES")
+}
+locals {
+  use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
+}
+
 variable "azure_resource_group" {
   type        = string
   description = "Azure resource group where the build VM will be created"

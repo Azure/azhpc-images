@@ -26,6 +26,13 @@ source "azure-arm" "hpc" {
   location                  = local.location
   build_resource_group_name = local.build_resource_group_name
   skip_create_image         = local.skip_create_artifacts
+
+  dynamic "spot" {
+    for_each = local.use_spot_instances ? [1] : []
+    content {
+      eviction_policy = "Deallocate"
+    }
+  }
   
   # Output: Create managed image in your resource group
   # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables

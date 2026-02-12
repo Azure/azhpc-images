@@ -27,9 +27,9 @@ variable "os_family" {
   }
 }
 
-variable "os_version" {
+variable "distro_version" {
   type        = string
-  description = "OS version (e.g., 22.04, 24.04, 8.10, 9.6, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.6, 3.0)"
   default     = "22.04"
 }
 
@@ -446,7 +446,7 @@ locals {
   numeric_timestamp = formatdate("YYYYMMDDHHmm", locals.iso_format_start_time)
   
   # Image naming components
-  os_version_safe = replace(var.os_version, ".", "-")
+  distro_version_safe = replace(var.distro_version, ".", "-")
   
   # Azure Linux base image type suffix (only for azurelinux)
   azl_type_suffix = var.os_family == "azurelinux" ? (
@@ -460,8 +460,8 @@ locals {
   architecture = local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "aarch64" : "x86_64"
 
   # Final image name construction
-  # Format: {os_family}-{os_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-{architecture}-{timestamp}
-  image_name = "${var.os_family}-${local.os_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
+  # Format: {os_family}-{distro_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-{architecture}-{timestamp}
+  image_name = "${var.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {
@@ -511,14 +511,14 @@ locals {
 
   use_direct_shared_gallery_base_image = local.azl3_base_image_type == "1P-FIPS" || local.azl3_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
   custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
-  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (local.custom_base_image_detail != [] ? local.custom_base_image_detail : builtin_marketplace_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.os_version])
+  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (local.custom_base_image_detail != [] ? local.custom_base_image_detail : builtin_marketplace_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.distro_version])
   image_publisher = marketplace_base_image_detail[0]
   image_offer = marketplace_base_image_detail[1]
   image_sku = marketplace_base_image_detail[2]
-  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.os_version]) : null
+  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.distro_version]) : null
 
   # Distribution string for azhpc-images scripts
-  distribution = "${var.os_family}${var.os_version}"
+  distribution = "${var.os_family}${var.distro_version}"
 
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
@@ -553,5 +553,5 @@ locals {
       }
     }
   }
-  internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][var.os_family][var.os_version]
+  internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][var.os_family][var.distro_version]
 }

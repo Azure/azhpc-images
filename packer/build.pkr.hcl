@@ -31,7 +31,7 @@ build {
       "echo ''",
       "echo '=== Operating System ==='",
       "echo 'OS Family:               ${var.os_family}'",
-      "echo 'OS Version:              ${var.os_version}'",
+      "echo 'Distro Version:           ${var.distro_version}'",
       "echo 'Distribution:            ${local.distribution}'",
       "echo 'Publisher:               ${local.image_publisher}'",
       "echo 'Offer:                   ${local.image_offer}'",
@@ -95,7 +95,7 @@ build {
     script = "scripts/prerequisites.sh"
     environment_vars = [
       "OS_FAMILY=${var.os_family}",
-      "OS_VERSION=${var.os_version}",
+      "OS_VERSION=${var.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "INSTALL_MDATP=${var.install_mdatp}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
@@ -145,7 +145,7 @@ build {
   # --------------------------------------------------------------------------
   provisioner "shell" {
     inline = [
-      "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.os_version} --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""} --image-version ${local.image_version}"
+      "python3 /opt/azhpc-images/packer/scripts/run-install.py --os ${var.os_family} --version ${var.distro_version} --gpu-platform ${local.gpu_platform} --gpu-sku ${local.gpu_sku}${var.aks_host_image ? " --aks" : ""} --image-version ${local.image_version}"
     ]
     environment_vars = [
       "DEBIAN_FRONTEND=noninteractive"
@@ -215,7 +215,7 @@ build {
       "echo 'HPC Image Build Complete'",
       "echo '=========================================='",
       "echo 'Image: ${local.image_name}'",
-      "echo 'OS: ${var.os_family} ${var.os_version}'",
+      "echo 'OS: ${var.os_family} ${var.distro_version}'",
       "echo 'GPU: ${local.gpu_platform} ${local.gpu_sku}'",
       "echo ''",
       "cat /opt/packer/azhpc-build-info.txt 2>/dev/null || true",
@@ -275,7 +275,7 @@ build {
     strip_path = true
     custom_data = {
       os_family  = var.os_family
-      os_version = var.os_version
+      distro_version = var.distro_version
       gpu_platform = local.gpu_platform
       gpu_sku  = local.gpu_sku
       image_name = local.image_name

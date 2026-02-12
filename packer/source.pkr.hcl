@@ -82,7 +82,7 @@ source "azure-arm" "hpc" {
 
   # Resource tagging for tracking and governance
   azure_tags = {
-    OS        = "${var.os_family}-${var.os_version}"
+    OS        = "${var.os_family}-${var.distro_version}"
     GPU       = "${local.gpu_platform}-${local.gpu_sku}"
     ManagedBy = "Packer"
     BuildTime = local.iso_format_start_time

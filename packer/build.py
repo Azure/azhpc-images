@@ -53,7 +53,7 @@ def build_image(args, git):
         f'-var=build_id={build_id}',
         f'-var=image_version={args.image_version}',
         f'-var=os_family={args.os}',
-        f'-var=os_version={args.version}',
+        f'-var=distro_version={args.version}',
         f'-var=vhd_resource_group_name={args.vhd_resource_group_name}',
         f'-var=azure_location={args.location}',
         f'-var=skip_validation={str(args.skip_validation).lower()}',

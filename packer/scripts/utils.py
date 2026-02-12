@@ -94,13 +94,13 @@ GPU_PLATFORM_MAP = {
 }
 
 
-def get_distro_name(os_family: str, os_version: str) -> str:
-    """Map os_family + os_version to distribution directory name.
+def get_distro_name(os_family: str, distro_version: str) -> str:
+    """Map os_family + distro_version to distribution directory name.
     
     Example: get_distro_name('ubuntu', '22.04') -> 'ubuntu22.04'
     """
     prefix = DISTRO_PREFIX_MAP.get(os_family)
-    return f"{prefix}{os_version}" if prefix else None
+    return f"{prefix}{distro_version}" if prefix else None
 
 
 def get_gpu_platform(gpu_vendor: str) -> str:

@@ -13,7 +13,7 @@ set -euo pipefail
 #
 # Environment variables:
 #   OS_FAMILY        - OS family (ubuntu, alma, azurelinux)
-#   OS_VERSION       - OS version (22.04, 24.04, etc.)
+#   DISTRO_VERSION   - Distro version (22.04, 24.04, etc.)
 #   GPU_SKU          - GPU SKU (a100, h100, gb200, mi300x) - required
 #   INSTALL_MDATP    - Install Microsoft Defender (true/false)
 #   GB200_PARTUUID   - Disk PARTUUID for GB200 builds (None for non-GB200)
@@ -53,7 +53,7 @@ fi
 
 echo "========================================="
 echo "Prerequisites: Kernel, MDATP, Package Updates"
-echo "OS: ${OS_FAMILY:-unknown} ${OS_VERSION:-unknown}"
+echo "OS: ${OS_FAMILY:-unknown} ${DISTRO_VERSION:-unknown}"
 echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
 echo "Install mdatp: ${INSTALL_MDATP:-true}"
 echo "AKS Host Image: ${AKS_HOST_IMAGE:-false}"
@@ -239,15 +239,15 @@ install_ubuntu_gb200_kernel() {
 if [[ -z "${OS_FAMILY:-}" ]]; then
     source /etc/os-release
     case "$ID" in
-        ubuntu) OS_FAMILY="ubuntu"; OS_VERSION="${VERSION_ID}" ;;
-        almalinux) OS_FAMILY="alma"; OS_VERSION="${VERSION_ID}" ;;
-        azurelinux|mariner) OS_FAMILY="azurelinux"; OS_VERSION="${VERSION_ID}" ;;
+        ubuntu) OS_FAMILY="ubuntu"; DISTRO_VERSION="${VERSION_ID}" ;;
+        almalinux) OS_FAMILY="alma"; DISTRO_VERSION="${VERSION_ID}" ;;
+        azurelinux|mariner) OS_FAMILY="azurelinux"; DISTRO_VERSION="${VERSION_ID}" ;;
         *) echo "Unknown OS: $ID"; exit 1 ;;
     esac
 fi
 
 # Combine OS family and version for matching
-OS_TYPE="${OS_FAMILY}${OS_VERSION}"
+OS_TYPE="${OS_FAMILY}${DISTRO_VERSION}"
 
 ####
 # @Brief        : Install LTS kernel for Ubuntu (non-GB200)
@@ -375,7 +375,7 @@ fi
 # OS-specific prerequisites
 case "${OS_FAMILY}" in
     ubuntu)
-        install_ubuntu_lts_kernel "${OS_VERSION}"
+        install_ubuntu_lts_kernel "${DISTRO_VERSION}"
         ;;
     alma|almalinux)
         update_rhel_packages "alma"

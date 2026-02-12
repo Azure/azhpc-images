@@ -95,7 +95,7 @@ build {
     script = "scripts/prerequisites.sh"
     environment_vars = [
       "OS_FAMILY=${var.os_family}",
-      "OS_VERSION=${var.distro_version}",
+      "DISTRO_VERSION=${var.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "INSTALL_MDATP=${var.install_mdatp}",
       "GB200_PARTUUID=${var.gb200_partuuid}",

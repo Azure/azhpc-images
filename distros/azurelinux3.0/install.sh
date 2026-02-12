@@ -17,10 +17,10 @@ if [[ "$#" -gt 0 ]]; then
     fi
 fi
 
+source ../../utils/set_properties.sh
+
 # install pre-requisites
 ./install_prerequisites.sh
-
-source ../../utils/set_properties.sh
 
 # install utils
 ./install_utils.sh

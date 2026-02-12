@@ -62,7 +62,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     rdma-core \
                     rdma-core-devel \
                     mstflint \
-                    fwctl \
                     ibacm \
                     ibarr \
                     ibsim \

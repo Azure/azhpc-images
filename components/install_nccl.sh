@@ -71,7 +71,7 @@ if [[ "$DISTRIBUTION" == "ubuntu22.04" && "$SKU" == "GB200" ]]; then
     # To get around configure.ac:44: error: required file './ltmain.sh' not found
     apt install libtool -y
     libtoolize
-else if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
+elif [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
     libtoolize --verbose
 fi
 

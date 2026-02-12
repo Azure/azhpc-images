@@ -19,9 +19,6 @@ fi
 
 source ../../utils/set_properties.sh
 
-# install pre-requisites
-./install_prerequisites.sh
-
 # install utils
 ./install_utils.sh
 
@@ -43,6 +40,14 @@ if [ "$GPU" = "NVIDIA" ]; then
     
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
+
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        # Install nvshmem
+        $COMPONENT_DIR/install_nvshmem.sh
+
+        # Install nvloom
+        $COMPONENT_DIR/install_nvloom.sh
+    fi
     
     # Install NVIDIA docker container
     $COMPONENT_DIR/install_docker.sh

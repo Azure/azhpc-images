@@ -765,5 +765,26 @@
                 "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
             }
         }
+    },
+    "nvshmem": {
+        "azurelinux3.0": {
+            "aarch64": {    
+                "version": "3.5.19"
+            }
+        }
+    },
+    "nvloom": {
+        "azurelinux3.0": {
+            "aarch64": {
+                "version": "1.2.0",
+                "url": "https://github.com/NVIDIA/nvloom.git"
+            }
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "version": "1.2.0",
+                "url": "https://github.com/NVIDIA/nvloom.git"
+            }
+        }
     }
 }

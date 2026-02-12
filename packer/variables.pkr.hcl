@@ -187,9 +187,11 @@ locals {
     "TipNode.SessionId" = (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? local.tip_session_id : null
   } : {}
   owner_tag = (local.owner_alias != null && local.owner_alias != "") ? {"Owner" = local.owner_alias} : {}
+  buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? {"BuildId" = var.build_buildid} : {}
   all_tags = merge(
     local.first_party_tags,
     local.owner_tag,
+    local.buildid_tag,
     var.extra_tags,
   )
 }
@@ -399,12 +401,6 @@ variable "sig_storage_account_type" {
   type        = string
   description = "Storage account type for the gallery image version"
   default     = "Premium_LRS"
-}
-
-variable "build_id" {
-  type        = string
-  description = "Build identifier for tracking"
-  default     = ""
 }
 
 # =============================================================================

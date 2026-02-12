@@ -154,13 +154,43 @@ variable "current_username" {
 }
 
 locals {
-  owner_alias   = coalesce(
+  owner_alias   = try(coalesce(
     var.owner_alias,
     var.build_requestedforemail,
     var.build_requestedfor,
     var.current_user,
-    var.current_username,
-    "packer-user"
+    var.current_username
+  ), null)
+}
+
+# TiP (Test in Production) session - convenience variable for GB-Family SKUs
+# If provided, adds 'TipNode.SessionId' tag to target specific hardware rack
+variable "tip_session_id" {
+  type        = string
+  description = "TiP Session ID for GB-Family SKUs. Specify 'None' or leave empty for non-GB-Family SKUs."
+  default     = env("TIP_SESSION_ID")
+}
+locals {
+  tip_session_id = coalesce(var.tip_session_id, "None")
+}
+
+variable "extra_tags" {
+  type        = map(string)
+  description = "Additional tags to apply to all Azure resources created during the build. Useful for cost tracking, compliance, or custom metadata."
+  default     = {}
+}
+
+locals {
+  first_party_tags = var.enable_first_party_specifics ? {
+    "OptOutOfBakedInExtensions" = "",
+    "SkipASMAzSecPack" = "true",
+    "TipNode.SessionId" = (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? local.tip_session_id : null
+  } : {}
+  owner_tag = (local.owner_alias != null && local.owner_alias != "") ? {"Owner" = local.owner_alias} : {}
+  all_tags = merge(
+    local.first_party_tags,
+    local.owner_tag,
+    var.extra_tags,
   )
 }
 

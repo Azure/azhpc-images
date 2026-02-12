@@ -84,17 +84,11 @@ source "azure-arm" "hpc" {
   ssh_handshake_attempts = 100
   ssh_pty                = true
 
-  azure_tag {
-    name  = "Owner"
-    value = local.owner_alias
-  }
-
-  # Resource tagging for tracking and governance
-  azure_tags = {
-    OS        = "${var.os_family}-${var.distro_version}"
-    GPU       = "${local.gpu_platform}-${local.gpu_sku}"
-    ManagedBy = "Packer"
-    BuildTime = local.iso_format_start_time
-    Source    = "azhpc-images"
+  dynamic "azure_tag" {
+    for_each = local.all_tags
+    content {
+      name  = azure_tag.key
+      value = azure_tag.value
+    }
   }
 }

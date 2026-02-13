@@ -30,7 +30,7 @@ else
         # tdnf will automatically pick the correct nvidia driver version for
         # gdrcopy kmod package
 
-        if [ "$ARCH" = "aarch64" ]; then
+        if [ "$ARCHITECTURE" = "aarch64" ]; then
             # Install gdrcopy kmod and devel packages from PMC
             tdnf -y install gdrcopy \
                             gdrcopy-hwe-kmod \

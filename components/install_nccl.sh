@@ -46,7 +46,7 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     make pkg.redhat.build
-    if [ "$ARCH" = "aarch64" ]; then
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
         tdnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
         tdnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
         tdnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm

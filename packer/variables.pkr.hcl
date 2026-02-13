@@ -117,6 +117,33 @@ variable "skip_validation" {
   default     = false
 }
 
+variable "private_virtual_network_with_public_ip" {
+  type        = bool
+  description = "Whether to use a private virtual network with a public IP for the build VM."
+  default     = false
+}
+locals {
+  private_virtual_network_with_public_ip = try(convert(lower(var.private_virtual_network_with_public_ip), bool), false) || local.enable_first_party_specifics
+}
+
+variable "virtual_network_name" {
+  type        = string
+  description = "Name of a pre-existing virtual network to use for the build VM"
+  default     = null
+}
+
+variable "virtual_network_subnet_name" {
+  type        = string
+  description = "Name of a pre-existing subnet within the specified virtual network to use for the build VM"
+  default     = null
+}
+
+variable "virtual_network_resource_group_name" {
+  type        = string
+  description = "Name of the resource group containing the specified virtual network"
+  default     = null
+}
+
 variable "build_requestedforemail" {
   type        = string
   description = "Email of the user who requested the build. Auto-populated in environment by Azure DevOps."

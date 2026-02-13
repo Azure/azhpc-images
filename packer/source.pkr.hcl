@@ -27,6 +27,11 @@ source "azure-arm" "hpc" {
   build_resource_group_name = local.build_resource_group_name
   skip_create_image         = local.skip_create_artifacts
 
+  private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
+  virtual_network_name                   = local.virtual_network_name
+  virtual_network_subnet_name            = local.virtual_network_subnet_name
+  virtual_network_resource_group_name    = local.virtual_network_resource_group_name
+
   dynamic "spot" {
     for_each = local.use_spot_instances ? [1] : []
     content {

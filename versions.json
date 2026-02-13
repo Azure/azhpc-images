@@ -530,7 +530,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.26.2-1",
+                "version": "2.28.3-1",
+                "rdmasharpplugins": {
+                    "commit": "master"
+                }
+            },
+            "aarch64": {
+                "version": "2.28.3-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }

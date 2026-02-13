@@ -650,7 +650,7 @@
         "ubuntu22.04": {
             "x86_64":{
                 "version": "6.2.4",
-                "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/noble/amdgpu-install_6.2.60204-1_all.deb",
+                "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
                 "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
             }
         },
@@ -678,7 +678,7 @@
         "ubuntu24.04": {
             "x86_64": {
                 "version": "2.22.3",
-                "branch": "release/rocm-6.4.4",
+                "branch": "release/rocm-rel-6.4",
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
                 "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
@@ -687,7 +687,7 @@
         "azurelinux3.0": {
             "x86_64": {
                 "version": "2.22.3",
-                "branch": "release/rocm-6.4.4",
+                "branch": "release/rocm-rel-6.4",
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
                 "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"

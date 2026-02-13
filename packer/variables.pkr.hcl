@@ -38,8 +38,8 @@ locals {
   # derive os_version from os_family + distro_version if not explicitly set
   os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
-  os_family  = regex(local.os_version_regex, var.os_version)[0]
-  distro_version = regex(local.os_version_regex, var.os_version)[1]
+  os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
+  distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
 }
 
 variable "vm_size" {
@@ -111,11 +111,11 @@ variable "enable_first_party_specifics" {
   default     = false
 }
 
-variable "skip_validation" {
-  type        = bool
-  description = "Skip test and health check validation (useful for faster debugging)"
-  default     = false
-}
+# variable "skip_validation" {
+#   type        = bool
+#   description = "Skip test and health check validation (useful for faster debugging)"
+#   default     = false
+# }
 
 variable "private_virtual_network_with_public_ip" {
   type        = bool
@@ -123,7 +123,7 @@ variable "private_virtual_network_with_public_ip" {
   default     = false
 }
 locals {
-  private_virtual_network_with_public_ip = try(convert(lower(var.private_virtual_network_with_public_ip), bool), false) || local.enable_first_party_specifics
+  private_virtual_network_with_public_ip = try(convert(lower(var.private_virtual_network_with_public_ip), bool), false) || var.enable_first_party_specifics
 }
 
 variable "virtual_network_name" {
@@ -227,35 +227,35 @@ locals {
 # Source Code Tracking Variables
 # =============================================================================
 
-variable "azhpc_commit" {
-  type        = string
-  description = "Git commit hash of azhpc-images (auto-detected by build.sh)"
-  default     = "unknown"
-}
+# variable "azhpc_commit" {
+#   type        = string
+#   description = "Git commit hash of azhpc-images (auto-detected by build.sh)"
+#   default     = "unknown"
+# }
 
-variable "azhpc_path" {
-  type        = string
-  description = "Absolute path to azhpc-images directory (auto-detected by build.sh)"
-  default     = ".."
-}
+# variable "azhpc_path" {
+#   type        = string
+#   description = "Absolute path to azhpc-images directory (auto-detected by build.sh)"
+#   default     = ".."
+# }
 
-variable "mdatp_path" {
-  type        = string
-  description = "Path to mdatp onboarding package directory (empty to skip mdatp installation)"
-  default     = ""
-}
+# variable "mdatp_path" {
+#   type        = string
+#   description = "Path to mdatp onboarding package directory (empty to skip mdatp installation)"
+#   default     = ""
+# }
 
-variable "azhpc_repo_url" {
-  type        = string
-  description = "Git remote URL of azhpc-images (auto-detected by build.sh)"
-  default     = "unknown"
-}
+# variable "azhpc_repo_url" {
+#   type        = string
+#   description = "Git remote URL of azhpc-images (auto-detected by build.sh)"
+#   default     = "unknown"
+# }
 
-variable "azhpc_branch" {
-  type        = string
-  description = "Git branch of azhpc-images (auto-detected by build.sh)"
-  default     = "unknown"
-}
+# variable "azhpc_branch" {
+#   type        = string
+#   description = "Git branch of azhpc-images (auto-detected by build.sh)"
+#   default     = "unknown"
+# }
 
 # =============================================================================
 # Custom Base Image Details
@@ -354,7 +354,7 @@ variable "publish_to_sig" {
 locals {
   publish_to_sig = try(convert(lower(var.publish_to_sig), bool), false)
   # SIG currently takes dependency on managed image creation
-  create_image = try(convert(lower(var.create_image), bool), true) || local.publish_to_sig
+  create_image = try(convert(lower(var.create_image), bool), false) || local.publish_to_sig
   skip_create_artifacts = !local.create_vhd && !local.create_image
 }
 
@@ -483,29 +483,29 @@ variable "aks_host_image" {
 # Microsoft Defender for Endpoint (mdatp) Variables
 # =============================================================================
 
-variable "install_mdatp" {
-  type        = bool
-  description = "Install and onboard Microsoft Defender for Endpoint"
-  default     = true
-}
+# variable "install_mdatp" {
+#   type        = bool
+#   description = "Install and onboard Microsoft Defender for Endpoint"
+#   default     = true
+# }
 
-variable "mdatp_storage_account" {
-  type        = string
-  description = "Azure storage account containing mdatp onboarding package"
-  default     = "azhpcstoralt"
-}
+# variable "mdatp_storage_account" {
+#   type        = string
+#   description = "Azure storage account containing mdatp onboarding package"
+#   default     = "azhpcstoralt"
+# }
 
-variable "mdatp_container" {
-  type        = string
-  description = "Azure storage container containing mdatp onboarding package"
-  default     = "atponboardingpackage"
-}
+# variable "mdatp_container" {
+#   type        = string
+#   description = "Azure storage container containing mdatp onboarding package"
+#   default     = "atponboardingpackage"
+# }
 
-variable "mdatp_blob_name" {
-  type        = string
-  description = "Blob name for mdatp onboarding package"
-  default     = "WindowsDefenderATPOnboardingPackage.zip"
-}
+# variable "mdatp_blob_name" {
+#   type        = string
+#   description = "Blob name for mdatp onboarding package"
+#   default     = "WindowsDefenderATPOnboardingPackage.zip"
+# }
 
 # =============================================================================
 # HPC Image Builder - Local Values
@@ -514,7 +514,7 @@ variable "mdatp_blob_name" {
 # =============================================================================
 
 locals {
-  numeric_timestamp = formatdate("YYYYMMDDHHmm", locals.iso_format_start_time)
+  numeric_timestamp = formatdate("YYYYMMDDHHmm", local.iso_format_start_time)
   
   # Image naming components
   distro_version_safe = replace(var.distro_version, ".", "-")
@@ -580,13 +580,13 @@ locals {
     }
   }
 
-  use_direct_shared_gallery_base_image = local.azl3_base_image_type == "1P-FIPS" || local.azl3_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
+  use_direct_shared_gallery_base_image = local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
   custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
-  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (local.custom_base_image_detail != [] ? local.custom_base_image_detail : builtin_marketplace_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.distro_version])
-  image_publisher = marketplace_base_image_detail[0]
-  image_offer = marketplace_base_image_detail[1]
-  image_sku = marketplace_base_image_detail[2]
-  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl3_base_image_type][var.os_family][var.distro_version]) : null
+  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][var.os_family][var.distro_version])
+  image_publisher = local.marketplace_base_image_detail[0]
+  image_offer = local.marketplace_base_image_detail[1]
+  image_sku = local.marketplace_base_image_detail[2]
+  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][var.os_family][var.distro_version]) : null
 
   # Distribution string for azhpc-images scripts
   distribution = "${var.os_family}${var.distro_version}"

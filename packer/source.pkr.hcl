@@ -28,9 +28,9 @@ source "azure-arm" "hpc" {
   skip_create_image         = local.skip_create_artifacts
 
   private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
-  virtual_network_name                   = local.virtual_network_name
-  virtual_network_subnet_name            = local.virtual_network_subnet_name
-  virtual_network_resource_group_name    = local.virtual_network_resource_group_name
+  virtual_network_name                   = var.virtual_network_name
+  virtual_network_subnet_name            = var.virtual_network_subnet_name
+  virtual_network_resource_group_name    = var.virtual_network_resource_group_name
 
   dynamic "spot" {
     for_each = local.use_spot_instances ? [1] : []
@@ -41,8 +41,8 @@ source "azure-arm" "hpc" {
   
   # Output: Create managed image in your resource group
   # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables
-  managed_image_resource_group_name = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
-  managed_image_name                = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
+  managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
+  managed_image_name                = local.create_image ? local.image_name : null
   
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
@@ -84,7 +84,7 @@ source "azure-arm" "hpc" {
   
   # SSH Configuration
   communicator           = "ssh"
-  ssh_username           = "packer"
+  ssh_username           = "hpcuser"
   ssh_timeout            = "30m"
   ssh_handshake_attempts = 100
   ssh_pty                = true

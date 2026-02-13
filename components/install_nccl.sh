@@ -21,7 +21,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     yum install -y rpm-build rpmdevtools
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rpm-build rpmdevtools autoconf automake git
+    tdnf install -y rpm-build rpmdevtools autoconf automake git libtool
 fi
 
 pushd /tmp

@@ -83,7 +83,7 @@ rm -rf /var/intel/ /var/cache/*
 rm -Rf -- */
 
 # optimizations
-$COMPONENT_DIR/8ujn .sh
+$COMPONENT_DIR/hpc-tuning.sh
 
 if [ "$ARCHITECTURE" != "aarch64" ]; then
     # Install AZNFS Mount Helper

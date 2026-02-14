@@ -232,8 +232,8 @@ function verify_package_updates {
     case ${ID} in
         ubuntu)
             case ${VERSION_ID} in
-                22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04
-                *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" 2>/dev/null | grep -q .;;
+                22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
+                *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" -qq 2>/dev/null | grep -q .;;
             esac;;
         almalinux)
             sudo dnf -y makecache 

@@ -117,6 +117,18 @@ variable "enable_first_party_specifics" {
 #   default     = false
 # }
 
+variable "public_key" {
+  type        = string
+  description = "additional public key to add to the build VM for SSH access"
+  default     = env("PUBLIC_KEY")
+}
+
+variable "default_inline_shebang" {
+  type        = string
+  description = "Default shebang line for inline shell provisioners (e.g., /bin/bash -xe)"
+  default     = "/bin/bash -xe"
+}
+
 variable "private_virtual_network_with_public_ip" {
   type        = bool
   description = "Whether to use a private virtual network with a public IP for the build VM."

@@ -71,6 +71,31 @@ build {
   #     "echo ''",
   #   ]
   # }
+
+  provisioner "shell-local" {
+    name   = "Tarball local public keys"
+    inline_shebang = var.default_inline_shebang
+    inline = ["cd ~/.ssh && tar -cf /tmp/packer_pubkeys.tar *.pub 2>/dev/null || tar -cf /tmp/packer_pubkeys.tar --files-from /dev/null"]
+  }
+
+  provisioner "file" {
+    name        = "Upload public keys tarball"
+    source      = "/tmp/packer_pubkeys.tar"
+    destination = "/tmp/packer_pubkeys.tar"
+    generated   = true
+  }
+
+  provisioner "shell" {
+    name           = "Install public keys into authorized_keys"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
+      "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
+      "if [ -n \"${var.public_key}\" ]; then echo \"${var.public_key}\" >> ~/.ssh/authorized_keys; fi",
+      "chmod 600 ~/.ssh/authorized_keys",
+      "rm -f /tmp/packer_pubkeys.tar /tmp/*.pub",
+    ]
+  }
   
   # # --------------------------------------------------------------------------
   # # Prerequisites: Upload mdatp onboarding package (if available)

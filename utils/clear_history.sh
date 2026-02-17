@@ -46,6 +46,23 @@ find_azurelinux_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2$3}' | cut -d. -f1,2`
 }
 
+# Function to get available space in KiB
+avail_kib() {
+    df --sync -kP "$1" 2>/dev/null | awk 'NR==2{print $4}'
+}
+
+# Function to check if two paths are on the same filesystem
+same_fs() {
+    local path1="$1"
+    local path2="$2"
+    
+    local dev1 dev2
+    dev1=$(df -P "$path1" 2>/dev/null | awk 'NR==2{print $1}')
+    dev2=$(df -P "$path2" 2>/dev/null | awk 'NR==2{print $1}')
+    
+    [[ -n "${dev1}" && "${dev1}" == "${dev2}" ]]
+}
+
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
@@ -158,13 +175,44 @@ else
     yum clean all
 fi
 
-# Zero out unused space to minimize actual disk usage
-for part in $(awk '$3 == "xfs" {print $2}' /proc/mounts)
-do
-    dd if=/dev/zero of=${part}/EMPTY bs=1M || true;
-    rm -f ${part}/EMPTY
-done
-sync;
+fstrim -av || echo "fstrim encountered errors (may not be supported)"
+# Whiteout root filesystem
+echo "Whiteout root filesystem..."
+ROOT_AVAIL_MIB=$(( $(avail_kib "/") / 1024 ))
+ROOT_BUFFER_MIB="${ROOT_BUFFER_MIB:-512}"
+
+if (( ROOT_AVAIL_MIB > ROOT_BUFFER_MIB + 10 )); then
+    ROOT_WRITE_MIB=$(( ROOT_AVAIL_MIB - ROOT_BUFFER_MIB ))
+    echo "Writing ${ROOT_WRITE_MIB} MiB of zeros to root filesystem (leaving ${ROOT_BUFFER_MIB} MiB buffer)..."
+    
+    dd if=/dev/zero of=/.whitespace bs=1M count="${ROOT_WRITE_MIB}" 2>/dev/null || echo "Root whiteout completed with errors"
+    sync
+    rm -f /.whitespace || true
+    sync
+else
+    echo "Insufficient space on root filesystem for whiteout (${ROOT_AVAIL_MIB} MiB available)"
+fi
+
+# Whiteout boot filesystem (if separate)
+if [[ -d /boot ]] && ! same_fs / /boot; then
+    echo "Whiteout boot filesystem (separate from root)..."
+    BOOT_AVAIL_MIB=$(( $(avail_kib "/boot") / 1024 ))
+    BOOT_BUFFER_MIB="${BOOT_BUFFER_MIB:-64}"
+    
+    if (( BOOT_AVAIL_MIB > BOOT_BUFFER_MIB + 10 )); then
+        BOOT_WRITE_MIB=$(( BOOT_AVAIL_MIB - BOOT_BUFFER_MIB ))
+        echo "Writing ${BOOT_WRITE_MIB} MiB of zeros to boot filesystem (leaving ${BOOT_BUFFER_MIB} MiB buffer)..."
+        
+        dd if=/dev/zero of=/boot/.whitespace bs=1M count="${BOOT_WRITE_MIB}" 2>/dev/null || echo "Boot whiteout completed with errors"
+        sync
+        rm -f /boot/.whitespace || true
+        sync
+    else
+        echo "Insufficient space on boot filesystem for whiteout (${BOOT_AVAIL_MIB} MiB available)"
+    fi
+else
+    echo "Boot is on root filesystem, skipping separate whiteout"
+fi
 
 cat /dev/null > ~/.bash_history
 export HISTSIZE=0 && history -c && sync

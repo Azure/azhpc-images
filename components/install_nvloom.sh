@@ -22,7 +22,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
 
     git clone $NVLOOM_DOWNLOAD_URL --branch v$NVLOOM_VERSION
     pushd nvloom
-    git apply /home/packer/azurelinux-hpc/azurelinux/common/azurelinux_nvloom.patch
+    git apply /home/hpcuser/azhpc-images/distros/azurelinux3.0/azurelinux_nvloom.patch
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make -j $(nproc)
     mv nvloom_cli $dest_dir

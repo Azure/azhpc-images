@@ -96,6 +96,17 @@ build {
       "rm -f /tmp/packer_pubkeys.tar /tmp/*.pub",
     ]
   }
+
+  provisioner "shell-local" {
+    name           = "(1P specific) add ip tags to public IP"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "set -o pipefail",
+      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
+      "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
+    ]
+  }
   
   # # --------------------------------------------------------------------------
   # # Prerequisites: Upload mdatp onboarding package (if available)
@@ -143,7 +154,7 @@ build {
   #   environment_vars = ["OS_FAMILY=${var.os_family}"]
   #   execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
   # }
-  
+
   # # --------------------------------------------------------------------------
   # # Upload azhpc-images repository to VM
   # # --------------------------------------------------------------------------

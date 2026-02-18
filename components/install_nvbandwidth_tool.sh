@@ -19,23 +19,23 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" && $ARCHITECTURE == "aarch64" ]]; then
     tdnf install -y cmake
 
     # Download the nvbandwidth tool
-    nvbandwidth_version=0.8
-    nvbandwidth_download_url=https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz
+    NVBANDWIDTH_VERSION=0.8
+    NVBANDWIDTH_DOWNLOAD_URL=https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz
 
-    wget $nvbandwidth_download_url
-    tar -xvf $(basename $nvbandwidth_download_url)
+    wget $NVBANDWIDTH_DOWNLOAD_URL
+    tar -xvf $(basename $NVBANDWIDTH_DOWNLOAD_URL)
     rm -rf ./*.tar.gz
 
     # Install the nvbandwidth tool
-    pushd nvbandwidth-$nvbandwidth_version
+    pushd nvbandwidth-$NVBANDWIDTH_VERSION
     # patch to skip boost static libs on Azure Linux
     sed -i 's/ID=.*fedora/ID=.*fedora|azurelinux/' CMakeLists.txt
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make
-    mv ./nvbandwidth $DEST_DIR
+    mv ./nvbandwidth $dest_dir
     popd
 
-    rm -rf ./nvbandwidth-$nvbandwidth_version
+    rm -rf ./nvbandwidth-$NVBANDWIDTH_VERSION
     write_component_version "NVBANDWIDTH" ${NVBANDWIDTH_VERSION}
     exit 0
 fi

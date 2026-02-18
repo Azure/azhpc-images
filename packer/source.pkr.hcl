@@ -87,7 +87,6 @@ source "azure-arm" "hpc" {
   ssh_username           = "hpcuser"
   ssh_timeout            = "30m"
   ssh_handshake_attempts = 100
-  ssh_pty                = true
 
   dynamic "azure_tag" {
     for_each = local.all_tags

@@ -73,9 +73,9 @@ build {
   # }
 
   provisioner "shell-local" {
-    name   = "Tarball local public keys"
+    name           = "Tarball local public keys"
     inline_shebang = var.default_inline_shebang
-    inline = ["cd ~/.ssh && tar -cf /tmp/packer_pubkeys.tar *.pub 2>/dev/null || tar -cf /tmp/packer_pubkeys.tar --files-from /dev/null"]
+    inline         = ["cd ~/.ssh && tar -cf /tmp/packer_pubkeys.tar *.pub 2>/dev/null || tar -cf /tmp/packer_pubkeys.tar --files-from /dev/null"]
   }
 
   provisioner "file" {
@@ -88,7 +88,7 @@ build {
   provisioner "shell" {
     name           = "Install public keys into authorized_keys"
     inline_shebang = var.default_inline_shebang
-    inline = [
+    inline         = [
       "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
       "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
       "if [ -n \"${var.public_key}\" ]; then echo \"${var.public_key}\" >> ~/.ssh/authorized_keys; fi",
@@ -100,7 +100,7 @@ build {
   provisioner "shell-local" {
     name           = "(1P specific) add ip tags to public IP"
     inline_shebang = var.default_inline_shebang
-    inline = [
+    inline         = [
       "set -o pipefail",
       "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
@@ -111,10 +111,10 @@ build {
   provisioner "shell-local" {
     name           = "(1P specific) download mdatp onboarding package"
     inline_shebang = var.default_inline_shebang
-    inline = [
+    inline         = [
       "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
-      "unzip /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
+      "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
     ]
   }
@@ -129,7 +129,7 @@ build {
   provisioner "shell" {
     name           = "(1P specific) install mdatp with onboarding script"
     inline_shebang = var.default_inline_shebang
-    inline = [
+    inline         = [
       "set -o pipefail",
       "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
       "wget -qO- https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
@@ -138,22 +138,19 @@ build {
     ]
   }
   
-  # # --------------------------------------------------------------------------
-  # # Prerequisites: LTS kernel, package updates, mdatp
-  # # --------------------------------------------------------------------------
-  # provisioner "shell" {
-  #   script = "scripts/prerequisites.sh"
-  #   environment_vars = [
-  #     "OS_FAMILY=${var.os_family}",
-  #     "DISTRO_VERSION=${var.distro_version}",
-  #     "GPU_SKU=${local.gpu_sku}",
-  #     "INSTALL_MDATP=${var.install_mdatp}",
-  #     "GB200_PARTUUID=${var.gb200_partuuid}",
-  #     "AKS_HOST_IMAGE=${var.aks_host_image}",
-  #     "DEBIAN_FRONTEND=noninteractive"
-  #   ]
-  #   execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-  # }
+  provisioner "shell" {
+    name             = "Install prerequisites (LTS kernel, package updates)"
+    script           = "scripts/prerequisites.sh"
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "OS_FAMILY=${local.os_family}",
+      "DISTRO_VERSION=${local.distro_version}",
+      "GPU_SKU=${local.gpu_sku}",
+      "GB200_PARTUUID=${var.gb200_partuuid}",
+      "AKS_HOST_IMAGE=${var.aks_host_image}",
+      "DEBIAN_FRONTEND=noninteractive"
+    ]
+  }
   
   # provisioner "shell" {
   #   script            = "scripts/prerequisites-reboot.sh"

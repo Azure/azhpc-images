@@ -107,22 +107,36 @@ build {
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
     ]
   }
-  
-  # # --------------------------------------------------------------------------
-  # # Prerequisites: Upload mdatp onboarding package (if available)
-  # # --------------------------------------------------------------------------
-  # provisioner "shell" {
-  #   inline = ["mkdir -p /tmp/mdatp"]
-  # }
-  
-  # dynamic "provisioner" {
-  #   labels   = ["file"]
-  #   for_each = var.mdatp_path != "" ? [1] : []
-  #   content {
-  #     source      = "${var.mdatp_path}/"
-  #     destination = "/tmp/mdatp"
-  #   }
-  # }
+
+  provisioner "shell-local" {
+    name           = "(1P specific) download mdatp onboarding package"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
+      "unzip /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
+      "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    ]
+  }
+
+  provisioner "file" {
+    name        = "(1P specific) upload mdatp onboarding package"
+    source      = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    destination = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    generated   = true
+  }
+
+  provisioner "shell" {
+    name           = "(1P specific) install mdatp with onboarding script"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "set -o pipefail",
+      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "wget -qO- https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
+      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
+      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    ]
+  }
   
   # # --------------------------------------------------------------------------
   # # Prerequisites: LTS kernel, package updates, mdatp

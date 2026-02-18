@@ -47,10 +47,14 @@ if [ "$GPU" = "NVIDIA" ]; then
 
         # Install nvloom
         $COMPONENT_DIR/install_nvloom.sh
+
+        # Install NVBandwidth tool
+        $COMPONENT_DIR/install_nvbandwidth_tool.sh
     fi
     
     # Install NVIDIA docker container
     $COMPONENT_DIR/install_docker.sh
+
 
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh

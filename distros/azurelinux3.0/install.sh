@@ -93,17 +93,16 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
     # Install AZNFS Mount Helper
     $COMPONENT_DIR/install_aznfs.sh
 
-    # install diagnostic script
-    $COMPONENT_DIR/install_hpcdiag.sh
-
-    # install monitor tools
-    $COMPONENT_DIR/install_monitoring_tools.sh
-
     # install Azure/NHC Health Checks
     $COMPONENT_DIR/install_health_checks.sh "$GPU"
 
 fi
 
+# install diagnostic script
+$COMPONENT_DIR/install_hpcdiag.sh
+
+# install monitor tools
+$COMPONENT_DIR/install_monitoring_tools.sh
 
 # install persistent rdma naming
 $COMPONENT_DIR/install_azure_persistent_rdma_naming.sh

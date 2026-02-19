@@ -13,7 +13,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y $path_var/libnvshmem3-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
     tdnf install -y $path_var/libnvshmem3-devel-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
     tdnf install -y $path_var/libnvshmem3-static-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
-    nvshmem_version=$(tdnf list installed | grep libnvshmem3-cuda-$CUDA_MAJOR_VERSION/ | cut -d' ' -f2)
+    nvshmem_version=$(tdnf list installed | grep libnvshmem3-cuda-$CUDA_MAJOR_VERSION | awk '{print $2}')
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install libnvshmem3-cuda-$CUDA_MAJOR_VERSION libnvshmem3-dev-cuda-$CUDA_MAJOR_VERSION
     nvshmem_version=$(apt list --installed | grep libnvshmem3-cuda-$CUDA_MAJOR_VERSION/ | cut -d' ' -f2)

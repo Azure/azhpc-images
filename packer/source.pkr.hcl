@@ -19,7 +19,7 @@ source "azure-arm" "hpc" {
   # TODO: support additional authentication methods
   use_azure_cli_auth = true
 
-  # TODO: support accelerated networking
+  # TODO: support accelerated networking https://github.com/hashicorp/packer-plugin-azure/pull/580
 
   # RG for build VM; see locals for distinction
   temp_resource_group_name  = local.temp_resource_group_name
@@ -41,8 +41,11 @@ source "azure-arm" "hpc" {
   
   # Output: Create managed image in your resource group
   # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables
-  managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
-  managed_image_name                = local.create_image ? local.image_name : null
+  # https://github.com/hashicorp/packer-plugin-azure/pull/579
+  # managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
+  # managed_image_name                = local.create_image ? local.image_name : null
+  managed_image_resource_group_name = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
+  managed_image_name                = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
   
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null

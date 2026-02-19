@@ -4,15 +4,18 @@ set -euo pipefail
 # Post-reboot cleanup after prerequisites
 
 echo "=========================================="
-echo "Post-reboot: System verification and cleanup"
+echo "Post-reboot: System cleanup and verification"
 echo "=========================================="
 echo "Kernel version: $(uname -r)"
 echo "System uptime: $(uptime)"
 
-# Remove old kernels for RHEL-based distros
 if command -v dnf &> /dev/null; then
     echo "Cleaning up old kernels..."
-    sudo dnf remove -y --oldinstallonly || true
+    # Remove old kernels for RHEL-based distros
+    dnf remove -y --oldinstallonly || true
+    dnf list installed
 fi
 
-echo "Post-reboot cleanup complete"
+if command -v dpkg-query &> /dev/null; then
+    dpkg-query -l
+fi

@@ -225,6 +225,11 @@ install_ubuntu_lts_kernel() {
 ####
 update_rhel_packages() {
     local os_family=$1
+
+    if ! command -v dnf &> /dev/null; then
+        echo "##[warning]dnf package manager not found. Cannot update packages for ${os_family}."
+        return 0
+    fi
     
     echo "##[section]Updating packages for ${os_family}"
     
@@ -265,11 +270,8 @@ case "${OS_FAMILY}" in
     ubuntu)
         install_ubuntu_lts_kernel "${DISTRO_VERSION}"
         ;;
-    alma|azurelinux)
-        update_rhel_packages "${OS_FAMILY}"
-        ;;
     *)
-        echo "##[warning]Unknown OS family: ${OS_FAMILY}"
+        update_rhel_packages "${OS_FAMILY}"
         ;;
 esac
 

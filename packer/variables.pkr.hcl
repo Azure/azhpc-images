@@ -18,7 +18,7 @@ locals {
 
 variable "os_family" {
   type        = string
-  description = "OS family: ubuntu, alma, or azurelinux"
+  description = "OS family: ubuntu, alma, rocky or azurelinux"
   default     = "ubuntu"
 }
 
@@ -30,7 +30,7 @@ variable "distro_version" {
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, rocky8.10, rocky9.6, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
@@ -40,6 +40,7 @@ locals {
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
   os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
   distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
+  os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local.distro_version}"
 }
 
 variable "vm_size" {
@@ -70,6 +71,12 @@ variable "use_spot_instances" {
 }
 locals {
   use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
+}
+
+variable "ssh_username" {
+  type        = string
+  description = "SSH username for the build VM"
+  default     = "hpcuser"
 }
 
 variable "azure_resource_group" {
@@ -108,6 +115,12 @@ locals {
 variable "enable_first_party_specifics" {
   type        = bool
   description = "Whether to enable first-party-specific operations, such as certain Azure tags, MDE installation, etc."
+  default     = false
+}
+
+variable "skip_hpc" {
+  type        = bool
+  description = "Whether to skip HPC-specific provisioning steps for testing purposes"
   default     = false
 }
 
@@ -220,11 +233,12 @@ variable "extra_tags" {
 }
 
 locals {
-  first_party_tags = var.enable_first_party_specifics ? {
+  first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
-    "SkipASMAzSecPack" = "true",
-    "TipNode.SessionId" = (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? local.tip_session_id : null
-  } : {}
+    "SkipASMAzSecPack" = "true"
+    },
+    (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? {"TipNode.SessionId" = local.tip_session_id} : {}
+  ) : {}
   owner_tag = (local.owner_alias != null && local.owner_alias != "") ? {"Owner" = local.owner_alias} : {}
   buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? {"BuildId" = var.build_buildid} : {}
   all_tags = merge(
@@ -234,40 +248,6 @@ locals {
     var.extra_tags,
   )
 }
-
-# =============================================================================
-# Source Code Tracking Variables
-# =============================================================================
-
-# variable "azhpc_commit" {
-#   type        = string
-#   description = "Git commit hash of azhpc-images (auto-detected by build.sh)"
-#   default     = "unknown"
-# }
-
-# variable "azhpc_path" {
-#   type        = string
-#   description = "Absolute path to azhpc-images directory (auto-detected by build.sh)"
-#   default     = ".."
-# }
-
-# variable "mdatp_path" {
-#   type        = string
-#   description = "Path to mdatp onboarding package directory (empty to skip mdatp installation)"
-#   default     = ""
-# }
-
-# variable "azhpc_repo_url" {
-#   type        = string
-#   description = "Git remote URL of azhpc-images (auto-detected by build.sh)"
-#   default     = "unknown"
-# }
-
-# variable "azhpc_branch" {
-#   type        = string
-#   description = "Git branch of azhpc-images (auto-detected by build.sh)"
-#   default     = "unknown"
-# }
 
 # =============================================================================
 # Custom Base Image Details
@@ -490,6 +470,9 @@ variable "aks_host_image" {
   description = "Build AKS host image instead of standard HPC image (uses install_aks.sh)"
   default     = false
 }
+locals {
+  install_script_name = var.aks_host_image ? "install_aks.sh" : "install.sh"
+}
 
 # =============================================================================
 # Microsoft Defender for Endpoint (mdatp) Variables
@@ -529,10 +512,10 @@ locals {
   numeric_timestamp = formatdate("YYYYMMDDHHmm", local.iso_format_start_time)
   
   # Image naming components
-  distro_version_safe = replace(var.distro_version, ".", "-")
+  distro_version_safe = replace(local.distro_version, ".", "-")
   
   # Azure Linux base image type suffix (only for azurelinux)
-  azl_type_suffix = var.os_family == "azurelinux" ? (
+  azl_type_suffix = local.os_family == "azurelinux" ? (
     local.azl_base_image_type == "Marketplace" ? "-mkt-fips" :
     local.azl_base_image_type == "Marketplace-Non-FIPS" ? "-mkt" :
     local.azl_base_image_type == "1P-FIPS" ? "-1p-fips" :
@@ -544,7 +527,7 @@ locals {
 
   # Final image name construction
   # Format: {os_family}-{distro_version}[-{azl_suffix}]-{gpu_platform}-{gpu_sku}-{architecture}-{timestamp}
-  image_name = "${var.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
+  image_name = "${local.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {
@@ -594,14 +577,14 @@ locals {
 
   use_direct_shared_gallery_base_image = local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
   custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
-  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][var.os_family][var.distro_version])
+  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])
   image_publisher = local.marketplace_base_image_detail[0]
   image_offer = local.marketplace_base_image_detail[1]
   image_sku = local.marketplace_base_image_detail[2]
-  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][var.os_family][var.distro_version]) : null
+  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version]) : null
 
   # Distribution string for azhpc-images scripts
-  distribution = "${var.os_family}${var.distro_version}"
+  distribution = "${local.os_family}${local.distro_version}"
 
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
@@ -636,5 +619,5 @@ locals {
       }
     }
   }
-  internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][var.os_family][var.distro_version]
+  internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
 }

@@ -91,7 +91,7 @@ build {
     inline         = [
       "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
       "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
-      "if [ -n \"${var.public_key}\" ]; then echo \"${var.public_key}\" >> ~/.ssh/authorized_keys; fi",
+      "[[ -n \"${var.public_key}\" ]] && echo \"${var.public_key}\" >> ~/.ssh/authorized_keys || true",
       "chmod 600 ~/.ssh/authorized_keys",
       "rm -f /tmp/packer_pubkeys.tar /tmp/*.pub",
     ]
@@ -102,7 +102,7 @@ build {
     inline_shebang = var.default_inline_shebang
     inline         = [
       "set -o pipefail",
-      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
     ]
@@ -112,7 +112,7 @@ build {
     name           = "(1P specific) download mdatp onboarding package"
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
       "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -131,7 +131,7 @@ build {
     inline_shebang = var.default_inline_shebang
     inline         = [
       "set -o pipefail",
-      "if [ ${var.enable_first_party_specifics} = false ]; then exit 0; fi",
+      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "wget -qO- https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
       "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
       "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -151,33 +151,104 @@ build {
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }
-  
-  # provisioner "shell" {
-  #   script            = "scripts/prerequisites-reboot.sh"
-  #   execute_command   = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-  #   expect_disconnect = true
-  # }
-  
-  # provisioner "shell" {
-  #   pause_before    = "60s"
-  #   max_retries     = 10
-  #   script          = "scripts/prerequisites-post-reboot.sh"
-  #   environment_vars = ["OS_FAMILY=${var.os_family}"]
-  #   execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-  # }
 
-  # # --------------------------------------------------------------------------
-  # # Upload azhpc-images repository to VM
-  # # --------------------------------------------------------------------------
-  # provisioner "file" {
-  #   source      = var.azhpc_path
-  #   destination = "/tmp/azhpc-images"
-  # }
+  provisioner "shell" {
+    name              = "Reboot"
+    inline_shebang    = var.default_inline_shebang
+    skip_clean        = true
+    expect_disconnect = true
+    inline            = [
+      "sudo shutdown -r now"
+    ]
+  }
+
+  provisioner "shell" {
+    name             = "Prerequisites post-reboot"
+    script           = "scripts/prerequisites-post-reboot.sh"
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "DEBIAN_FRONTEND=noninteractive"
+    ]
+  }
+
+  provisioner "shell-local" {
+    name           = "(1P specific) download and extract Azure Linux prebuilts"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
+      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
+      "[[ \"${local.os_family}\" != azurelinux ]] && exit 0",
+      "az storage blob download -f /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "tar -xvf /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -C ${path.root}/..",
+    ]
+  }
+
+  provisioner "shell-local" {
+    name           = "(1P specific) download and extract GB200 prebuilts"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
+      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
+      "[[ \"${local.os_family}\" != ubuntu || \"${local.distro_version}\" != 24.04 || \"${local.gpu_sku}\" != GB200 ]] && exit 0",
+      "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "tar -xvf /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -C ${path.root}/..",
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "Create azhpc-images directory"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "mkdir -p /home/${var.ssh_username}/azhpc-images"
+    ]
+  }
+
+  provisioner "file" {
+    source      = "${path.root}/../" 
+    destination = "/home/${var.ssh_username}/azhpc-images"
+  }
+
+  provisioner "shell" {
+    name              = "Reboot"
+    inline_shebang    = var.default_inline_shebang
+    skip_clean        = true
+    expect_disconnect = true
+    inline            = [
+      "sudo shutdown -r now"
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "Install HPC components"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline          = [
+      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
+      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
+    ]
+  }
+
+  provisioner "shell" {
+    name = "Add image version to component_versions.txt"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "sudo mkdir -p /opt/azurehpc",
+      "(cat /opt/azurehpc/component_versions.txt 2>/dev/null || echo '{}') | python3 -c 'import json,sys;d=json.load(sys.stdin);d[\"ImageVersion\"]=\"${local.image_version}\";print(json.dumps(d,indent=2))' | sudo tee /opt/azurehpc/component_versions.txt >/dev/null"
+    ]
+  }
+
+  provisioner "shell" {
+    name     = "Trivy vulnerability scanning (standalone step for testing purposes)"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline    = [
+      "[[ \"${var.skip_hpc}\" != true ]] && exit 0",
+      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
+    ]
+  }
   
   # provisioner "shell" {
   #   script = "scripts/prepare-azhpc-environment.sh"
   #   environment_vars = [
-  #     "AZHPC_SUBMODULE_PATH=/tmp/azhpc-images",
+  #     "AZHPC_SUBMODULE_PATH=/home/${var.ssh_username}/azhpc-images",
   #     "GPU_SKU=${local.gpu_sku}",
   #     "AZHPC_COMMIT=${var.azhpc_commit}",
   #     "AZHPC_REPO_URL=${var.azhpc_repo_url}",
@@ -303,14 +374,17 @@ build {
   provisioner "shell-local" {
     # forcing an error exit prevents the VM from being deleted by Packer (and is currently the only way to do this)
     # This has the slight side effect of always "failing" the build, but since build-only + always retain is for debugging purposes only, this is an acceptable tradeoff
+    inline_shebang = var.default_inline_shebang
     inline = [
-      "if [ ${local.retain_vm_always} = true ] && [ ${local.skip_create_artifacts} = true ]; then exit 1; fi"
+      "[[ \"${local.retain_vm_always}\" == true && \"${local.skip_create_artifacts}\" == true ]] && exit 1 || true"
     ]
   }
   
   error-cleanup-provisioner "shell-local" {
+    inline_shebang = var.default_inline_shebang
     inline = [
-      "if [ ${local.retain_vm_on_fail} = true ] || [ ${local.retain_vm_always} = true ] || [ ${local.externally_managed_resource_group} = true ]; then exit 0; else az group delete --name ${local.azure_resource_group} --yes; fi"
+      "echo 'Build failed for resource group ${local.azure_resource_group}'",
+      "[[ \"${local.retain_vm_on_fail}\" == true || \"${local.retain_vm_always}\" == true || \"${local.externally_managed_resource_group}\" == true ]] && exit 0; az group delete --name ${local.azure_resource_group} --yes"
     ]
   }
 

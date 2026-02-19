@@ -58,3 +58,7 @@ __pycache__/
 
 # Packer
 *.auto.pkrvars.hcl
+
+# Prebuilt binaries
+prebuilt/
+internal_bits/

@@ -127,6 +127,24 @@ else
 
     # Enable CDMM mode
     echo 'options nvidia NVreg_CoherentGPUMemoryMode=driver' | tee /etc/modprobe.d/nvidia-openrm.conf
+    
+    # Install NVIDIA IMEX
+    tdnf install -y nvidia-imex-580.105.08
+
+    # Add configuration to /etc/modprobe.d/nvidia.conf
+    cat <<EOF >> /etc/modprobe.d/nvidia.conf
+options nvidia NVreg_CreateImexChannel0=1
+EOF
+
+    grep -q 'RMBug5172204War=4' /etc/modprobe.d/nvidia.conf 2>/dev/null || \
+        echo 'options nvidia NVreg_RegistryDwords="RMBug5172204War=4"' | tee -a /etc/modprobe.d/nvidia.conf
+
+    # Ensure modprobe settings are available when nvidia module loads on next boot
+    dracut --force
+
+    # Configuring nvidia-imex service
+    systemctl enable nvidia-imex.service
+
 fi
 
 $COMPONENT_DIR/configure_nvidia_persistence.sh

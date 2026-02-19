@@ -324,6 +324,9 @@
                     "distribution": "azl3",
                     "version": "580.105.08",
                     "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"
+                },
+                "imex": {
+                    "version": "580.105.08"
                 }
             }
         }

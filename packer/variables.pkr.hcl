@@ -100,7 +100,7 @@ locals {
 variable "externally_managed_resource_group" {
   type        = string
   description = "Whether the resource group already exists, hence externally managed by e.g. Azure Pipelines, in which case the pipeline itself is responsible for cleanup."
-  default     = env("EXTERNALLY_MANAGED_RESOURCE_GROUP")
+  default     = false
 }
 locals {
   externally_managed_resource_group = try(convert(lower(var.externally_managed_resource_group), bool), false)
@@ -199,19 +199,12 @@ variable "current_user" {
   default     = env("USER")
 }
 
-variable "current_username" {
-  type        = string
-  description = "current username as specified in environment variable (Windows)"
-  default     = env("USERNAME")
-}
-
 locals {
   owner_alias   = try(coalesce(
     var.owner_alias,
     var.build_requestedforemail,
     var.build_requestedfor,
     var.current_user,
-    var.current_username
   ), null)
 }
 
@@ -439,7 +432,7 @@ locals {
 variable "azl_prebuilt_version" {
   type        = string
   description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = "0.0.17"
+  default     = env("AZL3_PREBUILT_VERSION")
 }
 
 # =============================================================================
@@ -449,13 +442,13 @@ variable "azl_prebuilt_version" {
 variable "gb200_internal_bits_version" {
   type        = string
   description = "Version for Ubuntu 24.04 GB200 internal bits (e.g., 0.0.1)"
-  default     = "0.0.1"
+  default     = env("U24GB200_INTERNALBITS_VERSION")
 }
 
 variable "gb200_partuuid" {
   type        = string
   description = "Disk PartUUID for GB200 builds (required for GB200 SKU). Set to 'None' for non-GB200 builds."
-  default     = "None"
+  default     = env("PARTUUID")
 }
 
 # =============================================================================
@@ -465,40 +458,12 @@ variable "gb200_partuuid" {
 variable "aks_host_image" {
   type        = bool
   description = "Build AKS host image instead of standard HPC image (uses install_aks.sh)"
-  default     = false
+  default     = env("AKS_HOST_IMAGE")
 }
 locals {
   install_script_name = var.aks_host_image ? "install_aks.sh" : "install.sh"
   aks_test_flag = var.aks_host_image ? "-aks-host" : ""
 }
-
-# =============================================================================
-# Microsoft Defender for Endpoint (mdatp) Variables
-# =============================================================================
-
-# variable "install_mdatp" {
-#   type        = bool
-#   description = "Install and onboard Microsoft Defender for Endpoint"
-#   default     = true
-# }
-
-# variable "mdatp_storage_account" {
-#   type        = string
-#   description = "Azure storage account containing mdatp onboarding package"
-#   default     = "azhpcstoralt"
-# }
-
-# variable "mdatp_container" {
-#   type        = string
-#   description = "Azure storage container containing mdatp onboarding package"
-#   default     = "atponboardingpackage"
-# }
-
-# variable "mdatp_blob_name" {
-#   type        = string
-#   description = "Blob name for mdatp onboarding package"
-#   default     = "WindowsDefenderATPOnboardingPackage.zip"
-# }
 
 # =============================================================================
 # HPC Image Builder - Local Values

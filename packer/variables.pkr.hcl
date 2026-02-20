@@ -124,11 +124,11 @@ variable "skip_hpc" {
   default     = false
 }
 
-# variable "skip_validation" {
-#   type        = bool
-#   description = "Skip test and health check validation (useful for faster debugging)"
-#   default     = false
-# }
+variable "skip_validation" {
+  type        = bool
+  description = "Skip test and health check validation (useful for faster debugging)"
+  default     = false
+}
 
 variable "public_key" {
   type        = string
@@ -472,6 +472,7 @@ variable "aks_host_image" {
 }
 locals {
   install_script_name = var.aks_host_image ? "install_aks.sh" : "install.sh"
+  aks_test_flag = var.aks_host_image ? "-aks-host" : ""
 }
 
 # =============================================================================

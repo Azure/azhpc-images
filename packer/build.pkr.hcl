@@ -83,7 +83,7 @@ build {
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "AKS_HOST_IMAGE=${var.aks_host_image}",
+      "AKS_HOST_IMAGE=${local.aks_host_image}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }

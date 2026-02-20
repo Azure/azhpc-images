@@ -456,13 +456,14 @@ variable "gb200_partuuid" {
 # =============================================================================
 
 variable "aks_host_image" {
-  type        = bool
+  type        = string
   description = "Build AKS host image instead of standard HPC image (uses install_aks.sh)"
   default     = env("AKS_HOST_IMAGE")
 }
 locals {
-  install_script_name = var.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag = var.aks_host_image ? "-aks-host" : ""
+  aks_host_image = try(convert(lower(var.aks_host_image), bool), false)
+  install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
+  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
 }
 
 # =============================================================================

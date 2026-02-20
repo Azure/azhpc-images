@@ -355,7 +355,7 @@ build {
     output     = "/tmp/image_manifests/manifest.json"
     strip_path = true
     custom_data = {
-      managed_image_shared_image_gallery_id = local.publish_to_sig ? "/subscriptions/${var.sig_subscription_id != "" ? var.sig_subscription_id : build.SubscriptionID}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.image_version}/versions/${local.image_version}" : "",
+      managed_image_shared_image_gallery_id = local.publish_to_sig ? "/subscriptions/${var.sig_subscription_id != "" ? var.sig_subscription_id : build.SubscriptionID}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${local.image_version}" : "",
       vhd_blob_name = local.create_vhd ? "${local.image_name}.vhd" : ""
     }
   }

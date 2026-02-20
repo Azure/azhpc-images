@@ -60,7 +60,7 @@ source "azure-arm" "hpc" {
       subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
       resource_group       = var.sig_resource_group_name
       gallery_name         = var.sig_gallery_name
-      image_name           = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
+      image_name           = local.sig_image_name
       image_version        = local.image_version
       replication_regions  = var.sig_replication_regions
       storage_account_type = var.sig_storage_account_type

@@ -582,4 +582,5 @@ locals {
     }
   }
   internal_sig_image_definition = local.is_experimental_image ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
+  sig_image_name = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
 }

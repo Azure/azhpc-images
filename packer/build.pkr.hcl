@@ -314,7 +314,7 @@ build {
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
     ] : [
-      "cd /opt/azhpc-images/utils",
+      "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo ./clear_history.sh"
     ]
   }
@@ -326,7 +326,7 @@ build {
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
     ] : [
-      "cd /opt/azhpc-images/utils",
+      "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo ./clear_history_epilog.sh"
     ]
   }

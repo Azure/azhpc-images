@@ -163,11 +163,19 @@ build {
   }
 
   provisioner "shell" {
-    name             = "Prerequisites post-reboot"
-    script           = "scripts/prerequisites-post-reboot.sh"
-    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    environment_vars = [
-      "DEBIAN_FRONTEND=noninteractive"
+    name           = "Clean up old kernels"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "List all installed packages prior to HPC component installation"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
+      "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
   }
 
@@ -228,6 +236,16 @@ build {
   }
 
   provisioner "shell" {
+    name              = "Reboot"
+    inline_shebang    = var.default_inline_shebang
+    skip_clean        = true
+    expect_disconnect = true
+    inline            = [
+      "sudo shutdown -r now"
+    ]
+  }
+
+  provisioner "shell" {
     name = "Add image version to component_versions.txt"
     inline_shebang = var.default_inline_shebang
     inline = [
@@ -243,6 +261,54 @@ build {
       "[[ \"${var.skip_hpc}\" != true ]] && exit 0",
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
+  }
+
+  provisioner "shell" {
+    name           = "List all installed packages after HPC component installation"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
+      "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
+    ]
+  }
+
+  provisioner "shell-local" {
+    name           = "create local directory for manifests"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "mkdir -p /tmp/image_manifests"
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "Display all image manifests in /opt/azurehpc for debugging purposes"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "cat /opt/azurehpc/trivy-report-rootfs.json",
+      "cat /opt/azurehpc/trivy-cyclonedx-rootfs.json",
+      "cat /opt/azurehpc/component_versions.txt"
+    ]
+  }
+
+  provisioner "file" {
+    direction   = "download"
+    generated   = true
+    source      = "/opt/azurehpc/trivy-report-rootfs.json"
+    destination = "/tmp/image_manifests/trivy-report-rootfs.json"
+  }
+
+  provisioner "file" {
+    direction   = "download"
+    generated   = true
+    source      = "/opt/azurehpc/trivy-cyclonedx-rootfs.json"
+    destination = "/tmp/image_manifests/trivy-cyclonedx-rootfs.json"
+  }
+
+  provisioner "file" {
+    direction   = "download"
+    generated   = true
+    source      = "/opt/azurehpc/component_versions.txt"
+    destination = "/tmp/image_manifests/component-versions.json"
   }
   
   # provisioner "shell" {

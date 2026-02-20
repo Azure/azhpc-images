@@ -67,9 +67,7 @@ function test_component {
 # Verify common component installations accross all distros
 function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
-    if [[ -z "${validation_mode:-}" ]]; then
-        verify_package_updates;
-    fi
+    verify_package_updates;
     verify_ofed_installation;
     verify_ib_device_status;
     verify_ib_modules_and_devices;

@@ -25,6 +25,7 @@ source "azure-arm" "hpc" {
   temp_resource_group_name  = local.temp_resource_group_name
   location                  = local.location
   build_resource_group_name = local.build_resource_group_name
+  temp_os_disk_name         = local.image_name
   skip_create_image         = local.skip_create_artifacts
 
   private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
@@ -51,7 +52,6 @@ source "azure-arm" "hpc" {
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
   storage_account        = local.create_vhd ? var.vhd_storage_account : null
   capture_container_name = local.create_vhd ? var.vhd_container_name : null
-  capture_name_prefix    = local.create_vhd ? local.image_name : null
   
   # Output: Publish to Shared Image Gallery (optional)
   dynamic "shared_image_gallery_destination" {

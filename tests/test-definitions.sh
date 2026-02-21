@@ -240,9 +240,13 @@ function verify_rccl_installation {
 }
 
 function verify_package_updates {
-    # TODO: wait for pre-depends bug to be fixed in apt
+    # TODO: wait for pre-depends bug to be fixed in apt https://salsa.debian.org/apt-team/apt/-/merge_requests/549
     case ${ID} in
-        ubuntu) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" 2>/dev/null | grep -q .;;
+        ubuntu)
+            case ${VERSION_ID} in
+                22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
+                *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" -qq 2>/dev/null | grep -q .;;
+            esac;;
         almalinux)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;

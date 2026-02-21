@@ -27,7 +27,7 @@ EOF
 fi
 
 systemctl restart nvidia-persistenced.service
-systemctl status nvidia-persistenced.service
+systemctl status --no-pager nvidia-persistenced.service
 if ! systemctl is-active --quiet nvidia-persistenced.service; then
     echo "nvidia-persistenced service is not running. Exiting."
     exit 1

@@ -228,9 +228,10 @@ function verify_rccl_installation {
 }
 
 function verify_package_updates {
-    # TODO: wait for pre-depends bug to be fixed in apt
     case ${ID} in
-        ubuntu) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" 2>/dev/null | grep -q .;;
+        ubuntu)
+            num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+            [[ "$num_upgradable" -eq 0 ]];;
         almalinux)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;

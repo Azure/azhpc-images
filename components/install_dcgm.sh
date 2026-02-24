@@ -35,12 +35,13 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
             datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
-elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
+elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
+    tdnf install -y $TOP_DIR/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
-elif  [[ $DISTRIBUTION == *"azurelinux"* ]]; then
-    tdnf install -y $TOP_DIR/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
 fi
 
 write_component_version "DCGM" ${DCGM_VERSION}

@@ -2,7 +2,7 @@
 set -ex
 
 # Disable Cloud-Init
-if [[ $DISTRIBUTION == *"almalinux"* ]]; then
+if [[ $DISTRIBUTION == *"almalinux"* ]] || [[ $DISTRIBUTION == *"rocky"* ]] || [[ $DISTRIBUTION == *"rhel"* ]]; then
     cat << EOF >> /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
 network: {config: disabled}
 EOF
@@ -12,7 +12,7 @@ EOF
     sed -i '/^DHCP_HOSTNAME=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
     sed -i '/^IPV6INIT=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
 
-    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+    if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         SCRIPT_PATH="/usr/sbin/disable_cloudinit.sh"
         SERVICE_PATH="/etc/systemd/system/disable_cloudinit.service"
         IFCFG_FILE="/etc/sysconfig/network-scripts/ifcfg-eth0"

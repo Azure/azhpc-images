@@ -45,7 +45,7 @@ else
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
-if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
     sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 fi
@@ -87,7 +87,7 @@ make install
 cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
-if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi
@@ -187,7 +187,7 @@ EOF
 
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021
 
-    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+    if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 # see https://community.intel.com/t5/Intel-MPI-Library/Suspected-unfixed-Intel-MPI-race-condition-in-collectives/td-p/1693452 for Intel MPI bug
 setenv          I_MPI_STARTUP_MODE         pmi_shm

@@ -11,7 +11,7 @@ export AZNFS_NONINTERACTIVE_INSTALL=1
 if [[ $DISTRIBUTION == *"ubuntu"* ]]
 then
     apt install -y aznfs
-elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rhel"* ]]
+elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rocky"* || $DISTRIBUTION == *"rhel"* ]]
 then
     dnf install -y aznfs
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]

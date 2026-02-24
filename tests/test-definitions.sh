@@ -245,11 +245,10 @@ function verify_package_updates {
             # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
             # [[ "$num_upgradable" -eq 0 ]];;
             true;
-        almalinux)
+        azurelinux) true;;
+        *)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;
-        azurelinux) true;;
-        * ) ;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }
@@ -320,7 +319,7 @@ function verify_lustre_installation {
     # Verify lustre client package installation
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
-        almalinux) dnf list installed | grep lustre-client;;
+        almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
         azurelinux) true;;
         * ) ;;
     esac
@@ -337,7 +336,7 @@ function verify_pssh_installation {
     # Verify PSSH package installation
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
-        almalinux) dnf list installed | grep pssh;;
+        almalinux|rocky|rhel) dnf list installed | grep pssh;;
         azurelinux) tdnf list installed | grep pssh;;
         * ) ;;
     esac
@@ -353,7 +352,7 @@ function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
-        almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        almalinux|rocky|rhel) dnf list installed | grep datacenter-gpu-manager;;
         azurelinux) tdnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac

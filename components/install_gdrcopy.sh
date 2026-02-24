@@ -56,7 +56,7 @@ else
             apt-mark hold gdrcopy-tests
             dpkg -i gdrcopy_${GDRCOPY_VERSION}_${ARCHITECTURE_DISTRO}.${GDRCOPY_DISTRIBUTION}.deb
             apt-mark hold gdrcopy
-        elif [[ $DISTRIBUTION == almalinux* ]]; then
+        elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
             nvidia_metadata=$(get_component_config "nvidia")
             nvidia_driver_metadata=$(jq -r '.driver' <<< $nvidia_metadata)
             NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)

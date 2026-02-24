@@ -100,6 +100,7 @@ build {
 
   provisioner "shell" {
     name           = "Clean up old kernels"
+    pause_before   = "2m"
     inline_shebang = var.default_inline_shebang
     inline         = [
       "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
@@ -165,6 +166,7 @@ build {
 
   provisioner "shell" {
     name            = "Install HPC components"
+    pause_before    = "2m"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
@@ -184,7 +186,8 @@ build {
   }
 
   provisioner "shell" {
-    name = "Add image version to component_versions.txt"
+    name           = "Add image version to component_versions.txt"
+    pause_before   = "2m"
     inline_shebang = var.default_inline_shebang
     inline = [
       "sudo mkdir -p /opt/azurehpc",
@@ -272,19 +275,10 @@ build {
     ]
   }
 
-  provisioner "shell-local" {
-    name           = "Sleep and wait for VM to become ready after reboot"
-    inline_shebang = var.default_inline_shebang
-    inline         = [
-      "[[ \"${var.skip_validation}\" == true ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
-      "sleep 900"
-    ]
-  }
-
   provisioner "shell" {
     name           = "Run tests (post-reboot)"
     inline_shebang = var.default_inline_shebang
+    pause_before   = "15m"
     inline         = [
       "[[ \"${var.skip_validation}\" == true ]] && exit 0",
       "[[ \"${var.skip_hpc}\" == true ]] && exit 0",

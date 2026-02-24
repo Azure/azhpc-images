@@ -46,6 +46,23 @@ find_azurelinux_distro() {
     echo `cat /etc/os-release | awk 'match($0, /^PRETTY_NAME="(.*)"/, result) { print result[1] }' | awk '{print $2$3}' | cut -d. -f1,2`
 }
 
+# Function to get available space in KiB
+avail_kib() {
+    df --sync -kP "$1" 2>/dev/null | awk 'NR==2{print $4}'
+}
+
+# Function to check if two paths are on the same filesystem
+same_fs() {
+    local path1="$1"
+    local path2="$2"
+    
+    local dev1 dev2
+    dev1=$(df -P "$path1" 2>/dev/null | awk 'NR==2{print $1}')
+    dev2=$(df -P "$path2" 2>/dev/null | awk 'NR==2{print $1}')
+    
+    [[ -n "${dev1}" && "${dev1}" == "${dev2}" ]]
+}
+
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
@@ -90,37 +107,63 @@ fi
 
 # Clear History
 # Stop syslog service
-systemctl stop syslog.socket rsyslog
+systemctl stop systemd-journald-dev-log.socket
+systemctl stop systemd-journald.socket
+systemctl stop systemd-journald.service
+systemctl stop syslog.socket rsyslog systemd-journald
+#systemctl stop auditd 2>/dev/null
 # Delete Defender related files
 rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
+# Clean journald logs
+if command -v journalctl >/dev/null 2>&1; then
+    journalctl --rotate 2>/dev/null || true
+    journalctl --vacuum-time=1s --vacuum-size=1M 2>/dev/null || true
+fi
+# Remove journald persistent logs
+rm -rf /var/log/journal/* 2>/dev/null || true
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Delete AzurePolicyforLinux related files
 rm -rf /usr/lib/systemd/system/gcd.service
 rm -rf /var/lib/GuestConfig
-# Clear contents of rest of systemd services related log files
-for log in $(find /var/log/ -type f -name '*.log'); do cat /dev/null > $log; done
+# Truncate all log files
+find /var/log -type f \( -name "*.log" -o -name "*.log.*" -o -name "*.gz" -o -regex ".*/[a-zA-Z._-]*[0-9]+" \) -exec truncate -s 0 {} + 2>/dev/null || true
+# Clear utmp/wtmp/btmp
+: > /var/run/utmp || true
+: > /var/log/wtmp || true
+: > /var/log/btmp || true
 
 rm -rf /var/lib/systemd/random-seed 
 rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
 rm -rf /var/lib/hyperv/.kvp_pool_0
-rm -f /etc/ssh/ssh_host_* /etc/*-
-rm -f ~/.ssh/authorized_keys
+rm -f /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
+cloud-init clean --logs
+rm -rf /var/lib/cloud/instances/* || true
 rm -rf /run/cloud-init
-rm -rf /root/*
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*
+
+# Clean user histories
+# Root user
+for history_file in .bash_history .lesshst .viminfo .python_history; do
+    rm -f "/root/${history_file}" 2>/dev/null || true
+done
+# All users in /home
+for user_home in /home/*; do
+    if [[ -d "${user_home}" ]]; then
+        for history_file in .bash_history .lesshst .viminfo .python_history; do
+            rm -f "${user_home}/${history_file}" 2>/dev/null || true
+        done
+    fi
+done
 
 if systemctl is-active --quiet sku-customizations
 then
     # Stop the sku-customizations service
     systemctl stop sku-customizations
 fi
-
-# Empty machine information
-cat /dev/null > /etc/machine-id
 
 if [[ $distro == *"Ubuntu"* ]]
 then
@@ -132,13 +175,44 @@ else
     yum clean all
 fi
 
-# Zero out unused space to minimize actual disk usage
-for part in $(awk '$3 == "xfs" {print $2}' /proc/mounts)
-do
-    dd if=/dev/zero of=${part}/EMPTY bs=1M || true;
-    rm -f ${part}/EMPTY
-done
-sync;
+fstrim -av || echo "fstrim encountered errors (may not be supported)"
+# Whiteout root filesystem
+echo "Whiteout root filesystem..."
+ROOT_AVAIL_MIB=$(( $(avail_kib "/") / 1024 ))
+ROOT_BUFFER_MIB="${ROOT_BUFFER_MIB:-512}"
+
+if (( ROOT_AVAIL_MIB > ROOT_BUFFER_MIB + 10 )); then
+    ROOT_WRITE_MIB=$(( ROOT_AVAIL_MIB - ROOT_BUFFER_MIB ))
+    echo "Writing ${ROOT_WRITE_MIB} MiB of zeros to root filesystem (leaving ${ROOT_BUFFER_MIB} MiB buffer)..."
+    
+    dd if=/dev/zero of=/.whitespace bs=1M count="${ROOT_WRITE_MIB}" 2>/dev/null || echo "Root whiteout completed with errors"
+    sync
+    rm -f /.whitespace || true
+    sync
+else
+    echo "Insufficient space on root filesystem for whiteout (${ROOT_AVAIL_MIB} MiB available)"
+fi
+
+# Whiteout boot filesystem (if separate)
+if [[ -d /boot ]] && ! same_fs / /boot; then
+    echo "Whiteout boot filesystem (separate from root)..."
+    BOOT_AVAIL_MIB=$(( $(avail_kib "/boot") / 1024 ))
+    BOOT_BUFFER_MIB="${BOOT_BUFFER_MIB:-64}"
+    
+    if (( BOOT_AVAIL_MIB > BOOT_BUFFER_MIB + 10 )); then
+        BOOT_WRITE_MIB=$(( BOOT_AVAIL_MIB - BOOT_BUFFER_MIB ))
+        echo "Writing ${BOOT_WRITE_MIB} MiB of zeros to boot filesystem (leaving ${BOOT_BUFFER_MIB} MiB buffer)..."
+        
+        dd if=/dev/zero of=/boot/.whitespace bs=1M count="${BOOT_WRITE_MIB}" 2>/dev/null || echo "Boot whiteout completed with errors"
+        sync
+        rm -f /boot/.whitespace || true
+        sync
+    else
+        echo "Insufficient space on boot filesystem for whiteout (${BOOT_AVAIL_MIB} MiB available)"
+    fi
+else
+    echo "Boot is on root filesystem, skipping separate whiteout"
+fi
 
 cat /dev/null > ~/.bash_history
 export HISTSIZE=0 && history -c && sync

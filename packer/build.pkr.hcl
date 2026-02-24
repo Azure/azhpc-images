@@ -57,7 +57,7 @@ build {
 
   provisioner "file" {
     name        = "(1P specific) upload mdatp onboarding package"
-    only        = var.enable_first_party_specifics ? ["source.azure-arm.hpc"] : []
+    except      = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     source      = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
     destination = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
     generated   = true

@@ -68,7 +68,7 @@ build {
     inline         = [
       "set -o pipefail",
       "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
-      "wget -qO- https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
+      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
       "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
       "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
     ]

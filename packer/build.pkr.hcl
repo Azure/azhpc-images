@@ -35,10 +35,10 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) add ip tags to public IP"
+    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "set -o pipefail",
-      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
     ]
@@ -46,9 +46,9 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download mdatp onboarding package"
+    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
       "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -65,10 +65,10 @@ build {
 
   provisioner "shell" {
     name           = "(1P specific) install mdatp with onboarding script"
+    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "set -o pipefail",
-      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
       "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
       "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
       "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -119,11 +119,9 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download and extract Azure Linux prebuilts"
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "azurelinux") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
-      "[[ \"${local.os_family}\" != azurelinux ]] && exit 0",
       "az storage blob download -f /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -C ${path.root}/..",
     ]
@@ -131,11 +129,9 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "[[ \"${var.enable_first_party_specifics}\" == false ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
-      "[[ \"${local.os_family}\" != ubuntu || \"${local.distro_version}\" != 24.04 || \"${local.gpu_sku}\" != GB200 ]] && exit 0",
       "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -C ${path.root}/..",
     ]
@@ -156,32 +152,32 @@ build {
 
   provisioner "shell" {
     name              = "Reboot"
+    except            = var.skip_hpc ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     inline            = [
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
       "sudo shutdown -r now"
     ]
   }
 
   provisioner "shell" {
     name            = "Install HPC components"
+    except          = var.skip_hpc ? ["azure-arm.hpc"] : []
     pause_before    = "2m"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }
 
   provisioner "shell" {
     name              = "Reboot"
+    except            = var.skip_hpc ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     inline            = [
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
       "sudo shutdown -r now"
     ]
   }
@@ -197,10 +193,10 @@ build {
   }
 
   provisioner "shell" {
-    name     = "Trivy vulnerability scanning (standalone step for testing purposes)"
+    name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
+    except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline    = [
-      "[[ \"${var.skip_hpc}\" != true ]] && exit 0",
+    inline          = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
   }
@@ -255,45 +251,39 @@ build {
   
   provisioner "shell" {
     name           = "Run tests (pre-reboot)"
+    except         = (!var.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "[[ \"${var.skip_validation}\" == true ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
-      "[[ \"${local.gpu_sku}\" == \"GB200\" ]] && exit 0",
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
     ]
   }
   
   provisioner "shell" {
     name              = "Reboot"
+    except            = (!var.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     inline            = [
-      "[[ \"${var.skip_validation}\" == true ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
       "sudo shutdown -r now"
     ]
   }
 
   provisioner "shell" {
     name           = "Run tests (post-reboot)"
+    except         = (!var.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     pause_before   = "15m"
     inline         = [
-      "[[ \"${var.skip_validation}\" == true ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
     ]
   }
 
   provisioner "shell" {
-    name           = "Run health checks"
+    name            = "Run health checks"
+    except          = (!var.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline         = [
-      "[[ \"${var.skip_validation}\" == true ]] && exit 0",
-      "[[ \"${var.skip_hpc}\" == true ]] && exit 0",
-      "[[ \"${local.gpu_sku}\" == \"GB200\" ]] && exit 0",
+    inline          = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",
       "cat /opt/azurehpc/test/azurehpc-health-checks/health.log | grep --ignore-case 'Health checks completed with exit code: 0.'",
     ]

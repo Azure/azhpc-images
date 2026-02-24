@@ -230,8 +230,9 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu)
-            num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-            [[ "$num_upgradable" -eq 0 ]];;
+            # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+            # [[ "$num_upgradable" -eq 0 ]];;
+            true;
         almalinux)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;

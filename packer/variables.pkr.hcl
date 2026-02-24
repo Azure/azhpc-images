@@ -511,6 +511,10 @@ locals {
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
+        },
+        "rocky" = {
+          "8.10" = ["resf", "rockylinux-x86_64", "8-base"],
+          "9.6"  = ["resf", "rockylinux-x86_64", "9-base"]
         }
       },
       "Marketplace-FIPS" = {

@@ -129,7 +129,9 @@ else
     echo 'options nvidia NVreg_CoherentGPUMemoryMode=driver' | tee /etc/modprobe.d/nvidia-openrm.conf
     
     # Install NVIDIA IMEX
-    tdnf install -y nvidia-imex-580.105.08
+    nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)
+    IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
+    tdnf install -y nvidia-imex-${IMEX_VERSION}
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf

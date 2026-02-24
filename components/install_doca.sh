@@ -17,6 +17,14 @@ fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
+
+    # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
+    cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
+Package: dkms
+Pin: release l=DOCA-HOST*
+Pin-Priority: -1
+PIN
+
     apt-get update
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == almalinux* ]]; then

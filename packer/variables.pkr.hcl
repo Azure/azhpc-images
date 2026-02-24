@@ -541,6 +541,17 @@ locals {
     }
   }
 
+  # Marketplace images that require plan info (purchase agreement)
+  # Plan info is { name, product, publisher } matching `az vm image show --query plan`
+  builtin_marketplace_plan_info = {
+    "rocky" = {
+      plan_name      = local.distro_version == "8.10" ? "8-base" : "9-base"
+      plan_product   = "rockylinux-x86_64"
+      plan_publisher = "resf"
+    }
+  }
+  has_plan_info = contains(keys(local.builtin_marketplace_plan_info), local.os_family) && !local.use_direct_shared_gallery_base_image && length(local.custom_base_image_detail) == 0
+
   use_direct_shared_gallery_base_image = local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
   custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
   marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])

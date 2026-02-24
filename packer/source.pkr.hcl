@@ -71,6 +71,16 @@ source "azure-arm" "hpc" {
   image_publisher = local.image_publisher
   image_offer     = local.image_offer
   image_sku       = local.image_sku
+
+  # Marketplace plan info (required for images with purchase agreements, e.g. Rocky Linux)
+  dynamic "plan_info" {
+    for_each = local.has_plan_info ? [local.builtin_marketplace_plan_info[local.os_family]] : []
+    content {
+      plan_name      = plan_info.value.plan_name
+      plan_product   = plan_info.value.plan_product
+      plan_publisher = plan_info.value.plan_publisher
+    }
+  }
   
   # Base Direct Shared Gallery image info
   dynamic "shared_image_gallery" {

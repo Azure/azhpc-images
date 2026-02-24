@@ -123,9 +123,15 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.18",
-                "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+                "nvidia_v100":{
+                    "version": "2.24.1",
+                    "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+            
+                },
+                "version": "2.24.1",
+                "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
             },
             "aarch64": {
                 "version": "2.24.1",
@@ -565,6 +571,12 @@
         "common": {
             "version": "0.8",
             "url": "https://github.com/NVIDIA/nvbandwidth"
+        },
+        "azurelinux3.0": {
+            "aarch64": {
+                "version": "0.8",
+                "url": "https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz"
+            }
         }
     },
     "dcgm": {

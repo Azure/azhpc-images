@@ -19,8 +19,9 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" && $ARCHITECTURE == "aarch64" ]]; then
     tdnf install -y cmake
 
     # Download the nvbandwidth tool
-    NVBANDWIDTH_VERSION=0.8
-    NVBANDWIDTH_DOWNLOAD_URL=https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz
+    nvbandwidth_metadata=$(get_component_config "nvbandwidth")
+    NVBANDWIDTH_VERSION=$(jq -r '.version' <<< $nvbandwidth_metadata)
+    NVBANDWIDTH_DOWNLOAD_URL=$(jq -r '.url' <<< $nvbandwidth_metadata)
 
     wget $NVBANDWIDTH_DOWNLOAD_URL
     tar -xvf $(basename $NVBANDWIDTH_DOWNLOAD_URL)

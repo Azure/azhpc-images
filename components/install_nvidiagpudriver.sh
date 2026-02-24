@@ -85,7 +85,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
         # Install cuda-toolkit
         # V100 does not support CUDA 13.0, so use CUDA 12.9.
-        if [ "$1" = "V100" ]; then
+        if [ "$SKU" = "V100" ]; then
             tdnf install -y cuda-toolkit-12-9-12.9.1
         else
             tdnf install -y cuda-toolkit-13-0-13.0.2

@@ -12,24 +12,16 @@ INSTALL_PREFIX=/opt
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
-# Install HPC-x
-# V100 does not support CUDA 13.0
-# so use HPCx variant compatible with CUDA 12
-if [ "$GPU" = "V100" ]; then
-    HPCX_VERSION="2.24.1"
-    HPCX_DOWNLOAD_URL="https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
-    HPCX_SHA256="e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923"
+if [[ "$GPU" == "AMD" ]]; then
+    # AMD has regression on higher versions of HPC-X
+    hpcx_metadata=$(get_component_config "hpcx_amd")
 else
-    if [[ "$GPU" == "AMD" ]]; then
-        # AMD has regression on higher versions of HPC-X
-        hpcx_metadata=$(get_component_config "hpcx_amd")
-    else
-        hpcx_metadata=$(get_component_config "hpcx")
-    fi
-    HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
-    HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
-    HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+    hpcx_metadata=$(get_component_config "hpcx")
 fi
+HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
+HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
+HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+
 TARBALL=$(basename $HPCX_DOWNLOAD_URL)
 HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 

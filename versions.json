@@ -63,10 +63,24 @@
             }
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "3.2.1",
                 "sha256": "dbf0ee79182c6ae00c99fc9089fa1d81fc6f406f64b2215bff7da9b8cc423ad5",
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_alinux32.x86_64.rpm"
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "3.2.1",
+                "sha256": "ce630bb2e98f4202ed041d8607c72caf9db2ea8a9d795b982823af5493e4cb4b",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel8.x86_64.rpm"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "3.2.1",
+                "sha256": "7b9bee723c1bb37388814160a6970f4a24e76801765c4d235a1db240e9ebe307",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel9.x86_64.rpm"
             }
         }
     },
@@ -127,6 +141,20 @@
                 "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
             }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.24.1",
+                "sha256": "19cf620ae57608817a23558383a2721bd2221dd165ce81ccacc2011d5c7b819a",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.24.1",
+                "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
+            }
         }
     },
     "hpcx_amd": {
@@ -171,6 +199,20 @@
                 "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
             }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.18",
+                "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.24.1",
+                "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+            }
         }
     },
     "mvapich": {
@@ -187,7 +229,7 @@
             }
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.3.7-1",
                 "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4",
                 "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-1.tar.gz"
@@ -198,6 +240,13 @@
                 "version": "4.1",
                 "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "4.0",
+                "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
             }
         },
         "ubuntu22.04": {
@@ -224,7 +273,7 @@
     },
     "nvidia": {
         "ubuntu22.04": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "580.126.16",
                     "sha256": "1bd17b0855021e528b646df4ada910ccd28286cfef46086abc2beda3e7b27142"
@@ -248,7 +297,7 @@
                     "sha256": "83baeb04525fe32bd6e488d310c792c9c1d3bbb7014dc59611125af33a164068"
                 }
             },
-            "aarch64":{
+            "aarch64": {
                 "driver": {
                     "version": "580.126.09",
                     "major_version": "580"
@@ -267,7 +316,7 @@
             }
         },
         "almalinux8.10": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "580.105.08",
                     "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
@@ -277,38 +326,64 @@
                     "version": "580.105.08-1",
                     "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
                 }
-            }   
+            }
         },
         "almalinux9.7": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "580.105.08",
-                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"          
+                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
                 },
                 "fabricmanager": {
                     "distribution": "rhel9",
                     "version": "580.105.08-1",
-                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"       
+                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
                 }
             }
-        },        
+        },
         "rhel8.10": {
-            "x86_64":{            
+            "x86_64": {
                 "driver": {
-                "version": "560.35.03",
-                "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
+                    "version": "560.35.03",
+                    "sha256": "f2932c92fadd43c5b2341be453fc4f73f0ad7185c26bb7a43fbde81ae29f1fe3"
                 },
                 "fabricmanager": {
                     "distribution": "rhel8",
                     "version": "560.35.03-1",
-                    "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"        
+                    "sha256": "881a686f3214fbad464404f6c71dace656cdca841e3abdfd1b04a8e310e797ad"
+                }
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "driver": {
+                    "version": "580.105.08",
+                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
+                },
+                "fabricmanager": {
+                    "distribution": "rhel8",
+                    "version": "580.105.08-1",
+                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
+                }
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "driver": {
+                    "version": "580.105.08",
+                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
+                },
+                "fabricmanager": {
+                    "distribution": "rhel9",
+                    "version": "580.105.08-1",
+                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
                 }
             }
         }
     },
     "cuda": {
         "ubuntu22.04": {
-            "x86_64":{
+            "x86_64": {
                 "nvidia_v100": {
                     "driver": {
                         "version": "12.9",
@@ -350,7 +425,7 @@
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
                 }
             },
-            "aarch64":{
+            "aarch64": {
                 "driver": {
                     "version": "13.0",
                     "distribution": "ubuntu2404"
@@ -358,19 +433,19 @@
                 "samples": {
                     "version": "13.0",
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
-                } 
+                }
             }
-        }, 
+        },
         "ubuntu24.04-aks": {
-            "aarch64":{
+            "aarch64": {
                 "driver": {
                     "version": "13.0",
                     "distribution": "ubuntu2404"
                 }
             }
-        },                
+        },
         "almalinux8.10": {
-            "x86_64":{            
+            "x86_64": {
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel8"
@@ -379,10 +454,10 @@
                     "version": "13.0",
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
                 }
-            }  
+            }
         },
         "almalinux9.7": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel9"
@@ -391,10 +466,10 @@
                     "version": "13.0",
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
                 }
-            } 
-        },        
+            }
+        },
         "rhel8.10": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "12.6",
                     "distribution": "rhel8"
@@ -403,10 +478,10 @@
                     "version": "12.5",
                     "sha256": "5c40cc096706045b067ec5897f039403014aa7a39b970905698466a2d029b972"
                 }
-            }  
+            }
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "driver": {
                     "version": "12.8",
                     "distribution": "azl3"
@@ -415,55 +490,93 @@
                     "version": "12.8",
                     "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
                 }
-            }  
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "rhel8"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "rhel9"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
         }
     },
     "gdrcopy": {
         "ubuntu22.04": {
-            "x86_64":{     
+            "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "Ubuntu22_04"
             }
         },
         "ubuntu24.04": {
-            "aarch64":{
+            "aarch64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "Ubuntu24_04"
             },
-            "x86_64":{
+            "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "Ubuntu24_04"
             }
         },
         "ubuntu24.04-aks": {
-            "aarch64":{
+            "aarch64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "Ubuntu24_04"
             }
-        },        
+        },
         "almalinux8.10": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "el8"
             }
         },
         "almalinux9.7": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "el9"
             }
         },
         "rhel8.10": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "1366e20d140c5638fcaa6c72b373ac69f7ab2532",
                 "distribution": "el8"
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.5.1-1",
+                "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                "distribution": "el8"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.5.1-1",
+                "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                "distribution": "el9"
             }
         }
     },
@@ -528,7 +641,7 @@
             "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.11.8.8",
                 "sha256": "e02b34ae50a81d7e7d8d0e3bd2b9abae1294febe489b398974186f7723149ae1"
             }
@@ -536,7 +649,7 @@
     },
     "waagent_extensions": {
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.12.0.2",
                 "sha256": "e02b34ae50a81d7e7d8d0e3bd2b9abae1294febe489b398974186f7723149ae1"
             }
@@ -544,7 +657,7 @@
     },
     "moby_engine": {
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "25.0.3-11",
                 "sha256": "ec5629890e1c03bd88bc405e440680584a1dc6c06696025084c2641dc9b4f24b"
             }
@@ -558,27 +671,39 @@
     },
     "pssh": {
         "almalinux8.10": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.3.1-29",
                 "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
             }
         },
         "almalinux9.7": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.3.4-1",
                 "sha256": "831c188a1c18107c289f78a62b3e00a0671f6fdaaa2cc4507ddae008e2157478"
             }
-        },        
+        },
         "rhel8.10": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.3.1-29",
                 "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
             }
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.3.1-29",
                 "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.3.1-29",
+                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.3.4-1",
+                "sha256": "831c188a1c18107c289f78a62b3e00a0671f6fdaaa2cc4507ddae008e2157478"
             }
         }
     },
@@ -599,21 +724,26 @@
             "version": "2.15.6-39-g3e00a10"
         },
         "almalinux9.7": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.15.7-33-g79ddf99"
             }
         },
-        "ubuntu22.04":{
-            "x86_64":{
+        "ubuntu22.04": {
+            "x86_64": {
                 "version": "2.15.7-33-g79ddf99"
             }
         },
         "ubuntu24.04": {
-            "aarch64":{
+            "aarch64": {
                 "version": "2.16.1-14-gbc76088"
             },
-            "x86_64":{
+            "x86_64": {
                 "version": "2.16.1-14-gbc76088"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.15.7-33-g79ddf99"
             }
         }
     },
@@ -633,21 +763,21 @@
         "common": {
             "version": "59.0",
             "sha256": "4dca3dd4eed6e5e1fd21ec32244a753b95109c8a845ebda0e58dac53528808aa"
-        }        
+        }
     },
     "pmix": {
         "common": {
             "version": "4.2.9-1"
         },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "5.0.1-1"
             }
         }
     },
     "aznfs": {
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.0.8",
                 "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
             }
@@ -667,16 +797,30 @@
                 "url": "https://repo.radeon.com/amdgpu-install/6.4.4/ubuntu/noble/amdgpu-install_6.4.60404-1_all.deb",
                 "sha256": "532506af45c89516a2bd54e499c60a7b10f5438608b6e11472fb45e397d70b3d"
             }
-        },        
+        },
         "azurelinux3.0": {
-            "x86_64":{
+            "x86_64": {
                 "version": "6.2.2.1"
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "6.2.2",
+                "url": "https://repo.radeon.com/amdgpu-install/6.2.2/rhel/8.10/amdgpu-install-6.2.60202-1.el8.noarch.rpm",
+                "sha256": "29cd971c6a0226ea9c93463f2604d4448a99788bc15670dde67d15af24c17fb6"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "6.4.3",
+                "url": "https://repo.radeon.com/amdgpu-install/6.4.3/rhel/9.6/amdgpu-install-6.4.60403-1.el9.noarch.rpm",
+                "sha256": "7dd27d4d9a19b04a2d29f449e47a26a0bf75707488f506fcf6fbf172439fae55"
             }
         }
     },
     "rccl": {
         "ubuntu22.04": {
-            "x86_64":{
+            "x86_64": {
                 "version": "2.20.5",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
                 "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
@@ -698,6 +842,22 @@
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
                 "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
+            }
+        },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.20.5",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
+                "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+            }
+        },
+        "rocky9.6": {
+            "x86_64": {
+                "version": "2.22.3",
+                "branch": "release/rocm-rel-6.4",
+                "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
+                "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
             }
         }
     }

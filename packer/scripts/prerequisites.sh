@@ -235,9 +235,9 @@ update_rhel_packages() {
     
     # Workaround for tdnf repo_gpgcheck bug (https://github.com/vmware/tdnf/issues/471)
     # tdnf-plugin-repogpgcheck fails when GPG keys aren't in the root keyring,
-    # causing repo sync failures. Disable repo_gpgcheck until the bug is fixed.
+    # causing repo sync failures. Disable the plugin entirely until the bug is fixed.
     if [[ "${os_family}" == "azurelinux"* ]]; then
-        sed -i 's/^repo_gpgcheck=1/repo_gpgcheck=0/' /etc/yum.repos.d/*.repo 2>/dev/null || true
+        sed -i 's/^enabled.*=.*1/enabled=0/' /etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf 2>/dev/null || true
     fi
     
     dnf update -y --refresh

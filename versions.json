@@ -669,44 +669,6 @@
             "sha256": "69b5cb899bd6d7b911162931b012cd50548d71b5e68a8de191eff5cd1193377d"
         }
     },
-    "pssh": {
-        "almalinux8.10": {
-            "x86_64": {
-                "version": "2.3.1-29",
-                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-            }
-        },
-        "almalinux9.7": {
-            "x86_64": {
-                "version": "2.3.4-1",
-                "sha256": "831c188a1c18107c289f78a62b3e00a0671f6fdaaa2cc4507ddae008e2157478"
-            }
-        },
-        "rhel8.10": {
-            "x86_64": {
-                "version": "2.3.1-29",
-                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-            }
-        },
-        "azurelinux3.0": {
-            "x86_64": {
-                "version": "2.3.1-29",
-                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-            }
-        },
-        "rocky8.10": {
-            "x86_64": {
-                "version": "2.3.1-29",
-                "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-            }
-        },
-        "rocky9.6": {
-            "x86_64": {
-                "version": "2.3.4-1",
-                "sha256": "831c188a1c18107c289f78a62b3e00a0671f6fdaaa2cc4507ddae008e2157478"
-            }
-        }
-    },
     "amd": {
         "common": {
             "aocl": {

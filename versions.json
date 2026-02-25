@@ -241,9 +241,9 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.3.7-1",
-                "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4",
-                "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-1.tar.gz"
+                "version": "2.3.7-2",
+                "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
+                "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
             }
         },
         "ubuntu24.04": {

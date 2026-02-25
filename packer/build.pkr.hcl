@@ -96,7 +96,7 @@ build {
     expect_disconnect = true
     pause_after       = "2m"
     inline            = [
-      "sudo shutdown -r now"
+      "(sleep 5; sudo shutdown -r now) &"
     ]
   }
 
@@ -158,7 +158,7 @@ build {
     expect_disconnect = true
     pause_after       = "2m"
     inline            = [
-      "sudo shutdown -r now"
+      "(sleep 5; sudo shutdown -r now) &"
     ]
   }
 
@@ -179,7 +179,7 @@ build {
     expect_disconnect = true
     pause_after       = "2m"
     inline            = [
-      "sudo shutdown -r now"
+      "(sleep 5; sudo shutdown -r now) &"
     ]
   }
 
@@ -266,7 +266,7 @@ build {
     expect_disconnect = true
     pause_after       = "15m"
     inline            = [
-      "sudo shutdown -r now"
+      "(sleep 5; sudo shutdown -r now) &"
     ]
   }
 

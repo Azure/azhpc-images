@@ -134,6 +134,9 @@ wget https://dl.rockylinux.org/vault/rocky/9.6/BaseOS/x86_64/os/Packages/e/envir
 dnf install -y environment-modules-5.3.0-1.el9.x86_64.rpm
 rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 
+## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+dnf install -y kernel-abi-stablelists
+
 ## Disable kernel updates (but not kernel-rpm-macros and other tools)
 echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kernel-modules-extra" | tee -a /etc/dnf/dnf.conf
 

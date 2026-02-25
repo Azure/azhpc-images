@@ -78,6 +78,9 @@ wget https://repo.almalinux.org/vault/9.4/BaseOS/x86_64/os/Packages/environment-
 yum install -y environment-modules-5.3.0-1.el9.x86_64.rpm
 rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 
+## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+yum install -y kernel-abi-stablelists
+
 ## Disable kernel updates
 echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
 

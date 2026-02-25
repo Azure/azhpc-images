@@ -40,7 +40,6 @@ else
     dnf clean all
     
     # Install DOCA extras for compatibility
-    dnf install -y kernel-abi-stablelists || true
     dnf install -y doca-extra
     
     /opt/mellanox/doca/tools/doca-kernel-support

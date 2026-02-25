@@ -94,6 +94,7 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
+    pause_after       = "2m"
     inline            = [
       "sudo shutdown -r now"
     ]
@@ -101,7 +102,6 @@ build {
 
   provisioner "shell" {
     name           = "Clean up old kernels"
-    pause_before   = "2m"
     inline_shebang = var.default_inline_shebang
     inline         = [
       "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
@@ -156,6 +156,7 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
+    pause_after       = "2m"
     inline            = [
       "sudo shutdown -r now"
     ]
@@ -164,7 +165,6 @@ build {
   provisioner "shell" {
     name            = "Install HPC components"
     except          = var.skip_hpc ? ["azure-arm.hpc"] : []
-    pause_before    = "2m"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
@@ -177,6 +177,7 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
+    pause_after       = "2m"
     inline            = [
       "sudo shutdown -r now"
     ]
@@ -184,7 +185,6 @@ build {
 
   provisioner "shell" {
     name           = "Add image version to component_versions.txt"
-    pause_before   = "2m"
     inline_shebang = var.default_inline_shebang
     inline = [
       "sudo mkdir -p /opt/azurehpc",
@@ -264,6 +264,7 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
+    pause_after       = "15m"
     inline            = [
       "sudo shutdown -r now"
     ]
@@ -273,7 +274,6 @@ build {
     name           = "Run tests (post-reboot)"
     except         = (!var.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    pause_before   = "15m"
     inline         = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
     ]

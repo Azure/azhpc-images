@@ -41,6 +41,11 @@ else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+    # V100 needs cuda12 DCGM packages in addition to cuda13 (same as Ubuntu logic above)
+    if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
+        echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
+        dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}
+    fi
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 fi
 

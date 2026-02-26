@@ -446,6 +446,16 @@
         },
         "almalinux8.10": {
             "x86_64": {
+                "nvidia_v100": {
+                    "driver": {
+                        "version": "12.9",
+                        "distribution": "rhel8"
+                    },
+                    "samples": {
+                        "version": "12.9",
+                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel8"
@@ -458,6 +468,16 @@
         },
         "almalinux9.7": {
             "x86_64": {
+                "nvidia_v100": {
+                    "driver": {
+                        "version": "12.9",
+                        "distribution": "rhel9"
+                    },
+                    "samples": {
+                        "version": "12.9",
+                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel9"
@@ -494,6 +514,16 @@
         },
         "rocky8.10": {
             "x86_64": {
+                "nvidia_v100": {
+                    "driver": {
+                        "version": "12.9",
+                        "distribution": "rhel8"
+                    },
+                    "samples": {
+                        "version": "12.9",
+                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel8"
@@ -506,6 +536,16 @@
         },
         "rocky9.6": {
             "x86_64": {
+                "nvidia_v100": {
+                    "driver": {
+                        "version": "12.9",
+                        "distribution": "rhel9"
+                    },
+                    "samples": {
+                        "version": "12.9",
+                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
                 "driver": {
                     "version": "13.0",
                     "distribution": "rhel9"

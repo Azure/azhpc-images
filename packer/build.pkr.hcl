@@ -329,7 +329,22 @@ build {
     inline_shebang = var.default_inline_shebang
     inline = [
       "echo 'Build failed for resource group ${local.azure_resource_group}'",
-      "[[ \"${local.retain_vm_on_fail}\" == true || \"${local.retain_vm_always}\" == true || \"${local.externally_managed_resource_group}\" == true ]] && exit 0; az group delete --name ${local.azure_resource_group} --yes"
+      # If retaining the VM, display its public IP for SSH debugging, then exit 0
+      <<-EOF
+      if [[ "${local.retain_vm_on_fail}" == true || "${local.retain_vm_always}" == true || "${local.externally_managed_resource_group}" == true ]]; then
+        PUBLIC_IP=$(az vm list-ip-addresses \
+          --resource-group "${local.azure_resource_group}" \
+          --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" \
+          --output tsv 2>/dev/null)
+        if [[ -n "$PUBLIC_IP" ]]; then
+          echo "##[section]VM retained — SSH with: ssh ${var.ssh_username}@$PUBLIC_IP"
+        else
+          echo "##[warning]Could not determine public IP for VMs in ${local.azure_resource_group}"
+        fi
+        exit 0
+      fi
+      az group delete --name "${local.azure_resource_group}" --yes
+      EOF
     ]
   }
 

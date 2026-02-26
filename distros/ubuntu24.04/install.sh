@@ -49,10 +49,10 @@ if [ "$GPU" = "NVIDIA" ]; then
         ./install_nvidiagpudriver_gb200.sh
 
         # Install NVSHMEM
-        ./install_nvshmem_gb200.sh
+        $COMPONENT_DIR/install_nvshmem.sh
 
         # Install NVLOOM
-        ./install_nvloom_gb200.sh
+        $COMPONENT_DIR/install_nvloom.sh
 
         # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh

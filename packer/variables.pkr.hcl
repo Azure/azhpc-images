@@ -489,7 +489,7 @@ locals {
   
   architecture = local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "aarch64" : "x86_64"
 
-  image_name = "${local.os_family}-${local.distro_version_safe}-${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
+  image_name = "${local.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {

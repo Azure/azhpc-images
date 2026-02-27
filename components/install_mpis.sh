@@ -12,7 +12,6 @@ INSTALL_PREFIX=/opt
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
-# Install HPC-x
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
     hpcx_metadata=$(get_component_config "hpcx_amd")
@@ -22,6 +21,7 @@ fi
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+
 TARBALL=$(basename $HPCX_DOWNLOAD_URL)
 HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
@@ -51,7 +51,7 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DIS
 fi
 
 # Install MVAPICH
-if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -133,7 +133,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # MVAPICH
-if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
@@ -201,7 +201,6 @@ fi
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
-
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
 rm -rf -- */

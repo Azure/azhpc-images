@@ -57,7 +57,7 @@ fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
 if [ "$SKU" == "GB200" ]; then
     sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
-    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml
+    sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml 2>/dev/null || true
 fi
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     sed -i '/\[plugins\.\"io\.containerd\.cri\.v1\.runtime\".containerd\.runtimes\.runc\.options\]/a \ \ \ \ \ \ \ \ \ \ \ \ SystemdCgroup = true' /etc/containerd/config.toml

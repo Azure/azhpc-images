@@ -30,12 +30,22 @@ else
         # tdnf will automatically pick the correct nvidia driver version for
         # gdrcopy kmod package
 
-        # Install gdrcopy kmod and devel packages from PMC
-        tdnf install -y gdrcopy \
-                        gdrcopy-kmod \
-                        gdrcopy-devel
+        if [ "$ARCHITECTURE" = "aarch64" ]; then
+            # Install gdrcopy kmod and devel packages from PMC
+            tdnf -y install gdrcopy \
+                            gdrcopy-hwe-kmod \
+                            gdrcopy-devel \
+                            gdrcopy-service
+            GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.aarch64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+        else
+            # Install gdrcopy kmod and devel packages from PMC
+            tdnf install -y gdrcopy \
+                            gdrcopy-kmod \
+                            gdrcopy-devel \
+                            gdrcopy-service
+            GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+        fi
 
-        GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
     else
         git clone https://github.com/NVIDIA/gdrcopy.git
         pushd gdrcopy/packages/

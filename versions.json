@@ -137,10 +137,21 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.18",
-                "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
-            }
+                "nvidia_v100":{
+                    "version": "2.24.1",
+                    "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+            
+                },
+                "version": "2.24.1",
+                "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
+            },
+            "aarch64": {
+                "version": "2.24.1",
+                "sha256": "ab0c053e98c67b4a08ce73c81eb74c87dbc56dd6a21558cd721ab34e46798b4c",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-aarch64.tbz"
+           }
         },
         "rocky8.10": {
             "x86_64": {
@@ -230,9 +241,9 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.3.7-1",
-                "sha256": "fdd971cf36d6476d007b5d63d19414546ca8a2937b66886f24a1d9ca154634e4",
-                "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-1.tar.gz"
+                "version": "2.3.7-2",
+                "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
+                "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
             }
         },
         "ubuntu24.04": {
@@ -379,6 +390,33 @@
                     "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
                 }
             }
+        },
+        "azurelinux3.0": {
+           "x86_64": {
+                "driver": {
+                    "version": "580.105.08",
+                    "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
+                },
+                "fabricmanager": {
+                    "distribution": "azl3",
+                    "version": "580.105.08",
+                    "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"
+                }
+            },
+            "aarch64": {
+                "driver": {
+                    "version": "580.105.08",
+                    "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
+                },
+                "fabricmanager": {
+                    "distribution": "azl3",
+                    "version": "580.105.08",
+                    "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"
+                },
+                "imex": {
+                    "version": "580.105.08"
+                }
+            }
         }
     },
     "cuda": {
@@ -501,14 +539,34 @@
             }
         },
         "azurelinux3.0": {
-            "x86_64": {
+            "x86_64":{
+                "nvidia_v100": {
+                    "driver": {
+                        "version": "12.9",
+                        "distribution": "azl3"
+                    },
+                    "samples": {
+                        "version": "12.9",
+                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
                 "driver": {
-                    "version": "12.8",
+                    "version": "13.0",
                     "distribution": "azl3"
                 },
                 "samples": {
-                    "version": "12.8",
-                    "sha256": "fe82484f9a87334075498f4e023a304cc70f240a285c11678f720f0a1e54a89d"
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            },
+            "aarch64": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "azl3"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
                 }
             }
         },
@@ -605,6 +663,18 @@
                 "distribution": "el8"
             }
         },
+        "azurelinux3.0": {
+            "x86_64": {
+                "version": "2.5.1-1",
+                "sha256": "9f1ddefaf7ebf09f1f4cb04873ed9fb255ddfd819ab1cf5ec2e73ed96140565a",
+                "distribution": "azl3"
+            },
+            "aarch64": {
+                "version": "2.5.1-1",
+                "sha256": "9f1ddefaf7ebf09f1f4cb04873ed9fb255ddfd819ab1cf5ec2e73ed96140565a",
+                "distribution": "azl3"
+            }
+        },
         "rocky8.10": {
             "x86_64": {
                 "version": "2.5.1-1",
@@ -629,7 +699,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.26.2-1",
+                "version": "2.28.3-1",
+                "rdmasharpplugins": {
+                    "commit": "master"
+                }
+            },
+            "aarch64": {
+                "version": "2.28.3-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -648,6 +724,12 @@
         "common": {
             "version": "0.8",
             "url": "https://github.com/NVIDIA/nvbandwidth"
+        },
+        "azurelinux3.0": {
+            "aarch64": {
+                "version": "0.8",
+                "url": "https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz"
+            }
         }
     },
     "dcgm": {
@@ -665,6 +747,14 @@
             },
             "aarch64": {
                 "version": "1:4.4.2-1"
+            }
+        },
+        "azurelinux3.0": {
+            "x86_64": {
+                "version": "4.4.2"
+            },
+            "aarch64": {
+                "version": "4.4.2"
             }
         }
     },
@@ -774,6 +864,9 @@
         "azurelinux3.0": {
             "x86_64": {
                 "version": "5.0.1-1"
+            },
+            "aarch64":{
+                "version": "5.0.1-1"
             }
         }
     },
@@ -860,6 +953,27 @@
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
                 "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
+            }
+        }
+    },
+    "nvshmem": {
+        "azurelinux3.0": {
+            "aarch64": {    
+                "version": "3.5.19"
+            }
+        }
+    },
+    "nvloom": {
+        "azurelinux3.0": {
+            "aarch64": {
+                "version": "1.2.0",
+                "url": "https://github.com/NVIDIA/nvloom.git"
+            }
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "version": "1.2.0",
+                "url": "https://github.com/NVIDIA/nvloom.git"
             }
         }
     }

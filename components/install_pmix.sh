@@ -32,8 +32,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # '--allow-change-held-packages' flag.
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf -y install pmix-${PMIX_VERSION}.azl3.x86_64 pmix-devel-${PMIX_VERSION}.azl3.x86_64 pmix-tools-${PMIX_VERSION}.azl3.x86_64
+    tdnf -y install pmix pmix-devel pmix-tools
     tdnf -y install hwloc-devel libevent-devel munge-devel
+    PMIX_VERSION=$(tdnf list installed | grep -i pmix.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)

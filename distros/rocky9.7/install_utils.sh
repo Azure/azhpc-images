@@ -18,7 +18,7 @@ sudo dnf install -y wget \
                jq
 
 # Install Kernel dependencies
-# Rocky 9.6 kernel-devel installation requires complex fallback logic due to:
+# Rocky 9.7 kernel-devel installation requires complex fallback logic due to:
 # 1. kernel-devel-matched may not always find exact match in active repositories
 # 2. Azure VMs may run on kernel versions only available in vault mirrors
 # 3. kernel-devel must exactly match running kernel for DKMS module builds (DOCA, ROCm drivers)

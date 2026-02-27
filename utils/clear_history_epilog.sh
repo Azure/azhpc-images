@@ -10,6 +10,10 @@ find_distro() {
     then
         local alma_distro=`find_alma_distro`
         echo "${os} ${alma_distro}"
+    elif [[ $os == "Rocky Linux" ]]
+    then
+        local rocky_distro=`find_rocky_distro`
+        echo "${os} ${rocky_distro}"
     elif [[ $os == "Red Hat Enterprise Linux" ]]
     then
         local rhel_distro=`find_rhel_distro`
@@ -33,9 +37,16 @@ find_alma_distro() {
     echo `cat /etc/redhat-release | awk '{print $3}'`
 }
 
+# Find Rocky distro
+# Rocky Linux release 8.10 (Green Obsidian) -> version is field $4
+find_rocky_distro() {
+    echo `cat /etc/redhat-release | awk '{print $4}'`
+}
+
 # Find RHEL distro
+# Red Hat Enterprise Linux release 8.10 (Ootpa) -> version is field $6
 find_rhel_distro() {
-    echo `cat /etc/redhat-release | awk '{print $3}'`
+    echo `cat /etc/redhat-release | awk '{print $6}'`
 }
 
 # Find Ubuntu distro
@@ -71,7 +82,7 @@ usermod root -p '!!'
 # Deprovision the user
 waagent -deprovision+user -force
 # Delete the last line of the file /etc/sysconfig/network-scripts/ifcfg-eth0 -> cloud-init issue on alma distros
-if [[ "$distro" == *"AlmaLinux"*  ]]
+if [[ "$distro" == *"AlmaLinux"* ]] || [[ "$distro" == *"Rocky"* ]] || [[ "$distro" == *"Red Hat"* ]]
 then
     sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
 fi

@@ -45,8 +45,9 @@ source "azure-arm" "hpc" {
   # https://github.com/hashicorp/packer-plugin-azure/pull/579
   # managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
   # managed_image_name                = local.create_image ? local.image_name : null
-  managed_image_resource_group_name = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
-  managed_image_name                = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
+  managed_image_resource_group_name  = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
+  managed_image_name                 = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
+  managed_image_storage_account_type = (local.create_image || local.skip_create_artifacts) ? var.storage_account_type : null
   
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
@@ -63,7 +64,7 @@ source "azure-arm" "hpc" {
       image_name           = local.sig_image_name
       image_version        = local.image_version
       replication_regions  = var.sig_replication_regions
-      storage_account_type = var.sig_storage_account_type
+      storage_account_type = var.storage_account_type
     }
   }
   

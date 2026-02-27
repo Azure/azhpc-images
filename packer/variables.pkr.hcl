@@ -406,9 +406,9 @@ variable "sig_replication_regions" {
   default     = null
 }
 
-variable "sig_storage_account_type" {
+variable "storage_account_type" {
   type        = string
-  description = "Storage account type for the gallery image version"
+  description = "Storage account type for the OS disk, managed image and gallery image version"
   default     = "Premium_LRS"
 }
 

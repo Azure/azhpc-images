@@ -19,8 +19,8 @@ sudo rm -rf /mpi
 sudo rm -rf /usr/share/modulefiles/mpi
 
 # Clean up working directory (assumes standard azhpc-images location)
-if [ -d "/home/azureuser/azhpc-images/distros/rocky9.6" ]; then
-    cd /home/azureuser/azhpc-images/distros/rocky9.6
+if [ -d "/home/azureuser/azhpc-images/distros/rocky9.7" ]; then
+    cd /home/azureuser/azhpc-images/distros/rocky9.7
     sudo rm -rf hpcx-*
     sudo rm -rf openmpi-*
     sudo rm -rf mvapich-*

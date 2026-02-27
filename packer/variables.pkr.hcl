@@ -30,7 +30,7 @@ variable "distro_version" {
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, rocky8.10, rocky9.6, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, rocky8.10, rocky9.7, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 

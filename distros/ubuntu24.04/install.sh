@@ -24,10 +24,16 @@ source ../../utils/set_properties.sh
 if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
-    # install Lustre client
-    $COMPONENT_DIR/install_lustre_client.sh    
+
 fi
 
+# install Lustre client (only for kernel 6.8.x)
+KERNEL_VERSION=$(uname -r)
+if [[ "$KERNEL_VERSION" == 6.8.* ]]; then
+    $COMPONENT_DIR/install_lustre_client.sh
+else
+    echo "Skipping Lustre client installation: kernel version $KERNEL_VERSION is not 6.8.x"
+fi
 
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh

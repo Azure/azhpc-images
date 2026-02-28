@@ -39,6 +39,10 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
+else
+    # Rocky Linux, RHEL, and other RHEL-family distros
+    dnf install -y jq
+    export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
 fi
 
 # Component Versions

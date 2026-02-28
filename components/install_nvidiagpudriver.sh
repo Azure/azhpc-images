@@ -47,7 +47,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
 else
     download_and_verify $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
     bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE}
-    if [[ $DISTRIBUTION == almalinux* ]]; then
+    if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
         dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
     fi
     # load the nvidia-peermem coming as a part of NVIDIA GPU driver
@@ -78,10 +78,6 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         dpkg -i ./cuda-keyring_1.1-1_all.deb
         apt-get update
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
-    elif [[ $DISTRIBUTION == almalinux* ]]; then
-        dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
-        dnf clean expire-cache
-        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
         # Install cuda-toolkit
         # V100 does not support CUDA 13.0, so use CUDA 12.9.
@@ -92,6 +88,11 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         fi        
         # Install libnvidia-nscq
         tdnf install -y libnvidia-nscq
+    else
+        # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+        dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
+        dnf clean expire-cache
+        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi
 
     echo 'export PATH=$PATH:/usr/local/cuda/bin' | sudo tee /etc/profile.d/cuda.sh > /dev/null

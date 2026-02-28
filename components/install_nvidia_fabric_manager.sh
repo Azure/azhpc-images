@@ -27,7 +27,14 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 
     # Prevent package from being updated after installation
     apt-mark hold $PACKAGE_NAME
-elif [[ $DISTRIBUTION == almalinux* ]]; then
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    # Install Nvidia Fabric Manager and devel packages from PMC
+    tdnf install -y nvidia-fabric-manager \
+                    nvidia-fabric-manager-devel \
+                    libnvidia-nscq
+    NVIDIA_FABRICMANAGER_VERSION=$(sudo tdnf list installed | grep -i nvidia-fabric-manager.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
     if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
         PACKAGE_NAME="nvidia-fabricmanager"
@@ -42,10 +49,5 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
 
     # Prevent package from being updated after installation
     sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    # Install Nvidia Fabric Manager and devel packages from PMC
-    tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}
-    tdnf install -y nvidia-fabric-manager-devel-${NVIDIA_FABRICMANAGER_VERSION}
-    tdnf install -y libnvidia-nscq-${NVIDIA_FABRICMANAGER_VERSION}
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

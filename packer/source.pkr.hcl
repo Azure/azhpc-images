@@ -1,0 +1,113 @@
+# =============================================================================
+# HPC Image Builder - Source Definition
+# =============================================================================
+# Azure ARM builder configuration for HPC images
+# =============================================================================
+
+packer {
+  required_version = ">= 1.14.0"
+  
+  required_plugins {
+    azure = {
+      version = "~> 2.5.2"
+      source  = "github.com/hashicorp/azure"
+    }
+  }
+}
+
+source "azure-arm" "hpc" {
+  # TODO: support additional authentication methods
+  use_azure_cli_auth = true
+
+  # TODO: support accelerated networking https://github.com/hashicorp/packer-plugin-azure/pull/580
+
+  # RG for build VM; see locals for distinction
+  temp_resource_group_name  = local.temp_resource_group_name
+  location                  = local.location
+  build_resource_group_name = local.build_resource_group_name
+  temp_os_disk_name         = local.image_name
+  skip_create_image         = local.skip_create_artifacts
+
+  private_virtual_network_with_public_ip = local.private_virtual_network_with_public_ip
+  virtual_network_name                   = var.virtual_network_name
+  virtual_network_subnet_name            = var.virtual_network_subnet_name
+  virtual_network_resource_group_name    = var.virtual_network_resource_group_name
+
+  dynamic "spot" {
+    for_each = local.use_spot_instances ? [1] : []
+    content {
+      eviction_policy = "Deallocate"
+    }
+  }
+  
+  # Output: Create managed image in your resource group
+  # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables
+  # https://github.com/hashicorp/packer-plugin-azure/pull/579
+  # managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
+  # managed_image_name                = local.create_image ? local.image_name : null
+  managed_image_resource_group_name  = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
+  managed_image_name                 = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
+  managed_image_storage_account_type = (local.create_image || local.skip_create_artifacts) ? var.storage_account_type : null
+  
+  # Output: Also create VHD in storage account (optional)
+  resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
+  storage_account        = local.create_vhd ? var.vhd_storage_account : null
+  capture_container_name = local.create_vhd ? var.vhd_container_name : null
+  
+  # Output: Publish to Shared Image Gallery (optional)
+  dynamic "shared_image_gallery_destination" {
+    for_each = local.publish_to_sig ? [1] : []
+    content {
+      subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
+      resource_group       = var.sig_resource_group_name
+      gallery_name         = var.sig_gallery_name
+      image_name           = local.sig_image_name
+      image_version        = local.image_version
+      replication_regions  = var.sig_replication_regions
+      storage_account_type = var.storage_account_type
+    }
+  }
+  
+  # Base Marketplace image info
+  image_publisher = local.image_publisher
+  image_offer     = local.image_offer
+  image_sku       = local.image_sku
+
+  # Marketplace plan info (required for images with purchase agreements, e.g. Rocky Linux)
+  dynamic "plan_info" {
+    for_each = local.has_plan_info ? [local.builtin_marketplace_plan_info[local.os_family]] : []
+    content {
+      plan_name      = plan_info.value.plan_name
+      plan_product   = plan_info.value.plan_product
+      plan_publisher = plan_info.value.plan_publisher
+    }
+  }
+  
+  # Base Direct Shared Gallery image info
+  dynamic "shared_image_gallery" {
+    for_each = (local.direct_shared_gallery_image_id != null && local.direct_shared_gallery_image_id != "") ? [1] : []
+    content {
+      direct_shared_gallery_image_id = local.direct_shared_gallery_image_id
+    }
+  }
+  
+  # VM Configuration
+  os_type         = "Linux"
+  vm_size         = local.vm_size
+  os_disk_size_gb = 64
+  
+  # SSH Configuration
+  communicator           = "ssh"
+  ssh_username           = var.ssh_username
+  ssh_timeout            = "10m"
+
+  polling_duration_timeout = "2h"
+
+  dynamic "azure_tag" {
+    for_each = local.all_tags
+    content {
+      name  = azure_tag.key
+      value = azure_tag.value
+    }
+  }
+}

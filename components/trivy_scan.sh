@@ -5,7 +5,7 @@ TRIVY_REPORT_DIRNAME=/opt/azurehpc
 TRIVY_REPORT_ROOTFS_JSON_PATH=${TRIVY_REPORT_DIRNAME}/trivy-report-rootfs.json
 TRIVY_CYCLONEDX_ROOTFS_JSON_PATH=${TRIVY_REPORT_DIRNAME}/trivy-cyclonedx-rootfs.json
 
-TRIVY_VERSION=$(curl -L   -H "Accept: application/vnd.github+json"   -H "X-GitHub-Api-Version: 2022-11-28"   https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r ".name")
+TRIVY_VERSION=$(curl -sfL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/aquasecurity/trivy/releases/latest | python3 -c "import sys,json;print(json.load(sys.stdin)['name'])")
 TRIVY_VERSION=${TRIVY_VERSION:1} # remove the leading 'v'
 
 if [[ "$ARCHITECTURE" == "aarch64" ]]; then

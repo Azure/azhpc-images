@@ -244,7 +244,8 @@ function verify_package_updates {
         ubuntu)
             # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
             # [[ "$num_upgradable" -eq 0 ]];;
-            true;
+            # TODO: re-enable check after pinning
+            true;;
         azurelinux) true;;
         *)
             sudo dnf -y makecache 

@@ -972,7 +972,7 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "1.2.0",
+                "version": "1.4.0",
                 "url": "https://github.com/NVIDIA/nvloom.git"
             }
         }

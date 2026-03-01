@@ -6,6 +6,8 @@
 |Ubuntu 24.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_24.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |AlmaLinux 8.10|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.10)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |AlmaLinux 9.6|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma9.6)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|Rocky Linux 8.10|Build pipeline pending
+|Rocky Linux 9.6|Build pipeline pending
 |Azure Linux 3.0|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20azurelinux3.0)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 # Azure HPC/AI VM Images
@@ -21,6 +23,8 @@ Following are the current supported HPC/AI VM images that are available in Azure
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 (almalinux:almalinux-hpc:8_10-hpc-gen2:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 V100 (almalinux:almalinux-hpc:8_10-hpc-v100-gen2:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 9.6 (almalinux:almalinux-hpc:9-hpc-gen2:latest)
+- Rocky Linux 8.10 HPC (scripts available, marketplace publication pending)
+- Rocky Linux 9.6 HPC (scripts available, marketplace publication pending)
 - [AzureLinux-HPC]() 3 (azure-hpc:azurelinux-hpc:3:latest)
 - [AzureLinux-HPC]() 3-FIPS (azure-hpc:azurelinux-hpc:3-fips:latest)
 - [AzureLinux-HPC]() 3-V100 (azure-hpc:azurelinux-hpc:3-v100:latest)

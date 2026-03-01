@@ -62,3 +62,6 @@ $COMPONENT_DIR/copy_kvp_client.sh
 
 # copy torset tool
 $COMPONENT_DIR/copy_torset_tool.sh
+
+# Set default shell for newly created users (somehow bash is no longer the default in Canonical's Noble image for Azure)
+sed -i 's|^SHELL=.*|SHELL=/bin/bash|' /etc/default/useradd

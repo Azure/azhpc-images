@@ -4,9 +4,17 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Kernel dependencies
-tdnf install -y kernel-headers-$(uname -r) \
+if [ "$ARCHITECTURE" = "aarch64" ]; then
+    tdnf install -y kernel-hwe-devel-$(uname -r) \
+                kernel-hwe-drivers-gpu-$(uname -r) \
+                kernel-headers
+
+else
+    tdnf install -y kernel-headers-$(uname -r) \
                 kernel-devel-$(uname -r) \
-                kernel-drivers-gpu-$(uname -r)
+                kernel-drivers-gpu-$(uname -r) \
+                dkms
+fi
 
 # Install Python 3.12
 tdnf install -y python

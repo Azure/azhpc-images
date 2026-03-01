@@ -37,6 +37,10 @@
         "common":{
             "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
+        },
+        "gb-family":{
+            "components": ["check_nvidia_driver","check_cuda", "check_nccl", "check_docker", "check_dcgm", "check_nvlink", "check_nvbandwidth", "check_nvloom"],
+            "services": ["check_sku_customization", "check_nvidia_imex", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         }
     }
 }

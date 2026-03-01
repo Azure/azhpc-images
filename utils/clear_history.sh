@@ -105,13 +105,17 @@ else
     fi
 fi
 
-# Clear History
-# Stop syslog service
-systemctl stop systemd-journald-dev-log.socket
-systemctl stop systemd-journald.socket
-systemctl stop systemd-journald.service
-systemctl stop syslog.socket rsyslog systemd-journald
-#systemctl stop auditd 2>/dev/null
+# Switch journald to volatile (memory-only) storage so it stops persisting to disk,
+# then we can safely clean all on-disk logs. The volatile override is removed before
+# image capture so that VMs booted from this image will use the default Storage=auto.
+mkdir -p /etc/systemd/journald.conf.d
+cat > /etc/systemd/journald.conf.d/volatile.conf <<'JEOF'
+[Journal]
+Storage=volatile
+JEOF
+systemctl restart systemd-journald
+# Stop rsyslog so it releases log file handles
+systemctl stop rsyslog 2>/dev/null || true
 # Delete Defender related files
 rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
 # Clean journald logs
@@ -174,6 +178,10 @@ then
 else
     yum clean all
 fi
+
+# Remove the volatile journald override so VMs booted from this image use default Storage=auto
+rm -f /etc/systemd/journald.conf.d/volatile.conf
+rmdir /etc/systemd/journald.conf.d 2>/dev/null || true
 
 fstrim -av || echo "fstrim encountered errors (may not be supported)"
 # Whiteout root filesystem

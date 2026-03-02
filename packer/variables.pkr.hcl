@@ -139,7 +139,7 @@ variable "public_key" {
 variable "default_inline_shebang" {
   type        = string
   description = "Default shebang line for inline shell provisioners (e.g., /bin/bash -xe)"
-  default     = "/bin/bash -xe"
+  default     = "/bin/bash -xeo pipefail"
 }
 
 variable "private_virtual_network_with_public_ip" {

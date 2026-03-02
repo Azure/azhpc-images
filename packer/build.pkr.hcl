@@ -188,7 +188,7 @@ build {
     inline_shebang = var.default_inline_shebang
     inline = [
       "sudo mkdir -p /opt/azurehpc",
-      "(sudo cat /opt/azurehpc/component_versions.txt 2>/dev/null || echo '{}') | python3 -c 'import json,sys;d=json.load(sys.stdin);d[\"ImageVersion\"]=\"${local.image_version}\";print(json.dumps(d,indent=2))' | sudo tee /opt/azurehpc/component_versions.txt >/dev/null",
+      "sudo python3 -c 'import json,pathlib;p=pathlib.Path(\"/opt/azurehpc/component_versions.txt\");d=json.loads(p.read_text()) if p.exists() else {};d[\"ImageVersion\"]=\"${local.image_version}\";p.write_text(json.dumps(d,indent=2)+\"\\n\")'",
       "sudo chmod 644 /opt/azurehpc/component_versions.txt"
     ]
   }

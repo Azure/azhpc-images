@@ -177,7 +177,7 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
-    pause_after       = "2m"
+    pause_after       = "5m"
     inline            = [
       "(sleep 5; sudo shutdown -r now) &"
     ]

@@ -54,6 +54,8 @@ case \$vmSize in
 
     standard_nd128is*_gb[2-3]00_v6)
         /opt/azurehpc/customizations/ndv6.sh;;
+    standard_nc*_rtxpro6000bse_v6)
+        /opt/azurehpc/customizations/ncv6.sh;;
     *) echo "No SKU customization for \$vmSize";;
 esac
 EOF
@@ -81,6 +83,7 @@ rm -rf /opt/microsoft/ncv4
 rm -rf /opt/microsoft/ndv2
 rm -rf /opt/microsoft/ndv4
 rm -rf /opt/microsoft/ndv5
+rm -rf /opt/microsoft/ncv6
 
 # Clear contents of nccl.conf
 cat /dev/null > /etc/nccl.conf

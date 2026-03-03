@@ -196,6 +196,19 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;                
+        standard_nc*_rtxpro6000bse_v6)
+            local ncv6_gpu_count
+            ncv6_gpu_count=$(nvidia-smi -L | wc -l)
+            mpirun -np ${ncv6_gpu_count} \
+            --allow-run-as-root \
+            --map-by ppr:${ncv6_gpu_count}:node \
+            -x LD_LIBRARY_PATH \
+            -mca coll_hcoll_enable 0 \
+            -x UCX_TLS=tcp \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"

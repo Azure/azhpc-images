@@ -252,7 +252,7 @@ build {
   
   provisioner "shell" {
     name           = "Run tests (pre-reboot)"
-    except         = (!var.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
@@ -261,7 +261,7 @@ build {
   
   provisioner "shell" {
     name              = "Reboot"
-    except            = (!var.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    except            = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
@@ -273,7 +273,7 @@ build {
 
   provisioner "shell" {
     name           = "Run tests (post-reboot)"
-    except         = (!var.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
@@ -282,7 +282,7 @@ build {
 
   provisioner "shell" {
     name            = "Run health checks"
-    except          = (!var.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
+    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",

@@ -129,6 +129,9 @@ variable "skip_validation" {
   description = "Skip test and health check validation (useful for faster debugging)"
   default     = false
 }
+locals {
+  skip_validation = var.skip_validation || var.skip_hpc
+}
 
 variable "public_key" {
   type        = string

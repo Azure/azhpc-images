@@ -427,6 +427,10 @@ function verify_nvloom_setup {
 }
 
 function verify_nvlink_setup {
+    # Skip NVLink checks on SKUs without NVLink
+    local skip_sizes="standard_nc.*_rtxpro6000bse_v6"
+    if [[ "${VMSIZE}" =~ ^($skip_sizes)$ ]]; then return; fi
+
     # Verify nvlink setup
     nvidia-smi nvlink --status
     check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
@@ -441,7 +445,7 @@ function verify_nvlink_setup {
         else
             echo "[OK] : NVLINK setup is healthy"
         fi
-    fi    
+    fi
 }
 
 function verify_nvidia_imex_service {

@@ -9,13 +9,6 @@ DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
 DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
 DOCA_FILE=$(basename ${DOCA_URL})
 
-# Enable the following when we have a private repo with GB200/GB300 DOCA packages
-# if [[ "$DISTRIBUTION" == *"ubuntu"* && "$SKU" == "GB200" ]]; then
-#     DOCA_FILE=$TOP_DIR/internal_bits/doca-host_${DOCA_VERSION}_arm64.deb
-# else
-#     download_and_verify $DOCA_URL $DOCA_SHA256
-# fi
-
 download_and_verify $DOCA_URL $DOCA_SHA256
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then

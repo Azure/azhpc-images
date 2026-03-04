@@ -57,6 +57,8 @@ if [ "$GPU" = "NVIDIA" ]; then
         # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
 
+    elif [ "$SKU" = "NCv6" ]; then
+        $COMPONENT_DIR/install_nvidiagriddriver.sh
     else
         $COMPONENT_DIR/install_nvidiagpudriver.sh
     fi

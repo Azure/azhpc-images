@@ -128,10 +128,10 @@ function verify_cuda_installation {
     # nvcc --version
     # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
-    
+    cuda_runtime=$(echo ${VERSION_CUDA} | cut -d'.' -f1,2) 
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
     # Having a newer CUDA runtime breaks programs compiled to PTX with the cuda toolkit, such as gpu-burn
-    if [[ $(ver ${VERSION_CUDA}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
+    if [[ $(ver ${cuda_runtime}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
         echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"
     else
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
@@ -242,11 +242,17 @@ function verify_rccl_installation {
 function verify_package_updates {
     # TODO: wait for pre-depends bug to be fixed in apt https://salsa.debian.org/apt-team/apt/-/merge_requests/549
     case ${ID} in
-        ubuntu)
-            case ${VERSION_ID} in
-                22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
-                *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" -qq 2>/dev/null | grep -q .;;
-            esac;;
+        ubuntu) 
+            if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+                # doca-related packages are not latest version which includes stale packages, so just list packages here for reference
+                sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))"
+            else
+                case ${VERSION_ID} in
+                    22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
+                    *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" -qq 2>/dev/null | grep -q .;;
+                esac
+            fi
+            ;;   
         almalinux)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;

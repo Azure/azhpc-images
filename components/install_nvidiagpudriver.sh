@@ -100,7 +100,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     # Ensure proper permissions
     sudo chmod 644 /etc/profile.d/cuda.sh
 
-    write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
+    cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
+    write_component_version "CUDA" ${cuda_version}
 
     # Download CUDA samples
     TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"

@@ -422,7 +422,7 @@ variable "storage_account_type" {
 variable "azl_base_image_type" {
   type        = string
   description = "Azure Linux base image type: Marketplace-FIPS, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS (Marketplace-Non-FIPS for non-Azure Linux distros)"
-  default     = env("BASE_IMAGE")
+  default     = env("BASE_IMAGE_VARIANT")
   validation {
     condition     = var.azl_base_image_type == null || contains(["Marketplace-FIPS", "Marketplace-Non-FIPS", "1P-FIPS", "1P-Non-FIPS", ""], var.azl_base_image_type)
     error_message = "Azure Linux base image type must be one of the following if set: Marketplace-FIPS, Marketplace-Non-FIPS, 1P-FIPS, 1P-Non-FIPS."

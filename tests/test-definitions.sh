@@ -128,10 +128,10 @@ function verify_cuda_installation {
     # nvcc --version
     # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
-    
+    cuda_runtime=$(echo ${VERSION_CUDA} | cut -d'.' -f1,2) 
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
     # Having a newer CUDA runtime breaks programs compiled to PTX with the cuda toolkit, such as gpu-burn
-    if [[ $(ver ${VERSION_CUDA}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
+    if [[ $(ver ${cuda_runtime}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
         echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"
     else
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
@@ -242,10 +242,25 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu)
-            # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-            # [[ "$num_upgradable" -eq 0 ]];;
-            # TODO: re-enable check after pinning
-            true;;
+            if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+                # doca-related packages are not latest version which includes stale packages, so just list packages here for reference
+                sudo apt -s upgrade 2> /dev/null
+                # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                # [[ "$num_upgradable" -eq 0 ]];;
+                # TODO: re-enable check after pinning
+                true;;
+            else
+                case ${VERSION_ID} in
+                    22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
+                    *)
+                        sudo apt -s upgrade 2> /dev/null
+                        # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                        # [[ "$num_upgradable" -eq 0 ]];;
+                        # TODO: re-enable check after pinning
+                        true;;
+                esac
+            fi
+            ;;   
         azurelinux) true;;
         *)
             sudo dnf -y makecache 

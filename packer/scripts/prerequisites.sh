@@ -15,7 +15,7 @@ set -euo pipefail
 #   DISTRO_VERSION   - Distro version (22.04, 24.04, etc.)
 #   GPU_SKU          - GPU SKU (a100, h100, gb200, mi300x) - required
 #   GB200_PARTUUID   - Disk PARTUUID for GB200 builds (None for non-GB200)
-#   AKS_HOST_IMAGE   - Building AKS host image (true/false)
+#   TARGET_IMAGE_VARIANT - Target image variant (regular/aks_host_image/baremetal_image)
 # =============================================================================
 
 ####
@@ -58,15 +58,15 @@ wait_for_apt() {
 ####
 configure_gb200_partuuid() {
     local partuuid="${1:-None}"
-    local aks_host="${AKS_HOST_IMAGE:-false}"
+    local target_variant="${TARGET_IMAGE_VARIANT:-regular}"
 
     if [[ "${GPU_SKU,,}" != "gb200" || "${partuuid}" == "None" || -z "${partuuid}" ]]; then
         echo "##[section]Skipping PARTUUID configuration (not GB200 or PARTUUID not specified)"
         return 0
     fi
     
-    if [[ "${aks_host}" == "true" ]]; then
-        echo "##[section]Skipping PARTUUID configuration for AKS host image"
+    if [[ "${target_variant}" != "regular" ]]; then
+        echo "##[section]Skipping PARTUUID configuration for ${target_variant}"
         return 0
     fi
     
@@ -261,7 +261,7 @@ echo "========================================="
 echo "Prerequisites: Kernel, Package Updates"
 echo "OS: ${OS_FAMILY:-unknown} ${DISTRO_VERSION:-unknown}"
 echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
-echo "AKS Host Image: ${AKS_HOST_IMAGE:-false}"
+echo "Target Image Variant: ${TARGET_IMAGE_VARIANT:-regular}"
 echo "=========================================="
 
 # Configure GB200 PARTUUID if specified

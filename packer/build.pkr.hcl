@@ -84,7 +84,7 @@ build {
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "AKS_HOST_IMAGE=${local.aks_host_image}",
+      "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }
@@ -297,11 +297,14 @@ build {
     name           = "Clear history and deprovision"
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
+    environment_vars = [
+      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+    ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
     ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
-      "sudo ./clear_history.sh"
+      "sudo -E ./clear_history.sh"
     ]
   }
 
@@ -309,11 +312,14 @@ build {
     name           = "Clear history and deprovision (temporary epilog)"
     skip_clean     = true
     inline_shebang = "/bin/bash -e"
+    environment_vars = [
+      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+    ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
     ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
-      "sudo ./clear_history_epilog.sh"
+      "sudo -E ./clear_history_epilog.sh"
     ]
   }
 

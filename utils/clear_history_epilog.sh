@@ -72,24 +72,36 @@ rm -f ~/.ssh/authorized_keys
 
 # Switch to the root user
 sudo -s <<EOF
-cat /dev/null > /etc/machine-id
+if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
+    # Empty machine information
+    cat /dev/null > /etc/machine-id
 
-rm -f /etc/ssh/ssh_host_*
-rm -rf /root/*
+    rm -f /etc/ssh/ssh_host_*
+    rm -f ~/.ssh/authorized_keys
+    rm -rf /root/*
 
-# Disable root account
-usermod root -p '!!'
-# Deprovision the user
-waagent -deprovision+user -force
+    # Disable root account
+    usermod root -p '!!'
+    # Deprovision the user
+    waagent -deprovision+user -force
+else
+    apt -y remove walinuxagent 2>/dev/null || true
+fi
+
 # Delete the last line of the file /etc/sysconfig/network-scripts/ifcfg-eth0 -> cloud-init issue on alma distros
 if [[ "$distro" == *"AlmaLinux"* ]] || [[ "$distro" == *"Rocky"* ]] || [[ "$distro" == *"Red Hat"* ]]
 then
     sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
 fi
-# Clear the sudoers.d folder - last user information
-rm -rf /etc/sudoers.d/*
+
+if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
+    # Clear the sudoers.d folder - last user information
+    rm -rf /etc/sudoers.d/*
+fi
+
 # Delete /1 folder
 rm -rf /1
+
 touch /var/run/utmp
 # clear command history
 cat /dev/null > ~/.bash_history

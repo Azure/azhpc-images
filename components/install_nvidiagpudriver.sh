@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-aks_host_image=$1
-
 source ${UTILS_DIR}/utilities.sh
 
 # Install NVIDIA driver

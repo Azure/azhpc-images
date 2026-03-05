@@ -455,16 +455,21 @@ variable "gb200_partuuid" {
 }
 
 # =============================================================================
-# AKS Host Image Variables
+# Target Image Variant Variables
 # =============================================================================
 
-variable "aks_host_image" {
+variable "target_image_variant" {
   type        = string
-  description = "Build AKS host image instead of standard HPC image (uses install_aks.sh)"
-  default     = env("AKS_HOST_IMAGE")
+  description = "Target image variant: regular, aks_host_image, or baremetal_image"
+  default     = env("TARGET_IMAGE_VARIANT")
+  validation {
+    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
+    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
+  }
 }
 locals {
-  aks_host_image = try(convert(lower(var.aks_host_image), bool), false)
+  target_image_variant = coalesce(var.target_image_variant, "regular")
+  aks_host_image = local.target_image_variant == "aks_host_image"
   install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
   aks_test_flag = local.aks_host_image ? "-aks-host" : ""
 }

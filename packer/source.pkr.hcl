@@ -40,23 +40,14 @@ source "azure-arm" "hpc" {
     }
   }
   
-  # Output: Create managed image in your resource group
-  # TODO: fix Packer Azure plugin's validation logic so that skip_create_artifacts can work without placeholder values for these variables
-  # https://github.com/hashicorp/packer-plugin-azure/pull/579
-  # managed_image_resource_group_name = local.create_image ? local.managed_image_resource_group_name : null
-  # managed_image_name                = local.create_image ? local.image_name : null
-  managed_image_resource_group_name  = (local.create_image || local.skip_create_artifacts) ? local.managed_image_resource_group_name : null
-  managed_image_name                 = (local.create_image || local.skip_create_artifacts) ? local.image_name : null
-  managed_image_storage_account_type = (local.create_image || local.skip_create_artifacts) ? var.storage_account_type : null
-  
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
   storage_account        = local.create_vhd ? var.vhd_storage_account : null
   capture_container_name = local.create_vhd ? var.vhd_container_name : null
   
-  # Output: Publish to Shared Image Gallery (optional)
+  # Output: Publish to Shared Image Gallery
   dynamic "shared_image_gallery_destination" {
-    for_each = local.publish_to_sig ? [1] : []
+    for_each = local.create_image ? [1] : []
     content {
       subscription         = var.sig_subscription_id != "" ? var.sig_subscription_id : null
       resource_group       = var.sig_resource_group_name

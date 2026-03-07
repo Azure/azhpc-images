@@ -463,7 +463,7 @@ locals {
 # =============================================================================
 
 locals {
-  numeric_timestamp = formatdate("YYYYMMDDHHmm", local.iso_format_start_time)
+  numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
   
   # Image naming components
   distro_version_safe = replace(local.distro_version, ".", "-")
@@ -478,8 +478,9 @@ locals {
   ) : ""
   
   architecture = local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "aarch64" : "x86_64"
+  short_uuid   = substr(replace(lower(uuidv4()), "-", ""), 0, 6)
 
-  image_name = "${local.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}"
+  image_name = "${local.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}-${local.short_uuid}"
 
   builtin_marketplace_base_image_details = {
     "aarch64" = {

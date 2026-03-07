@@ -31,7 +31,12 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Hold versions of packages to prevent accidental updates. Packages can still be upgraded explictly by
     # '--allow-change-held-packages' flag.
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
-elif [[ $DISTRIBUTION == almalinux* ]]; then
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    tdnf -y install pmix pmix-devel pmix-tools
+    tdnf -y install hwloc-devel libevent-devel munge-devel
+    PMIX_VERSION=$(tdnf list installed | grep -i pmix.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
     cp ${COMPONENT_DIR}/slurm-repo/slurm-el${OS_MAJOR_VERSION}.repo /etc/yum.repos.d/slurm.repo
 
@@ -48,10 +53,6 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     fi
     yum update -y
     yum -y install pmix-${PMIX_VERSION}.el${OS_MAJOR_VERSION} hwloc-devel libevent-devel munge-devel
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf -y install pmix pmix-devel pmix-tools
-    tdnf -y install hwloc-devel libevent-devel munge-devel
-else echo "$DISTRIBUTION not supported for pmix installation."
 fi
 
 write_component_version "PMIX" ${PMIX_VERSION}

@@ -7,12 +7,13 @@ source ${UTILS_DIR}/utilities.sh
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
-elif [[ $DISTRIBUTION == almalinux* ]]; then
-    yum install -y moby-engine
-    yum install -y moby-cli
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+    yum install -y moby-engine
+    yum install -y moby-cli
 fi
 
 $COMPONENT_DIR/install_nvidia_container_toolkit.sh
@@ -33,9 +34,10 @@ write_component_version "DOCKER" ${docker_version::-1}
 
 if [[ $DISTRIBUTION == ubuntu* ]]; then
     moby_version=$(apt list --installed | grep moby-engine | awk -F' ' '{print $2}')
-elif [[ $DISTRIBUTION == almalinux* ]]; then
-    moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     moby_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+    moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
 fi
 write_component_version "MOBY_ENGINE" ${moby_version}

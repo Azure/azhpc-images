@@ -28,15 +28,8 @@ alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 20
 alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 10
 alternatives --set python3 /usr/bin/python3.9
 
-# install pssh
-pssh_metadata=$(get_component_config "pssh")
-pssh_version=$(jq -r '.version' <<< $pssh_metadata)
-pssh_sha256=$(jq -r '.sha256' <<< $pssh_metadata)
-pssh_download_url="https://dl.fedoraproject.org/pub/epel/9/Everything/aarch64/Packages/p/pssh-$pssh_version.el9.noarch.rpm"
-download_and_verify $pssh_download_url $pssh_sha256
-
-yum install -y  pssh-$pssh_version.el9.noarch.rpm
-rm -f pssh-$pssh_version.el9.noarch.rpm
+# Install EPEL repository
+yum install -y epel-release
 
 dnf -y install dnf-plugins-core
 dnf config-manager --set-enabled crb
@@ -85,6 +78,9 @@ wget https://repo.almalinux.org/vault/9.4/BaseOS/x86_64/os/Packages/environment-
 yum install -y environment-modules-5.3.0-1.el9.x86_64.rpm
 rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 
+## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+yum install -y kernel-abi-stablelists
+
 ## Disable kernel updates
 echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
 
@@ -92,18 +88,8 @@ echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
 sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
 sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
 
-## Install dkms from the EPEL repository
-wget -r --no-parent -A "dkms-*.el9.noarch.rpm" https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/d/
-yum localinstall ./dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/d/dkms-*.el9.noarch.rpm -y
-
-## Install subunit and subunit-devel from EPEL repository
-wget -r --no-parent -A "subunit-*.el9.x86_64.rpm" https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/s/
-yum localinstall ./dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/s/subunit-[0-9].*.el9.x86_64.rpm -y
-yum localinstall ./dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/s/subunit-devel-[0-9].*.el9.x86_64.rpm -y
-
-# Remove rpm files
-rm -rf ./dl.fedoraproject.org/
-rm -rf ./repo.almalinux.org/
+## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
+yum install -y pssh dkms subunit subunit-devel
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 

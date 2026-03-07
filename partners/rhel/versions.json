@@ -256,20 +256,6 @@
             "sha256": "69b5cb899bd6d7b911162931b012cd50548d71b5e68a8de191eff5cd1193377d"
         }
     },
-    "pssh": {
-        "almalinux8.7": {
-            "version": "2.3.1-29",
-            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-        },
-        "almalinux8.10": {
-            "version": "2.3.1-29",
-            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-        },
-        "rhel8.10": {
-            "version": "2.3.1-29",
-            "sha256": "a9fee8148837b1cad15359028f85bc9ce688fd727e0ff13441972fdacf6be282"
-        }
-    },
     "amd": {
         "common": {
             "aocl": {

@@ -1,6 +1,13 @@
 #!/bin/bash
 set -ex
 
+# GRID/vGPU driver install for NCv6.
+# Differences vs install_nvidiagpudriver.sh
+#   - GRID driver from Microsoft instead of Tesla driver from NVIDIA
+#   - No nvidia-peermem (no InfiniBand)
+#   - No GDRCopy (BAR1 mapping fails under vGPU and no RDMA to support)
+#   - No NVIDIA Fabric Manager (no NVSwitch/NVLink fabric)
+
 source ${UTILS_DIR}/utilities.sh
 
 # TODO: The GRID driver URL is hardcoded for the initial implementation.
@@ -43,7 +50,6 @@ chmod 644 /etc/profile.d/cuda.sh
 write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
 
 $COMPONENT_DIR/install_cuda_samples.sh
-$COMPONENT_DIR/install_gdrcopy.sh
 $COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files

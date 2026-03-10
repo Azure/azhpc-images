@@ -288,26 +288,14 @@
         "ubuntu22.04": {
             "x86_64": {
                 "driver": {
-                    "version": "580.126.16",
-                    "sha256": "1bd17b0855021e528b646df4ada910ccd28286cfef46086abc2beda3e7b27142"
-                },
-                "fabricmanager": {
-                    "distribution": "ubuntu2204",
-                    "version": "580.126.16-1",
-                    "sha256": "8619be3044b4c85572543948df265a0d9fef92051853120aa60237118d3e4944"
+                    "version": "580.126.16"
                 }
             }
         },
         "ubuntu24.04": {
             "x86_64": {
                 "driver": {
-                    "version": "580.105.08",
-                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
-                },
-                "fabricmanager": {
-                    "distribution": "ubuntu2404",
-                    "version": "580.105.08-1",
-                    "sha256": "83baeb04525fe32bd6e488d310c792c9c1d3bbb7014dc59611125af33a164068"
+                    "version": "580.105.08"
                 }
             },
             "aarch64": {
@@ -394,27 +382,7 @@
             }
         },
         "azurelinux3.0": {
-           "x86_64": {
-                "driver": {
-                    "version": "580.105.08",
-                    "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
-                },
-                "fabricmanager": {
-                    "distribution": "azl3",
-                    "version": "580.105.08",
-                    "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"
-                }
-            },
             "aarch64": {
-                "driver": {
-                    "version": "580.105.08",
-                    "sha256": "1818c90657d17e510de9fa032385ff7e99063e848e901cb4636ee71c8b339313"
-                },
-                "fabricmanager": {
-                    "distribution": "azl3",
-                    "version": "580.105.08",
-                    "sha256": "e2d359986ca733c568f5a21fd7686f1b002b09637bf1b3a596333bd5ffbc3edb"
-                },
                 "imex": {
                     "version": "580.105.08"
                 }

@@ -214,7 +214,7 @@ function verify_nccl_installation {
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;                
         standard_nc*_rtxpro6000bse_v6)
             local ncv6_gpu_count
-            ncv6_gpu_count=$(nvidia-smi -L | wc -l)
+            ncv6_gpu_count=$(nvidia-smi -L | grep -c "^GPU")
             mpirun -np ${ncv6_gpu_count} \
             --allow-run-as-root \
             --map-by ppr:${ncv6_gpu_count}:node \

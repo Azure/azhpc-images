@@ -33,6 +33,12 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
+# Check if the current SKU has InfiniBand. Currently all but ncv6
+function has_infiniband {
+    local no_ib_sizes="standard_nc.*_rtxpro6000bse_v6"
+    ! [[ "${VMSIZE}" =~ ^($no_ib_sizes)$ ]]
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -64,16 +70,20 @@ function verify_hpcx_installation {
     module avail
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
+
+    # Use TCP on non-IB SKUs and RDMA (rc) on IB SKUs
+    local ucx_tls="rc"
+    if ! has_infiniband; then ucx_tls="tcp"; fi
     
     module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=${ucx_tls} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
 
     module load mpi/hpcx-pmix
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=${ucx_tls} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
     module unload mpi/hpcx-pmix
     module purge
@@ -92,9 +102,13 @@ function verify_mvapich2_installation {
 
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
+
+    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
+    local fi_provider="mlx"
+    if ! has_infiniband; then fi_provider="tcp"; fi
     
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
@@ -110,9 +124,11 @@ function verify_nvidia_driver_installation {
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
-    # Verify if NVIDIA peer memory module is inserted
-    lsmod | grep nvidia_peermem
-    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    # Verify if NVIDIA peer memory module is inserted on SKUs with IB
+    if has_infiniband; then
+        lsmod | grep nvidia_peermem
+        check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    fi
 
     if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled
@@ -424,8 +440,7 @@ function verify_nvloom_setup {
 
 function verify_nvlink_setup {
     # Skip NVLink checks on SKUs without NVLink
-    local skip_sizes="standard_nc.*_rtxpro6000bse_v6"
-    if [[ "${VMSIZE}" =~ ^($skip_sizes)$ ]]; then return; fi
+    if ! has_infiniband; then return; fi
 
     # Verify nvlink setup
     nvidia-smi nvlink --status

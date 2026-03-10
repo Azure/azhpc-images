@@ -4,11 +4,14 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install AZNFS Mount Helper
+# Set non-interactive mode to prevent TTY prompts (required for Packer builds)
+export AZNFS_NONINTERACTIVE_INSTALL=1
+
 # prefer PMC when possible
 if [[ $DISTRIBUTION == *"ubuntu"* ]]
 then
     apt install -y aznfs
-elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rhel"* ]]
+elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rocky"* || $DISTRIBUTION == *"rhel"* ]]
 then
     dnf install -y aznfs
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]
@@ -20,6 +23,5 @@ then
 
     download_and_verify $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
     sed -i 's/yum/tdnf/' aznfs_install.sh
-    export AZNFS_NONINTERACTIVE_INSTALL=1
     bash aznfs_install.sh
 fi

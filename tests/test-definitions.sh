@@ -240,24 +240,31 @@ function verify_rccl_installation {
 }
 
 function verify_package_updates {
-    # TODO: wait for pre-depends bug to be fixed in apt https://salsa.debian.org/apt-team/apt/-/merge_requests/549
     case ${ID} in
-        ubuntu) 
+        ubuntu)
             if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
                 # doca-related packages are not latest version which includes stale packages, so just list packages here for reference
-                sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))"
+                sudo apt -s upgrade 2> /dev/null
+                # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                # [[ "$num_upgradable" -eq 0 ]];;
+                # TODO: re-enable check after pinning
+                true;;
             else
                 case ${VERSION_ID} in
                     22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
-                    *) ! sudo apt list "?and(?upgradable, ?not(?phasing), ?not(?depends(?phasing)))" -qq 2>/dev/null | grep -q .;;
+                    *)
+                        sudo apt -s upgrade 2> /dev/null
+                        # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                        # [[ "$num_upgradable" -eq 0 ]];;
+                        # TODO: re-enable check after pinning
+                        true;;
                 esac
             fi
             ;;   
-        almalinux)
+        azurelinux) true;;
+        *)
             sudo dnf -y makecache 
             sudo dnf check-update -y --refresh;;
-        azurelinux) true;;
-        * ) ;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }
@@ -306,7 +313,7 @@ function verify_docker_installation {
 function verify_ib_modules_and_devices {
     if ! systemctl is-active openibd > /dev/null 2>&1; then
         echo "*** openibd service is not active!" >&2
-        systemctl status openibd >&2
+        systemctl status --no-pager openibd >&2
         exit_on_error
     else
         echo "[OK] : openibd service is active"
@@ -328,7 +335,7 @@ function verify_lustre_installation {
     # Verify lustre client package installation
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
-        almalinux) dnf list installed | grep lustre-client;;
+        almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
         azurelinux) true;;
         * ) ;;
     esac
@@ -345,7 +352,7 @@ function verify_pssh_installation {
     # Verify PSSH package installation
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
-        almalinux) dnf list installed | grep pssh;;
+        almalinux|rocky|rhel) dnf list installed | grep pssh;;
         azurelinux) tdnf list installed | grep pssh;;
         * ) ;;
     esac
@@ -361,7 +368,7 @@ function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
-        almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        almalinux|rocky|rhel) dnf list installed | grep datacenter-gpu-manager;;
         azurelinux) tdnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac

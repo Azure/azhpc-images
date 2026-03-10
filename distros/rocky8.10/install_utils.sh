@@ -35,15 +35,8 @@ sudo dnf install -y kernel-modules-extra-${KERNEL}.rpm 2>/dev/null || true
 
 rm -f kernel-devel-${KERNEL}.rpm kernel-headers-${KERNEL}.rpm kernel-modules-extra-${KERNEL}.rpm
 
-# install pssh
-pssh_metadata=$(get_component_config "pssh")
-pssh_version=$(jq -r '.version' <<< $pssh_metadata)
-pssh_sha256=$(jq -r '.sha256' <<< $pssh_metadata)
-pssh_download_url="https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/p/pssh-$pssh_version.el8.noarch.rpm"
-download_and_verify $pssh_download_url $pssh_sha256
-
-dnf install -y  pssh-$pssh_version.el8.noarch.rpm
-rm -f pssh-$pssh_version.el8.noarch.rpm
+# Install EPEL repository
+dnf install -y epel-release
 
 # Install pre-reqs and development tools
 dnf groupinstall -y "Development Tools"
@@ -89,6 +82,9 @@ wget https://dl.rockylinux.org/pub/rocky/8.10/BaseOS/x86_64/os/Packages/e/enviro
 dnf install -y environment-modules-4.5.2-4.el8.x86_64.rpm
 rm -f environment-modules-4.5.2-4.el8.x86_64.rpm
 
+## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+dnf install -y kernel-abi-stablelists
+
 ## Disable kernel updates (but not kernel-rpm-macros and other tools)
 echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kernel-modules-extra" | tee -a /etc/dnf/dnf.conf
 
@@ -96,18 +92,8 @@ echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kern
 sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
 sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
 
-## Install dkms from the EPEL repository
-wget -r --no-parent -A "dkms-*.el8.noarch.rpm" https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/
-dnf localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/dkms-*.el8.noarch.rpm -y
-
-## Install subunit and subunit-devel from EPEL repository
-wget -r --no-parent -A "subunit-*.el8.x86_64.rpm" https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/
-dnf localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-[0-9].*.el8.x86_64.rpm -y
-dnf localinstall ./dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/s/subunit-devel-[0-9].*.el8.x86_64.rpm -y
-
-# Remove rpm files
-rm -rf ./dl.fedoraproject.org/
-rm -rf ./dl.rockylinux.org/
+## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
+dnf install -y pssh dkms subunit subunit-devel
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 

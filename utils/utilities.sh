@@ -53,6 +53,7 @@ write_component_version(){
         component_versions=$(cat "${component_versions_json}")
         echo "${component_versions}" | jq ". + {\"${component}\": \"${version}\"}" > ${component_versions_json}
     fi
+    chmod 644 ${component_versions_json}
 }
 
 ############################################################################

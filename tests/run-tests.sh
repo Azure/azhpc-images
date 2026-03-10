@@ -162,7 +162,7 @@ function set_module_files_path {
     ubuntu)
         export MODULE_FILES_ROOT="/usr/share/modules/modulefiles"
         ;;
-    almalinux) 
+    almalinux|rocky|rhel) 
         export MODULE_FILES_ROOT="/usr/share/Modules/modulefiles"
         ;;
     azurelinux)

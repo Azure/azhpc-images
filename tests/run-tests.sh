@@ -79,11 +79,17 @@ function verify_common_components {
     if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
     verify_gcc_installation;
     verify_azcopy_installation;
-    verify_hpcx_installation;
+    # [TEMP SKIP] HPC-X temporarily skipped for NCv6 due to MANA NIC bug
+    if has_infiniband; then
+        verify_hpcx_installation;
+    fi
     verify_ompi_installation;
     verify_pssh_installation;
     if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
-        verify_mvapich2_installation;
+        # [TEMP SKIP] MVAPICH2 temporarily skipped for NCv6 due to MANA NIC bug
+        if has_infiniband; then
+            verify_mvapich2_installation;
+        fi
         verify_mkl_installation;
         verify_hpcdiag_installation;
         verify_aznfs_installation;

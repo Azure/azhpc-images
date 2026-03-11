@@ -5,7 +5,7 @@
             "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings", "check_azure_persistent_rdma_naming"]
         },
         "ncv6":{
-            "components": ["check_nvidia_driver", "check_impi_2021", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_lustre", "check_mpifileutils"],
+            "components": ["check_nvidia_driver", "check_impi_2021", "check_cuda", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_lustre", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_sunrpc_tcp_settings"]
         },
         "gb-family":{

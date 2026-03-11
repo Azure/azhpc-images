@@ -473,7 +473,18 @@ function verify_mpifileutils_installation {
     check_exists "/opt/mpifileutils/bin/dsync"
     # Verify it runs (requires MPI libraries)
     module load mpi/hpcx
+    # On non-IB SKUs (NCv6), bypass UCX — MANA NIC zero-bandwidth breaks UCX address exchange.
+    # dbcast calls MPI_Init() which triggers UCX even for --help. Use OB1/TCP instead.
+    if ! has_infiniband; then
+        export OMPI_MCA_pml=ob1
+        export OMPI_MCA_btl=tcp,self
+        export OMPI_MCA_coll_hcoll_enable=0
+        export OMPI_MCA_coll_ucc_enable=0
+    fi
     /opt/mpifileutils/bin/dbcast --help > /dev/null 2>&1
     check_exit_code "mpifileutils ${VERSION_MPIFILEUTILS}" "mpifileutils not working!"
+    if ! has_infiniband; then
+        unset OMPI_MCA_pml OMPI_MCA_btl OMPI_MCA_coll_hcoll_enable OMPI_MCA_coll_ucc_enable
+    fi
     module unload mpi/hpcx
 }

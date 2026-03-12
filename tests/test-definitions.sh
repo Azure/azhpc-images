@@ -248,7 +248,7 @@ function verify_package_updates {
                 # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
                 # [[ "$num_upgradable" -eq 0 ]];;
                 # TODO: re-enable check after pinning
-                true;;
+                true
             else
                 case ${VERSION_ID} in
                     22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates

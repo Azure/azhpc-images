@@ -5,7 +5,9 @@
 |Ubuntu 22.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_22.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |Ubuntu 24.04|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20ubuntu_24.04)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 |AlmaLinux 8.10|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma8.10)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
-|AlmaLinux 9.6|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma9.6)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|AlmaLinux 9.7|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20alma9.7)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
+|Rocky Linux 8.10|Build pipeline pending
+|Rocky Linux 9.7|Build pipeline pending
 |Azure Linux 3.0|[![Build Status](https://dev.azure.com/hpc-platform-team/hpc-image-val/_apis/build/status/hpc-image-build?branchName=master&jobName=Validate_Virtual_Machine&configuration=Validate_Virtual_Machine%20azurelinux3.0)](https://dev.azure.com/hpc-platform-team/hpc-image-val/_build/latest?definitionId=3&branchName=master)
 
 # Azure HPC/AI VM Images
@@ -20,7 +22,9 @@ Following are the current supported HPC/AI VM images that are available in Azure
 - [Ubuntu-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft-dsvm.ubuntu-hpc) 24.04 ROCm (microsoft-dsvm:ubuntu-hpc:2404-rocm:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 (almalinux:almalinux-hpc:8_10-hpc-gen2:latest)
 - [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 8.10 V100 (almalinux:almalinux-hpc:8_10-hpc-v100-gen2:latest)
-- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 9.6 (almalinux:almalinux-hpc:9-hpc-gen2:latest)
+- [AlmaLinux-HPC](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/almalinux.almalinux-hpc) 9.7 (almalinux:almalinux-hpc:9-hpc-gen2:latest)
+- Rocky Linux 8.10 HPC (scripts available, marketplace publication pending)
+- Rocky Linux 9.7 HPC (scripts available, marketplace publication pending)
 - [AzureLinux-HPC]() 3 (azure-hpc:azurelinux-hpc:3:latest)
 - [AzureLinux-HPC]() 3-FIPS (azure-hpc:azurelinux-hpc:3-fips:latest)
 - [AzureLinux-HPC]() 3-V100 (azure-hpc:azurelinux-hpc:3-v100:latest)
@@ -28,10 +32,19 @@ Following are the current supported HPC/AI VM images that are available in Azure
 
 # How to Use
 
-The high level steps to create your own HPC images using our repository are:
-1. Deploy a VM ([tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/)).
-2. Run install.sh (pick the corresponding install.sh in our repository for your OS, e.g., [Ubuntu 22.04](ubuntu/ubuntu-22.x/ubuntu-22.04-hpc/install.sh)).
-3. Generate an image from the VM ([tutorial](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-custom-images)).
+This repo uses [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/?view=azure-cli-latest) and [Packer](https://developer.hashicorp.com/packer/integrations/hashicorp/azure/latest/components/builder/arm) to build images. (Note: only WSL/Linux is supported at the moment)
+By default, Packer will only run the image building scripts on the build VM, then deprovision and clean up the resources if everything succeeds. Your local public keys are automatically copied to the build VM to facilitate SSH-based troubleshooting if Packer fails. Default username is `hpcuser`. Set `retain_vm_always` to true if you'd like to skip deprovisioning/resource deletion (for e.g. manual inspection of VM).
+For a quick dry-run-like test run, set `skip_hpc` to true.
+See the Packer files for details of variables (e.g. variables specifying which SIG gallery to publish images to).
+
+```bash
+# Sign in Azure CLI
+az login
+# Initialize Packer with Azure plugin
+cd packer
+packer init .
+packer build --var 'vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --on-error=run-cleanup-provisioner .
+```
 
 # Kernel Update/Patching
 

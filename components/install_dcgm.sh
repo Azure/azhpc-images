@@ -35,12 +35,24 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
             datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
-elif [[ $DISTRIBUTION == *"almalinux"* ]]; then
+elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
+    # V100 does not support CUDA 13.0
+    # so use DCGM compatible with CUDA 12
+    if [ "$1" = "V100" ]; then
+        tdnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
+    else
+        tdnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
+    fi
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+    # V100 needs cuda12 DCGM packages in addition to cuda13 (same as Ubuntu logic above)
+    if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
+        echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
+        dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}
+    fi
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
-elif  [[ $DISTRIBUTION == *"azurelinux"* ]]; then
-    tdnf install -y $TOP_DIR/prebuilt/datacenter-gpu-manager-${DCGM_VERSION}-1-x86_64.rpm --nogpgcheck
 fi
 
 write_component_version "DCGM" ${DCGM_VERSION}

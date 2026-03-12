@@ -12,7 +12,6 @@ INSTALL_PREFIX=/opt
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
-# Install HPC-x
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
     hpcx_metadata=$(get_component_config "hpcx_amd")
@@ -22,6 +21,7 @@ fi
 HPCX_VERSION=$(jq -r '.version' <<< $hpcx_metadata)
 HPCX_SHA256=$(jq -r '.sha256' <<< $hpcx_metadata)
 HPCX_DOWNLOAD_URL=$(jq -r '.url' <<< $hpcx_metadata)
+
 TARBALL=$(basename $HPCX_DOWNLOAD_URL)
 HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 
@@ -45,13 +45,13 @@ else
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
-if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
     sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
 fi
 
 # Install MVAPICH
-if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -87,7 +87,7 @@ make install
 cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
-if [[ $DISTRIBUTION == almalinux* ]]  || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
     sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
 fi
@@ -133,7 +133,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # MVAPICH
-if ! [[ "${DISTRIBUTION}" == "ubuntu24.04" && "$SKU" == "GB200" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
@@ -187,7 +187,7 @@ EOF
 
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021
 
-    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+    if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 # see https://community.intel.com/t5/Intel-MPI-Library/Suspected-unfixed-Intel-MPI-race-condition-in-collectives/td-p/1693452 for Intel MPI bug
 setenv          I_MPI_STARTUP_MODE         pmi_shm
@@ -201,7 +201,6 @@ fi
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
-
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
 rm -rf -- */

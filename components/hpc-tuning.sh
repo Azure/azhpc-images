@@ -12,9 +12,11 @@ elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
     apt install -y python3-netifaces
     apt install -y python3-yaml
     systemctl disable ufw
-elif [[ $DISTRIBUTION == almalinux* ]]; then
-    if [[ $DISTRIBUTION == almalinux8.10 ]]; then 
+elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
+    if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rhel8* ]]; then 
         # Disable some unneeded services by default (administrators can re-enable if desired)
+
+        # Rocky Linux 8 does not have firewalld
         systemctl disable firewalld
     fi
     # Remove auoms if exists - Prevent CPU utilization by auoms
@@ -44,7 +46,7 @@ cat << EOF >> /etc/security/limits.conf
 *               soft    stack           unlimited
 EOF
 
-if [[ $DISTRIBUTION == almalinux* ]]; then
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
     echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/system.conf
     echo "DefaultLimitMEMLOCK=infinity" | sudo tee -a /etc/systemd/user.conf
     sudo systemctl daemon-reexec

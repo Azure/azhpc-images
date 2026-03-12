@@ -25,9 +25,10 @@ if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
 
-    # install Lustre client
-    $COMPONENT_DIR/install_lustre_client.sh
 fi
+
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
@@ -49,10 +50,10 @@ if [ "$GPU" = "NVIDIA" ]; then
         ./install_nvidiagpudriver_gb200.sh
 
         # Install NVSHMEM
-        ./install_nvshmem_gb200.sh
+        $COMPONENT_DIR/install_nvshmem.sh
 
         # Install NVLOOM
-        ./install_nvloom_gb200.sh
+        $COMPONENT_DIR/install_nvloom.sh
 
         # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh

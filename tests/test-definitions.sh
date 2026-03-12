@@ -128,10 +128,10 @@ function verify_cuda_installation {
     # nvcc --version
     # check_exit_code "CUDA Driver ${VERSION_CUDA}" "CUDA not installed"
     check_exists "/usr/local/cuda/"
-    
+    cuda_runtime=$(echo ${VERSION_CUDA} | cut -d'.' -f1,2) 
     # Check that the CUDA runtime version isn't newer than the driver CUDA version.
     # Having a newer CUDA runtime breaks programs compiled to PTX with the cuda toolkit, such as gpu-burn
-    if [[ $(ver ${VERSION_CUDA}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
+    if [[ $(ver ${cuda_runtime}) -le $(ver ${nvidia_driver_cuda_version})  ]]; then
         echo "[OK] : CUDA runtime version ${VERSION_CUDA} is compatible with the driver CUDA version ${nvidia_driver_cuda_version}"
     else
         echo "*** Error - CUDA runtime version ${VERSION_CUDA} is newer than the driver CUDA version ${nvidia_driver_cuda_version}"
@@ -184,6 +184,18 @@ function verify_nccl_installation {
                 -x NCCL_DEBUG=WARN \
                 -x NCCL_NET_GDR_LEVEL=5 \
                 /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) mpirun -np 4 \
+            --allow-run-as-root \
+            --map-by ppr:4:node \
+            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -mca coll_hcoll_enable 0 \
+            -x UCX_TLS=rc \
+            -x UCX_IB_GID_INDEX=0 \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            -x NCCL_NET_GDR_LEVEL=5 \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;                
         *) ;;
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
@@ -284,7 +296,7 @@ function verify_docker_installation {
 function verify_ib_modules_and_devices {
     if ! systemctl is-active openibd > /dev/null 2>&1; then
         echo "*** openibd service is not active!" >&2
-        systemctl status openibd >&2
+        systemctl status --no-pager openibd >&2
         exit_on_error
     else
         echo "[OK] : openibd service is active"
@@ -306,7 +318,7 @@ function verify_lustre_installation {
     # Verify lustre client package installation
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;
-        almalinux) dnf list installed | grep lustre-client;;
+        almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
         azurelinux) true;;
         * ) ;;
     esac
@@ -323,7 +335,7 @@ function verify_pssh_installation {
     # Verify PSSH package installation
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
-        almalinux) dnf list installed | grep pssh;;
+        almalinux|rocky|rhel) dnf list installed | grep pssh;;
         azurelinux) tdnf list installed | grep pssh;;
         * ) ;;
     esac
@@ -339,7 +351,7 @@ function verify_dcgm_installation {
     # Verify DCGM package installation
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
-        almalinux) dnf list installed | grep datacenter-gpu-manager;;
+        almalinux|rocky|rhel) dnf list installed | grep datacenter-gpu-manager;;
         azurelinux) tdnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac

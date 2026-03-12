@@ -1,5 +1,5 @@
 #!/bin/bash
-# intended for only gb200
+# intended for only aarch64
 
 set -ex
 source ${UTILS_DIR}/utilities.sh

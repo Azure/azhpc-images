@@ -28,6 +28,14 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Prevent package from being updated after installation
     apt-mark hold $PACKAGE_NAME
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    # The NVIDIA CUDA repo (cuda-azl3) ships nvidia-fabricmanager and
+    # libnvidia-nscq packages that Provide/Obsolete the identically-named PMC
+    # packages, often at a newer version than the Microsoft 1P-signed driver
+    # installed from PMC.  The driver kmod and fabric manager versions must
+    # match exactly, so exclude the CUDA repo copies and let tdnf resolve to
+    # the PMC-sourced packages whose versions track the 1P-signed driver.
+    echo "exclude=nvidia-fabricmanager* nvidia-fabric-manager-5* libnvidia-nscq-5*" >> /etc/yum.repos.d/cuda-azl3.repo
+
     # tdnf does not respect exclude= directive of repo config
     dnf install -y nvidia-fabric-manager \
                    nvidia-fabric-manager-devel \

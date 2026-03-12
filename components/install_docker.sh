@@ -10,6 +10,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
+    tdnf install -y docker-buildx
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     yum install -y moby-engine

@@ -36,7 +36,10 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Disable the NVIDIA CUDA repo during driver install — all driver
     # packages come from PMC and the CUDA repo has an identically-named
     # 'cuda' meta-package that would conflict.
-    tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
+    # Do not use this before bugfixed tdnf lands (https://github.com/vmware/tdnf/pull/553/commits/a418054b02c4cac787184f973dac4d6790344ef3)
+    # or before switching to dnf
+    # tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
+    tdnf install -y --disablerepo=cuda-azl3-x86_64 --disablerepo=cuda-azl3-sbsa $AL3_GPU_DRIVER_PACKAGES
     NVIDIA_DRIVER_VERSION=$(sudo tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
     # Temp disable NVIDIA driver updates

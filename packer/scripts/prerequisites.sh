@@ -173,12 +173,12 @@ install_ubuntu_lts_kernel() {
             # Purge non-LTS kernels
             apt-get purge -y \
                 linux-azure linux-image-azure \
-                "linux-image-6.11*" "linux-image-6.14*" \
-                "linux-azure-6.11*" "linux-azure-6.14*" \
-                "linux-cloud-tools-6.11*" "linux-cloud-tools-6.14*" \
-                "linux-headers-6.11*" "linux-headers-6.14*" \
-                "linux-modules-6.11*" "linux-modules-6.14*" \
-                "linux-tools-6.11*" "linux-tools-6.14*"
+                "linux-image-6.11*" "linux-image-6.14*" "linux-image-6.17*" \
+                "linux-azure-6.11*" "linux-azure-6.14*" "linux-azure-6.17*" \
+                "linux-cloud-tools-6.11*" "linux-cloud-tools-6.14*" "linux-cloud-tools-6.17*" \
+                "linux-headers-6.11*" "linux-headers-6.14*" "linux-headers-6.17*" \
+                "linux-modules-6.11*" "linux-modules-6.14*" "linux-modules-6.17*" \
+                "linux-tools-6.11*" "linux-tools-6.14*" "linux-tools-6.17*"
             
             apt autoremove -y
             apt upgrade -y

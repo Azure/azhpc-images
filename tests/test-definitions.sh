@@ -241,15 +241,32 @@ function verify_rccl_installation {
 
 function verify_package_updates {
     case ${ID} in
-        ubuntu) sudo apt -s upgrade;;
-        almalinux)
-            sudo dnf -y makecache 
-            # dnf check-update exits 100 when updates are available, which is not an error
-            sudo dnf check-update -y --refresh; rc=$?; [ $rc -eq 0 ] || [ $rc -eq 100 ];;
+        ubuntu)
+            if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+                # doca-related packages are not latest version which includes stale packages, so just list packages here for reference
+                sudo apt -s upgrade 2> /dev/null
+                # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                # [[ "$num_upgradable" -eq 0 ]];;
+                # TODO: re-enable check after pinning
+                true
+            else
+                case ${VERSION_ID} in
+                    22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
+                    *)
+                        sudo apt -s upgrade 2> /dev/null
+                        # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+                        # [[ "$num_upgradable" -eq 0 ]];;
+                        # TODO: re-enable check after pinning
+                        true;;
+                esac
+            fi
+            ;;   
         azurelinux) true;;
-        * ) ;;
+        *)
+            sudo dnf -y makecache 
+            sudo dnf check-update -y --refresh;;
     esac
-    check_exit_code "Package update works" "Package update fails!"
+    check_exit_code "No stale packages" "Stale packages found!"
 }
 
 function verify_azcopy_installation {

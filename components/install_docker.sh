@@ -7,13 +7,16 @@ source ${UTILS_DIR}/utilities.sh
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
+    apt-get install -y moby-buildx
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
+    tdnf install -y docker-buildx
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     yum install -y moby-engine
     yum install -y moby-cli
+    yum install -y moby-buildx
 fi
 
 $COMPONENT_DIR/install_nvidia_container_toolkit.sh

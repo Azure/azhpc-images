@@ -54,7 +54,7 @@ source "azure-arm" "hpc" {
       gallery_name         = var.sig_gallery_name
       image_name           = local.sig_image_name
       image_version        = local.image_version
-      replication_regions  = var.sig_replication_regions
+      replication_regions  = local.sig_replication_regions
       storage_account_type = var.storage_account_type
     }
   }

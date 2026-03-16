@@ -7,6 +7,7 @@ source ${UTILS_DIR}/utilities.sh
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y moby-engine
     apt-get install -y moby-cli
+    apt-get install -y moby-buildx
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli

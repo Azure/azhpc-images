@@ -68,7 +68,9 @@ function test_component {
 function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
     verify_package_updates;
-    verify_ofed_installation;
+    if has_infiniband; then
+        verify_ofed_installation;
+    fi
 
     # Skip IB device and module checks on SKUs without InfiniBand
     if has_infiniband; then
@@ -79,14 +81,12 @@ function verify_common_components {
     if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
     verify_gcc_installation;
     verify_azcopy_installation;
-    # [TEMP SKIP] HPC-X temporarily skipped for NCv6 due to MANA NIC bug
-    if has_infiniband; then
-        verify_hpcx_installation;
-    fi
+    verify_hpcx_installation;
     verify_ompi_installation;
     verify_pssh_installation;
     if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
-        # [TEMP SKIP] MVAPICH2 temporarily skipped for NCv6 due to MANA NIC bug
+        # MVAPICH skipped on non-IB SKUs: UCX is its only transport (ch4:ucx), and UCX
+        # ibverbs over mana_ib is unverified. No OB1/TCP bypass exists for MVAPICH.
         if has_infiniband; then
             verify_mvapich2_installation;
         fi

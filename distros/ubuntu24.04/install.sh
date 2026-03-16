@@ -29,8 +29,13 @@ if [ "$SKU" != "GB200" ]; then
     $COMPONENT_DIR/install_lustre_client.sh
 fi
 
-# install DOCA OFED
-$COMPONENT_DIR/install_doca.sh
+# install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
+if sku_has_infiniband; then
+    $COMPONENT_DIR/install_doca.sh
+else
+    # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)
+    apt-get install -y rdma-core libibverbs-dev
+fi
 
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh

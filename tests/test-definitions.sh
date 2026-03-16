@@ -71,19 +71,24 @@ function verify_hpcx_installation {
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
 
-    # Use TCP on non-IB SKUs and RDMA (rc) on IB SKUs
-    local ucx_tls="rc"
-    if ! has_infiniband; then ucx_tls="tcp"; fi
+    # On non-IB SKUs, bypass UCX entirely (MANA NIC zero-bandwidth breaks UCX address exchange).
+    # Use Open MPI's native TCP transport (ob1 PML + TCP BTL) and disable UCX-based collectives.
+    local mpi_args=""
+    if has_infiniband; then
+        mpi_args="-x UCX_TLS=rc"
+    else
+        mpi_args="--mca pml ob1 --mca btl tcp,self --mca coll_hcoll_enable 0 --mca coll_ucc_enable 0"
+    fi
     
     module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=${ucx_tls} ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
 
     module load mpi/hpcx-pmix
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=${ucx_tls} ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
     module unload mpi/hpcx-pmix
     module purge
@@ -218,9 +223,9 @@ function verify_nccl_installation {
             mpirun -np ${ncv6_gpu_count} \
             --allow-run-as-root \
             --map-by ppr:${ncv6_gpu_count}:node \
+            --mca pml ob1 --mca btl tcp,self \
+            --mca coll_hcoll_enable 0 --mca coll_ucc_enable 0 \
             -x LD_LIBRARY_PATH \
-            -mca coll_hcoll_enable 0 \
-            -x UCX_TLS=tcp \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \

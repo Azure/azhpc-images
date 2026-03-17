@@ -128,6 +128,16 @@ build {
   }
 
   provisioner "shell-local" {
+    name           = "download and extract Azure Linux prebuilts for GB200"
+    except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz --account-name azhpcstoralt --auth-mode login",
+        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -C ${path.root}/.."
+    ]
+  }
+
+  provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
     except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang

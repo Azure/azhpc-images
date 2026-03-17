@@ -229,9 +229,9 @@
     "hpcx_inbox": {
         "ubuntu24.04": {
             "x86_64": {
-                "version": "2.26",
-                "sha256": "93fa68f69e24b1d90fbde9758ec2d23144803502523095c31709e77947280412",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.26_cuda13/hpcx-v2.26-gcc-inbox-ubuntu24.04-cuda13-x86_64.tbz"
+                "version": "2.25.1",
+                "sha256": "409ad5ea645338626a73f23832a83b835f7fbd8c06b95496127c18bb091dd46e",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-inbox-ubuntu24.04-cuda13-x86_64.tbz"
             }
         }
     },

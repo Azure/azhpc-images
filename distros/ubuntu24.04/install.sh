@@ -34,7 +34,7 @@ if sku_has_infiniband; then
     $COMPONENT_DIR/install_doca.sh
 else
     # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)
-    apt-get install -y rdma-core libibverbs-dev librdmacm-dev pkg-config
+    apt-get install -y rdma-core libibverbs-dev ibverbs-utils librdmacm-dev pkg-config
 fi
 
 # install PMIX

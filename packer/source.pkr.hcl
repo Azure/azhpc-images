@@ -92,7 +92,7 @@ source "azure-arm" "hpc" {
   ssh_username           = var.ssh_username
   ssh_timeout            = "10m"
 
-  polling_duration_timeout = "2h"
+  polling_duration_timeout = "5h"
 
   dynamic "azure_tag" {
     for_each = local.all_tags

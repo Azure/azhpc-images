@@ -119,7 +119,7 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download and extract Azure Linux prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "azurelinux") ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "az storage blob download -f /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",

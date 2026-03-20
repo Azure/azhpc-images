@@ -236,9 +236,9 @@
         },
         "almalinux9.7": {
             "x86_64": {
-                "version": "4.0",
-                "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
-                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
         "azurelinux3.0": {
@@ -272,16 +272,16 @@
     },
     "ompi": {
         "common": {
-            "version": "5.0.9",
-            "sha256": "be35ac3aae68609dedf56a3c6480cb1b0af9ae40b98cc83ef27bc859084a9aa8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.gz"
+            "version": "5.0.10",
+            "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
         }
     },
     "impi": {
         "common": {
-            "version": "2021.16.1",
-            "sha256": "4165717608e90ae6123397ebf2a9b87a0b070842ce7d13378d1446a08966eb6e",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/203edae7-5269-4124-a1ed-09ad924f8b47/intel-mpi-2021.16.1.804_offline.sh"
+            "version": "2021.17.2",
+            "sha256": "4861c55fdfde1f08a293a7cfb715aaab498cb8fc700d5db8f0b67660e5948350",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/86923909-82e5-4c1a-9499-b4263e800a33/intel-mpi-2021.17.2.94_offline.sh"
         }
     },
     "nvidia": {
@@ -737,8 +737,8 @@
     },
     "waagent": {
         "common": {
-            "version": "2.14.0.1",
-            "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
+            "version": "2.15.0.1",
+            "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
         },
         "azurelinux3.0": {
             "x86_64": {

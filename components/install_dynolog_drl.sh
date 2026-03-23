@@ -57,7 +57,12 @@ if [[ "$GPU" == "NVIDIA" ]]; then
         install_and_track apt-get cmake cargo ninja-build build-essential
         install_and_track apt-get g++ pkg-config uuid-dev libssl-dev
     elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-        install_and_track yum cmake cargo ninja-build libuuid-devel gcc-toolset-12 openssl3-devel
+        install_and_track yum cmake cargo ninja-build libuuid-devel gcc-toolset-12
+        if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
+            install_and_track yum openssl3-devel
+        else
+            install_and_track yum openssl-devel
+        fi
         source /opt/rh/gcc-toolset-12/enable
     fi
 

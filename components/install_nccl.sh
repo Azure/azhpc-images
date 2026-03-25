@@ -83,6 +83,8 @@ make
 make install
 popd
 
+write_component_version "NCCL-RDMA_SHARP_PLUGIN" ${NCCL_RDMA_SHARP_COMMIT}
+
 # Build the nccl tests
 source /etc/profile.d/modules.sh
 module load mpi/hpcx

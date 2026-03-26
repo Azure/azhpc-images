@@ -50,6 +50,8 @@ else
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 fi
 
+sed -i '/^int[[:space:]]\+mlx5dv_get_data_direct_sysfs_path(/,/^[[:space:]]*size_t[[:space:]]\+buf_len);$/d'  /usr/include/infiniband/mlx5dv.h
+
 write_component_version "DOCA" $DOCA_VERSION
 OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 write_component_version "OFED" $OFED_VERSION

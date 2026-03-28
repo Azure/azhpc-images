@@ -426,22 +426,27 @@ function verify_nvlink_setup {
 
             if [[ "$state" != "Completed" ]]; then
                 echo "*** Error - GPU $gpu_idx: Fabric State='$state' (expected 'Completed')"
-                ((fabric_errors++))
+                ((fabric_errors++)) || true
             fi
             if [[ "$status" != "Success" ]]; then
                 echo "*** Error - GPU $gpu_idx: Fabric Status='$status' (expected 'Success')"
-                ((fabric_errors++))
+                ((fabric_errors++)) || true
             fi
             if [[ "$clique_id" == "0" ]] || [[ -z "$clique_id" ]]; then
                 echo "*** Error - GPU $gpu_idx: Fabric CliqueId='$clique_id' (expected non-zero)"
-                ((fabric_errors++))
+                ((fabric_errors++)) || true
             fi
             if [[ -z "$cluster_uuid" ]] || [[ "$cluster_uuid" == "00000000-0000-0000-0000-000000000000" ]]; then
                 echo "*** Error - GPU $gpu_idx: Fabric ClusterUUID='$cluster_uuid' (expected valid non-zero UUID)"
-                ((fabric_errors++))
+                ((fabric_errors++)) || true
             fi
-            ((gpu_idx++))
+            ((gpu_idx++)) || true
         done < <(echo "$nvidia_smi_output" | awk '/^[[:space:]]*Fabric[[:space:]]*$/{found=1; block=""; next} found{block=block $0 "\n"; if(/ClusterUUID/){printf "%s\0", block; found=0; block=""}}')
+
+        if [[ "$gpu_idx" -eq 0 ]]; then
+            echo "*** Error - No Fabric blocks parsed from nvidia-smi output"
+            exit -1
+        fi
 
         if [[ "$fabric_errors" -gt 0 ]]; then
             echo "*** Error - Unhealthy NVLINK Fabric setup!! ($fabric_errors issues found)"

@@ -404,14 +404,57 @@ function verify_nvlink_setup {
     if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
         nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
         echo "$nvidia_smi_output"
-        echo "$nvidia_smi_output" | grep -q 'N/A'
-        if [ $? -eq 0 ]; then
-            echo "*** Error - Unhealthy NVLINK setup!!"
+
+        # Validate each GPU's Fabric block: State=Completed, Status=Success,
+        # non-zero CliqueId, and valid (non-zero) ClusterUUID.
+        # Previously only checked for literal "N/A", which missed failure modes
+        # like "Status : Insufficient Resources" with CliqueId 0.
+        if [[ -z "$nvidia_smi_output" ]]; then
+            echo "*** Error - Failed to retrieve Fabric information or no Fabric data found"
+            exit -1
+        fi
+
+        local fabric_errors=0
+        local gpu_idx=0
+
+        while IFS= read -r -d '' block; do
+            local state status clique_id cluster_uuid
+            state=$(echo "$block" | grep 'State' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+            status=$(echo "$block" | grep 'Status' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+            clique_id=$(echo "$block" | grep 'CliqueId' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+            cluster_uuid=$(echo "$block" | grep 'ClusterUUID' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+
+            if [[ "$state" != "Completed" ]]; then
+                echo "*** Error - GPU $gpu_idx: Fabric State='$state' (expected 'Completed')"
+                ((fabric_errors++)) || true
+            fi
+            if [[ "$status" != "Success" ]]; then
+                echo "*** Error - GPU $gpu_idx: Fabric Status='$status' (expected 'Success')"
+                ((fabric_errors++)) || true
+            fi
+            if [[ "$clique_id" == "0" ]] || [[ -z "$clique_id" ]]; then
+                echo "*** Error - GPU $gpu_idx: Fabric CliqueId='$clique_id' (expected non-zero)"
+                ((fabric_errors++)) || true
+            fi
+            if [[ -z "$cluster_uuid" ]] || [[ "$cluster_uuid" == "00000000-0000-0000-0000-000000000000" ]]; then
+                echo "*** Error - GPU $gpu_idx: Fabric ClusterUUID='$cluster_uuid' (expected valid non-zero UUID)"
+                ((fabric_errors++)) || true
+            fi
+            ((gpu_idx++)) || true
+        done < <(echo "$nvidia_smi_output" | awk '/^[[:space:]]*Fabric[[:space:]]*$/{found=1; block=""; next} found{block=block $0 "\n"; if(/ClusterUUID/){printf "%s\0", block; found=0; block=""}}')
+
+        if [[ "$gpu_idx" -eq 0 ]]; then
+            echo "*** Error - No Fabric blocks parsed from nvidia-smi output"
+            exit -1
+        fi
+
+        if [[ "$fabric_errors" -gt 0 ]]; then
+            echo "*** Error - Unhealthy NVLINK Fabric setup!! ($fabric_errors issues found)"
             exit -1
         else
-            echo "[OK] : NVLINK setup is healthy"
+            echo "[OK] : NVLINK Fabric setup is healthy (all GPUs: State=Completed, Status=Success)"
         fi
-    fi    
+    fi
 }
 
 function verify_nvidia_imex_service {

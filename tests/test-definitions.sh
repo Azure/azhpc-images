@@ -447,10 +447,15 @@ function verify_nvlink_setup {
         # non-zero CliqueId, and valid (non-zero) ClusterUUID.
         # Previously only checked for literal "N/A", which missed failure modes
         # like "Status : Insufficient Resources" with CliqueId 0.
+        if [[ -z "$nvidia_smi_output" ]]; then
+            echo "*** Error - Failed to retrieve Fabric information or no Fabric data found"
+            exit -1
+        fi
+
         local fabric_errors=0
         local gpu_idx=0
 
-        while IFS= read -r block; do
+        while IFS= read -r -d '' block; do
             local state status clique_id cluster_uuid
             state=$(echo "$block" | grep 'State' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
             status=$(echo "$block" | grep 'Status' | awk -F: '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
@@ -474,7 +479,7 @@ function verify_nvlink_setup {
                 ((fabric_errors++))
             fi
             ((gpu_idx++))
-        done < <(echo "$nvidia_smi_output" | awk '/^[[:space:]]*Fabric[[:space:]]*$/{found=1; block=""; next} found{block=block $0 "\n"; if(/ClusterUUID/){print block; found=0; block=""}}')
+        done < <(echo "$nvidia_smi_output" | awk '/^[[:space:]]*Fabric[[:space:]]*$/{found=1; block=""; next} found{block=block $0 "\n"; if(/ClusterUUID/){printf "%s\0", block; found=0; block=""}}')
 
         if [[ "$fabric_errors" -gt 0 ]]; then
             echo "*** Error - Unhealthy NVLINK Fabric setup!! ($fabric_errors issues found)"

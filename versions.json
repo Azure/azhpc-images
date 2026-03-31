@@ -610,8 +610,8 @@
                 "distribution": "Ubuntu24_04"
             },
             "x86_64": {
-                "version": "2.5.1-1",
-                "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                "version": "2.5.2-1",
+                "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                 "distribution": "Ubuntu24_04"
             }
         },

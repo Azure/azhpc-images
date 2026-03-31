@@ -15,10 +15,7 @@ yum update -y
 # Install Kernel dependencies
 KERNEL=$(uname -r)
 VERSION_ID=$(. /etc/os-release;echo $VERSION_ID)
-dnf install -y https://repo.almalinux.org/almalinux/${VERSION_ID}/AppStream/x86_64/os/Packages/kernel-devel-matched-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/${VERSION_ID}/AppStream/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/${VERSION_ID}/AppStream/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
-    https://repo.almalinux.org/almalinux/${VERSION_ID}/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
+dnf install -y kernel-devel-matched kernel-devel kernel-headers kernel-modules-extra
 
 yum install -y wget \
                net-tools \

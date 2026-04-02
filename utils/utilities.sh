@@ -3,11 +3,28 @@
 # @Brief        : Function to extract component version from the versions.json file
 # @Args        : (1) #Component name
 # @RetVal       : json node value
+# Lookup hierarchy:
+#   1. component.distribution.architecture.<GPU_SKU> (if GPU and SKU are set, e.g., nvidia_v100)
+#   2. component.distribution.architecture
+#   3. component.common
 ############################################################################
 get_component_config(){
     component=$1
   
-    config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"' <<< "${COMPONENT_VERSIONS}")
+    # If GPU and SKU are set, try GPU_SKU-specific configuration first (e.g., nvidia_v100)
+    if [[ -n "$GPU" && -n "$SKU" ]]; then
+        sku_key=$(echo "${GPU}_${SKU}" | awk '{print tolower($0)}')
+        config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${sku_key}"'"' <<< "${COMPONENT_VERSIONS}")
+    else
+        config="null"
+    fi
+    
+    # If no SKU-specific config found, try architecture level
+    if [[ "$config" = "null" ]]; then
+        config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"' <<< "${COMPONENT_VERSIONS}")
+    fi
+    
+    # If still null, fall back to common
     if [[ "$config" = "null" ]]; then
         config=$(jq -r '."'"${component}"'".common' <<< "${COMPONENT_VERSIONS}")
     fi
@@ -36,6 +53,7 @@ write_component_version(){
         component_versions=$(cat "${component_versions_json}")
         echo "${component_versions}" | jq ". + {\"${component}\": \"${version}\"}" > ${component_versions_json}
     fi
+    chmod 644 ${component_versions_json}
 }
 
 ############################################################################

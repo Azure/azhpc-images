@@ -31,15 +31,30 @@ $COMPONENT_DIR/install_pmix.sh
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
 
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
+
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
     $COMPONENT_DIR/install_nvidiagpudriver.sh
     
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
+
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        # Install nvshmem
+        $COMPONENT_DIR/install_nvshmem.sh
+
+        # Install nvloom
+        $COMPONENT_DIR/install_nvloom.sh
+
+        # Install NVBandwidth tool
+        $COMPONENT_DIR/install_nvbandwidth_tool.sh
+    fi
     
     # Install NVIDIA docker container
     $COMPONENT_DIR/install_docker.sh
+
 
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
@@ -57,11 +72,13 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
-# install AMD libs
-$COMPONENT_DIR/install_amd_libs.sh
+if [ "$ARCHITECTURE" != "aarch64" ]; then
+    # install AMD libs
+    $COMPONENT_DIR/install_amd_libs.sh
 
-# install Intel libraries
-$COMPONENT_DIR/install_intel_libs.sh
+    # install Intel libraries
+    $COMPONENT_DIR/install_intel_libs.sh
+fi
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -72,8 +89,14 @@ rm -Rf -- */
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
 
-# Install AZNFS Mount Helper
-$COMPONENT_DIR/install_aznfs.sh
+if [ "$ARCHITECTURE" != "aarch64" ]; then
+    # Install AZNFS Mount Helper
+    $COMPONENT_DIR/install_aznfs.sh
+
+    # install Azure/NHC Health Checks
+    $COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+fi
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
@@ -90,8 +113,6 @@ $COMPONENT_DIR/add-udev-rules.sh
 # copy test file
 $COMPONENT_DIR/copy_test_file.sh
 
-# install Azure/NHC Health Checks
-$COMPONENT_DIR/install_health_checks.sh "$GPU"
 
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh

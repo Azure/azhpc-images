@@ -1,25 +1,25 @@
 {
     "ubuntu22.04": {
         "common":{
-            "components": ["check_impi_2021", "check_rocm", "check_rccl", "check_aocl", "check_aocc", "check_docker", "check_lustre"],
+            "components": ["check_impi_2021", "check_rocm", "check_rccl", "check_aocl", "check_aocc", "check_docker", "check_lustre", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_sunrpc_tcp_settings"]
         }
     },
     "ubuntu24.04": {
         "common":{
-            "components": ["check_impi_2021", "check_rocm", "check_rccl", "check_aocl", "check_aocc", "check_docker", "check_lustre"],
+            "components": ["check_impi_2021", "check_rocm", "check_rccl", "check_aocl", "check_aocc", "check_docker", "check_lustre", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_sunrpc_tcp_settings"]
         }
     },
     "almalinux8.10": {
         "common":{
-            "components": ["check_impi_2021", "check_gcc", "check_aocl", "check_aocc", "check_docker"],
+            "components": ["check_impi_2021", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_sunrpc_tcp_settings"]
         }
     },
     "azurelinux3.0": {
         "common":{
-            "components": ["check_impi_2021", "check_gcc", "check_aocl", "check_aocc", "check_docker"],
+            "components": ["check_impi_2021", "check_gcc", "check_aocl", "check_aocc", "check_docker", "check_mpifileutils"],
             "services": ["check_sku_customization", "check_sunrpc_tcp_settings"]
         }
     }

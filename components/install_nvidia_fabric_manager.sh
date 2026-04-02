@@ -3,31 +3,46 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-# Set NVIDIA fabricmanager version
 nvidia_metadata=$(get_component_config "nvidia")
-nvidia_fabricmanager_metadata=$(jq -r '.fabricmanager' <<< $nvidia_metadata)
-NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
-NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
-NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
-NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Use different URL format for NVIDIA Fabric Manager major version 580 and above
-    if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
+    # Install from NVIDIA APT repo (already configured during driver installation)
+    # Pinning package ensures the correct version is installed
+    NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
+    NVIDIA_DRIVER_MAJOR=$(echo $NVIDIA_DRIVER_VERSION | cut -d '.' -f1)
+
+    if [[ $NVIDIA_DRIVER_MAJOR -ge 580 ]]; then
         PACKAGE_NAME="nvidia-fabricmanager"
     else
-        PACKAGE_NAME="nvidia-fabricmanager-${NVIDIA_FABRICMANAGER_PREFIX}"
+        PACKAGE_NAME="nvidia-fabricmanager-${NVIDIA_DRIVER_MAJOR}"
     fi
 
-    NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}_${NVIDIA_FABRICMANAGER_VERSION}_amd64.deb
-    FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
-    download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
+    apt install -y ${PACKAGE_NAME}
 
-    apt install -y ./${FILENAME}
+    # Read back installed version for the component manifest
+    NVIDIA_FABRICMANAGER_VERSION=$(dpkg-query -W -f='${Version}' ${PACKAGE_NAME})
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    # The NVIDIA CUDA repo (cuda-azl3) ships nvidia-fabricmanager and
+    # libnvidia-nscq packages that Provide/Obsolete the identically-named PMC
+    # packages, often at a newer version than the Microsoft 1P-signed driver
+    # installed from PMC.  The driver kmod and fabric manager versions must
+    # match exactly, so exclude the CUDA repo copies and let tdnf resolve to
+    # the PMC-sourced packages whose versions track the 1P-signed driver.
+    echo "exclude=nvidia-fabricmanager* nvidia-fabric-manager-5* libnvidia-nscq-5*" >> /etc/yum.repos.d/cuda-azl3.repo
 
-    # Prevent package from being updated after installation
-    apt-mark hold $PACKAGE_NAME
-elif [[ $DISTRIBUTION == almalinux* ]]; then
+    # tdnf does not respect exclude= directive of repo config
+    dnf install -y nvidia-fabric-manager \
+                   nvidia-fabric-manager-devel \
+                   libnvidia-nscq
+    NVIDIA_FABRICMANAGER_VERSION=$(sudo tdnf list installed | grep -i nvidia-fabric-manager.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+    nvidia_fabricmanager_metadata=$(jq -r '.fabricmanager' <<< $nvidia_metadata)
+    NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
+    NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
+    NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
+    NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
+
     # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
     if [[ $NVIDIA_FABRICMANAGER_PREFIX -ge 580 ]]; then
         PACKAGE_NAME="nvidia-fabricmanager"
@@ -42,9 +57,5 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
 
     # Prevent package from being updated after installation
     sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    # Install Nvidia Fabric Manager and devel packages from PMC
-    tdnf install -y nvidia-fabric-manager-${NVIDIA_FABRICMANAGER_VERSION}.azl3.x86_64 \
-                    nvidia-fabric-manager-devel-${NVIDIA_FABRICMANAGER_VERSION}.azl3.x86_64
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

@@ -31,7 +31,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     update_waagent_conf "OS.MonitorDhcpClientRestartPeriod" "60"
     update_waagent_conf "Provisioning.MonitorHostNamePeriod" "60"
 else
-    if [[ $DISTRIBUTION == *"almalinux"* ]]; then
+    if [[ $DISTRIBUTION == *"almalinux"* ]] || [[ $DISTRIBUTION == *"rocky"* ]] || [[ $DISTRIBUTION == *"rhel"* ]]; then
         python3 -m ensurepip --upgrade  # Ensures pip is available
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install distro
@@ -47,12 +47,12 @@ else
     tar -xvf $(basename ${DOWNLOAD_URL})
     pushd WALinuxAgent-${WAAGENT_VERSION}/
 
-    if [[ $DISTRIBUTION == almalinux8.10 ]]; then
+    if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         python3 -m ensurepip --upgrade  # Ensures pip is available
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install distro
         python3 setup.py install --register-service
-    elif [[ $DISTRIBUTION == almalinux9* ]]; then
+    elif [[ $DISTRIBUTION == almalinux9* ]] || [[ $DISTRIBUTION == rocky9* ]] || [[ $DISTRIBUTION == rhel9* ]]; then
         python3.12 -m ensurepip --upgrade  # Ensures pip is available
         python3.12 -m pip install --upgrade pip setuptools
         python3.12 -m pip install distro
@@ -90,7 +90,7 @@ else
     rm -rf WALinuxAgent-${WAAGENT_VERSION}
 fi
 
-if [[ $DISTRIBUTION == almalinux9* ]]; then
+if [[ $DISTRIBUTION == almalinux9* ]] || [[ $DISTRIBUTION == rocky9* ]] || [[ $DISTRIBUTION == rhel9* ]]; then
     write_component_version "WAAGENT" $(python3.12 -u /usr/sbin/waagent --version | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}')
     write_component_version "WAAGENT_EXTENSIONS" $(python3.12 -u /usr/sbin/waagent --version | sed '3q;d' | awk -F' ' '{print $4}')
 else
@@ -102,7 +102,7 @@ systemctl daemon-reload
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     systemctl restart walinuxagent
-elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     systemctl restart waagent
 fi
 

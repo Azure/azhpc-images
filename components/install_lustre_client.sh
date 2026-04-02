@@ -42,13 +42,19 @@ EOF
     # elif [ $UBUNTU_VERSION == 22.04 ]; then
     #     SIGNED_BY="/etc/apt/trusted.gpg.d/microsoft-prod.gpg"
     # fi
-    # echo "deb [arch=amd64 signed-by=$SIGNED_BY] https://packages.microsoft.com/repos/amlfs-${DISTRIB_CODENAME}/ ${DISTRIB_CODENAME} main" | sudo tee /etc/apt/sources.list.d/amlfs.list
+    # echo "deb [arch=$ARCHITECTURE_DISTRO signed-by=$SIGNED_BY] https://packages.microsoft.com/repos/amlfs-${DISTRIB_CODENAME}/ ${DISTRIB_CODENAME} main" | tee /etc/apt/sources.list.d/amlfs.list
     # # Enable these lines if the MS PMC repo was not already setup.
     # #curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
     # #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
     # apt-get update
-    # apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
-    # apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
+    # if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r) 2>/dev/null | grep -q "Version:"; then
+    #     echo "Lustre client package for kernel $(uname -r) is already available in the repo."
+    #     apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
+    #     apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
+    # else
+    #     echo "Lustre client package for kernel $(uname -r) is not available in the repo. Please check the repository or the kernel version."
+    #     exit 0
+    # fi
 
     # temporary workaround to build AMLFS kmod from source, until we have AMLFS team publish DKMS packages usable on day-1 of new kernel module release
     lustre_branch="arsdragonfly/dkms-$LUSTRE_VERSION"
@@ -67,8 +73,9 @@ EOF
     popd
     rm -rf amlFilesystem-lustre
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
-elif [[ $DISTRIBUTION == almalinux* ]]; then
-    ALMA_LUSTRE_VERSION=${LUSTRE_VERSION//-/_}
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+    LUSTRE_VERSION_UNDERSCORE=${LUSTRE_VERSION//-/_}
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
     DISTRIB_CODENAME=el$OS_MAJOR_VERSION
     REPO_PATH=/etc/yum.repos.d/amlfs.repo
@@ -82,8 +89,14 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     echo -e "gpgcheck=1" >> ${REPO_PATH}
     echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
 
-    dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${ALMA_LUSTRE_VERSION}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
-    sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
+    if sudo dnf list --available amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1 2>/dev/null | grep -q "Available Packages"; then
+        echo "Lustre client package for kernel $(uname -r) is already available in the repo."
+        dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
+        sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
+    else
+        echo "Lustre client package for kernel $(uname -r) is not available in the repo. Please check the repository or the kernel version."
+        exit 0
+    fi
 fi
 
 write_component_version "LUSTRE" ${LUSTRE_VERSION}

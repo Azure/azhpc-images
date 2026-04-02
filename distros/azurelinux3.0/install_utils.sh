@@ -4,9 +4,17 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Kernel dependencies
-tdnf install -y kernel-headers-$(uname -r) \
+if [ "$ARCHITECTURE" = "aarch64" ]; then
+    tdnf install -y kernel-hwe-devel-$(uname -r) \
+                kernel-hwe-drivers-gpu-$(uname -r) \
+                kernel-headers
+
+else
+    tdnf install -y kernel-headers-$(uname -r) \
                 kernel-devel-$(uname -r) \
-                kernel-drivers-gpu-$(uname -r)
+                kernel-drivers-gpu-$(uname -r) \
+                dkms
+fi
 
 # Install Python 3.12
 tdnf install -y python
@@ -60,6 +68,7 @@ tdnf install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    json-c-devel \
     pciutils \
     dnf-plugins-core \
     vim \
@@ -101,6 +110,16 @@ tdnf install -y subunit-devel
 ## Install libmd and libmd-devel 
 tdnf install -y libmd
 tdnf install -y libmd-devel
+
+# Install azure-vm-utils from source (upstream package for AZL3 is too outdated right now, see https://github.com/microsoft/azurelinux/issues/15661)
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake -DENABLE_TESTS=0 ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

@@ -9,25 +9,33 @@ DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
 DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
 DOCA_FILE=$(basename ${DOCA_URL})
 
-if [[ "$DISTRIBUTION" == *"ubuntu"* && "$SKU" == "GB200" ]]; then
-    DOCA_FILE=$TOP_DIR/internal_bits/doca-host_${DOCA_VERSION}_arm64.deb
-else
-    download_and_verify $DOCA_URL $DOCA_SHA256
-fi
+download_and_verify $DOCA_URL $DOCA_SHA256
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
+
+    # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
+    cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
+Package: dkms
+Pin: release l=DOCA-HOST*
+Pin-Priority: -1
+PIN
+
     apt-get update
     apt-get -y install doca-ofed
-elif [[ $DISTRIBUTION == almalinux* ]]; then
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    rpm -i $DOCA_FILE
+    dnf clean all
+    dnf install -y doca-extra
+    /opt/mellanox/doca/tools/doca-kernel-support
+    dnf install -y doca-ofed-userspace
+    dnf -y install doca-ofed
+else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all
     
     # Install DOCA extras for compatibility
-    VERSION_ID=$(. /etc/os-release;echo $VERSION_ID)
-    KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g' | sed 's/x86_64/noarch/'))
-    wget --retry-connrefused --tries=3 --waitretry=5 https://repo.almalinux.org/almalinux/$VERSION_ID/BaseOS/x86_64/os/Packages/kernel-abi-stablelists-${KERNEL}.rpm
-    rpm -i kernel-abi-stablelists-${KERNEL}.rpm
     dnf install -y doca-extra
     
     /opt/mellanox/doca/tools/doca-kernel-support
@@ -40,13 +48,6 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
     dnf -y install doca-ofed
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    rpm -i $DOCA_FILE
-    dnf clean all
-    dnf install -y doca-extra
-    /opt/mellanox/doca/tools/doca-kernel-support
-    dnf install -y doca-ofed-userspace
-    dnf -y install doca-ofed
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

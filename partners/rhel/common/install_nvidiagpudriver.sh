@@ -46,6 +46,8 @@ write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 # verify if loaded
 # lsmod | grep nvidia_peermem
 
+$COMPONENT_DIR/configure_nvidia_persistence.sh
+
 $RHEL_COMMON_DIR/install_gdrcopy.sh
 
 # Install nvidia fabric manager (required for ND96asr_v4)

@@ -80,11 +80,14 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
-if [ "$SKU" != "GB200" ]; then
-    # install Lustre client
-    # Note that lustre client is supported on GB200 but amlfs does not support latest 6.14 kernel so we temporarily skip it
-    $COMPONENT_DIR/install_lustre_client.sh
-fi
+# if [ "$SKU" != "GB200" ]; then
+#     # install Lustre client
+#     # Note that lustre client is supported on GB200 but amlfs does not support latest 6.14 kernel so we temporarily skip it
+#     $COMPONENT_DIR/install_lustre_client.sh
+# fi
+
+# Seems like Jiaq Li has managed to get AMLFS Lustre client working on 6.14 kernel, so we can try installing it on GB200 as well and see if there are any issues. If there are issues, we can always remove it from GB200 later since it's not a critical component for GB200 workloads.
+$COMPONENT_DIR/install_lustre_client.sh
 
 if [ "$ARCHITECTURE" == "x86_64" ]; then
 

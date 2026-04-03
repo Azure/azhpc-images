@@ -3,7 +3,7 @@ set -ex
 
 export TOP_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 export COMPONENT_DIR=$TOP_DIR/components
-export TEST_DIR=$TOP_DIR/tests
+export AZHPC_IMAGES_TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 
@@ -15,12 +15,6 @@ fi
 export ARCHITECTURE=$(uname -m)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Don't allow the kernel to be updated
-    if [ "$SKU" = "GB200" ]; then
-        apt-mark hold linux-azure-nvidia
-    else
-        apt-mark hold linux-azure
-    fi
     # upgrade pre-installed components
     apt update
     apt upgrade -y

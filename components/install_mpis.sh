@@ -73,7 +73,7 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     # Error exclusive to Ubuntu 22.04
     # configure: error: The Fortran compiler gfortran will not compile files that call
     # the same routine with arguments of different types.
-    local mvapich_transport_args
+    mvapich_transport_args=""
     if sku_uses_ucx; then
         mvapich_transport_args="--with-ucx=${UCX_PATH}"
     else

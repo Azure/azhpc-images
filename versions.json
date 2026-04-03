@@ -783,10 +783,17 @@
     },
     "lustre": {
         "ubuntu22.04": {
-            "version": "2.15.7"
+            "x86_64": {
+                "version": "2.15.7"
+            }
         },
         "ubuntu24.04": {
-            "version": "2.16.1"
+            "aarch64": {
+                "version": "2.16.1"
+            },
+            "x86_64": {
+                "version": "2.16.1"
+            }
         },
         "almalinux9.7": {
             "x86_64": {

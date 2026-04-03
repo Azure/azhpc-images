@@ -132,13 +132,22 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
+# On IB SKUs, mpi/hpcx points to NVIDIA's original pre-built binary while
+# mpi/hpcx-pmix points to our local rebuild (with PMIx added).
+# On non-UCX SKUs (e.g. NCv6), the original binary is broken and only the rebuild (built
+# --without-ucx --with-ofi) works, so both modules point to it.
+if sku_uses_ucx; then
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+fi
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx
+module load ${HPCX_MODULE}
 EOF
 
 # HPC-X with PMIX

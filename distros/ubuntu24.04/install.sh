@@ -35,6 +35,8 @@ if sku_has_infiniband; then
 else
     # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)
     apt-get install -y rdma-core libibverbs-dev ibverbs-utils librdmacm-dev pkg-config
+    # Install libfabric — replaces UCX as the networking abstraction for MPI on non-IB SKUs
+    $COMPONENT_DIR/install_libfabric.sh
 fi
 
 # install PMIX

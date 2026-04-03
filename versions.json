@@ -235,6 +235,13 @@
             }
         }
     },
+    "libfabric": {
+        "common": {
+            "version": "2.5.0",
+            "sha256": "276019edca708dc0569cf3064a412e395ba7b1883299781caed120594f850995",
+            "url": "https://github.com/ofiwg/libfabric/releases/download/v2.5.0/libfabric-2.5.0.tar.bz2"
+        }
+    },
     "mvapich": {
         "common": {
             "version": "2.3.7-2",

@@ -103,3 +103,10 @@ function sku_has_infiniband {
         *)    return 0 ;;
     esac
 }
+
+# Whether this SKU uses UCX as its MPI transport layer.
+# Currently there is a 1-1 mapping where UCX is used for IB SKUs and OFI for mana-only SKUs,
+# but decouple them because they're separate concepts
+function sku_uses_ucx {
+    sku_has_infiniband
+}

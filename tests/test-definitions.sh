@@ -39,6 +39,13 @@ function has_infiniband {
     ! [[ "${VMSIZE}" =~ ^($no_ib_sizes)$ ]]
 }
 
+# Whether this SKU uses UCX as its MPI transport layer.
+# Currently there is a 1-1 mapping where UCX is used for IB SKUs and OFI for mana-only SKUs,
+# but decouple them because they're separate concepts
+function uses_ucx {
+    has_infiniband
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -71,13 +78,10 @@ function verify_hpcx_installation {
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
 
-    # On non-IB SKUs, bypass UCX entirely (MANA NIC zero-bandwidth breaks UCX address exchange).
-    # Use Open MPI's native TCP transport (ob1 PML + TCP BTL) and disable UCX-based collectives.
+    # UCX SKUs: use UCX RC transport. Non-UCX SKUs: no args needed (built with libfabric, auto-selects OFI).
     local mpi_args=""
-    if has_infiniband; then
+    if uses_ucx; then
         mpi_args="-x UCX_TLS=rc"
-    else
-        mpi_args="--mca pml ob1 --mca btl tcp,self --mca coll_hcoll_enable 0 --mca coll_ucc_enable 0"
     fi
     
     module load mpi/hpcx
@@ -98,9 +102,14 @@ function verify_mvapich2_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich"
 
     module load mpi/mvapich
-    # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    if uses_ucx; then
+        # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
+        mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    else
+        # OFI transport: use libfabric tcp provider
+        mpiexec -np 2 -ppn 2 -env FI_PROVIDER=tcp ${mvapich_omb_path}/osu_latency
+    fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
 }
@@ -223,8 +232,6 @@ function verify_nccl_installation {
             mpirun -np ${ncv6_gpu_count} \
             --allow-run-as-root \
             --map-by ppr:${ncv6_gpu_count}:node \
-            --mca pml ob1 --mca btl tcp,self \
-            --mca coll_hcoll_enable 0 --mca coll_ucc_enable 0 \
             -x LD_LIBRARY_PATH \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
@@ -478,18 +485,7 @@ function verify_mpifileutils_installation {
     check_exists "/opt/mpifileutils/bin/dsync"
     # Verify it runs (requires MPI libraries)
     module load mpi/hpcx
-    # On non-IB SKUs (NCv6), bypass UCX — MANA NIC zero-bandwidth breaks UCX address exchange.
-    # dbcast calls MPI_Init() which triggers UCX even for --help. Use OB1/TCP instead.
-    if ! has_infiniband; then
-        export OMPI_MCA_pml=ob1
-        export OMPI_MCA_btl=tcp,self
-        export OMPI_MCA_coll_hcoll_enable=0
-        export OMPI_MCA_coll_ucc_enable=0
-    fi
     /opt/mpifileutils/bin/dbcast --help > /dev/null 2>&1
     check_exit_code "mpifileutils ${VERSION_MPIFILEUTILS}" "mpifileutils not working!"
-    if ! has_infiniband; then
-        unset OMPI_MCA_pml OMPI_MCA_btl OMPI_MCA_coll_hcoll_enable OMPI_MCA_coll_ucc_enable
-    fi
     module unload mpi/hpcx
 }

@@ -138,8 +138,17 @@ mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 # --without-ucx --with-ofi) works, so both modules point to it.
 if sku_uses_ucx; then
     HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+    HPCX_NON_UCX_EXTRAS=""
 else
     HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+    # On non-UCX SKUs, disable UCC and hcoll:
+    # - UCC's tl_ucp transport uses UCX, which probes verbs on MANA and fails.
+    # - hcoll requires a Mellanox IB HCA which doesn't exist on MANA-only SKUs.
+    # Open MPI's built-in collectives over OFI/TCP are sufficient.
+    read -r -d '' HPCX_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          OMPI_MCA_coll_ucc_enable 0
+setenv          OMPI_MCA_coll_hcoll_enable 0
+EXTRAS
 fi
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
@@ -148,6 +157,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #
 conflict        mpi
 module load ${HPCX_MODULE}
+${HPCX_NON_UCX_EXTRAS}
 EOF
 
 # HPC-X with PMIX
@@ -158,6 +168,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #
 conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
+${HPCX_NON_UCX_EXTRAS}
 EOF
 
 # MVAPICH

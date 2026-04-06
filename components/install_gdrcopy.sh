@@ -50,6 +50,23 @@ else
         git clone https://github.com/NVIDIA/gdrcopy.git
         pushd gdrcopy/packages/
         git checkout ${GDRCOPY_COMMIT}
+
+        # Patch the vm_flags_set conftest to add a grep-based fallback.
+        # The compile-based test can fail due to compiler mismatch (e.g. cross-compiler
+        # vs native on aarch64) or struct changes in newer kernels (>= 6.3), even when
+        # vm_flags_set is defined in linux/mm.h. This causes HAVE_VM_FLAGS_SET=n and a
+        # redefinition error when building gdrdrv against kernel 6.14+.
+        CONFTEST_SCRIPT="../scripts/test_gdrdrv_HAVE_VM_FLAGS_SET.sh"
+        if [ -f "${CONFTEST_SCRIPT}" ]; then
+            sed -i '/^if \[ "\${ret}" -eq 0 \]; then$/i \
+        # Fallback: if compile test failed, check kernel headers directly for vm_flags_set\
+        if [ "${ret}" -ne 0 ]; then\
+            if grep -q "\\bvm_flags_set\\b" "${kdir}/include/linux/mm.h" 2>/dev/null; then\
+                ret=0\
+            fi\
+        fi' "${CONFTEST_SCRIPT}"
+        fi
+
         if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             # Install gdrcopy
             apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms

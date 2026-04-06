@@ -67,7 +67,7 @@ EOF
     elif [ $UBUNTU_VERSION == 22.04 ]; then
         apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     fi
-    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
+    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
     make dkms-debs
     apt install -y ./debs/lustre-*.deb
     popd

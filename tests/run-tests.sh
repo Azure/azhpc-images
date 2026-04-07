@@ -118,10 +118,15 @@ function set_test_matrix {
     fi
     test_matrix_file=$(jq -r . $HPC_ENV/sanity-check/test-matrix_${gpu_platform}.json)
 
-    case ${VMSIZE} in
-        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
-        *) sku="common";;
-    esac
+    # Prefer SKU_FAMILY if set (forward-compatible); fall back to VMSIZE pattern.
+    if [[ -n "${SKU_FAMILY:-}" ]]; then
+        sku="$SKU_FAMILY"
+    else
+        case ${VMSIZE} in
+            standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
+            *) sku="common";;
+        esac
+    fi
     export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" '(.[$d] // empty) | (.[$s] // empty)' <<< "$test_matrix_file")
 
     if [[ -z "$TEST_MATRIX" ]]; then
@@ -132,7 +137,11 @@ function set_test_matrix {
 
 function set_vm_properties {
     aks_host=$1
-    export VMSIZE="standard_nd128isr_ndr_gb200_v6"
+    # VMSIZE may be pre-set by the caller (e.g. from platform.conf) to avoid
+    # Azure IMDS dependency on non-Azure nodes. Fall back to a sensible default.
+    if [[ -z "${VMSIZE:-}" ]]; then
+        export VMSIZE="standard_nd128isr_ndr_gb200_v6"
+    fi
     export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 }
 
@@ -189,8 +198,8 @@ done
 
 # Load profile
 . /etc/profile
-# Set HPC environment
-HPC_ENV=/home/hpcgb200
+# Set HPC environment — may be pre-set by caller (e.g. platform.conf).
+HPC_ENV="${HPC_ENV:-/home/hpcgb200}"
 # Set test definitions
 . $HPC_ENV/sanity-check/test-definitions.sh
 # Set module files directory

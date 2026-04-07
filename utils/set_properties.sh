@@ -54,3 +54,14 @@ fi
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/versions.json)
+
+# Derive SKU_FAMILY from SKU so all downstream scripts use a single canonical
+# family identifier instead of repeated per-SKU string comparisons.
+# Consumers (e.g. Azure-Dedicated-Images) may set NCCL_TOPO_FAMILY directly
+# in their platform.conf to override this derivation.
+if [[ -z "${SKU_FAMILY:-}" ]]; then
+    case "${SKU:-}" in
+        GB200|GB300) export SKU_FAMILY="gb-family" ;;
+        *)           export SKU_FAMILY="${SKU:-}" ;;
+    esac
+fi

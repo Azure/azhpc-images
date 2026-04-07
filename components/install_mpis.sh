@@ -36,8 +36,10 @@ UCX_PATH=${HPCX_PATH}/ucx
 write_component_version "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
-# PMIX is installed from AZL 3.0 PMC to default path
-if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+# PMIX_MODE=bundled: use PMIx bundled inside HPC-X (e.g. when standalone PMIx
+# conflicts with the Mellanox OpenMPI package, as on Nebius baremetal nodes).
+# PMIX_MODE=standalone (default): use the separately installed PMIx package.
+if [[ $DISTRIBUTION == "azurelinux3.0" || "${PMIX_MODE:-standalone}" == "bundled" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 else
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
@@ -51,7 +53,9 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DIS
 fi
 
 # Install MVAPICH
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
+# Set SKIP_MVAPICH=1 to skip (e.g. on Nebius baremetal where Mellanox OpenMPI
+# bundles its own MPI and MVAPICH would conflict).
+if [[ "${SKIP_MVAPICH:-0}" != "1" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -81,7 +85,12 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+if [[ "${PMIX_MODE:-standalone}" == "bundled" ]]; then
+    PMIX_FLAG="--with-pmix"
+else
+    PMIX_FLAG="--with-pmix=${PMIX_PATH}"
+fi
+./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..

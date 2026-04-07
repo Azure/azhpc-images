@@ -332,6 +332,12 @@ function verify_ib_modules_and_devices {
 }
 
 function verify_lustre_installation {
+    # Skip check if Lustre was not installed (e.g. no package available for HWE kernel)
+    if [[ -z "${VERSION_LUSTRE:-}" ]]; then
+        echo "[SKIP] : Lustre not installed (no package available for this kernel)"
+        return 0
+    fi
+
     # Verify lustre client package installation
     case ${ID} in
         ubuntu) dpkg -l | grep lustre-client;;

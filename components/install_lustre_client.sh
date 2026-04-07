@@ -68,7 +68,8 @@ EOF
         apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     fi
     ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
-    make dkms-debs
+    #make dkms-debs
+    IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make dkms-debs
     apt install -y ./debs/lustre-*.deb
     popd
     rm -rf amlFilesystem-lustre

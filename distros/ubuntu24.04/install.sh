@@ -11,10 +11,15 @@ export GPU=$1
 export SKU=$2
 
 if [[ "$#" -gt 0 ]]; then
-   if [[ "$GPU" != "NVIDIA" && "$GPU" != "AMD" ]]; then
-       echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
+   if [[ "$GPU" != "NVIDIA" && "$GPU" != "AMD" && "$GPU" != "MAIA" ]]; then
+       echo "Error: Invalid GPU type. Please specify 'NVIDIA', 'AMD', or 'MAIA'."
        exit 1
     fi
+fi
+
+if [[ "$GPU" == "MAIA" ]]; then
+    echo "MAIA200 SKU: guest stack is installed separately via install_dependencies.sh"
+    exit 0
 fi
 
 source ../../utils/set_properties.sh

@@ -107,8 +107,8 @@ function verify_mvapich2_installation {
         # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
         mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
     else
-        # OFI transport: use libfabric tcp provider
-        mpiexec -np 2 -ppn 2 -env FI_PROVIDER=tcp ${mvapich_omb_path}/osu_latency
+        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
+        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
     fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich

@@ -37,6 +37,11 @@ else
     apt-get install -y rdma-core libibverbs-dev ibverbs-utils librdmacm-dev pkg-config
     # Install libfabric — replaces UCX as the networking abstraction for MPI on non-IB SKUs
     $COMPONENT_DIR/install_libfabric.sh
+    # Blacklist mana_ib — it exposes a non-functional verbs device (max_msg_size=0, no UD/SRQ,
+    # guest RDMA not yet enabled) that causes UCX, libfabric verbs, and UCC to crash.
+    # The mana ethernet driver (eth0/eth1) is unaffected.
+    # Customers can re-enable: sudo rm /etc/modprobe.d/blacklist-mana-ib.conf && sudo modprobe mana_ib
+    echo "blacklist mana_ib" | tee /etc/modprobe.d/blacklist-mana-ib.conf
 fi
 
 # install PMIX

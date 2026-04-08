@@ -505,6 +505,9 @@ locals {
       "Marketplace-Non-FIPS" = {
         "ubuntu" = {
           "24.04" = ["Canonical", "ubuntu-24_04-lts", "server-arm64"]
+        },
+        "azurelinux" = {
+          "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-kernel-hwe-arm64"]
         }
       }
     },

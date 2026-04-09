@@ -168,7 +168,6 @@ install_ubuntu_lts_kernel() {
         24.04)
             apt update
             apt install -y linux-azure-lts-24.04 linux-modules-extra-azure-6.8
-            apt-mark hold linux-azure-lts-24.04
             
             # Purge non-LTS kernels
             apt-get purge -y \
@@ -192,7 +191,6 @@ install_ubuntu_lts_kernel() {
         22.04)
             apt update
             apt install -y linux-azure-lts-22.04
-            apt-mark hold linux-azure-lts-22.04
             
             # Purge non-LTS kernels
             apt-get purge -y \

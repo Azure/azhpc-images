@@ -14,22 +14,41 @@ else
 fi
 export ARCHITECTURE=$(uname -m)
 
+# NODE_TYPE identifies the deployment context:
+#   'azure-vm'  (default) — Azure Virtual Machine image build/test
+#   'baremetal'           — Bare-metal node (e.g. Nebius), no Azure IMDS,
+#                           IB not brought up, IPoIB not used.
+# Baremetal callers must set NODE_TYPE=baremetal in their platform.conf
+# before sourcing this script.
+export NODE_TYPE="${NODE_TYPE:-azure-vm}"
+
+# Derive SKU_FAMILY from SKU so all downstream scripts use a single canonical
+# GPU-family identifier instead of repeated per-SKU string comparisons.
+# This captures GPU hardware capability (e.g. NVLink, CDMM) shared by both
+# Azure VM and baremetal GB200/GB300 deployments.
+# Callers may set SKU_FAMILY directly in their platform.conf to override.
+if [[ -z "${SKU_FAMILY:-}" ]]; then
+    case "${SKU:-}" in
+        GB200|GB300) export SKU_FAMILY="gb-family" ;;
+        *)           export SKU_FAMILY="${SKU:-}" ;;
+    esac
+fi
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Don't allow the kernel to be updated
-    # if [ "$SKU" = "GB200" ]; then
-    #    apt-mark hold linux-nvidia-64k-hwe-24.04
-    # else
-    #    apt-mark hold linux-azure
-    # fi
-    # upgrade pre-installed components
-    # GB200 offline installer: Skip apt upgrade when running from offline ISO.
-    # The upgrade pulls packages from online mirrors that may be unavailable,
-    # causing the install to fail. The base image is already validated.
-    if [[ "${GB200_SKIP_APT_UPGRADE:-0}" != "1" ]]; then
+    if [[ "${NODE_TYPE}" == "baremetal" ]]; then
+        # Baremetal: skip apt upgrade — the offline ISO installer cannot reach
+        # online package mirrors; the base image is already validated.
+        echo "[set_properties.sh] Skipping apt update/upgrade on baremetal node"
+    else
+        # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
+        # then upgrade all other pre-installed components.
+        if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
+            apt-mark hold linux-nvidia-64k-hwe-24.04
+        else
+            apt-mark hold linux-azure
+        fi
         apt update
         apt upgrade -y
-    else
-        echo "[set_properties.sh] Skipping apt update/upgrade (GB200_SKIP_APT_UPGRADE=1)"
     fi
     # jq is needed to parse the component versions from the versions.json file
     apt install -y jq

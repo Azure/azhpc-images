@@ -40,6 +40,7 @@ fi
 nvidia_gpu_driver_metadata=$(get_component_config "nvidia")
 NVIDIA_GPU_DRIVER_MAJOR_VERSION=$(jq -r '.driver.major_version' <<< $nvidia_gpu_driver_metadata)
 NVIDIA_GPU_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_gpu_driver_metadata)
+NVIDIA_IMEX_VERSION=$(jq -r '.imex.version' <<< $nvidia_gpu_driver_metadata)
 
 apt install nvidia-driver-pinning-$NVIDIA_GPU_DRIVER_VERSION -y
 
@@ -69,7 +70,7 @@ write_component_version "NVIDIA" $nvidia_driver_version
 $COMPONENT_DIR/install_gdrcopy.sh
 
 # Install NVIDIA IMEX
-apt-get install nvidia-imex -y
+apt-get install nvidia-imex=${NVIDIA_IMEX_VERSION} -y --allow-downgrades
 
 # Add configuration to /etc/modprobe.d/nvidia.conf
 cat <<EOF >> /etc/modprobe.d/nvidia.conf

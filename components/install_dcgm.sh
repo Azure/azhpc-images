@@ -14,9 +14,17 @@ SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 
-# Get DCGM version from versions.json
-dcgm_metadata=$(get_component_config "dcgm")
-DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+# Get DCGM version from versions.json.
+# On baremetal aarch64, prefer the dcgm4-specific version key (different
+# epoch versioning scheme used in the baremetal package repository).
+if [[ "$ARCHITECTURE" == "aarch64" && "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    dcgm4_metadata=$(get_component_config "dcgm4")
+    DCGM_VERSION=$(jq -r '.version // empty' <<< "$dcgm4_metadata")
+fi
+if [[ -z "${DCGM_VERSION:-}" ]]; then
+    dcgm_metadata=$(get_component_config "dcgm")
+    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y \

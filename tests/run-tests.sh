@@ -79,7 +79,7 @@ function verify_common_components {
     verify_hpcx_installation;
     verify_ompi_installation;
     verify_pssh_installation;
-    if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
+    if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
         verify_mvapich2_installation;
         verify_mkl_installation;
         verify_hpcdiag_installation;
@@ -118,10 +118,15 @@ function set_test_matrix {
     fi
     test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
 
-    case ${VMSIZE} in
-        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
-        *) sku="common";;
-    esac
+    # Prefer SKU_FAMILY if set (forward-compatible); fall back to VMSIZE pattern.
+    if [[ -n "${SKU_FAMILY:-}" ]]; then
+        sku="$SKU_FAMILY"
+    else
+        case ${VMSIZE} in
+            standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
+            *) sku="common";;
+        esac
+    fi
     export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" '(.[$d] // empty) | (.[$s] // empty)' <<< "$test_matrix_file")
 
     if [[ -z "$TEST_MATRIX" ]]; then
@@ -132,13 +137,22 @@ function set_test_matrix {
 
 function set_vm_properties {
     aks_host=$1
-    local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
-    local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
-    export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
+    # VMSIZE may be pre-set by the caller (e.g. from platform.conf on baremetal)
+    # to avoid Azure IMDS dependency on non-Azure nodes. Otherwise, query IMDS.
+    if [[ -z "${VMSIZE:-}" ]]; then
+        local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
+        local vm_size=$(curl -H Metadata:true $metadata_endpoint | jq -r ".compute.vmSize")
+        export VMSIZE=$(echo "$vm_size" | awk '{print tolower($0)}')
+    fi
     if [ "$aks_host" != "-aks-host" ]; then
         export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
     else
         export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)-aks
+    fi
+    # Append -baremetal suffix so the test matrix can have a separate entry
+    # for baremetal nodes, distinct from Azure VM builds of the same distro.
+    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        export DISTRIBUTION="${DISTRIBUTION}-baremetal"
     fi
 }
 
@@ -200,8 +214,8 @@ done
 
 # Load profile
 . /etc/profile
-# Set HPC environment
-HPC_ENV=/opt/azurehpc
+# Set HPC environment — may be pre-set by caller (e.g. platform.conf on baremetal).
+HPC_ENV="${HPC_ENV:-/opt/azurehpc}"
 # Set test definitions
 . $HPC_ENV/test/test-definitions.sh
 # Set module files directory

@@ -118,16 +118,26 @@
         },
         "almalinux8.10": {
             "x86_64": {
-                "version": "2.24.1",
-                "sha256": "19cf620ae57608817a23558383a2721bd2221dd165ce81ccacc2011d5c7b819a",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
+                "nvidia_v100": {
+                    "version": "2.25.1",
+                    "sha256": "80df70a0113b4ba23f34a06ab30ed0d740b2006d4503e683195a6f6d1b59e7f1",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
+                },
+                "version": "2.25.1",
+                "sha256": "5af44cf5dba8efc33f4e596fdf838e217e5071ce6a355a3a75fc72b66a6e646c",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
             }
         },
         "almalinux9.7": {
             "x86_64": {
-                "version": "2.24.1",
-                "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
+                "nvidia_v100": {
+                    "version": "2.25.1",
+                    "sha256": "006b976fd64e79eb26177fe45714252e78d0e09d27b8cdbf1baf7be6fee8fa32",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+                },
+                "version": "2.25.1",
+                "sha256": "32d26857bd9c6aa47795b0eb354773b465d44e30784587258da0c91a8081df63",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
             }
         },
         "rhel8.10": {
@@ -236,9 +246,9 @@
         },
         "almalinux9.7": {
             "x86_64": {
-                "version": "4.0",
-                "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
-                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.0.tar.gz"
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
         "azurelinux3.0": {
@@ -319,26 +329,26 @@
         "almalinux8.10": {
             "x86_64": {
                 "driver": {
-                    "version": "580.105.08",
-                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
+                    "version": "580.126.20",
+                    "sha256": "a055dbeae72438f20335b41929a060148c82c69d2147c0d922660e8c5a265eb1"
                 },
                 "fabricmanager": {
                     "distribution": "rhel8",
-                    "version": "580.105.08-1",
-                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
+                    "version": "580.126.20-1",
+                    "sha256": "00a82a6b937cdb3fc306f3d081b050eed8fd5ebec1436cba15ab86771efd92a0"
                 }
             }
         },
         "almalinux9.7": {
             "x86_64": {
                 "driver": {
-                    "version": "580.105.08",
-                    "sha256": "d9c6e8188672f3eb74dd04cfa69dd58479fa1d0162c8c28c8d17625763293475"
+                    "version": "580.126.20",
+                    "sha256": "a055dbeae72438f20335b41929a060148c82c69d2147c0d922660e8c5a265eb1"
                 },
                 "fabricmanager": {
                     "distribution": "rhel9",
-                    "version": "580.105.08-1",
-                    "sha256": "3c51c0b8c17a3949eff9157c2e5d7e280be1a957b5083ae7ee92d05ff65cae46"
+                    "version": "580.126.20-1",
+                    "sha256": "00a82a6b937cdb3fc306f3d081b050eed8fd5ebec1436cba15ab86771efd92a0"
                 }
             }
         },
@@ -737,8 +747,8 @@
     },
     "waagent": {
         "common": {
-            "version": "2.14.0.1",
-            "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
+            "version": "2.15.0.1",
+            "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
         },
         "azurelinux3.0": {
             "x86_64": {
@@ -787,7 +797,7 @@
         },
         "almalinux9.7": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99"
+                "version": "2.15.7_33_g79ddf99"
             }
         },
         "ubuntu22.04": {

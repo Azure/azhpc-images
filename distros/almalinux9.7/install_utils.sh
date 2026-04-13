@@ -14,8 +14,7 @@ yum update -y
 
 # Install Kernel dependencies
 KERNEL=$(uname -r)
-VERSION_ID=$(. /etc/os-release;echo $VERSION_ID)
-dnf install -y kernel-devel-matched kernel-devel kernel-headers kernel-modules-extra
+dnf install -y kernel-devel-matched-${KERNEL} kernel-devel-${KERNEL} kernel-headers-${KERNEL} kernel-modules-extra-${KERNEL}
 
 yum install -y wget \
                net-tools \

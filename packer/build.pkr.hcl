@@ -132,8 +132,8 @@ build {
     except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
-        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz -C ${path.root}/.."
+        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }
 

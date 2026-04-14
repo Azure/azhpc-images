@@ -141,11 +141,14 @@ if sku_uses_ucx; then
     HPCX_NON_UCX_EXTRAS=""
 else
     HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
-    # On non-UCX SKUs, disable UCC and hcoll:
-    # - UCC's tl_ucp transport uses UCX, which probes verbs on MANA and fails.
-    # - hcoll requires a Mellanox IB HCA which doesn't exist on MANA-only SKUs.
-    # Open MPI's built-in collectives over OFI/TCP are sufficient.
+    # On non-UCX SKUs:
+    # - Force PML cm (MTL-based) instead of ob1 (BTL-based). ob1 auto-selects BTL openib
+    #   which initializes against rdma-core but can't move data on MANA-only hardware, causing hangs.
+    # - Use libfabric tcp provider explicitly (auto-detection fails due to docker bridge 172.17.0.1).
+    # - Disable UCC (tl_ucp probes verbs on MANA and fails) and hcoll (requires Mellanox IB HCA).
     read -r -d '' HPCX_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          OMPI_MCA_pml cm
+setenv          OMPI_MCA_mtl_ofi_provider_include tcp
 setenv          OMPI_MCA_coll_ucc_enable 0
 setenv          OMPI_MCA_coll_hcoll_enable 0
 EXTRAS
@@ -192,6 +195,16 @@ EOF
 fi    
 
 # OpenMPI
+# On non-UCX SKUs, Open MPI standalone (built --without-ucx --with-ofi) has the same
+# PML auto-selection issue as HPC-X: ob1 wins over cm, but ob1's BTL tcp is confused
+# by the docker bridge (172.17.0.1 on all nodes). Fix with pml=cm + tcp provider.
+OMPI_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
+    read -r -d '' OMPI_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          OMPI_MCA_pml cm
+setenv          OMPI_MCA_mtl_ofi_provider_include tcp
+EXTRAS
+fi
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #%Module 1.0
 #
@@ -206,6 +219,7 @@ setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include
 setenv          MPI_LIB         /opt/openmpi-${OMPI_VERSION}/lib
 setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
+${OMPI_NON_UCX_EXTRAS}
 EOF
 
 #IntelMPI-v2021

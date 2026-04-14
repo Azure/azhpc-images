@@ -25,9 +25,10 @@ if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
 
-    # install Lustre client
-    $COMPONENT_DIR/install_lustre_client.sh
 fi
+
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
 if sku_has_infiniband; then
@@ -105,6 +106,9 @@ if [ "$ARCHITECTURE" == "x86_64" ]; then
     # install Intel libraries
     $COMPONENT_DIR/install_intel_libs.sh
 fi
+
+# install dynolog and dyno-relay-logger
+$COMPONENT_DIR/install_dynolog_drl.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh

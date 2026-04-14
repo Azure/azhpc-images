@@ -1,35 +1,22 @@
 #!/bin/bash
 set -ex
 
-aks_host_image=$1
-
 source ${UTILS_DIR}/utilities.sh
 
 # Install NVIDIA driver
 nvidia_metadata=$(get_component_config "nvidia")
-nvidia_driver_metadata=$(jq -r '.driver' <<< $nvidia_metadata)
-NVIDIA_DRIVER_VERSION=$(jq -r '.version' <<< $nvidia_driver_metadata)
-NVIDIA_DRIVER_SHA256=$(jq -r '.sha256' <<< $nvidia_driver_metadata)
-NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run
-kernel_version=$(uname -r | sed 's/\-/./g')
-
-if [ "$SKU" = "V100" ]; then
-    KERNEL_MODULE_TYPE="proprietary"
-    # Install Nvidia GPU propreitary variant for V100 and older SKUs
-    AL3_GPU_DRIVER_PACKAGES="cuda-${NVIDIA_DRIVER_VERSION}"
-else
-    KERNEL_MODULE_TYPE="open"
-    # Install Nvidia GPU open source variant for A100, H100
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
-        # Install Nvidia GPU open source variant for GB200 GB300
-        AL3_GPU_DRIVER_PACKAGES="cuda-open-hwe"
-    else
-        # Install Nvidia GPU open source variant for A100, H100 
-        AL3_GPU_DRIVER_PACKAGES="cuda-open"
-    fi
-fi
+cuda_metadata=$(get_component_config "cuda")
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    if [ "$SKU" = "V100" ]; then
+        # V100 requires proprietary kernel modules
+        AL3_GPU_DRIVER_PACKAGES="cuda"
+    elif [ "$ARCHITECTURE" = "aarch64" ]; then
+        AL3_GPU_DRIVER_PACKAGES="cuda-open-hwe"
+    else
+        AL3_GPU_DRIVER_PACKAGES="cuda-open"
+    fi
+
     if [[ "$ARCHITECTURE" == "aarch64" ]]; then
         curl https://packages.microsoft.com/azurelinux/3.0/prod/nvidia/aarch64/config.repo > /etc/yum.repos.d/azurelinux-nvidia-prod.repo
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/sbsa/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
@@ -38,16 +25,64 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
     fi
 
-    tdnf install -y $AL3_GPU_DRIVER_PACKAGES
-    NVIDIA_DRIVER_VERSION=$(tdnf list installed | grep -i $AL3_GPU_DRIVER_PACKAGES | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    # Disable the NVIDIA CUDA repo during driver install — all driver
+    # packages come from PMC and the CUDA repo has an identically-named
+    # 'cuda' meta-package that would conflict.
+    # Do not use this before bugfixed tdnf lands (https://github.com/vmware/tdnf/pull/553/commits/a418054b02c4cac787184f973dac4d6790344ef3)
+    # or before switching to dnf
+    # tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
+    tdnf install -y --disablerepo=cuda-azl3-x86_64 --disablerepo=cuda-azl3-sbsa $AL3_GPU_DRIVER_PACKAGES
+    NVIDIA_DRIVER_VERSION=$(tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
     # Temp disable NVIDIA driver updates
     mkdir -p /etc/tdnf/locks.d
     echo cuda >> /etc/tdnf/locks.d/nvidia.conf
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    # APT-based NVIDIA driver installation for Ubuntu
+    NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
+    CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
+
+    # Add NVIDIA CUDA APT repo (provides both driver and toolkit packages)
+    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
+    dpkg -i ./cuda-keyring_1.1-1_all.deb
+    apt-get update
+
+    # Pin the driver version and install via APT packages
+    apt install nvidia-driver-pinning-${NVIDIA_DRIVER_VERSION} -y
+    if [ "$SKU" = "V100" ]; then
+        # V100 requires proprietary kernel modules
+        apt install cuda-drivers -y
+    else
+        # A100, H100, H200 use open kernel modules
+        apt install nvidia-open -y
+    fi
+
+    # Remove unused configuration file if created by the NVIDIA driver package
+    rm -f /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
+
+    # Apply nvprofiling settings
+    echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
+
+    # load the nvidia-peermem coming as a part of NVIDIA GPU driver
+    modprobe nvidia-peermem
+    # verify if loaded
+    lsmod | grep nvidia_peermem
 else
+    # RHEL-family: AlmaLinux, Rocky Linux, RHEL - .run file installation
+    NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
+    NVIDIA_DRIVER_SHA256=$(jq -r '.driver.sha256' <<< $nvidia_metadata)
+    NVIDIA_DRIVER_URL=https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run
+    CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
+
+    if [ "$SKU" = "V100" ]; then
+        KERNEL_MODULE_TYPE="proprietary"
+    else
+        KERNEL_MODULE_TYPE="open"
+    fi
+
     download_and_verify $NVIDIA_DRIVER_URL ${NVIDIA_DRIVER_SHA256}
     bash NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run --silent --dkms --kernel-module-type=${KERNEL_MODULE_TYPE}
-    if [[ $DISTRIBUTION == almalinux* ]]; then
+    if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
         dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
     fi
     # load the nvidia-peermem coming as a part of NVIDIA GPU driver
@@ -61,24 +96,15 @@ write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
-# Set the driver versions
-cuda_metadata=$(get_component_config "cuda")
-CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
-CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 if [[ "$DISTRIBUTION" != *-aks ]]; then
-    # Install Cuda
+    # Install CUDA toolkit
+    CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
+    CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
+    CUDA_SAMPLES_SHA256=$(jq -r '.samples.sha256' <<< $cuda_metadata)
+
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-        # Dependency for nvidia driver installation
-        apt-get install -y libvulkan1
-        # Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
-        wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
-        dpkg -i ./cuda-keyring_1.1-1_all.deb
-        apt-get update
+        # NVIDIA APT repo already configured during driver installation
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
-    elif [[ $DISTRIBUTION == almalinux* ]]; then
-        dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
-        dnf clean expire-cache
-        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
         # Install cuda-toolkit
         # V100 does not support CUDA 13.0, so use CUDA 12.9.
@@ -87,8 +113,11 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         else
             tdnf install -y cuda-toolkit-13-0-13.0.2
         fi        
-        # Install libnvidia-nscq
-        tdnf install -y libnvidia-nscq
+    else
+        # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+        dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
+        dnf clean expire-cache
+        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi
 
     echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee /etc/profile.d/cuda.sh > /dev/null
@@ -97,7 +126,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     # Ensure proper permissions
     chmod 644 /etc/profile.d/cuda.sh
 
-    write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
+    cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
+    write_component_version "CUDA" ${cuda_version}
 
     $COMPONENT_DIR/install_cuda_samples.sh
 

@@ -133,8 +133,11 @@ if [[ "$SKU" != "GB200" ]]; then
     # install monitor tools
     $COMPONENT_DIR/install_monitoring_tools.sh
 
-    # install Azure/NHC Health Checks
-    $COMPONENT_DIR/install_health_checks.sh "$GPU"
+    # Azure NHC does not yet support NCv6
+    if [[ "$SKU" != "NCv6" ]]; then
+        # install Azure Node Health Checks
+        $COMPONENT_DIR/install_health_checks.sh "$GPU"
+    fi
 fi 
 
 # add udev rule

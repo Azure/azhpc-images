@@ -35,9 +35,7 @@ sed -i '/^FeatureType=0/d' /etc/nvidia/gridd.conf
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
-# Dependency for nvidia driver installation
-apt-get install -y libvulkan1
-# Reference - https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu-installation
+# Add NVIDIA CUDA APT repo (provides toolkit packages)
 wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
 dpkg -i ./cuda-keyring_1.1-1_all.deb
 apt-get update
@@ -47,7 +45,8 @@ echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee /etc/profile.d/cuda.sh > /dev
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile.d/cuda.sh > /dev/null
 chmod 644 /etc/profile.d/cuda.sh
 
-write_component_version "CUDA" ${CUDA_DRIVER_VERSION}
+cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
+write_component_version "CUDA" ${cuda_version}
 
 $COMPONENT_DIR/install_cuda_samples.sh
 $COMPONENT_DIR/configure_nvidia_persistence.sh

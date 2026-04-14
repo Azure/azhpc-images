@@ -18,6 +18,67 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 if [[ "$GPU" == "MAIA" ]]; then
+    echo "##[section]Applying MAIA200 VM configurations"
+
+    # 1. GRUB: DMA memory reservation for MAIA accelerator
+    echo "##[section]Configuring GRUB memmap for MAIA200"
+    sudo mkdir -p /etc/default/grub.d
+    echo 'GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX memmap=256G\$90G"' | sudo tee /etc/default/grub.d/90-maia.cfg
+    sudo update-grub
+
+    # 2. Disable unattended upgrades (drivers are kernel-version-specific)
+    echo "##[section]Disabling unattended upgrades for MAIA"
+    sudo systemctl stop unattended-upgrades 2>/dev/null || true
+    sudo systemctl disable unattended-upgrades 2>/dev/null || true
+    sudo apt-mark hold linux-image-generic linux-headers-generic linux-generic 2>/dev/null || true
+
+    # 3. Environment variables
+    echo "##[section]Setting MAIA environment variables"
+    cat <<'ENVEOF' | sudo tee /etc/profile.d/maiaenv.sh
+# MAIA200 environment
+ulimit -S -n 2048
+export PATH="/opt/maia/bin:$PATH"
+ENVEOF
+    sudo chmod 644 /etc/profile.d/maiaenv.sh
+
+    # 4. Crash dump configuration
+    sudo sysctl -w kernel.core_pattern="/var/crash/%e_%p_%t.dmp"
+    echo 'kernel.core_pattern=/var/crash/%e_%p_%t.dmp' | sudo tee -a /etc/sysctl.d/90-maia-coredump.conf
+    sudo mkdir -p /var/crash
+
+    # 5. Device node creation service
+    echo "##[section]Installing MAIA device node service"
+    cat <<'DEVEOF' | sudo tee /usr/local/bin/create_maia_devices.sh
+#!/bin/bash
+NUM_DEVICES=${NUM_APU_DEVICES:-8}
+for i in $(seq 0 $((NUM_DEVICES - 1))); do
+    [ -e /dev/apu${i} ] || mknod -m 0666 /dev/apu${i} c 1 3
+    [ -e /dev/maianexus${i} ] || mknod -m 0666 /dev/maianexus${i} c 1 3
+done
+DEVEOF
+    sudo chmod +x /usr/local/bin/create_maia_devices.sh
+
+    cat <<'SVCEOF' | sudo tee /etc/systemd/system/maia-devices.service
+[Unit]
+Description=Create MAIA APU and MaiaNexus Device Nodes
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/create_maia_devices.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable maia-devices.service
+
+    # 6. Create MCCL log directory
+    sudo mkdir -p /opt/maia/logs/mccl
+    sudo chmod 777 /opt/maia/logs/mccl
+
+    echo "##[section]MAIA200 VM configurations complete"
     echo "MAIA200 SKU: guest stack is installed separately via install_dependencies.sh"
     exit 0
 fi

@@ -46,13 +46,21 @@ function verify_ib_device_status {
     lspci | grep "Infiniband controller\|Network controller"
     check_exit_code "IB device is listed" "IB device not found"
 
-    # verify IB device is up
-    ibstatus | grep "LinkUp"
-    check_exit_code "IB device state: DOWN" "IB link is UP"
+    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
+        ibstatus | grep "LinkUp"
+        check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
 
-    # verify ifconfig
-    ! ifconfig | grep "ib[[:digit:]]:\|ibP"
-    check_exit_code "IB Links are Down" "IB Links are Brought Up unexpectedly"
+        ! ifconfig | grep "ib[[:digit:]]:\|ibP"
+        check_exit_code "IB Links are Down" "IB Links are Brought Up unexpectedly"
+    else
+        # Azure HPC VMs: IB device should be up and configured
+        ibstatus | grep "LinkUp"
+        check_exit_code "IB device state: LinkUp" "IB link not up"
+
+        ifconfig | grep "ib[[:digit:]]:\|ibP"
+        check_exit_code "IB device is configured" "IB device not configured"
+    fi
 
     #verify hostname -i returns IP address only
     hostname -i | grep -E "^([[:digit:]]{1,3}[\.]){3}[[:digit:]]{1,3}$"
@@ -114,7 +122,7 @@ function verify_nvidia_driver_installation {
     lsmod | grep nvidia_peermem
     check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 
-    if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+    if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled
         cat /proc/driver/nvidia/params | grep -q  "CoherentGPUMemoryMode: \"driver\""
         check_exit_code "NVIDIA CDMM mode is enabled" "NVIDIA CDMM mode is not enabled!"
@@ -151,6 +159,11 @@ function verify_nccl_installation {
 
     module load mpi/hpcx
 
+    # Determine if this is a gb-family node by SKU_FAMILY (forward-compatible)
+    # or by VMSIZE pattern (backward-compatible for existing Azure SKUs).
+    local _is_gb_family=0
+    [[ "${SKU_FAMILY:-}" == "gb-family" ]] && _is_gb_family=1
+
     case ${VMSIZE} in
         standard_nc24rs_v3) mpirun -np 4 \
             -x LD_LIBRARY_PATH \
@@ -184,7 +197,12 @@ function verify_nccl_installation {
                 -x NCCL_DEBUG=WARN \
                 -x NCCL_NET_GDR_LEVEL=5 \
                 /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
-        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) mpirun -np 4 \
+        standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) _is_gb_family=1;;
+        *) ;;
+    esac
+
+    if [[ "$_is_gb_family" == "1" ]]; then
+        mpirun -np 4 \
             --allow-run-as-root \
             --map-by ppr:4:node \
             -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
@@ -195,9 +213,8 @@ function verify_nccl_installation {
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;                
-        *) ;;
-    esac
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+    fi
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
@@ -242,8 +259,7 @@ function verify_rccl_installation {
 function verify_package_updates {
     case ${ID} in
         ubuntu)
-            if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
-                # doca-related packages are not latest version which includes stale packages, so just list packages here for reference
+            if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
                 sudo apt -s upgrade 2> /dev/null
                 # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
                 # [[ "$num_upgradable" -eq 0 ]];;
@@ -327,16 +343,28 @@ function verify_ib_modules_and_devices {
         echo "[OK] : openibd service is active"
     fi
 
-    # Check if all key IB modules are inserted
-    local ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
+    # Check if all key IB modules are inserted.
+    # ib_ipoib is not loaded on baremetal nodes (IPoIB is not used).
+    local ib_modules
+    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
+    else
+        ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
+    fi
     for module in "${ib_modules[@]}"; do
         lsmod | grep "^${module}"
         check_exit_code "${module} module is inserted" "${module} module not inserted!"
     done
 
     # Check if ib devices are listed
-    ! (ip addr | grep ib)
-    check_exit_code "IPoIB is not working" "IPoIB is working!"
+    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        # On baremetal GB200/GB300, IPoIB is not used
+        ! (ip addr | grep ib)
+        check_exit_code "IPoIB not present as expected" "IPoIB unexpectedly present!"
+    else
+        ip addr | grep ib
+        check_exit_code "IPoIB is working" "IPoIB is not working!"
+    fi
 }
 
 # only best-effort install since Lustre isn't always available
@@ -439,7 +467,7 @@ function verify_nvlink_setup {
     nvidia-smi nvlink --status
     check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
 
-    if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
+    if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
         nvidia_smi_output=$(nvidia-smi -q | grep 'Fabric' -A 4)
         echo "$nvidia_smi_output"
 

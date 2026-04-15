@@ -15,15 +15,8 @@ SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 # the repo is already added during nvidia/ cuda installations
 
 # Get DCGM version from versions.json.
-# On aarch64, prefer the dcgm4-specific version key (different epoch versioning scheme).
-if [[ "$ARCHITECTURE" == "aarch64" ]]; then
-    dcgm4_metadata=$(get_component_config "dcgm4")
-    DCGM_VERSION=$(jq -r '.version // empty' <<< "$dcgm4_metadata")
-fi
-if [[ -z "${DCGM_VERSION:-}" ]]; then
-    dcgm_metadata=$(get_component_config "dcgm")
-    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-fi
+dcgm_metadata=$(get_component_config "dcgm")
+DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y \

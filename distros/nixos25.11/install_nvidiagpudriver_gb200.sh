@@ -45,11 +45,17 @@ cat >> /etc/nixos/nvidia-hpc.nix << 'NIXEOF'
   # Load nvidia kernel modules at boot
   boot.kernelModules = [ "nvidia" "nvidia_uvm" "nvidia_modeset" ];
 
-  # NVIDIA profiling: allow non-root
+  # NVIDIA modprobe options (GB300-specific)
+  # NVreg_CreateImexChannel0=1        — required for IMEX
+  # NVreg_CoherentGPUMemoryMode=driver — CDMM mode
+  # NVreg_RestrictProfilingToAdminUsers=0 — allow non-root profiling
+  # NVreg_EnableNonblockingOpen=0     — serialized GSP init (avoid deadlocks)
+  # No fabricmanager — GB300 NVSwitch is hypervisor-managed
   boot.extraModprobeConfig = ''
     options nvidia NVreg_RestrictProfilingToAdminUsers=0
     options nvidia NVreg_CoherentGPUMemoryMode=driver
     options nvidia NVreg_CreateImexChannel0=1
+    options nvidia NVreg_EnableNonblockingOpen=0
   '';
 
   # NVIDIA persistence daemon
@@ -94,7 +100,11 @@ nixos-rebuild switch --no-build-nix 2>&1 || {
     echo "##[warning]Reboot required for NVIDIA driver activation"
 }
 
-# ── Step 4: Verify installation ─────────────────────────────────────
+# ── Step 4: Post-rebuild cleanup ────────────────────────────────────
+# Remove unused KMS config created by NVIDIA driver
+rm -f /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
+
+# ── Step 5: Verify installation ─────────────────────────────────────
 if command -v nvidia-smi &>/dev/null; then
     echo "##[section]NVIDIA driver verification"
     nvidia-smi

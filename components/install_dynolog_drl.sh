@@ -110,20 +110,29 @@ EOF
     git clone --recurse-submodules -j8 --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
     pushd /tmp/dyno-relay-logger
     mkdir build && cd build
+
     if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
-        # workaround for openssl 3.0 on almalinux/rocky 8.10 - dyno-relay-logger cmake fails to find openssl 3.0 without these variables set
-        export OPENSSL_DIR=/usr
-        export OPENSSL_INCLUDE_DIR=/usr/include/openssl3
-        export OPENSSL_LIB_DIR=/usr/lib64/openssl3
-        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DOPENSSL_ROOT_DIR=/usr/include/openssl3 \
-            -DOPENSSL_INCLUDE_DIR=/usr/include/openssl3 \
-            -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/openssl3/libcrypto.so \
-            -DOPENSSL_SSL_LIBRARY=/usr/lib64/openssl3/libssl.so
+        OSSL_INCLUDE_DIR=/usr/include/openssl3
+        OSSL_LIB_DIR=/usr/lib64/openssl3
+    elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        OSSL_INCLUDE_DIR=/usr/include
+        OSSL_LIB_DIR=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
     else
-        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
+        OSSL_INCLUDE_DIR=/usr/include
+        OSSL_LIB_DIR=/usr/lib64
     fi
+
+    # Export for openssl-sys crate to consume
+    export OPENSSL_DIR=/usr
+    export OPENSSL_INCLUDE_DIR=$OSSL_INCLUDE_DIR
+    export OPENSSL_LIB_DIR=$OSSL_LIB_DIR
+
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DOPENSSL_ROOT_DIR=$OSSL_INCLUDE_DIR \
+        -DOPENSSL_INCLUDE_DIR=$OSSL_INCLUDE_DIR \
+        -DOPENSSL_CRYPTO_LIBRARY=$OSSL_LIB_DIR/libcrypto.so \
+        -DOPENSSL_SSL_LIBRARY=$OSSL_LIB_DIR/libssl.so
     cmake --build . -j$(nproc)
     mv dynorelaylogger $DYNOLOG_INSTALL_DIR
     mv dynorelayloggerinfo $DYNOLOG_INSTALL_DIR

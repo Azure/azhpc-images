@@ -5,7 +5,8 @@ source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine and CLI
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    if [[ "$ARCHITECTURE" == "aarch64" ]]; then
+    if [[ "$ARCHITECTURE" == "aarch64" && "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        # Baremetal aarch64: pin to a specific moby version from the baremetal package repo.
         moby_metadata=$(get_component_config "moby")
         MOBY_VERSION=$(jq -r '.version' <<< $moby_metadata)
         apt-get install -y moby-engine=${MOBY_VERSION}

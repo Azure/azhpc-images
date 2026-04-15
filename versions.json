@@ -302,6 +302,9 @@
                 "driver": {
                     "version": "580.126.20",
                     "major_version": "580"
+                },
+                "imex": {
+                    "version": "580.126.20-1"
                 }
             }
         },
@@ -725,13 +728,6 @@
             },
             "aarch64": {
                 "version": "4.4.2"
-            }
-        }
-    },
-    "dcgm4": {
-        "ubuntu24.04": {
-            "aarch64":{
-                "version": "1:4.4.2-1"
             }
         }
     },

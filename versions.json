@@ -28,9 +28,9 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "3.2.2",
-                "sha256": "16e5f6cf50ad2e96e1b39dfd29979d17f9883ecd4a4fa7f71b98050b4f1f0e08",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_amd64.deb"
+                "version": "3.2.1",
+                "sha256": "f16f08572b3b2f513b80af66c881c6a60c19e74f0da50afafaa42b0c34116533",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
                 "version": "3.2.1",
@@ -305,7 +305,7 @@
         "ubuntu24.04": {
             "x86_64": {
                 "driver": {
-                    "version": "580.126.16"
+                    "version": "580.126.20"
                 }
             },
             "aarch64": {
@@ -875,7 +875,7 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "7.2.1"
+                "version": "6.2.2.1"
             }
         },
         "rocky8.10": {
@@ -912,11 +912,11 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.27.7",
-                "branch": "release/rocm-rel-7.2",
-                "commit": "96a25b5fd6f73fba58c7d83eb57cf19a50230aa4",
-                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-7.2.1.tar.gz",
-                "sha256": "a373bcfe03cf2243a97536860a81940998c36a0b324d9e10830e3cd2c3f8b523"
+                "version": "2.22.3",
+                "branch": "release/rocm-rel-6.4",
+                "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
+                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
             }
         },
         "rocky8.10": {

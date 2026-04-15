@@ -331,7 +331,7 @@ function verify_ib_modules_and_devices {
     check_exit_code "IPoIB is working" "IPoIB is not working!"
 }
 
-# check at install-time instead since Lustre isn't always available
+# only best-effort install since Lustre isn't always available
 # function verify_lustre_installation {
 #     case ${ID} in
 #         ubuntu) dpkg -l | grep lustre-client;;

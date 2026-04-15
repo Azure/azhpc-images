@@ -28,9 +28,9 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "f16f08572b3b2f513b80af66c881c6a60c19e74f0da50afafaa42b0c34116533",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2404_amd64.deb"
+                "version": "3.2.2",
+                "sha256": "16e5f6cf50ad2e96e1b39dfd29979d17f9883ecd4a4fa7f71b98050b4f1f0e08",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
                 "version": "3.2.1",

@@ -54,7 +54,10 @@ apt-get -y install numactl \
                    dos2unix \
                    azcopy
 
-echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+# Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
+if [[ "${NODE_TYPE:-azure-vm}" != "baremetal" ]]; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
 echo ib_umad | sudo tee /etc/modules-load.d/ib_umad.conf
 
 # copy kvp client file

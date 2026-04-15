@@ -57,6 +57,7 @@ locals {
     local.vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
     local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
   gpu_platform = (

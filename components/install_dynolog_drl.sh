@@ -121,6 +121,10 @@ EOF
             -DOPENSSL_INCLUDE_DIR=/usr/include/openssl3 \
             -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/openssl3/libcrypto.so \
             -DOPENSSL_SSL_LIBRARY=/usr/lib64/openssl3/libssl.so
+    elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        # On Ubuntu, OpenSSL libs are in the multiarch path, not /usr/lib or /usr/lib64
+        export OPENSSL_LIB_DIR=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
+        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
     else
         cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
     fi

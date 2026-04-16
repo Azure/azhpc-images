@@ -467,7 +467,7 @@ locals {
 variable "azl_prebuilt_version" {
   type        = string
   description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL3_PREBUILT_VERSION")
+  default     = env("AZL3GB200_PREBUILT_VERSION")
 }
 
 # =============================================================================

@@ -33,9 +33,9 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
-                "version": "3.2.1",
-                "sha256": "748ddd8a7445f5821423a10f9c26e6d17625286676d2e2a88bea56b0b2a6e3d4",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2404_arm64.deb"
+                "version": "3.2.2",
+                "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
             }
         },
         "ubuntu24.04-aks": {
@@ -683,9 +683,9 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.28.9-1",
+                "version": "2.29.7-1",
                 "rdmasharpplugins": {
-                    "commit": "v2.7.x"
+                    "commit": "master"
                 }
             }
         }       
@@ -716,7 +716,7 @@
                 "version": "1:4.4.2-1"
             },
             "aarch64": {
-                "version": "1:4.5.2-1"
+                "version": "1:4.5.3-1"
             }
         },
         "azurelinux3.0": {

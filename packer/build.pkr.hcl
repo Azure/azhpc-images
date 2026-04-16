@@ -83,6 +83,7 @@ build {
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
+      "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "DEBIAN_FRONTEND=noninteractive"

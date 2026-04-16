@@ -19,7 +19,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [ "$SKU" = "GB200" ]; then
         apt-mark hold linux-azure-nvidia
     else
-        apt-mark hold linux-azure
+        apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
     fi
     # upgrade pre-installed components
     apt update

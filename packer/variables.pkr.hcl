@@ -390,6 +390,24 @@ variable "sig_replication_regions" {
   description = "Regions to replicate the image to (defaults to the build VM's region if not set)"
   default     = null
 }
+locals {
+  # When enable_first_party_specifics is on and no explicit regions are provided,
+  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
+  first_party_sig_replication_regions = (
+    local.gpu_sku == "MI300X"
+      ? ["westus", "francecentral", "eastus2euap", local.azure_location]
+      : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
+        ? ["southeastus5", local.azure_location]
+        : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+  )
+  sig_replication_regions = (
+    var.sig_replication_regions != null
+      ? var.sig_replication_regions
+      : var.enable_first_party_specifics
+        ? distinct(local.first_party_sig_replication_regions)
+        : null
+  )
+}
 
 variable "storage_account_type" {
   type        = string
@@ -417,7 +435,7 @@ locals {
 variable "azl_prebuilt_version" {
   type        = string
   description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL3_PREBUILT_VERSION")
+  default     = env("AZL3GB200_PREBUILT_VERSION")
 }
 
 # =============================================================================
@@ -487,6 +505,9 @@ locals {
       "Marketplace-Non-FIPS" = {
         "ubuntu" = {
           "24.04" = ["Canonical", "ubuntu-24_04-lts", "server-arm64"]
+        },
+        "azurelinux" = {
+          "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-kernel-hwe-arm64"]
         }
       }
     },

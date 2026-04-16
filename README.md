@@ -43,7 +43,7 @@ az login
 # Initialize Packer with Azure plugin
 cd packer
 packer init .
-packer build --var 'vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --on-error=run-cleanup-provisioner .
+packer build --var 'vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --var 'azure_location=southcentralus' --on-error=run-cleanup-provisioner .
 ```
 
 # Kernel Update/Patching

@@ -34,7 +34,12 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf -y install pmix pmix-devel pmix-tools
     tdnf -y install hwloc-devel libevent-devel munge-devel
-    PMIX_VERSION=$(tdnf list installed | grep -i pmix.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        postfix="aarch64"
+    else
+        postfix="x86_64"
+    fi
+    PMIX_VERSION=$(tdnf list installed | grep -i pmix.${postfix} | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)

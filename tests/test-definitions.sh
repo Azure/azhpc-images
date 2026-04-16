@@ -264,7 +264,15 @@ function verify_package_updates {
         azurelinux) true;;
         *)
             sudo dnf -y makecache 
-            sudo dnf check-update -y --refresh;;
+            sudo dnf check-update -y --refresh
+            local exit_code=$?
+            if [[ $exit_code -eq 0 ]] || [[ $exit_code -eq 100 ]]; then
+                # Exit code 100 means updates are available — not an error
+                true
+            else
+                (exit $exit_code)
+            fi
+            ;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }

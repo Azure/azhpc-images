@@ -101,7 +101,6 @@ install_ubuntu_gb200_kernel() {
     
     apt-get update
     apt-get install -y linux-azure-nvidia
-    apt-mark hold linux-azure-nvidia
     
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
@@ -127,7 +126,6 @@ install_ubuntu_gb200_kernel() {
     done
     
     # Configure GRUB for GB200
-    sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     # Add GB200-specific kernel parameters
     sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     

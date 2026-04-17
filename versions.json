@@ -13,9 +13,9 @@
     },
     "cmake": {
         "common": {
-            "version": "4.1.1",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
-            "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
+            "version": "4.3.1",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
+            "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
         }
     },
     "doca": {
@@ -282,9 +282,9 @@
     },
     "ompi": {
         "common": {
-            "version": "5.0.9",
-            "sha256": "be35ac3aae68609dedf56a3c6480cb1b0af9ae40b98cc83ef27bc859084a9aa8",
-            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.gz"
+            "version": "5.0.10",
+            "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
+            "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
         }
     },
     "impi": {
@@ -672,7 +672,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.28.9-1",
+            "version": "2.29.7-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -702,7 +702,7 @@
     },
     "nvbandwidth": {
         "common": {
-            "version": "0.8",
+            "version": "0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth"
         },
         "azurelinux3.0": {
@@ -782,8 +782,8 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.1.0",
-                "sha256": "2a12eb1270fc1cf16618664008dc872d37cc2bd690c492e468c8f2c6937f9488"
+                "version": "5.2.0",
+                "sha256": "89084b49f7706ed8fa393bbaac501b2dfc74665f3a6ec6173aafe34a1bd23f32"
             },
             "aocc": {
                 "version": "5.0.0",

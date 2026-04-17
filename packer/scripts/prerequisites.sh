@@ -163,18 +163,34 @@ install_ubuntu_lts_kernel() {
     case "${version}" in
         24.04)
             apt update
-            apt install -y linux-azure-lts-24.04 linux-modules-extra-azure-6.8
-            
-            # Purge non-LTS kernels
-            apt-get purge -y \
-                linux-azure linux-image-azure \
-                "linux-image-6.11*" "linux-image-6.14*" "linux-image-6.17*" \
-                "linux-azure-6.11*" "linux-azure-6.14*" "linux-azure-6.17*" \
-                "linux-cloud-tools-6.11*" "linux-cloud-tools-6.14*" "linux-cloud-tools-6.17*" \
-                "linux-headers-6.11*" "linux-headers-6.14*" "linux-headers-6.17*" \
-                "linux-modules-6.11*" "linux-modules-6.14*" "linux-modules-6.17*" \
-                "linux-tools-6.11*" "linux-tools-6.14*" "linux-tools-6.17*"
-            
+
+            local kernel_ver="${KERNEL_VERSION:-6.8}"
+            echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 24.04"
+
+            # Build list of kernel minor versions to purge (everything except the target)
+            local all_kernel_minors="6.8 6.11 6.14 6.17"
+            local purge_patterns=""
+            for minor in $all_kernel_minors; do
+                if [[ "$minor" != "$kernel_ver" ]]; then
+                    purge_patterns+=" \"linux-image-${minor}*\" \"linux-azure-${minor}*\" \"linux-cloud-tools-${minor}*\" \"linux-headers-${minor}*\" \"linux-modules-${minor}*\" \"linux-tools-${minor}*\""
+                fi
+            done
+
+            # Install the versioned kernel meta-package
+            apt install -y linux-azure-${kernel_ver}
+
+            # Install modules-extra if available for this kernel version
+            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                apt install -y linux-modules-extra-azure-${kernel_ver}
+            fi
+
+            # Purge non-target kernels
+            eval apt-get purge -y linux-azure linux-image-azure $purge_patterns || true
+            # Also purge the LTS meta-package if we're not using it
+            if [[ "$kernel_ver" != "6.8" ]]; then
+                apt-get purge -y linux-azure-lts-24.04 || true
+            fi
+
             apt autoremove -y
             apt upgrade -y
             ;;

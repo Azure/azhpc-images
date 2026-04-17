@@ -127,6 +127,7 @@ install_ubuntu_gb200_kernel() {
     done
     
     # Configure GRUB for GB200
+    sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     # Add GB200-specific kernel parameters
     sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     
@@ -161,9 +162,6 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
     
-    # Configure GRUB for saved default
-    sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    
     case "${version}" in
         24.04)
             apt update
@@ -181,11 +179,6 @@ install_ubuntu_lts_kernel() {
             
             apt autoremove -y
             apt upgrade -y
-            
-            # Set default kernel
-            local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-            update-grub
             ;;
             
         22.04)
@@ -200,11 +193,6 @@ install_ubuntu_lts_kernel() {
                 "linux-modules-6.*" "linux-tools-6.*"
             
             apt upgrade -y
-            
-            # Set default kernel
-            local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-            update-grub
             ;;
             
         *)

@@ -7,7 +7,11 @@ source ${UTILS_DIR}/utilities.sh
 lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+# Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
+# Set to "true" to build from source (current default), "false" to use DKMS packages.
+LUSTRE_BUILD_FROM_SOURCE=${LUSTRE_BUILD_FROM_SOURCE:-"true"}
+
+if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
@@ -37,38 +41,6 @@ EOF
     source /etc/profile.d/modules.sh
     module load mpi/hpcx
 
-    # if [ $UBUNTU_VERSION == 24.04 ]; then
-    #     SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
-    # elif [ $UBUNTU_VERSION == 22.04 ]; then
-    #     SIGNED_BY="/etc/apt/trusted.gpg.d/microsoft-prod.gpg"
-    # fi
-    # echo "deb [arch=$ARCHITECTURE_DISTRO signed-by=$SIGNED_BY] https://packages.microsoft.com/repos/amlfs-${DISTRIB_CODENAME}/ ${DISTRIB_CODENAME} main" | tee /etc/apt/sources.list.d/amlfs.list
-    # # Enable these lines if the MS PMC repo was not already setup.
-    # #curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-    # #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
-    # apt-get update
-
-    # CURRENT_KERNEL=$(uname -r)
-    # # Extract kernel minor version (e.g., "6.8" from "6.8.0-1052-azure")
-    # KERNEL_MINOR=$(echo "$CURRENT_KERNEL" | grep -oP '^\d+\.\d+')
-
-    # if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL} 2>/dev/null | grep -q "Version:"; then
-    #     echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
-    #     apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL}
-    #     apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
-    # elif apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep -q "^${KERNEL_MINOR}\."; then
-    #     # Packages exist for this kernel minor version but not for the exact patch version.
-    #     # This likely means the repo hasn't published a package for the latest kernel update yet.
-    #     echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."
-    #     echo "##[error]The AMLFS repo likely hasn't published a package for this kernel patch version yet."
-    #     apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep "^${KERNEL_MINOR}\." | head -5
-    #     exit 1
-    # else
-    #     # No packages exist for this kernel minor version at all (e.g., HWE kernel 6.14, 6.17).
-    #     echo "##[warning]No Lustre client packages available for kernel minor version ${KERNEL_MINOR}. Skipping Lustre installation."
-    #     exit 0
-    # fi
-
     # temporary workaround to build AMLFS kmod from source, until we have AMLFS team publish DKMS packages usable on day-1 of new kernel module release
     lustre_branch="arsdragonfly/dkms-$LUSTRE_VERSION"
     git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
@@ -87,6 +59,38 @@ EOF
     popd
     rm -rf amlFilesystem-lustre
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
+elif [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "false" ]]; then
+    if [ $UBUNTU_VERSION == 24.04 ]; then
+        SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
+    elif [ $UBUNTU_VERSION == 22.04 ]; then
+        SIGNED_BY="/etc/apt/trusted.gpg.d/microsoft-prod.gpg"
+    fi
+    echo "deb [arch=$ARCHITECTURE_DISTRO signed-by=$SIGNED_BY] https://packages.microsoft.com/repos/amlfs-${DISTRIB_CODENAME}/ ${DISTRIB_CODENAME} main" | tee /etc/apt/sources.list.d/amlfs.list
+    # Enable these lines if the MS PMC repo was not already setup.
+    #curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+    #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
+    apt-get update
+
+    CURRENT_KERNEL=$(uname -r)
+    # Extract kernel minor version (e.g., "6.8" from "6.8.0-1052-azure")
+    KERNEL_MINOR=$(echo "$CURRENT_KERNEL" | grep -oP '^\d+\.\d+')
+
+    if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL} 2>/dev/null | grep -q "Version:"; then
+        echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
+        apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL}
+        apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
+    elif apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep -q "^${KERNEL_MINOR}\."; then
+        # Packages exist for this kernel minor version but not for the exact patch version.
+        # This likely means the repo hasn't published a package for the latest kernel update yet.
+        echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."
+        echo "##[error]The AMLFS repo likely hasn't published a package for this kernel patch version yet."
+        apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep "^${KERNEL_MINOR}\." | head -5
+        exit 1
+    else
+        # No packages exist for this kernel minor version at all (e.g., HWE kernel 6.14, 6.17).
+        echo "##[warning]No Lustre client packages available for kernel minor version ${KERNEL_MINOR}. Skipping Lustre installation."
+        exit 0
+    fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     LUSTRE_VERSION_UNDERSCORE=${LUSTRE_VERSION//-/_}

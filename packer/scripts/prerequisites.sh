@@ -101,7 +101,6 @@ install_ubuntu_gb200_kernel() {
     
     apt-get update
     apt-get install -y linux-azure-nvidia
-    apt-mark hold linux-azure-nvidia
     
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
@@ -161,9 +160,6 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
     
-    # Configure GRUB for saved default
-    sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    
     case "${version}" in
         24.04)
             apt update
@@ -182,7 +178,6 @@ install_ubuntu_lts_kernel() {
 
             # Install the versioned kernel meta-package
             apt install -y linux-azure-${kernel_ver}
-            apt-mark hold linux-azure-${kernel_ver}
 
             # Install modules-extra if available for this kernel version
             if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
@@ -198,18 +193,11 @@ install_ubuntu_lts_kernel() {
 
             apt autoremove -y
             apt upgrade -y
-
-            # Set default kernel
-            local kernel_version
-            kernel_version=$(dpkg -l | awk '/linux-image-[0-9].*-azure/ {print $2}' | sed 's/linux-image-//g' | sort -V | tail -n1)
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}"
-            update-grub
             ;;
             
         22.04)
             apt update
             apt install -y linux-azure-lts-22.04
-            apt-mark hold linux-azure-lts-22.04
             
             # Purge non-LTS kernels
             apt-get purge -y \
@@ -219,11 +207,6 @@ install_ubuntu_lts_kernel() {
                 "linux-modules-6.*" "linux-tools-6.*"
             
             apt upgrade -y
-            
-            # Set default kernel
-            local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-            update-grub
             ;;
             
         *)

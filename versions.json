@@ -150,19 +150,19 @@
         "azurelinux3.0": {
             "x86_64": {
                 "nvidia_v100":{
-                    "version": "2.24.1",
-                    "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+                    "version": "2.25.1",
+                    "sha256": "006b976fd64e79eb26177fe45714252e78d0e09d27b8cdbf1baf7be6fee8fa32",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
             
                 },
-                "version": "2.24.1",
-                "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
+                "version": "2.25.1",
+                "sha256": "32d26857bd9c6aa47795b0eb354773b465d44e30784587258da0c91a8081df63",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
             },
             "aarch64": {
-                "version": "2.24.1",
-                "sha256": "ab0c053e98c67b4a08ce73c81eb74c87dbc56dd6a21558cd721ab34e46798b4c",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-aarch64.tbz"
+                "version": "2.25.1",
+                "sha256": "91344a81432025ea56439e913e42b97867b55719a369c32961a1a11b3ff45e70",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda13-aarch64.tbz"
            }
         },
         "rocky8.10": {
@@ -218,9 +218,9 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.18",
-                "sha256": "45276ff7bd676cc668d1cc6a1fe926d5e157646aaf06201415e0aadb048be16d",
-                "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
+                "version": "2.23",
+                "sha256": "194e08d6feddc62d99c757bbfd659ce6a7d2e56a64fbe58add259c715f71a0da",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.23/hpcx-v2.23-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
             }
         },
         "rocky8.10": {
@@ -253,9 +253,9 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.3.7-2",
-                "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
-                "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
         "ubuntu24.04": {
@@ -679,13 +679,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.28.3-1",
+                "version": "2.28.9-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
             },
             "aarch64": {
-                "version": "2.28.3-1",
+                "version": "2.28.9-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -702,14 +702,8 @@
     },
     "nvbandwidth": {
         "common": {
-            "version": "0.8",
+            "version": "0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth"
-        },
-        "azurelinux3.0": {
-            "aarch64": {
-                "version": "0.8",
-                "url": "https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz"
-            }
         }
     },
     "dcgm": {
@@ -731,10 +725,10 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "4.4.2"
+                "version": "4.5.2"
             },
             "aarch64": {
-                "version": "4.4.2"
+                "version": "4.5.2"
             }
         }
     },
@@ -933,13 +927,6 @@
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
                 "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
-            }
-        }
-    },
-    "nvshmem": {
-        "azurelinux3.0": {
-            "aarch64": {    
-                "version": "3.5.19"
             }
         }
     },

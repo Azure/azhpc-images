@@ -714,7 +714,7 @@
     },
     "dcgm": {
         "common": {
-            "version": "4.5.3"
+            "version": "3.3.9"
         },
         "ubuntu22.04": {
             "x86_64": {

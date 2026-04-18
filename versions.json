@@ -713,8 +713,6 @@
         }
     },
     "dcgm": {
-        // Technically common is not being used right now, but we should keep it up-to-date
-        // to reflect what RHEL is using, as it's always install the latest currently
         "common": {
             "version": "4.5.3"
         },

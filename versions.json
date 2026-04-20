@@ -702,7 +702,7 @@
     },
     "nvbandwidth": {
         "common": {
-            "version": "0.8",
+            "version": "0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth"
         },
         "azurelinux3.0": {
@@ -952,7 +952,7 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "1.4.0",
+                "version": "2.0.0",
                 "url": "https://github.com/NVIDIA/nvloom.git"
             }
         }

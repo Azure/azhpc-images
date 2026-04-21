@@ -83,6 +83,7 @@ build {
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
+      "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "DEBIAN_FRONTEND=noninteractive"
@@ -118,21 +119,12 @@ build {
   }
 
   provisioner "shell-local" {
-    name           = "(1P specific) download and extract Azure Linux prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline         = [
-      "az storage blob download -f /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
-      "tar -xvf /tmp/azlinux_hpc_test_rpms_x86_64_${var.azl_prebuilt_version}.tar.gz -C ${path.root}/..",
-    ]
-  }
-
-  provisioner "shell-local" {
     name           = "download and extract Azure Linux prebuilts for GB200"
     except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
         "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+        "mkdir -p ${path.root}/../prebuilt",
         "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }

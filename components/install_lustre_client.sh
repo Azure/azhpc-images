@@ -20,12 +20,25 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     #curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
     #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
     apt-get update
-    if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r) 2>/dev/null | grep -q "Version:"; then
-        echo "Lustre client package for kernel $(uname -r) is already available in the repo."
-        apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=$(uname -r)
+
+    CURRENT_KERNEL=$(uname -r)
+    # Extract kernel minor version (e.g., "6.8" from "6.8.0-1052-azure")
+    KERNEL_MINOR=$(echo "$CURRENT_KERNEL" | grep -oP '^\d+\.\d+')
+
+    if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL} 2>/dev/null | grep -q "Version:"; then
+        echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
+        apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL}
         apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
+    elif apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep -q "^${KERNEL_MINOR}\."; then
+        # Packages exist for this kernel minor version but not for the exact patch version.
+        # This likely means the repo hasn't published a package for the latest kernel update yet.
+        echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."
+        echo "##[error]The AMLFS repo likely hasn't published a package for this kernel patch version yet."
+        apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep "^${KERNEL_MINOR}\." | head -5
+        exit 1
     else
-        echo "Lustre client package for kernel $(uname -r) is not available in the repo. Please check the repository or the kernel version."
+        # No packages exist for this kernel minor version at all (e.g., HWE kernel 6.14, 6.17).
+        echo "##[warning]No Lustre client packages available for kernel minor version ${KERNEL_MINOR}. Skipping Lustre installation."
         exit 0
     fi
 else
@@ -44,12 +57,24 @@ else
     echo -e "gpgcheck=1" >> ${REPO_PATH}
     echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
 
-    if sudo dnf list --available amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1 2>/dev/null | grep -q "Available Packages"; then
-        echo "Lustre client package for kernel $(uname -r) is already available in the repo."
-        dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
+    CURRENT_KERNEL=$(uname -r)
+    # Extract kernel minor version for RHEL (e.g., "4.18" from "4.18.0-553.22.1.el8_10.x86_64")
+    KERNEL_MINOR=$(echo "$CURRENT_KERNEL" | grep -oP '^\d+\.\d+')
+    LUSTRE_KERNEL_SUFFIX=$(echo "$CURRENT_KERNEL" | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')
+
+    if sudo dnf list --available amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${LUSTRE_KERNEL_SUFFIX}-1 2>/dev/null | grep -q "Available Packages"; then
+        echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
+        dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${LUSTRE_KERNEL_SUFFIX}-1
         sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
+    elif sudo dnf list --available "amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${KERNEL_MINOR}.*" 2>/dev/null | grep -q "Available Packages"; then
+        # Packages exist for this kernel minor version but not for the exact patch version.
+        echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."
+        echo "##[error]The AMLFS repo likely hasn't published a package for this kernel patch version yet."
+        sudo dnf list --available "amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${KERNEL_MINOR}.*" 2>/dev/null | tail -5
+        exit 1
     else
-        echo "Lustre client package for kernel $(uname -r) is not available in the repo. Please check the repository or the kernel version."
+        # No packages exist for this kernel minor version at all.
+        echo "##[warning]No Lustre client packages available for kernel minor version ${KERNEL_MINOR}. Skipping Lustre installation."
         exit 0
     fi
 fi

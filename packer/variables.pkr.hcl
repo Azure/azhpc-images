@@ -43,6 +43,38 @@ locals {
   os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local.distro_version}"
 }
 
+variable "kernel_version" {
+  type        = string
+  description = "Kernel minor version override (e.g. 6.8, 6.14, 6.17). Leave empty for distro default LTS kernel."
+  default     = env("KERNEL_VERSION")
+}
+locals {
+  # Default LTS kernel versions per distro
+  default_kernel_versions = {
+    "ubuntu" = {
+      "22.04" = "5.15"
+      "24.04" = "6.8"
+    }
+    "alma" = {
+      "8.10" = "4.18"
+      "9.7"  = "5.14"
+    }
+    "rocky" = {
+      "8.10" = "4.18"
+      "9.7"  = "5.14"
+    }
+    "azurelinux" = {
+      "3.0" = "6.6"
+    }
+  }
+  _kernel_version_raw = coalesce(var.kernel_version, "Default")
+  kernel_version = (
+    local._kernel_version_raw == "Default"
+    ? try(local.default_kernel_versions[local.os_family][local.distro_version], "")
+    : local._kernel_version_raw
+  )
+}
+
 variable "vm_size" {
   type        = string
   description = "VM SKU to use for image building"

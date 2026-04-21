@@ -57,7 +57,13 @@ if [[ "$GPU" == "NVIDIA" ]]; then
         install_and_track apt-get cmake cargo ninja-build build-essential
         install_and_track apt-get g++ pkg-config uuid-dev libssl-dev
     elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-        install_and_track yum cmake cargo ninja-build
+        install_and_track yum cmake cargo ninja-build libuuid-devel gcc-toolset-12
+        if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
+            install_and_track yum openssl3-devel
+        else
+            install_and_track yum openssl-devel
+        fi
+        source /opt/rh/gcc-toolset-12/enable
     fi
 
     export RUSTUP_HOME=/tmp/cargo-rust
@@ -104,7 +110,24 @@ EOF
     git clone --recurse-submodules -j8 --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
     pushd /tmp/dyno-relay-logger
     mkdir build && cd build
-    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
+    if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
+        # workaround for openssl 3.0 on almalinux/rocky 8.10 - dyno-relay-logger cmake fails to find openssl 3.0 without these variables set
+        export OPENSSL_DIR=/usr
+        export OPENSSL_INCLUDE_DIR=/usr/include/openssl3
+        export OPENSSL_LIB_DIR=/usr/lib64/openssl3
+        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DOPENSSL_ROOT_DIR=/usr/include/openssl3 \
+            -DOPENSSL_INCLUDE_DIR=/usr/include/openssl3 \
+            -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/openssl3/libcrypto.so \
+            -DOPENSSL_SSL_LIBRARY=/usr/lib64/openssl3/libssl.so
+    elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        # On Ubuntu, OpenSSL libs are in the multiarch path, not /usr/lib or /usr/lib64
+        export OPENSSL_LIB_DIR=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
+        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
+    else
+        cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
+    fi
     cmake --build . -j$(nproc)
     mv dynorelaylogger $DYNOLOG_INSTALL_DIR
     mv dynorelayloggerinfo $DYNOLOG_INSTALL_DIR

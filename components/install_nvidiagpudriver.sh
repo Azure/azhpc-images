@@ -136,7 +136,20 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     tar -xvf ${TARBALL}
     pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
     mkdir build && cd build
-    cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
+
+    # DOCA's Ubuntu MPI packages can expose an invalid include path
+    # Force CMake to use the Open MPI built earlier in the image pipeline.
+    ompi_metadata=$(get_component_config "ompi")
+    OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata) 
+    OMPI_ROOT=/opt/openmpi-${OMPI_VERSION}
+    export PATH=${OMPI_ROOT}/bin:$PATH
+    export LD_LIBRARY_PATH=${OMPI_ROOT}/lib:$LD_LIBRARY_PATH
+
+    cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc \
+          -DMPI_HOME=${OMPI_ROOT} \
+          -DCMAKE_PREFIX_PATH=${OMPI_ROOT} \
+          -DMPI_C_COMPILER=/opt/openmpi-${OMPI_VERSION}/bin/mpicc \
+          -DMPI_CXX_COMPILER=/opt/openmpi-${OMPI_VERSION}/bin/mpicxx ..
     make -j $(nproc)
     mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
     popd

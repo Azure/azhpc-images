@@ -22,7 +22,14 @@ Pin-Priority: -1
 PIN
 
     apt-get update
-    apt-get -y install doca-ofed
+if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+    # Replace doca-ofed with MLNX_OFED component packages
+    # doca-ofed was removed in favor of installing explicit MLNX_OFED, kernel, RDMA, and userspace components
+    # This avoids hard OpenMPI dependencies and pmix(Microsoft Slurm repo packaging) conflicts with doca-ofed
+    apt-get install -y mlnx-ofed-kernel-dkms mlnx-ofed-kernel-utils  ofed-scripts dpcp ibacm ibarr ibdump ibsim ibsim-doc ibutils2 ibverbs-providers ibverbs-utils infiniband-diags iser-dkms isert-dkms kernel-mft-dkms knem knem-dkms libfuse2 libibmad-dev libibmad5 libibnetdisc5 libibumad-dev libibumad3 libibverbs-dev libibverbs1 libopensm libopensm-devel librdmacm-dev librdmacm1 mft mft-mlx5 mft-nvredfish mlnx-ethtool mlnx-iproute2 opensm opensm-doc perftest rdma-core rdmacm-utils rshim  sharp srp-dkms srptools ucx xpmem xpmem-dkms libiberty-dev
+else
+    apt-get install -y doca-ofed
+fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all

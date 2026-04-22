@@ -28,6 +28,12 @@ systemctl restart docker
 # restart containerd service
 systemctl restart containerd
 
+# wait for containerd socket to be ready, recheck every second up to 30s
+for i in $(seq 1 30); do
+    [ -S /run/containerd/containerd.sock ] && break
+    sleep 1
+done
+
 # status of containerd snapshotter plugins
 ctr plugin ls
 

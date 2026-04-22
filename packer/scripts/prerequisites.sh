@@ -208,20 +208,56 @@ install_ubuntu_lts_kernel() {
             
         22.04)
             apt update
-            apt install -y linux-azure-lts-22.04
-            apt-mark hold linux-azure-lts-22.04
             
+            if [[ "${KERNEL_VERSION}" == "5.15" ]]; then
+                echo "Installing default Ubuntu 22.04 Azure LTS kernel"
+        
+                apt install -y linux-azure-lts-22.04
+                apt-mark hold linux-azure-lts-22.04
+                
+               local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/') 
+            else
+                echo "Installing specified kernel version ${KERNEL_VERSION} for Ubuntu 22.04"                
+                if [[ "${KERNEL_VERSION}" != *-azure ]]; then
+                    echo "ERROR: KERNEL_VERSION must end with '-azure' on Ubuntu 22.04"
+                    exit 1
+                fi
+                local kernel_version="${KERNEL_VERSION%-azure}"
+
+                apt-get install -y \
+                    linux-image-${KERNEL_VERSION} \
+                    linux-modules-${KERNEL_VERSION} \
+                    linux-modules-extra-${KERNEL_VERSION} \
+                    linux-headers-${KERNEL_VERSION} \
+                    linux-tools-${KERNEL_VERSION} \
+                    linux-cloud-tools-${KERNEL_VERSION} \
+                    linux-azure-cloud-tools-${kernel_version} \
+                    linux-azure-headers-${kernel_version} \
+                    linux-azure-tools-${kernel_version}
+                apt-mark hold \
+                    linux-image-${KERNEL_VERSION} \
+                    linux-modules-${KERNEL_VERSION} \
+                    linux-modules-extra-${KERNEL_VERSION} \
+                    linux-headers-${KERNEL_VERSION} \
+                    linux-tools-${KERNEL_VERSION} \
+                    linux-cloud-tools-${KERNEL_VERSION} \
+                    linux-azure-cloud-tools-${kernel_version} \
+                    linux-azure-headers-${kernel_version} \
+                    linux-azure-tools-${kernel_version} 
+
+                apt-get autoremove -y
+            fi
+
             # Purge non-LTS kernels
             apt-get purge -y \
                 linux-azure linux-image-azure \
                 "linux-image-6.*" "linux-azure-6.*" \
                 "linux-cloud-tools-6.*" "linux-headers-6.*" \
                 "linux-modules-6.*" "linux-tools-6.*"
-            
+
             apt upgrade -y
-            
             # Set default kernel
-            local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
+            echo "Setting default kernel to ${kernel_version}-azure"
             grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
             update-grub
             ;;

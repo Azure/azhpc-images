@@ -578,7 +578,12 @@ locals {
 
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
-  internal_sig_image_definition_sku = local.gpu_sku == "V100" ? "V100-" : (local.gpu_sku == "GB200" ? "GB200-" : "")
+  internal_sig_image_definition_sku = (
+    local.gpu_sku == "V100"  ? "V100-" :
+    local.gpu_sku == "GB200" ? "GB200-" :
+    local.gpu_sku == "NCv6"  ? "NCv6-" :
+    ""
+  )
   internal_sig_image_definition_details = {
     "Marketplace-Non-FIPS" = {
       "ubuntu" = {

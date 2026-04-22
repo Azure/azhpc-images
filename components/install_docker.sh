@@ -25,21 +25,8 @@ $COMPONENT_DIR/install_nvidia_container_toolkit.sh
 systemctl enable docker
 systemctl restart docker
 
-# restart containerd service and wait for socket to be ready
+# restart containerd service
 systemctl restart containerd
-for i in $(seq 1 30); do
-    if [ -S /run/containerd/containerd.sock ]; then
-        break
-    fi
-    if ! systemctl is-active --quiet containerd; then
-        echo "ERROR: containerd service failed to start"
-        systemctl status containerd --no-pager || true
-        journalctl -u containerd --no-pager -n 50 || true
-        exit 1
-    fi
-    echo "Waiting for containerd socket... ($i/30)"
-    sleep 1
-done
 
 # status of containerd snapshotter plugins
 ctr plugin ls

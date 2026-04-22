@@ -740,9 +740,9 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2025.1.0.803",
-            "sha256": "80a4b1338b48b3fbee55a8dc784f92e5e88d618f1b99d80f5f207a00c86a6638",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc93af13-2b3f-40c3-a41b-2bc05a707a80/intel-onemkl-2025.1.0.803_offline.sh"
+            "version": "2025.3.1.11",
+            "sha256": "89753ce0be82d31669172c08c6b6b863f2e25558d775496349473b3299240a01",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6a17080f-f0de-41b9-b587-52f92512c59a/intel-onemkl-2025.3.1.11_offline.sh"
         }
     },
     "waagent": {

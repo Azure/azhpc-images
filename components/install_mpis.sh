@@ -175,6 +175,14 @@ ${HPCX_NON_UCX_EXTRAS}
 EOF
 
 # MVAPICH
+# On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
+# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks).
+MVAPICH_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
+    read -r -d '' MVAPICH_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          FI_PROVIDER tcp
+EXTRAS
+fi
 if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
@@ -190,6 +198,7 @@ setenv          MPI_INCLUDE     /opt/mvapich-${MVAPICH_VERSION}/include
 setenv          MPI_LIB         /opt/mvapich-${MVAPICH_VERSION}/lib
 setenv          MPI_MAN         /opt/mvapich-${MVAPICH_VERSION}/share/man
 setenv          MPI_HOME        /opt/mvapich-${MVAPICH_VERSION}
+${MVAPICH_NON_UCX_EXTRAS}
 EOF
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich
 fi    

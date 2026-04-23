@@ -30,3 +30,15 @@ echo "NVIDIA Fabric Manager is active."
 ## load nvidia-peermem module
 modprobe nvidia-peermem
 
+## Apply HPC sysctl tuning for Azure Linux 3
+if [ -f /etc/os-release ] && grep -q 'ID=azurelinux' /etc/os-release; then
+    sysctl -w vm.zone_reclaim_mode=0
+    sysctl -w kernel.numa_balancing=0
+    sysctl -w vm.swappiness=10
+    sysctl -w net.core.rmem_max=16777216
+    sysctl -w net.core.wmem_max=16777216
+    sysctl -w net.core.rmem_default=16777216
+    sysctl -w net.core.wmem_default=16777216
+    sysctl -w net.core.netdev_max_backlog=30000
+    sysctl -w net.core.optmem_max=16777216
+fi

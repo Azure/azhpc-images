@@ -60,6 +60,9 @@ EOF
     rm -rf amlFilesystem-lustre
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
 elif [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "false" ]]; then
+    source /etc/lsb-release
+    UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
     if [ $UBUNTU_VERSION == 24.04 ]; then
         SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
     elif [ $UBUNTU_VERSION == 22.04 ]; then

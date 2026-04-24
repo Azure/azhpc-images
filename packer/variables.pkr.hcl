@@ -35,8 +35,8 @@ variable "os_version" {
 }
 
 variable "lustre_build_from_source" {
-  type    = bool
-  default = false
+  type    = string
+  default = "false"
 }
 
 locals {

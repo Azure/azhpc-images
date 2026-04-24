@@ -10,19 +10,18 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-# TODO: The GRID driver URL is hardcoded for the initial implementation.
-# Once we lock down how the official GRID driver URL scheme will work long-term,
-# generalize this to derive the URL from versions.json.
-GRID_DRIVER_URL="https://download.microsoft.com/download/85beffdc-8361-4df4-a823-dcb1b230a7aa/NVIDIA-Linux-x86_64-580.105.08-grid-azure.run"
-GRID_DRIVER_SHA256="b360c7edf0686c7e47b1dc7980baa5c7740a00eb372cfafe045a28b4456fb32b"
-GRID_DRIVER_VERSION="580.105.08"
+# Retrieve GRID driver metadata from versions.json
+grid_metadata=$(get_component_config "nvidia_grid")
+GRID_DRIVER_URL=$(jq -r '.url' <<< $grid_metadata)
+GRID_DRIVER_SHA256=$(jq -r '.sha256' <<< $grid_metadata)
+GRID_DRIVER_VERSION=$(jq -r '.version' <<< $grid_metadata)
 
 # Download the GRID driver
 download_and_verify $GRID_DRIVER_URL $GRID_DRIVER_SHA256
 
-bash NVIDIA-Linux-x86_64-580.105.08-grid-azure.run --silent --dkms --kernel-module-type=open
+bash NVIDIA-Linux-x86_64-${GRID_DRIVER_VERSION}-grid-azure.run --silent --dkms --kernel-module-type=open
 
-write_component_version "NVIDIA_GRID" "580.105.08"
+write_component_version "NVIDIA_GRID" ${GRID_DRIVER_VERSION}
 
 # Configure GRID licensing
 cp /etc/nvidia/gridd.conf.template /etc/nvidia/gridd.conf

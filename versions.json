@@ -984,5 +984,12 @@
             "version": "1.0.0",
             "url": "https://github.com/jasontmsft/dyno-relay-logger.git"
         }
+    },
+    "nvidia_grid": {
+        "common": {
+            "version": "595.58.03",
+            "sha256": "5dbfcd0998e6d3a2b4cf4f5f60587aef07401f3c7a9433c23697ec944a5c542b",
+            "url": "https://download.microsoft.com/download/51239696-ec04-4c02-a6b3-1d9c608fb57c/NVIDIA-Linux-x86_64-595.58.03-grid-azure.run"
+        }
     }
 }

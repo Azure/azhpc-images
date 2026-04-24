@@ -55,7 +55,8 @@ function test_component {
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
-        check_lustre) verify_lustre_installation;;
+        # only best-effort install since Lustre isn't always available
+        # check_lustre) verify_lustre_installation;;
         check_nvlink) verify_nvlink_setup;;
         check_nvbandwidth) verify_nvbandwidth_setup;;
         check_nvloom) verify_nvloom_setup;;

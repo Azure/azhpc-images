@@ -372,16 +372,16 @@ function verify_ib_modules_and_devices {
     check_exit_code "IPoIB is working" "IPoIB is not working!"
 }
 
-function verify_lustre_installation {
-    # Verify lustre client package installation
-    case ${ID} in
-        ubuntu) dpkg -l | grep lustre-client;;
-        almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
-        azurelinux) true;;
-        * ) ;;
-    esac
-    check_exit_code "Lustre Installed" "Lustre not installed!"
-}
+# only best-effort install since Lustre isn't always available
+# function verify_lustre_installation {
+#     case ${ID} in
+#         ubuntu) dpkg -l | grep lustre-client;;
+#         almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
+#         azurelinux) true;;
+#         * ) ;;
+#     esac
+#     check_exit_code "Lustre Installed" "Lustre not installed!"
+# }
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation

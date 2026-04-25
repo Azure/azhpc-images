@@ -450,6 +450,16 @@
                         "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
                     }
                 },
+                "nvidia_ncv6": {
+                    "driver": {
+                        "version": "13.2",
+                        "distribution": "ubuntu2404"
+                    },
+                    "samples": {
+                        "version": "13.2",
+                        "sha256": "c7d8da987a43fd6ed7c2641df204dfc639768adbae070bc22f9df0e03005f7de"
+                    }
+                },
                 "driver": {
                     "version": "13.0",
                     "distribution": "ubuntu2404"

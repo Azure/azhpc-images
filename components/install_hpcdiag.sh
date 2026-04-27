@@ -6,7 +6,11 @@ LATEST_RELEASE_API_URL="https://api.github.com/repos/Azure/azhpc-diagnostics/rel
 
 # example (after grep): 
 # "tarball_url": "https://api.github.com/repos/Azure/azhpc-diagnostics/tarball/hpcdiag-20201201",
-DOWNLOAD_URL=$(curl -s "$LATEST_RELEASE_API_URL" | grep 'tarball_url' | cut -d\" -f4)
+DOWNLOAD_URL=$(curl -sfL --retry 5 --retry-delay 10 "$LATEST_RELEASE_API_URL" | grep 'tarball_url' | cut -d\" -f4)
+if [[ -z "$DOWNLOAD_URL" ]]; then
+    echo "ERROR: Failed to retrieve tarball URL from $LATEST_RELEASE_API_URL (possible rate limiting)"
+    exit 1
+fi
 
 # not using download_and_verify.sh because github doesn't provide a checksum
 wget "$DOWNLOAD_URL"

@@ -9,7 +9,7 @@ LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 # Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
 # Set to "true" to build from source (current default), "false" to use DKMS packages.
-LUSTRE_BUILD_FROM_SOURCE=${LUSTRE_BUILD_FROM_SOURCE:-"false"}
+LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
 
 if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     source /etc/lsb-release
@@ -59,7 +59,7 @@ EOF
     popd
     rm -rf amlFilesystem-lustre
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
-elif [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "false" ]]; then
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 

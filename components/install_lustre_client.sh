@@ -16,7 +16,17 @@ if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; the
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
     # we need to make a marker package to tell apt that HPC-X provides its own OpenMPI, so that lustre-tests can install properly
+    # On AMD/ROCm builds, libopenmpi3t64 is already installed (indirect dep of mivisionx-dev),
+    # so we must not conflict with it — it already satisfies the libopenmpi3 virtual package.
     apt install -y equivs
+
+    PROVIDES="openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common"
+    CONFLICTS="openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common"
+    if dpkg -s libopenmpi3t64 &>/dev/null; then
+        PROVIDES="openmpi-bin, libopenmpi-dev, openmpi-common"
+        CONFLICTS="openmpi-bin, libopenmpi-dev, openmpi-common"
+    fi
+
     cat <<EOF > /tmp/hpcx-provides-openmpi-bin
 Section: misc
 Priority: optional
@@ -24,8 +34,8 @@ Homepage: https://github.com/Azure/azhpc-images
 Standards-Version: 3.9.2
 
 Package: hpcx-provides-openmpi-bin
-Provides: openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common
-Conflicts: openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common
+Provides: ${PROVIDES}
+Conflicts: ${CONFLICTS}
 Version: 4.1
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
 Description: marker package in Azure HPC Image to indicate that HPC-X provides OpenMPI binaries

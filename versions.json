@@ -679,13 +679,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.28.3-1",
+                "version": "2.28.9-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
             },
             "aarch64": {
-                "version": "2.28.3-1",
+                "version": "2.28.9-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -704,12 +704,6 @@
         "common": {
             "version": "0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth"
-        },
-        "azurelinux3.0": {
-            "aarch64": {
-                "version": "0.8",
-                "url": "https://github.com/NVIDIA/nvbandwidth/archive/refs/tags/v0.8.tar.gz"
-            }
         }
     },
     "dcgm": {
@@ -731,10 +725,10 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "4.4.2"
+                "version": "4.5.2"
             },
             "aarch64": {
-                "version": "4.4.2"
+                "version": "4.5.2"
             }
         }
     },
@@ -933,13 +927,6 @@
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
                 "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
-            }
-        }
-    },
-    "nvshmem": {
-        "azurelinux3.0": {
-            "aarch64": {    
-                "version": "3.5.19"
             }
         }
     },

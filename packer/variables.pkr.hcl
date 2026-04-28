@@ -34,6 +34,11 @@ variable "os_version" {
   default     = env("OS_VERSION")
 }
 
+variable "lustre_build_from_source" {
+  type    = string
+  default = "false"
+}
+
 locals {
   # derive os_version from os_family + distro_version if not explicitly set
   os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")

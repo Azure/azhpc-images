@@ -796,15 +796,15 @@
         },
         "ubuntu22.04": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99"
+                "version": "2.15.7"
             }
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.16.1-14-gbc76088"
+                "version": "2.16.1"
             },
             "x86_64": {
-                "version": "2.16.1-14-gbc76088"
+                "version": "2.16.1"
             }
         },
         "rocky9.7": {

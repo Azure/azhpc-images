@@ -16,6 +16,27 @@
             "version": "4.3.1",
             "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
             "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "4.1.1",
+                        "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
+                        "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "4.1.1",
+                        "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
+                        "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
+                    }
+                },
+                "version": "4.3.1",
+                "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
+                "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
+            }
         }
     },
     "doca": {
@@ -101,6 +122,20 @@
         },
         "ubuntu24.04": {
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "2.24.1",
+                        "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "2.24.1",
+                        "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
+                    }
+                },
                 "version": "2.25.1",
                 "sha256": "cfc6816a4ac7932cf65e3f17a47106845728652cfd4d5ad71b0cb9b3ce2a9e48",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
@@ -285,6 +320,27 @@
             "version": "5.0.10",
             "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
             "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "5.0.8",
+                        "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
+                        "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "5.0.8",
+                        "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
+                        "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
+                    }
+                },
+                "version": "5.0.10",
+                "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
+                "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
+            }
         }
     },
     "impi": {
@@ -608,6 +664,20 @@
         },
         "ubuntu24.04": {
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "2.5.1-1",
+                        "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                        "distribution": "Ubuntu24_04"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "2.5.1-1",
+                        "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                        "distribution": "Ubuntu24_04"
+                    }
+                },
                 "version": "2.5.2-1",
                 "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                 "distribution": "Ubuntu24_04"
@@ -696,6 +766,22 @@
         },
         "ubuntu24.04": {
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "2.28.3-1",
+                        "rdmasharpplugins": {
+                            "commit": "v2.7.x"
+                        }
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "2.28.3-1",
+                        "rdmasharpplugins": {
+                            "commit": "v2.7.x"
+                        }
+                    }
+                },
                 "version": "2.29.3-1",
                 "rdmasharpplugins": {
                     "commit": "master"
@@ -707,6 +793,24 @@
         "common": {
             "version": "0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth"
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "0.8",
+                        "url": "https://github.com/NVIDIA/nvbandwidth"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "0.8",
+                        "url": "https://github.com/NVIDIA/nvbandwidth"
+                    }
+                },
+                "version": "0.9",
+                "url": "https://github.com/NVIDIA/nvbandwidth"
+            }
         }
     },
     "dcgm": {
@@ -723,6 +827,16 @@
                 "version": "1:4.5.2-1"
             },
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "1:4.4.2-1"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "1:4.4.2-1"
+                    }
+                },
                 "version": "1:4.5.2-1"
             }
         },
@@ -746,6 +860,24 @@
         "common": {
             "version": "2.15.0.1",
             "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
+        },
+        "ubuntu24.04": {
+            "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "2.14.0.1",
+                        "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "2.14.0.1",
+                        "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
+                    }
+                },
+                "version": "2.15.0.1",
+                "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
+            }
         },
         "azurelinux3.0": {
             "x86_64": {
@@ -947,6 +1079,18 @@
         },
         "ubuntu24.04": {
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "1.2.0",
+                        "url": "https://github.com/NVIDIA/nvloom.git"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "1.2.0",
+                        "url": "https://github.com/NVIDIA/nvloom.git"
+                    }
+                },
                 "version": "1.4.0",
                 "url": "https://github.com/NVIDIA/nvloom.git"
             }

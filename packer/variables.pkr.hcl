@@ -89,6 +89,7 @@ locals {
     local.vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
     local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
   gpu_platform = (
@@ -615,7 +616,12 @@ locals {
 
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
-  internal_sig_image_definition_sku = local.gpu_sku == "V100" ? "V100-" : (local.gpu_sku == "GB200" ? "GB200-" : "")
+  internal_sig_image_definition_sku = (
+    local.gpu_sku == "V100"  ? "V100-" :
+    local.gpu_sku == "GB200" ? "GB200-" :
+    local.gpu_sku == "NCv6"  ? "NCv6-" :
+    ""
+  )
   internal_sig_image_definition_details = {
     "Marketplace-Non-FIPS" = {
       "ubuntu" = {

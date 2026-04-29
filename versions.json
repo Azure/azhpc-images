@@ -238,6 +238,22 @@
             }
         }
     },
+    "hpcx_inbox": {
+        "ubuntu24.04": {
+            "x86_64": {
+                "version": "2.25.1",
+                "sha256": "409ad5ea645338626a73f23832a83b835f7fbd8c06b95496127c18bb091dd46e",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-inbox-ubuntu24.04-cuda13-x86_64.tbz"
+            }
+        }
+    },
+    "libfabric": {
+        "common": {
+            "version": "2.5.0",
+            "sha256": "276019edca708dc0569cf3064a412e395ba7b1883299781caed120594f850995",
+            "url": "https://github.com/ofiwg/libfabric/releases/download/v2.5.0/libfabric-2.5.0.tar.bz2"
+        }
+    },
     "mvapich": {
         "common": {
             "version": "2.3.7-2",
@@ -432,6 +448,16 @@
                     "samples": {
                         "version": "12.9",
                         "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                    }
+                },
+                "nvidia_ncv6": {
+                    "driver": {
+                        "version": "13.2",
+                        "distribution": "ubuntu2404"
+                    },
+                    "samples": {
+                        "version": "13.2",
+                        "sha256": "c7d8da987a43fd6ed7c2641df204dfc639768adbae070bc22f9df0e03005f7de"
                     }
                 },
                 "driver": {
@@ -954,6 +980,13 @@
         "common": {
             "version": "1.0.0",
             "url": "https://github.com/jasontmsft/dyno-relay-logger.git"
+        }
+    },
+    "nvidia_grid": {
+        "common": {
+            "version": "595.58.03",
+            "sha256": "5dbfcd0998e6d3a2b4cf4f5f60587aef07401f3c7a9433c23697ec944a5c542b",
+            "url": "https://download.microsoft.com/download/51239696-ec04-4c02-a6b3-1d9c608fb57c/NVIDIA-Linux-x86_64-595.58.03-grid-azure.run"
         }
     }
 }

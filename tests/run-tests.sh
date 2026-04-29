@@ -68,12 +68,17 @@ function test_component {
 # Verify common component installations accross all distros
 function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
-    if [[ -z "${validation_mode:-}" ]]; then
-        verify_package_updates;
+    verify_package_updates;
+    if has_infiniband; then
+        verify_ofed_installation;
     fi
-    verify_ofed_installation;
-    verify_ib_device_status;
-    verify_ib_modules_and_devices;
+
+    # Skip IB device and module checks on SKUs without InfiniBand
+    if has_infiniband; then
+        verify_ib_device_status;
+        verify_ib_modules_and_devices;
+    fi
+
     if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
     verify_gcc_installation;
     verify_azcopy_installation;
@@ -121,6 +126,7 @@ function set_test_matrix {
 
     case ${VMSIZE} in
         standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
+        standard_nc*_rtxpro6000bse_v6) sku="ncv6";;
         *) sku="common";;
     esac
     export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" '(.[$d] // empty) | (.[$s] // empty)' <<< "$test_matrix_file")

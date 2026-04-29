@@ -33,6 +33,19 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
+# Check if the current SKU has InfiniBand. Currently all but ncv6
+function has_infiniband {
+    local no_ib_sizes="standard_nc.*_rtxpro6000bse_v6"
+    ! [[ "${VMSIZE}" =~ ^($no_ib_sizes)$ ]]
+}
+
+# Whether this SKU uses UCX as its MPI transport layer.
+# Currently there is a 1-1 mapping where UCX is used for IB SKUs and OFI for mana-only SKUs,
+# but decouple them because they're separate concepts
+function uses_ucx {
+    has_infiniband
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -64,16 +77,22 @@ function verify_hpcx_installation {
     module avail
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
+
+    # UCX SKUs: use UCX RC transport. Non-UCX SKUs: no args needed (built with libfabric, auto-selects OFI).
+    local mpi_args=""
+    if uses_ucx; then
+        mpi_args="-x UCX_TLS=rc"
+    fi
     
     module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
 
     module load mpi/hpcx-pmix
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
     module unload mpi/hpcx-pmix
     module purge
@@ -83,18 +102,27 @@ function verify_mvapich2_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich"
 
     module load mpi/mvapich
-    # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    if uses_ucx; then
+        # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
+        mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    else
+        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
+        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
+    fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
 }
 
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
+
+    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
+    local fi_provider="mlx"
+    if ! has_infiniband; then fi_provider="tcp"; fi
     
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
@@ -110,9 +138,11 @@ function verify_nvidia_driver_installation {
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
-    # Verify if NVIDIA peer memory module is inserted
-    lsmod | grep nvidia_peermem
-    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    # Verify if NVIDIA peer memory module is inserted on SKUs with IB
+    if has_infiniband; then
+        lsmod | grep nvidia_peermem
+        check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    fi
 
     if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled
@@ -196,6 +226,17 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;                
+        standard_nc*_rtxpro6000bse_v6)
+            local ncv6_gpu_count
+            ncv6_gpu_count=$(nvidia-smi -L | grep -c "^GPU")
+            mpirun -np ${ncv6_gpu_count} \
+            --allow-run-as-root \
+            --map-by ppr:${ncv6_gpu_count}:node \
+            -x LD_LIBRARY_PATH \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
         *) ;;
     esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
@@ -264,15 +305,7 @@ function verify_package_updates {
         azurelinux) true;;
         *)
             sudo dnf -y makecache 
-            sudo dnf check-update -y --refresh
-            local exit_code=$?
-            if [[ $exit_code -eq 0 ]] || [[ $exit_code -eq 100 ]]; then
-                # Exit code 100 means updates are available — not an error
-                true
-            else
-                (exit $exit_code)
-            fi
-            ;;
+            sudo dnf check-update -y --refresh;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }
@@ -389,7 +422,7 @@ function verify_dcgm_installation {
 
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5"
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
@@ -435,6 +468,9 @@ function verify_nvloom_setup {
 }
 
 function verify_nvlink_setup {
+    # Skip NVLink checks on SKUs without NVLink
+    if ! has_infiniband; then return; fi
+
     # Verify nvlink setup
     nvidia-smi nvlink --status
     check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
@@ -449,7 +485,7 @@ function verify_nvlink_setup {
         else
             echo "[OK] : NVLINK setup is healthy"
         fi
-    fi    
+    fi
 }
 
 function verify_nvidia_imex_service {

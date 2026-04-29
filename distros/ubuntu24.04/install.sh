@@ -30,8 +30,20 @@ fi
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 
-# install DOCA OFED
-$COMPONENT_DIR/install_doca.sh
+# install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
+if sku_has_infiniband; then
+    $COMPONENT_DIR/install_doca.sh
+else
+    # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)
+    apt-get install -y rdma-core libibverbs-dev ibverbs-utils librdmacm-dev pkg-config
+    # Install libfabric — replaces UCX as the networking abstraction for MPI on non-IB SKUs
+    $COMPONENT_DIR/install_libfabric.sh
+    # Blacklist mana_ib — it exposes a non-functional verbs device (max_msg_size=0, no UD/SRQ,
+    # guest RDMA not yet enabled) that causes UCX, libfabric verbs, and UCC to crash.
+    # The mana ethernet driver (eth0/eth1) is unaffected.
+    # Customers can re-enable: sudo rm /etc/modprobe.d/blacklist-mana-ib.conf && sudo modprobe mana_ib
+    echo "blacklist mana_ib" | tee /etc/modprobe.d/blacklist-mana-ib.conf
+fi
 
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
@@ -58,6 +70,8 @@ if [ "$GPU" = "NVIDIA" ]; then
         # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
 
+    elif [ "$SKU" = "NCv6" ]; then
+        $COMPONENT_DIR/install_nvidiagriddriver.sh
     else
         $COMPONENT_DIR/install_nvidiagpudriver.sh
     fi
@@ -119,8 +133,11 @@ if [[ "$SKU" != "GB200" ]]; then
     # install monitor tools
     $COMPONENT_DIR/install_monitoring_tools.sh
 
-    # install Azure/NHC Health Checks
-    $COMPONENT_DIR/install_health_checks.sh "$GPU"
+    # Azure NHC does not yet support NCv6
+    if [[ "$SKU" != "NCv6" ]]; then
+        # install Azure Node Health Checks
+        $COMPONENT_DIR/install_health_checks.sh "$GPU"
+    fi
 fi 
 
 # add udev rule

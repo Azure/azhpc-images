@@ -15,6 +15,9 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
     hpcx_metadata=$(get_component_config "hpcx_amd")
+elif ! sku_has_infiniband; then
+    # Non-IB SKUs skip DOCA-OFED. Use inbox HPC-X (UCX linked against kernel-native rdma-core)
+    hpcx_metadata=$(get_component_config "hpcx_inbox")
 else
     hpcx_metadata=$(get_component_config "hpcx")
 fi
@@ -29,16 +32,21 @@ download_and_verify ${HPCX_DOWNLOAD_URL} ${HPCX_SHA256}
 tar -xvf ${TARBALL}
 
 sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
+sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/ucx/lib/pkgconfig/*.pc
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 HCOLL_PATH=${HPCX_PATH}/hcoll
 UCX_PATH=${HPCX_PATH}/ucx
+LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
 # PMIX is installed from AZL 3.0 PMC to default path
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
+elif ! sku_uses_ucx; then
+    PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
@@ -65,7 +73,13 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     # Error exclusive to Ubuntu 22.04
     # configure: error: The Fortran compiler gfortran will not compile files that call
     # the same routine with arguments of different types.
-    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+    mvapich_transport_args=""
+    if sku_uses_ucx; then
+        mvapich_transport_args="--with-ucx=${UCX_PATH}"
+    else
+        mvapich_transport_args="--with-device=ch4:ofi --with-libfabric=${LIBFABRIC_PATH}"
+    fi
+    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes ${mvapich_transport_args} && make -j$(nproc) && make install
     popd
     write_component_version "MVAPICH" ${MVAPICH_VERSION}
 fi
@@ -81,7 +95,12 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+if sku_uses_ucx; then
+    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+else
+    # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
+    ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --without-ucx --with-ofi=${LIBFABRIC_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default
+fi
 make -j$(nproc) 
 make install
 cd ..
@@ -113,13 +132,35 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
+# On IB SKUs, mpi/hpcx points to NVIDIA's original pre-built binary while
+# mpi/hpcx-pmix points to our local rebuild (with PMIx added).
+# On non-UCX SKUs (e.g. NCv6), the original binary is broken and only the rebuild (built
+# --without-ucx --with-ofi) works, so both modules point to it.
+if sku_uses_ucx; then
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+    HPCX_NON_UCX_EXTRAS=""
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+    # On non-UCX SKUs:
+    # - Force PML cm (MTL-based) instead of ob1 (BTL-based). ob1 auto-selects BTL openib
+    #   which initializes against rdma-core but can't move data on MANA-only hardware, causing hangs.
+    # - Use libfabric tcp provider explicitly (auto-detection fails due to docker bridge 172.17.0.1).
+    # - Disable UCC (tl_ucp probes verbs on MANA and fails) and hcoll (requires Mellanox IB HCA).
+    read -r -d '' HPCX_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          OMPI_MCA_pml cm
+setenv          OMPI_MCA_mtl_ofi_provider_include tcp
+setenv          OMPI_MCA_coll_ucc_enable 0
+setenv          OMPI_MCA_coll_hcoll_enable 0
+EXTRAS
+fi
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION}
 #%Module 1.0
 #
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx
+module load ${HPCX_MODULE}
+${HPCX_NON_UCX_EXTRAS}
 EOF
 
 # HPC-X with PMIX
@@ -130,9 +171,18 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #
 conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
+${HPCX_NON_UCX_EXTRAS}
 EOF
 
 # MVAPICH
+# On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
+# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks).
+MVAPICH_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
+    read -r -d '' MVAPICH_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          FI_PROVIDER tcp
+EXTRAS
+fi
 if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
@@ -148,11 +198,22 @@ setenv          MPI_INCLUDE     /opt/mvapich-${MVAPICH_VERSION}/include
 setenv          MPI_LIB         /opt/mvapich-${MVAPICH_VERSION}/lib
 setenv          MPI_MAN         /opt/mvapich-${MVAPICH_VERSION}/share/man
 setenv          MPI_HOME        /opt/mvapich-${MVAPICH_VERSION}
+${MVAPICH_NON_UCX_EXTRAS}
 EOF
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich
 fi    
 
 # OpenMPI
+# On non-UCX SKUs, Open MPI standalone (built --without-ucx --with-ofi) has the same
+# PML auto-selection issue as HPC-X: ob1 wins over cm, but ob1's BTL tcp is confused
+# by the docker bridge (172.17.0.1 on all nodes). Fix with pml=cm + tcp provider.
+OMPI_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
+    read -r -d '' OMPI_NON_UCX_EXTRAS << 'EXTRAS' || true
+setenv          OMPI_MCA_pml cm
+setenv          OMPI_MCA_mtl_ofi_provider_include tcp
+EXTRAS
+fi
 cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #%Module 1.0
 #
@@ -167,6 +228,7 @@ setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include
 setenv          MPI_LIB         /opt/openmpi-${OMPI_VERSION}/lib
 setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
+${OMPI_NON_UCX_EXTRAS}
 EOF
 
 #IntelMPI-v2021

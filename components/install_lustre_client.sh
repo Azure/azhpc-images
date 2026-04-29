@@ -9,7 +9,12 @@ LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 # Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
 # Set to "true" to build from source (current default), "false" to use DKMS packages.
-LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
+# For GB200 (kernel 6.14), force DKMS packages — source build fails against the azure-nvidia kernel.
+if [[ "${SKU}" == "GB200" ]]; then
+    LUSTRE_BUILD_FROM_SOURCE="false"
+else
+    LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
+fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     source /etc/lsb-release

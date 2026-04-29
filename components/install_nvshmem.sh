@@ -9,10 +9,10 @@ CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 CUDA_MAJOR_VERSION=$(echo $CUDA_DRIVER_VERSION | cut -d. -f1)
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then 
-    path_var="$TOP_DIR/prebuilt"
-    tdnf install -y $path_var/libnvshmem3-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
-    tdnf install -y $path_var/libnvshmem3-devel-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
-    tdnf install -y $path_var/libnvshmem3-static-cuda-$CUDA_MAJOR_VERSION-*.rpm --nogpgcheck
+    NVSHMEM_CUDA_REPO="https://developer.download.nvidia.com/compute/cuda/repos/rhel9/sbsa"
+    tdnf install -y --nogpgcheck \
+        --repofrompath=cuda-rhel9-sbsa,$NVSHMEM_CUDA_REPO \
+        libnvshmem3-cuda-$CUDA_MAJOR_VERSION libnvshmem3-devel-cuda-$CUDA_MAJOR_VERSION libnvshmem3-static-cuda-$CUDA_MAJOR_VERSION
     nvshmem_version=$(tdnf list installed | grep libnvshmem3-cuda-$CUDA_MAJOR_VERSION | awk '{print $2}')
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install libnvshmem3-cuda-$CUDA_MAJOR_VERSION libnvshmem3-dev-cuda-$CUDA_MAJOR_VERSION

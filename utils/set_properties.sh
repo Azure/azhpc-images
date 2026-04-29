@@ -19,7 +19,15 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [ "$SKU" = "GB200" ]; then
         apt-mark hold linux-azure-nvidia
     else
-        apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
+        # Choose a per-distro fallback kernel meta-package when KERNEL_VERSION is not set.
+        UBUNTU_VERSION_ID=$(. /etc/os-release; echo "$VERSION_ID")
+        case "${UBUNTU_VERSION_ID}" in
+            22.04) DEFAULT_KERNEL_VERSION="5.15" ;;
+            24.04) DEFAULT_KERNEL_VERSION="6.8"  ;;
+            26.04) DEFAULT_KERNEL_VERSION="7.0"  ;;
+            *)     DEFAULT_KERNEL_VERSION="6.8"  ;;
+        esac
+        apt-mark hold linux-azure-${KERNEL_VERSION:-$DEFAULT_KERNEL_VERSION}
     fi
     # upgrade pre-installed components
     apt update

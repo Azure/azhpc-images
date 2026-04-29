@@ -8,6 +8,31 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
+    # Ubuntu 26.04 (Resolute Raccoon): install pmix/libevent/libhwloc from the
+    # Ubuntu upstream "universe" repo instead of the Microsoft PMC slurm repo,
+    # which doesn't yet publish a slurm-ubuntu-resolute pocket. As of Apr 2026:
+    #   libpmix-dev / libpmix-bin / libpmix2t64 = 6.0.0+really5.0.9-3build1
+    #   libhwloc-dev                            = 2.13.0-2
+    #   libevent-dev                            = (universe)
+    if [ "$UBUNTU_VERSION" == "26.04" ]; then
+        # Make sure the universe component is enabled (it is in stock cloud images,
+        # but be defensive in case a minimal image was used).
+        if command -v add-apt-repository >/dev/null 2>&1; then
+            add-apt-repository -y universe || true
+        fi
+        apt update
+        apt install -y libpmix-dev libpmix-bin libpmix2t64 libevent-dev libhwloc-dev
+        # Hold to prevent accidental upgrades; allow override via --allow-change-held-packages.
+        apt-mark hold libpmix-dev libpmix-bin libpmix2t64 libevent-dev libhwloc-dev
+
+        # Record the actual installed pmix version (e.g. "6.0.0+really5.0.9-3build1")
+        # so write_component_version below reflects what's on disk.
+        PMIX_VERSION=$(dpkg-query -W -f='${Version}' libpmix-dev 2>/dev/null || echo "${PMIX_VERSION}")
+        write_component_version "PMIX" "${PMIX_VERSION}"
+        exit 0
+    fi
+
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble
         SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"

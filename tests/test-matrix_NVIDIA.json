@@ -15,6 +15,13 @@
             "services": ["check_sku_customization", "check_nvidia_imex"]
         }
     },
+    "ubuntu26.04": {
+        "_comment": "Best-effort: DOCA-OFED is skipped on 26.04 today, so IB/MPI-dependent checks (check_nccl, check_lustre, check_mpifileutils, check_impi_2021, check_gdrcopy, check_azure_persistent_rdma_naming) are intentionally omitted.",
+        "common":{
+            "components": ["check_nvidia_driver", "check_cuda", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink"],
+            "services": ["check_sku_customization", "check_nvidia_fabricmanager", "check_sunrpc_tcp_settings"]
+        }
+    },
     "ubuntu22.04": {
         "common":{
             "components": ["check_nvidia_driver","check_impi_2021", "check_gdrcopy", "check_cuda", "check_nccl", "check_aocl", "check_aocc", "check_docker", "check_dcgm", "check_nvlink", "check_lustre", "check_mpifileutils"],

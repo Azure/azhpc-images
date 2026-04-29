@@ -3,6 +3,36 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+# Ubuntu 26.04 (Resolute Raccoon): skip DOCA-OFED kmod installation entirely.
+# Instead, install the upstream rdma-core userspace tools (ibstat, ibv_devinfo,
+# ibdev2netdev, etc.) from Ubuntu universe so the rest of the build pipeline
+# (HPC-X inbox build, persistent-rdma-naming, IB sanity checks) has the
+# binaries it expects. Kernel-side IB modules are provided by linux-azure.
+#
+# Note: The Mellanox/NVIDIA-proprietary `ofed_info` tool is NOT shipped by
+# Ubuntu, so OFED-version-string-based checks remain skipped on 26.04.
+if [[ "${DISTRIBUTION}" == "ubuntu26.04" ]]; then
+    echo "##[warning]install_doca.sh: skipping DOCA-OFED kmod installation on Ubuntu 26.04 (using inbox HPC-X + rdma-core userspace)."
+
+    if command -v add-apt-repository >/dev/null 2>&1; then
+        add-apt-repository -y universe || true
+    fi
+    apt-get update
+
+    # Userspace IB/RDMA tools from Ubuntu universe (all confirmed published for
+    # resolute as of Apr 2026; no DOCA-Host equivalent on 26.04).
+    apt-get install -y --no-install-recommends \
+        rdma-core ibverbs-utils ibverbs-providers infiniband-diags \
+        libibverbs-dev libibumad-dev librdmacm-dev libibmad-dev
+
+    # Record placeholder component versions so write_component_version's downstream
+    # consumers don't choke on missing keys.
+    write_component_version "DOCA" "skipped-ubuntu26.04"
+    write_component_version "OFED" "inbox-rdma-core"
+
+    exit 0
+fi
+
 doca_metadata=$(get_component_config "doca")
 DOCA_VERSION=$(jq -r '.version' <<< $doca_metadata)
 DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)

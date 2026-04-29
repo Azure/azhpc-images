@@ -95,9 +95,8 @@ verify_checksum() {
     fi
 }
 
-# Build-time check: does the current SKU have InfiniBand hardware?
+# Whether the current SKU has InfiniBand hardware.
 # Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
-# Maintain this list as new non-IB SKUs are added.
 function sku_has_infiniband {
     case "$SKU" in
         NCv6) return 1 ;;  # MANA only, no InfiniBand

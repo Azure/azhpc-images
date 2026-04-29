@@ -14,7 +14,7 @@ SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 
-# Get DCGM version from versions.json
+# Get DCGM version from versions.json.
 dcgm_metadata=$(get_component_config "dcgm")
 DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
 

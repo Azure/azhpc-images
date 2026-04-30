@@ -81,7 +81,7 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
 fi
 
 # install dynolog and dyno-relay-logger
-$COMPONENT_DIR/install_dynolog_drl.sh
+# $COMPONENT_DIR/install_dynolog_drl.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh

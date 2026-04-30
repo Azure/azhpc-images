@@ -68,10 +68,81 @@ build {
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "set -o pipefail",
-      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
-      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
-      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+      <<-EOT
+        set -o pipefail
+
+        curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh -o /tmp/mde_installer.sh
+        chmod +x /tmp/mde_installer.sh
+
+        ubuntu_id=""
+        ubuntu_ver=""
+        if [[ -r /etc/os-release ]]; then
+          # shellcheck disable=SC1091
+          . /etc/os-release
+          ubuntu_id="$${ID:-}"
+          ubuntu_ver="$${VERSION_ID:-}"
+        fi
+
+        installer_args=(--install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod)
+
+        # Ubuntu 26.04 (resolute) workaround — strictly scoped to this provisioner.
+        #   - The PMC repo packages.microsoft.com/ubuntu/26.04/prod exists but does NOT
+        #     publish mdatp yet (only intune-portal / microsoft-identity-*). Meanwhile
+        #     mde_installer.sh's scale_version_id() falls back to 18.04 (bionic), which
+        #     is not a supported mix on 26.04, and its apt-key path fails (exit 127).
+        #   - We temporarily stage the 24.04 (noble) PMC repo with a dearmored key,
+        #     pin it to "mdatp only" via /etc/apt/preferences.d, then ALWAYS tear it
+        #     down (success or failure) so later provisioners and the final image see
+        #     a clean apt configuration.
+        if [[ "$${ubuntu_id}" == "ubuntu" && "$${ubuntu_ver}" == "26.04" ]]; then
+          echo "[mdatp] Ubuntu 26.04 detected; staging temporary noble PMC repo (mdatp-only pin)."
+
+          mdatp_keyring=/usr/share/keyrings/microsoft-prod-mdatp-noble.gpg
+          mdatp_sources=/etc/apt/sources.list.d/microsoft-prod-mdatp-noble.list
+          mdatp_prefs=/etc/apt/preferences.d/microsoft-prod-mdatp-noble.pref
+
+          cleanup_mdatp_repo() {
+            echo "[mdatp] Removing temporary noble PMC repo configuration."
+            sudo rm -f "$${mdatp_keyring}" "$${mdatp_sources}" "$${mdatp_prefs}"
+            sudo apt-get update -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null 2>&1 || true
+            sudo apt-get update >/dev/null 2>&1 || true
+          }
+          trap cleanup_mdatp_repo EXIT
+
+          export DEBIAN_FRONTEND=noninteractive
+          sudo -E apt-get update
+          sudo -E apt-get install -y curl gnupg apt-transport-https ca-certificates
+
+          sudo install -m 0755 -d /usr/share/keyrings
+          curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
+            | sudo gpg --dearmor --yes -o "$${mdatp_keyring}"
+          sudo chmod 0644 "$${mdatp_keyring}"
+
+          arch="$(dpkg --print-architecture)"
+          echo "deb [arch=$${arch} signed-by=$${mdatp_keyring}] https://packages.microsoft.com/ubuntu/24.04/prod noble main" \
+            | sudo tee "$${mdatp_sources}" >/dev/null
+
+          # Hard pin: forbid noble PMC from supplying anything except mdatp itself,
+          # so an apt-get upgrade in a later step cannot pull noble versions of
+          # unrelated packages onto this 26.04 host.
+          printf '%s\n' \
+            'Package: *' \
+            'Pin: origin packages.microsoft.com' \
+            'Pin-Priority: -1' \
+            '' \
+            'Package: mdatp' \
+            'Pin: origin packages.microsoft.com' \
+            'Pin-Priority: 990' \
+            | sudo tee "$${mdatp_prefs}" >/dev/null
+
+          sudo -E apt-get update
+          installer_args=(--use-local-repo "$${installer_args[@]}")
+        fi
+
+        sudo bash /tmp/mde_installer.sh "$${installer_args[@]}"
+        sudo mdatp threat policy set --type potentially_unwanted_application --action off
+        rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py /tmp/mde_installer.sh
+      EOT
     ]
   }
   

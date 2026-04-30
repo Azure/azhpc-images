@@ -34,21 +34,22 @@ build {
   }
 
   # Ubuntu 26.04 ships sudo-rs (Trifecta Tech Foundation's Rust rewrite) as
-  # /usr/bin/sudo. sudo-rs deliberately does not implement bare `-E` /
-  # `--preserve-env` (upstream wontfix, trifectatechfoundation/sudo-rs#1299).
-  # Many of our provisioners and downstream scripts rely on `sudo -E` and on
-  # legacy sudoers semantics (env_keep, SETENV:), so we replace sudo-rs with
-  # classic GNU sudo (still in 26.04 main as `sudo 1.9.17p2-...`). Both
-  # packages ship /usr/bin/sudo and conflict, so a single apt transaction
-  # removes sudo-rs and installs classic sudo atomically.
+  # the default for /usr/bin/sudo. sudo-rs deliberately does not implement
+  # bare `-E` / `--preserve-env` (upstream wontfix, sudo-rs#1299), and many
+  # of our provisioners and downstream scripts rely on `sudo -E` and on
+  # legacy sudoers semantics (env_keep, SETENV:). Both `sudo` (classic GNU)
+  # and `sudo-rs` are installed simultaneously on a stock 26.04 image: the
+  # `sudo` package ships /usr/bin/sudo.ws, sudo-rs ships /usr/bin/sudo-rs
+  # and a neutral-name copy at /usr/lib/cargo/bin/sudo, and /usr/bin/sudo
+  # itself is an update-alternatives symlink defaulting to sudo-rs. We flip
+  # the alternative back to classic GNU sudo.
   provisioner "shell" {
-    name           = "(Ubuntu 26.04) Replace sudo-rs with classic GNU sudo"
+    name           = "(Ubuntu 26.04) Switch /usr/bin/sudo alternative to classic GNU sudo"
     except         = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline = [
-      "export DEBIAN_FRONTEND=noninteractive",
-      "sudo apt-get update",
-      "sudo apt-get install -y sudo",
+      "sudo update-alternatives --display sudo || true",
+      "sudo update-alternatives --set sudo /usr/bin/sudo.ws",
       "sudo --version | head -n1",
       "sudo --version | grep -qiv 'sudo-rs'",
     ]

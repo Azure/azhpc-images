@@ -94,6 +94,11 @@ build {
         #     pin it to "mdatp only" via /etc/apt/preferences.d, then ALWAYS tear it
         #     down (success or failure) so later provisioners and the final image see
         #     a clean apt configuration.
+        #   - mde_installer.sh forbids combining --use-local-repo with --channel
+        #     (ERR_INVALID_ARGUMENTS, exit 2). When --channel is omitted alongside
+        #     --use-local-repo, install_on_debian falls into the `[ -z "$$CHANNEL" ]`
+        #     branch and runs a plain `apt -y install mdatp`, which is exactly what we
+        #     want — apt resolves mdatp from our pinned noble source (Pin-Priority 990).
         if [[ "$${ubuntu_id}" == "ubuntu" && "$${ubuntu_ver}" == "26.04" ]]; then
           echo "[mdatp] Ubuntu 26.04 detected; staging temporary noble PMC repo (mdatp-only pin)."
 
@@ -136,7 +141,10 @@ build {
             | sudo tee "$${mdatp_prefs}" >/dev/null
 
           sudo -E apt-get update
-          installer_args=(--use-local-repo "$${installer_args[@]}")
+
+          # Drop `--channel prod` because it is rejected when paired with
+          # --use-local-repo. Prepend --use-local-repo for clarity.
+          installer_args=(--use-local-repo --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py)
         fi
 
         sudo bash /tmp/mde_installer.sh "$${installer_args[@]}"

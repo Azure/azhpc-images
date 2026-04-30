@@ -68,7 +68,6 @@ fi
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 
-
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh
 

@@ -9,8 +9,10 @@ LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 # Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
 # Set to "true" to build from source (current default), "false" to use DKMS packages.
-# For GB200 (kernel 6.14), force DKMS packages — source build fails against the azure-nvidia kernel.
-if [[ "${SKU}" == "GB200" ]]; then
+# For GB200, only allow building from source on kernel 6.8 — newer kernels (6.14, 6.17, etc.)
+# have API changes that cause the Lustre source build to fail.
+KERNEL_MINOR=$(uname -r | grep -oP '^\d+\.\d+')
+if [[ "${SKU}" == "GB200" && "${KERNEL_MINOR}" != "6.8" ]]; then
     LUSTRE_BUILD_FROM_SOURCE="false"
 else
     LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')

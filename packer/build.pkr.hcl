@@ -33,6 +33,27 @@ build {
     ]
   }
 
+  # Ubuntu 26.04 ships sudo-rs (Trifecta Tech Foundation's Rust rewrite) as
+  # /usr/bin/sudo. sudo-rs deliberately does not implement bare `-E` /
+  # `--preserve-env` (upstream wontfix, trifectatechfoundation/sudo-rs#1299).
+  # Many of our provisioners and downstream scripts rely on `sudo -E` and on
+  # legacy sudoers semantics (env_keep, SETENV:), so we replace sudo-rs with
+  # classic GNU sudo (still in 26.04 main as `sudo 1.9.17p2-...`). Both
+  # packages ship /usr/bin/sudo and conflict, so a single apt transaction
+  # removes sudo-rs and installs classic sudo atomically.
+  provisioner "shell" {
+    name           = "(Ubuntu 26.04) Replace sudo-rs with classic GNU sudo"
+    except         = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "export DEBIAN_FRONTEND=noninteractive",
+      "sudo apt-get update",
+      "sudo apt-get install -y sudo",
+      "sudo --version | head -n1",
+      "sudo --version | grep -qiv 'sudo-rs'",
+    ]
+  }
+
   provisioner "shell-local" {
     name           = "(1P specific) add ip tags to public IP"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]

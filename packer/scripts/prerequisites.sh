@@ -216,7 +216,13 @@ install_ubuntu_lts_kernel() {
 
             apt install -y linux-azure-${kernel_ver}
             apt-mark hold linux-azure-${kernel_ver}
-            apt install -y linux-modules-extra-azure-${kernel_ver}
+            # linux-modules-extra-azure-${kernel_ver} is not published for 7.0 in resolute;
+            # contents were folded into linux-modules-azure-${kernel_ver}. Install only if present.
+            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                apt install -y linux-modules-extra-azure-${kernel_ver}
+            else
+                echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+            fi
 
             apt autoremove -y
             apt upgrade -y

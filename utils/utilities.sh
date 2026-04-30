@@ -95,18 +95,26 @@ verify_checksum() {
     fi
 }
 
-# Whether the current SKU has InfiniBand hardware.
-# Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
-function sku_has_infiniband {
+# Private helper that matches NCv6.
+function _is_ncv6_sku {
     case "$SKU" in
-        NCv6) return 1 ;;  # MANA only, no InfiniBand
-        *)    return 0 ;;
+        NCv6) return 0 ;;
+        *)    return 1 ;;
     esac
 }
 
+# Whether the current SKU has InfiniBand hardware.
+# Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
+function sku_has_infiniband {
+    ! _is_ncv6_sku
+}
+
+# Whether the current SKU has NVLink/NVSwitch fabric.
+function sku_has_nvlink {
+    ! _is_ncv6_sku
+}
+
 # Whether this SKU uses UCX as its MPI transport layer.
-# Currently there is a 1-1 mapping where UCX is used for IB SKUs and OFI for mana-only SKUs,
-# but decouple them because they're separate concepts
 function sku_uses_ucx {
-    sku_has_infiniband
+    ! _is_ncv6_sku
 }

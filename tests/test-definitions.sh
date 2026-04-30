@@ -33,17 +33,22 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
-# Check if the current SKU has InfiniBand. Currently all but ncv6
-function has_infiniband {
-    local no_ib_sizes="standard_nc.*_rtxpro6000bse_v6"
-    ! [[ "${VMSIZE}" =~ ^($no_ib_sizes)$ ]]
+# Private helper that matches NCv6 VM sizes.
+function _is_ncv6_sku {
+    local ncv6_sizes="standard_nc.*_rtxpro6000bse_v6"
+    [[ "${VMSIZE}" =~ ^($ncv6_sizes)$ ]]
 }
 
-# Whether this SKU uses UCX as its MPI transport layer.
-# Currently there is a 1-1 mapping where UCX is used for IB SKUs and OFI for mana-only SKUs,
-# but decouple them because they're separate concepts
+function has_infiniband {
+    ! _is_ncv6_sku
+}
+
+function has_nvlink {
+    ! _is_ncv6_sku
+}
+
 function uses_ucx {
-    has_infiniband
+    ! _is_ncv6_sku
 }
 
 # verify OFED installation
@@ -469,7 +474,7 @@ function verify_nvloom_setup {
 
 function verify_nvlink_setup {
     # Skip NVLink checks on SKUs without NVLink
-    if ! has_infiniband; then return; fi
+    if ! has_nvlink; then return; fi
 
     # Verify nvlink setup
     nvidia-smi nvlink --status

@@ -109,10 +109,15 @@ function verify_nvidia_driver_installation {
     # Verify NVIDIA Driver installation
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
-    
-    # Verify if NVIDIA peer memory module is inserted
-    lsmod | grep nvidia_peermem
-    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+
+    # Verify if NVIDIA peer memory module is inserted.
+    # Skipped on Ubuntu 26.04: the build intentionally doesn't load
+    # nvidia-peermem there (no DOCA-OFED kmod -> legacy ib_peer_mem API
+    # absent; GPUDirect RDMA uses the dma-buf path instead).
+    if [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]; then
+        lsmod | grep nvidia_peermem
+        check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    fi
 
     if [[ "$VMSIZE" == "standard_nd128isr_ndr_gb200_v6" || "$VMSIZE" == "standard_nd128isr_gb300_v6" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled

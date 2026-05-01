@@ -90,7 +90,7 @@ After=nvidia-dcgm.service
 
 [Service]
 Environment="GLOG_logtostderr=1" "GLOG_minloglevel=2"
-ExecStart=/opt/dynolog/bin/dynolog -dcgm_major_version=4 -enable_ipc_monitor=true -enable_gpu_monitor=true -kernel_monitor_reporting_interval_s=10 -dcgm_lib_path=/usr/lib/libdcgm.so -dcgm_reporting_interval_s=10 -use_udsrelay=true -dcgm_fields="100,155,204,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012"
+ExecStart=/opt/dynolog/bin/dynolog -enable_ipc_monitor=true -enable_gpu_monitor=true -kernel_monitor_reporting_interval_s=10 -dcgm_lib_path=/usr/lib/libdcgm.so -dcgm_reporting_interval_s=10 -use_udsrelay=true -dcgm_fields="100,155,204,1001,1002,1003,1004,1005,1006,1009,1010,1011,1012"
 Restart=always
 RestartSec=60s
 User=root

@@ -131,6 +131,14 @@ build {
           cleanup_mdatp_repo() {
             echo "[mdatp] Removing temporary noble PMC repo configuration."
             sudo rm -f "$${mdatp_keyring}" "$${mdatp_sources}" "$${mdatp_prefs}"
+            # The mdatp .deb's own post-install drops a stale bionic (18.04) PMC
+            # sources file + key (mde_installer.sh's scale_version_id() maps any
+            # unknown Ubuntu to 18.04). Bionic's signing key is not in the noble /
+            # resolute keyring, so a later `apt-get update` fails with NO_PUBKEY
+            # EB3E94ADBE1229CF. Strip any file referencing that bionic PMC repo.
+            sudo grep -lE 'packages\.microsoft\.com/ubuntu/18\.04' \
+              /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null \
+              | xargs -r sudo rm -f
             sudo apt-get update -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null 2>&1 || true
             sudo apt-get update >/dev/null 2>&1 || true
           }

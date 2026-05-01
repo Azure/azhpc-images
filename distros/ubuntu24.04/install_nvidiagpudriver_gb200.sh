@@ -40,7 +40,6 @@ fi
 nvidia_gpu_driver_metadata=$(get_component_config "nvidia")
 NVIDIA_GPU_DRIVER_MAJOR_VERSION=$(jq -r '.driver.major_version' <<< $nvidia_gpu_driver_metadata)
 NVIDIA_GPU_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_gpu_driver_metadata)
-
 apt install nvidia-driver-pinning-$NVIDIA_GPU_DRIVER_VERSION -y
 
 # Install the NVIDIA driver and related packages

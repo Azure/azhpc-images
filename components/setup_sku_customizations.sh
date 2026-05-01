@@ -125,8 +125,18 @@ chmod 755 /usr/sbin/remove_sku_customizations.sh
 cat <<EOF >/etc/systemd/system/sku-customizations.service
 [Unit]
 Description=Customizations based on SKU
-After=network.target
+After=network-online.target openibd.service rdma-hw.target
+Wants=network-online.target
+EOF
+
+if [ "$GPU" = "NVIDIA" ]; then
+    cat <<EOF >>/etc/systemd/system/sku-customizations.service
+After=nvidia-fabricmanager.service
 Wants=nvidia-fabricmanager.service
+EOF
+fi
+
+cat <<EOF >>/etc/systemd/system/sku-customizations.service
 
 [Service]
 Type=oneshot
@@ -139,11 +149,21 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-# A workaround to make fabricmanager service start automatically
-FMSYSPATH="/lib/systemd/system/nvidia-fabricmanager.service"
-if [ -f "$FMSYSPATH" ]; then
-    sed -i '/^After=multi-user.target/d' $FMSYSPATH
-    echo "Removed multi-user.target in Unit section"
+if [ "$GPU" = "NVIDIA" ]; then
+    mkdir -p /etc/systemd/system/openibd.service.d
+    cat <<EOF >/etc/systemd/system/openibd.service.d/10-nvidia-peermem.conf
+[Service]
+ExecStartPost=/bin/sh -c 'if /usr/sbin/modinfo nvidia_peermem >/dev/null 2>&1; then /usr/sbin/modprobe nvidia-peermem && /usr/bin/test -d /sys/module/nvidia_peermem; fi'
+EOF
+fi
+
+if [ "$GPU" = "NVIDIA" ]; then
+    # A workaround to make fabricmanager service start automatically
+    FMSYSPATH="/lib/systemd/system/nvidia-fabricmanager.service"
+    if [ -f "$FMSYSPATH" ]; then
+        sed -i '/^After=multi-user.target/d' $FMSYSPATH
+        echo "Removed multi-user.target in Unit section"
+    fi
 fi
 
 if [[ $DISTRIBUTION == "azurelinux3.0" && "$ARCHITECTURE" == "aarch64" ]]; then

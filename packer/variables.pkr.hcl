@@ -467,7 +467,7 @@ locals {
 variable "azl_prebuilt_version" {
   type        = string
   description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL3GB200_PREBUILT_VERSION")
+  default     = env("AZL_PREBUILT_VERSION")
 }
 
 # =============================================================================
@@ -484,6 +484,12 @@ variable "gb200_partuuid" {
   type        = string
   description = "Disk PartUUID for GB200 builds (required for GB200 SKU). Set to 'None' for non-GB200 builds."
   default     = env("PARTUUID")
+}
+
+variable "azl3gb200_prebuilt_version" {
+  type        = string
+  description = "Version for AzureLinux 3.0 GB200 internal bits (e.g., 0.0.1)"
+  default     = env("AZL3GB200_PREBUILT_VERSION")
 }
 
 # =============================================================================

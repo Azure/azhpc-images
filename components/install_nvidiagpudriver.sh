@@ -106,13 +106,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # NVIDIA APT repo already configured during driver installation
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
-        # Install cuda-toolkit
-        # V100 does not support CUDA 13.0, so use CUDA 12.9.
-        if [ "$SKU" = "V100" ]; then
-            tdnf install -y cuda-toolkit-12-9-12.9.1
-        else
-            tdnf install -y cuda-toolkit-13-0-13.0.2
-        fi        
+        tdnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo

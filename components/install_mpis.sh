@@ -36,8 +36,10 @@ UCX_PATH=${HPCX_PATH}/ucx
 write_component_version "HPCX" $HPCX_VERSION
 
 # rebuild HPCX with PMIx
-# PMIX is installed from AZL 3.0 PMC to default path
-if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+# Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
+# conflicts with the Mellanox OpenMPI package on Nebius nodes.
+# Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
+if [[ $DISTRIBUTION == "azurelinux3.0" || "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 else
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
@@ -51,7 +53,9 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DIS
 fi
 
 # Install MVAPICH
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
+# Skip on GB-family nodes (ubuntu24.04 and azurelinux3.0) — MVAPICH is not supported
+# on those distribution/SKU-family combinations.
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -81,7 +85,12 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} --with-pmix=${PMIX_PATH} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    PMIX_FLAG="--with-pmix"
+else
+    PMIX_FLAG="--with-pmix=${PMIX_PATH}"
+fi
+./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
 make -j$(nproc) 
 make install
 cd ..
@@ -133,7 +142,7 @@ module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
 # MVAPICH
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "$SKU" == "GB200" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #

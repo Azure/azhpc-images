@@ -83,6 +83,7 @@ build {
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
+      "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "DEBIAN_FRONTEND=noninteractive"
@@ -122,9 +123,9 @@ build {
     except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
         "mkdir -p ${path.root}/../prebuilt",
-        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -C ${path.root}/../prebuilt --strip-components=1"
+        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }
 

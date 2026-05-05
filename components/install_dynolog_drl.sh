@@ -83,8 +83,8 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     popd
     rm -rf /tmp/dynolog
 
-    DCGM_LIB=$(ldconfig -p | awk '/libdcgm\.so\.4 / {print $NF; exit}')
-    [[ -z "$DCGM_LIB" ]] && { echo "FATAL: libdcgm.so.4 not found"; exit 1; }
+    DCGM_LIB=$(ldconfig -p | awk '/libdcgm\.so(\.[0-9]+)* / {print $NF; exit}')
+    [[ -z "$DCGM_LIB" ]] && { echo "FATAL: libdcgm.so not found"; exit 1; }
 
     # NOTE: picking more than one subgroup in the same letter group induces multiplexing in DCGM that tanks performance when MPI ranks per node
     # is equal to number of cores

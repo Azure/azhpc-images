@@ -9,26 +9,67 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
-    # Ubuntu 26.04 (Resolute Raccoon): install pmix/libevent/libhwloc from the
-    # Ubuntu upstream "universe" repo instead of the Microsoft PMC slurm repo,
-    # which doesn't yet publish a slurm-ubuntu-resolute pocket. As of Apr 2026:
-    #   libpmix-dev / libpmix-bin / libpmix2t64 = 6.0.0+really5.0.9-3build1
-    #   libhwloc-dev                            = 2.13.0-2
-    #   libevent-dev                            = (universe)
+    # Ubuntu 26.04 (Resolute Raccoon): PMC does not yet publish a
+    # `slurm-ubuntu-resolute` pool. Rather than fall back to Ubuntu universe
+    # (which ships PMIx 5.x as `libpmix-dev`), we install the PMC `pmix_4.2.9-1`
+    # .deb out of the noble pool. This keeps U26 nodes wire-compatible at the
+    # PMIx layer with the rest of the matrix (RHEL family, Azure Linux, U22,
+    # U24 — all on PMC's PMIx 4.2.9), and preserves the /opt/pmix/<version>/
+    # install layout that install_mpis.sh expects.
+    #
+    # All Depends: of pmix_4.2.9-1 are satisfiable from resolute repos:
+    #   zlib1g-dev, libc6 (>=2.38), libevent-core-2.1-7t64,
+    #   libevent-pthreads-2.1-7t64, libhwloc15, zlib1g
+    #
+    # The PMC slurm-ubuntu-noble pool is signed with the older Microsoft
+    # release-signing key (gpgsecurity@microsoft.com, fingerprint
+    # ...EB3E94ADBE1229CF), which is NOT in the keyring shipped with the
+    # resolute packages-microsoft-prod.deb. We fetch it from
+    # packages.microsoft.com/keys/microsoft.asc and place it in a separate
+    # keyring referenced only by the noble sources file.
+    #
+    # The repo is then pinned so it can ONLY supply the `pmix` package; every
+    # other package from packages.microsoft.com via this entry is held at
+    # priority -1 (never install). This prevents apt from accidentally pulling
+    # noble-built dependencies onto a resolute host.
+    #
+    # TODO(ubuntu26.04): once PMC publishes slurm-ubuntu-resolute, switch this
+    # branch to that pool and drop the legacy-key bootstrap.
     if [ "$UBUNTU_VERSION" == "26.04" ]; then
-        # Make sure the universe component is enabled (it is in stock cloud images,
-        # but be defensive in case a minimal image was used).
-        if command -v add-apt-repository >/dev/null 2>&1; then
-            add-apt-repository -y universe || true
-        fi
-        apt update
-        apt install -y libpmix-dev libpmix-bin libpmix2t64 libevent-dev libhwloc-dev
-        # Hold to prevent accidental upgrades; allow override via --allow-change-held-packages.
-        apt-mark hold libpmix-dev libpmix-bin libpmix2t64 libevent-dev libhwloc-dev
+        apt-get install -y curl gnupg ca-certificates
 
-        # Record the actual installed pmix version (e.g. "6.0.0+really5.0.9-3build1")
-        # so write_component_version below reflects what's on disk.
-        PMIX_VERSION=$(dpkg-query -W -f='${Version}' libpmix-dev 2>/dev/null || echo "${PMIX_VERSION}")
+        # Install legacy MS release-signing key into a dedicated keyring.
+        legacy_keyring=/usr/share/keyrings/azhpc-microsoft-legacy.gpg
+        if [ ! -f "${legacy_keyring}" ]; then
+            tmp_asc=$(mktemp --suffix=.asc)
+            curl -fsSL https://packages.microsoft.com/keys/microsoft.asc -o "${tmp_asc}"
+            gpg --dearmor --yes -o "${legacy_keyring}" "${tmp_asc}"
+            chmod 0644 "${legacy_keyring}"
+            rm -f "${tmp_asc}"
+        fi
+
+        cat > /etc/apt/sources.list.d/azhpc-pmc-slurm-noble.list <<EOF
+deb [arch=${ARCHITECTURE_DISTRO} signed-by=${legacy_keyring}] https://packages.microsoft.com/repos/slurm-ubuntu-noble/ insiders main
+EOF
+
+        # Hard pin: the noble pool is allowed to supply ONLY `pmix`.
+        cat > /etc/apt/preferences.d/azhpc-pmc-slurm-noble.pref <<'EOF'
+Package: *
+Pin: origin packages.microsoft.com
+Pin-Priority: -1
+
+Package: pmix
+Pin: origin packages.microsoft.com
+Pin-Priority: 1001
+EOF
+
+        apt-get update
+        # libevent-dev / libhwloc-dev still come from resolute main/universe;
+        # only `pmix` is sourced from the pinned noble pool.
+        apt-get install -y pmix libevent-dev libhwloc-dev
+        apt-mark hold pmix libevent-dev libhwloc-dev
+
+        PMIX_VERSION=$(dpkg-query -W -f='${Version}' pmix 2>/dev/null || echo "${PMIX_VERSION}")
         write_component_version "PMIX" "${PMIX_VERSION}"
         exit 0
     fi

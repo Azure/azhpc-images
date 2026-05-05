@@ -143,7 +143,7 @@ build {
               -maxdepth 1 -type f \
               \( -name '*.list' -o -name '*.sources' \) \
               -exec grep -lE 'packages\.microsoft\.com/ubuntu/18\.04' {} + 2>/dev/null \
-              | xargs -r sudo rm -f
+              | xargs -r sudo rm -f || true
             sudo apt-get update -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null 2>&1 || true
             sudo apt-get update >/dev/null 2>&1 || true
           }

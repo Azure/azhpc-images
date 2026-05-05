@@ -86,6 +86,7 @@ build {
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
+      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }

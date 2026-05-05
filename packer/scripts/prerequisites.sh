@@ -101,6 +101,11 @@ install_ubuntu_gb200_kernel() {
     
     apt-get update
     apt-get install -y linux-azure-nvidia
+
+    # Hold kernel version when not building Lustre from source
+    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        apt-mark hold linux-azure-nvidia
+    fi
     
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
@@ -126,6 +131,11 @@ install_ubuntu_gb200_kernel() {
     done
     
     # Configure GRUB for GB200
+    # Set GRUB saved default when not building Lustre from source
+    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
+    fi
+
     # Add GB200-specific kernel parameters
     sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     
@@ -159,6 +169,11 @@ install_ubuntu_lts_kernel() {
     sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf || true
     
     export NEEDRESTART_MODE=a
+
+    # Configure GRUB for saved default when not building Lustre from source
+    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
+    fi
     
     case "${version}" in
         24.04)
@@ -193,6 +208,14 @@ install_ubuntu_lts_kernel() {
 
             apt autoremove -y
             apt upgrade -y
+
+            # Hold kernel and set GRUB default when not building Lustre from source
+            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+                apt-mark hold linux-azure-${kernel_ver}
+                local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
+                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
+                update-grub
+            fi
             ;;
             
         22.04)
@@ -207,6 +230,14 @@ install_ubuntu_lts_kernel() {
                 "linux-modules-6.*" "linux-tools-6.*"
             
             apt upgrade -y
+
+            # Hold kernel and set GRUB default when not building Lustre from source
+            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+                apt-mark hold linux-azure-lts-22.04
+                local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
+                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
+                update-grub
+            fi
             ;;
             
         *)

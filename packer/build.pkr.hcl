@@ -282,6 +282,10 @@ build {
     name            = "Install HPC components"
     except          = var.skip_hpc ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "KERNEL_VERSION=${local.kernel_version}",
+      "DEBIAN_FRONTEND=noninteractive",
+    ]
     inline          = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]

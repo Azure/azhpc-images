@@ -153,7 +153,7 @@ if [ "$GPU" = "NVIDIA" ]; then
     mkdir -p /etc/systemd/system/openibd.service.d
     cat <<EOF >/etc/systemd/system/openibd.service.d/10-nvidia-peermem.conf
 [Service]
-ExecStartPost=/bin/sh -c 'if /usr/sbin/modinfo nvidia_peermem >/dev/null 2>&1; then /usr/sbin/modprobe nvidia-peermem && /usr/bin/test -d /sys/module/nvidia_peermem; fi'
+ExecStartPost=-/bin/sh -c 'if /usr/sbin/modinfo nvidia_peermem >/dev/null 2>&1; then /usr/sbin/modprobe nvidia-peermem && /usr/bin/test -d /sys/module/nvidia_peermem; fi'
 EOF
 fi
 

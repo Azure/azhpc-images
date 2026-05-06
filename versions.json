@@ -308,13 +308,6 @@
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
-        "ubuntu26.04": {
-            "x86_64": {
-                "version": "4.1",
-                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
-                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
-            }
-        },
         "rocky9.7": {
             "x86_64": {
                 "version": "4.0",
@@ -883,6 +876,11 @@
                 "version": "1:4.5.2-1"
             }
         },
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "1:4.5.2-1"
+            }
+        },
         "azurelinux3.0": {
             "x86_64": {
                 "version": "4.5.2"
@@ -1032,6 +1030,13 @@
             "x86_64": {
                 "version": "2.0.8",
                 "sha256": "5f2e0947ba750a02cb7d4323ed8d0eb2c83c3df33674b6e14f6fa72f88cf267f"
+            }
+        },
+        "ubuntu26.04": {
+            "_comment": "PMC ubuntu/26.04/prod does not yet ship the aznfs apt package (verified Apr 2026); fall back to the upstream installer from the AZNFS-mount GitHub release. Once PMC publishes aznfs for resolute, the install_aznfs.sh U26 branch can be removed.",
+            "x86_64": {
+                "version": "2.0.12",
+                "sha256": "5ad0f1986c4d211d2bd9626b2f246fbcd556c1fb0ca7be346adf660076c49210"
             }
         }
     },

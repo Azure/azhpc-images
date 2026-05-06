@@ -28,7 +28,14 @@ HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 download_and_verify ${HPCX_DOWNLOAD_URL} ${HPCX_SHA256}
 tar -xvf ${TARBALL}
 
-sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
+# The HPC-X tarball ships pkg-config files (.pc) with their internal build
+# location hardcoded as `hpcx_home=/build-result/<HPCX_FOLDER>`. We install
+# HPC-X under /opt/<HPCX_FOLDER>, so any consumer that reads those .pc files
+# (Open MPI's standalone configure resolves --with-ucx=<path> via pkg-config,
+# for example) ends up with non-existent -I/build-result/... include paths
+# and fails with "UCX support requested but not found". Rewrite every .pc
+# file to point at /opt before moving the tree into place.
+find ${HPCX_FOLDER} -type f -name '*.pc' -exec sed -i "s|/build-result/|/opt/|g" {} +
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
 HCOLL_PATH=${HPCX_PATH}/hcoll
@@ -53,9 +60,19 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DIS
 fi
 
 # Install MVAPICH
-# Skip on GB-family nodes (ubuntu24.04 and azurelinux3.0) — MVAPICH is not supported
-# on those distribution/SKU-family combinations.
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
+# Skips:
+#   * GB-family nodes (ubuntu24.04 and azurelinux3.0) — MVAPICH is not
+#     supported on those distribution/SKU-family combinations.
+#   * Ubuntu 26.04 — MVAPICH 4.1's bundled libfabric does not build with
+#     resolute's gcc 15 (the OPX provider's OPX_COMPILE_TIME_ASSERT macro
+#     parses as a bare `if(0){...}` outside of a function and is rejected),
+#     and its UCR provider uses an old gdrcopy API incompatible with
+#     gdrcopy 2.5.x. Disabling those two providers (--enable-opx=no
+#     --enable-ucr=no) unblocks libfabric, but resolute's gcc 15 then
+#     hangs/OOMs on MVAPICH's collectives source. Skip until MVAPICH
+#     publishes a release that builds cleanly against gcc 15.
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]] && \
+   [[ "${DISTRIBUTION}" != "ubuntu26.04" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -69,7 +86,13 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     # Error exclusive to Ubuntu 22.04
     # configure: error: The Fortran compiler gfortran will not compile files that call
     # the same routine with arguments of different types.
-    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes && make -j$(nproc) && make install
+    # Each step on its own line so set -e catches a configure or make failure
+    # — the original `cmd && cmd && cmd` form only triggered set -e on the
+    # last command, masking earlier breakage on new distros (caught when
+    # adding ubuntu26.04 support).
+    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes
+    make -j$(nproc)
+    make install
     popd
     write_component_version "MVAPICH" ${MVAPICH_VERSION}
 fi
@@ -141,8 +164,9 @@ conflict        mpi
 module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
 EOF
 
-# MVAPICH
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
+# MVAPICH (skipped on the same distros/SKU combos as the build above)
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]] && \
+   [[ "${DISTRIBUTION}" != "ubuntu26.04" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #

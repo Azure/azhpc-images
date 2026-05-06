@@ -57,13 +57,10 @@ $COMPONENT_DIR/install_doca.sh
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
-# install_mpis.sh rebuilds HPC-X (UCX/HCOLL) which expects DOCA-OFED user-space libs.
-# Run as best-effort so a missing/incompatible DOCA stack doesn't fail the whole build.
-$COMPONENT_DIR/install_mpis.sh || echo "##[warning]install_mpis.sh failed on Ubuntu 26.04 (likely due to skipped DOCA-OFED); continuing."
+$COMPONENT_DIR/install_mpis.sh
 
 # install mpifileutils
-# mpifileutils builds against the HPC-X module that install_mpis sets up. Skip on failure.
-$COMPONENT_DIR/install_mpifileutils.sh || echo "##[warning]install_mpifileutils.sh failed on Ubuntu 26.04; continuing."
+$COMPONENT_DIR/install_mpifileutils.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver

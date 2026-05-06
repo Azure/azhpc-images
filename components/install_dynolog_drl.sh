@@ -83,6 +83,7 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     popd
     rm -rf /tmp/dynolog
 
+    ldconfig
     DCGM_LIB=$(ldconfig -p | awk '/libdcgm\.so(\.[0-9]+)* / {print $NF; exit}')
     [[ -z "$DCGM_LIB" ]] && { echo "FATAL: libdcgm.so not found"; exit 1; }
 

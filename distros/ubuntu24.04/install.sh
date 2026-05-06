@@ -46,14 +46,26 @@ ENVEOF
     echo 'kernel.core_pattern=/var/crash/%e_%p_%t.dmp' | sudo tee -a /etc/sysctl.d/90-maia-coredump.conf
     sudo mkdir -p /var/crash
 
-    # 5. Device node creation service
+    # 5. Device node creation service (Issue 1 fix: skip dummy nodes when real driver devices exist)
     echo "##[section]Installing MAIA device node service"
     cat <<'DEVEOF' | sudo tee /usr/local/bin/create_maia_devices.sh
 #!/bin/bash
-NUM_DEVICES=${NUM_APU_DEVICES:-8}
+# Creates placeholder /dev/apu* and /dev/maianexus* device nodes only for slots
+# not already occupied by real driver-created devices (major != 1).
+# This prevents dummy nodes (major 1 = /dev/null) from shadowing hardware devices,
+# which causes libapu IOCTL -ENOTTY failures on every maia-smi invocation.
+NUM_DEVICES="${NUM_APU_DEVICES:-8}"
 for i in $(seq 0 $((NUM_DEVICES - 1))); do
-    [ -e /dev/apu${i} ] || mknod -m 0666 /dev/apu${i} c 1 3
-    [ -e /dev/maianexus${i} ] || mknod -m 0666 /dev/maianexus${i} c 1 3
+    for prefix in apu maianexus; do
+        DEV="/dev/${prefix}${i}"
+        if [ ! -e "$DEV" ]; then
+            # Only create a dummy if no real (non-null) devices exist for this prefix
+            REAL_COUNT=$(ls -la /dev/${prefix}[0-9]* 2>/dev/null | awk '$5 != "1," {count++} END {print count+0}')
+            if [ "$REAL_COUNT" -eq 0 ]; then
+                mknod -m 0666 "$DEV" c 1 3
+            fi
+        fi
+    done
 done
 DEVEOF
     sudo chmod +x /usr/local/bin/create_maia_devices.sh
@@ -61,7 +73,7 @@ DEVEOF
     cat <<'SVCEOF' | sudo tee /etc/systemd/system/maia-devices.service
 [Unit]
 Description=Create MAIA APU and MaiaNexus Device Nodes
-After=network.target
+After=maia-driver-dma.service
 
 [Service]
 Type=oneshot
@@ -71,7 +83,36 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 SVCEOF
+
+    # 5b. apupci driver DMA service (Issue 3 fix: load driver with dma_mem when memmap= is in cmdline)
+    # The default boot loads apupci.ko via modprobe without dma_mem, so /dev/apu-dma-mem is never created
+    # even though GRUB reserves 256GB DMA memory (memmap=256G$90G).
+    # This service re-loads the driver using loaddriver.sh dma_mem which checks /proc/cmdline internally.
+    echo "##[section]Installing MAIA apupci DMA driver service"
+    cat <<'DMAEOF' | sudo tee /etc/systemd/system/maia-driver-dma.service
+[Unit]
+Description=Load apupci driver with DMA reserved memory enabled
+# Run after the module is first auto-loaded by the kernel, so we can rmmod+reload
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c '\
+    LOADDRIVER=/opt/maia/drivers/vfdriver/release/driver/loaddriver.sh; \
+    if [ ! -x "$LOADDRIVER" ]; then \
+        echo "maia-driver-dma: loaddriver.sh not found at $LOADDRIVER, skipping"; \
+        exit 0; \
+    fi; \
+    rmmod apupci 2>/dev/null || true; \
+    "$LOADDRIVER" dma_mem'
+
+[Install]
+WantedBy=multi-user.target
+DMAEOF
+
     sudo systemctl daemon-reload
+    sudo systemctl enable maia-driver-dma.service
     sudo systemctl enable maia-devices.service
 
     # 6. Create MCCL log directory

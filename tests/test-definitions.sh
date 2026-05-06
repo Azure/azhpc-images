@@ -389,7 +389,7 @@ function verify_pssh_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
         almalinux|rocky|rhel) dnf list installed | grep pssh;;
-        azurelinux) tdnf list installed | grep pssh;;
+        azurelinux) sudo tdnf list installed | grep pssh;;
         * ) ;;
     esac
     check_exit_code "PSSH Installed" "PSSH not installed!"
@@ -405,7 +405,7 @@ function verify_dcgm_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
         almalinux|rocky|rhel) dnf list installed | grep datacenter-gpu-manager;;
-        azurelinux) tdnf list installed | grep datacenter-gpu-manager;;
+        azurelinux) sudo tdnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac
     check_exit_code "DCGM Installed" "DCGM not installed!"

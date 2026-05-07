@@ -20,6 +20,8 @@ fi
 if [[ "$GPU" == "MAIA" ]]; then
     echo "##[section]Applying MAIA200 VM configurations"
 
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip
+
     # 1. GRUB: DMA memory reservation for MAIA accelerator
     echo "##[section]Configuring GRUB memmap for MAIA200"
     sudo mkdir -p /etc/default/grub.d

@@ -110,7 +110,8 @@ ExecStart=/bin/bash -c '\
         exit 0; \
     fi; \
     rmmod apupci 2>/dev/null || true; \
-    "$LOADDRIVER" dma_mem'
+    "$LOADDRIVER" dma_mem; \
+    udevadm settle --timeout=30 || true'
 
 [Install]
 WantedBy=multi-user.target

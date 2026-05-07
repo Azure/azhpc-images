@@ -121,6 +121,20 @@ DMAEOF
     sudo systemctl enable maia-driver-dma.service
     sudo systemctl enable maia-devices.service
 
+    # 5c. Mask maia-guest-agent so the systemd copy never starts on the VM.
+    # Requirement: only the Kubernetes containerised maia-guest-agent runs
+    # (see hpc-image-val2/maia/kubernetes/values-mga.yaml).  The systemd
+    # service is installed by the MAIA SDK package (install_dependencies.sh)
+    # but must stay disabled — otherwise it grabs port 9019 before the K8s
+    # MGA pod can bind, and its startup probe fails.
+    # Masking with /dev/null prevents `systemctl enable` and `start` from
+    # working even if a later install step tries to re-enable it.
+    echo "##[section]Masking systemd maia-guest-agent (must only run inside K8s)"
+    sudo systemctl stop maia-guest-agent 2>/dev/null || true
+    sudo systemctl disable maia-guest-agent 2>/dev/null || true
+    sudo ln -sf /dev/null /etc/systemd/system/maia-guest-agent.service
+    sudo systemctl daemon-reload
+
     # 6. Create MCCL log directory
     sudo mkdir -p /opt/maia/logs/mccl
     sudo chmod 777 /opt/maia/logs/mccl

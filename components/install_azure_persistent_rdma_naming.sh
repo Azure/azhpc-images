@@ -37,7 +37,27 @@ rdma_rename=/usr/sbin/rdma_rename_${RDMA_CORE_VERSION}
 an_index=0
 ib_index=0
 
-for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
+# Enumerate IB/RoCE devices directly from sysfs so this works on distros where
+# the Mellanox/DOCA-OFED \`ibdev2netdev\` helper is not installed (e.g. Ubuntu
+# 26.04, which uses inbox rdma-core + infiniband-diags only).
+shopt -s nullglob
+ib_devices=( /sys/class/infiniband/* )
+shopt -u nullglob
+
+# Skip already-renamed devices so the loop is idempotent across reboots.
+filtered=()
+for ibpath in "\${ib_devices[@]}"; do
+	dev=\$(basename "\$ibpath")
+	case "\$dev" in
+		mlx5_ib*|mlx5_an*) continue ;;
+	esac
+	filtered+=( "\$dev" )
+done
+
+# Natural sort so mlx5_0..mlx5_9..mlx5_10 come out in the expected order.
+mapfile -t sorted_devs < <(printf '%s\n' "\${filtered[@]}" | sort -V)
+
+for old_device in "\${sorted_devs[@]}"; do
 
 	link_layer=\$(ibv_devinfo -d \$old_device | sed -n 's/^[\ \t]*link_layer:[\ \t]*\([a-zA-Z]*\)\$/\1/p')
 	
@@ -53,7 +73,7 @@ for old_device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
 		
 	else
 	
-		echo "Unknown device type for \$old_device - \$device_type."
+		echo "Unknown device type for \$old_device."
 		
 	fi
 	
@@ -64,7 +84,8 @@ chmod 755 /usr/sbin/azure_persistent_rdma_naming.sh
 cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming.service
 [Unit]
 Description=Azure persistent RDMA naming
-After=network.target
+After=network.target systemd-udev-settle.service
+Wants=systemd-udev-settle.service
 
 [Service]
 Type=oneshot

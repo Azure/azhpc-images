@@ -10,23 +10,31 @@ cat <<EOF >/usr/sbin/azure_persistent_rdma_naming_monitor.sh
 
 # monitoring service to check that hca_id's are named correctly
 # if incorrect, restart azure_persistent_rdma_naming.service
+#
+# Devices are enumerated directly from sysfs so this works on distros without
+# the Mellanox/DOCA-OFED \`ibdev2netdev\` helper (e.g. Ubuntu 26.04 inbox
+# rdma-core).
 
-while true; do 
+while true; do
 
-    for device in \$(ibdev2netdev -v | sort -n | cut -f2 -d' '); do
-        
-        link_layer=\$(ibv_devinfo -d \$device | sed -n 's/^[\ \t]*link_layer:[\ \t]*\([a-zA-Z]*\)\$/\1/p')
+    shopt -s nullglob
+    ib_devices=( /sys/class/infiniband/* )
+    shopt -u nullglob
 
-        if [[ \$device != *"an"* && \$device != *"ib"* ]]; then 
+    for ibpath in "\${ib_devices[@]}"; do
+
+        device=\$(basename "\$ibpath")
+
+        if [[ \$device != *"an"* && \$device != *"ib"* ]]; then
             systemctl enable azure_persistent_rdma_naming.service
             systemctl restart azure_persistent_rdma_naming.service
             sleep 60
             break
         fi
-        
+
     done
 
-    sleep 60 
+    sleep 60
 
 done
 EOF
@@ -35,7 +43,8 @@ chmod 755 /usr/sbin/azure_persistent_rdma_naming_monitor.sh
 cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming_monitor.service
 [Unit]
 Description=Azure persistent RDMA naming Monitor
-After=network.target
+After=network.target systemd-udev-settle.service azure_persistent_rdma_naming.service
+Wants=systemd-udev-settle.service
 
 [Service]
 Type=simple

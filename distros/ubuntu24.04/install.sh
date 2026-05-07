@@ -23,7 +23,12 @@ if [[ "$GPU" == "MAIA" ]]; then
     # 1. GRUB: DMA memory reservation for MAIA accelerator
     echo "##[section]Configuring GRUB memmap for MAIA200"
     sudo mkdir -p /etc/default/grub.d
-    echo 'GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX memmap=256G\$90G"' | sudo tee /etc/default/grub.d/90-maia.cfg
+    # Three layers of escaping are required:
+    # 1. Single quotes here → file gets: memmap=256G\\\$90G  (literal backslashes + dollar)
+    # 2. bash sources the file → \\\$90G in double-quotes → \$90G  (backslash + literal $)
+    # 3. GRUB shell parses grub.cfg  → \$90G → $90G  (literal $ passed to kernel)
+    # Without this, GRUB expands $90G as an empty variable → kernel sees 256GG (wrong).
+    echo 'GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX memmap=256G\\\$90G"' | sudo tee /etc/default/grub.d/90-maia.cfg
     sudo update-grub
 
     # 2. Disable unattended upgrades (drivers are kernel-version-specific)

@@ -202,7 +202,7 @@ install_ubuntu_lts_kernel() {
             # kernel trigger after reboot.
             local dkms_hook="/etc/kernel/header_postinst.d/dkms"
             local dkms_hook_disabled=false
-            if [[ -f "${dkms_hook}" ]] && dkms status 2>/dev/null | grep -q "mlnx-ofed-kernel"; then
+            if [[ -x "${dkms_hook}" ]] && [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
                 echo "##[section]Temporarily disabling DKMS header hook (OFED modules detected)"
                 chmod -x "${dkms_hook}"
                 dkms_hook_disabled=true

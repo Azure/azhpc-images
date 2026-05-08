@@ -186,6 +186,15 @@ build {
   }
 
   provisioner "shell" {
+    name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
+    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline          = [
+      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+    ]
+  }
+
+  provisioner "shell" {
     name           = "Add image version to component_versions.txt"
     inline_shebang = var.default_inline_shebang
     inline = [

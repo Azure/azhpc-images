@@ -35,6 +35,14 @@ function ver {
 
 # verify OFED installation
 function verify_ofed_installation {
+    # Ubuntu 26.04 uses Canonical's `doca-ofed-26.01-dkms` (universe), which
+    # ships the kernel-side DOCA-OFED stack but not NVIDIA's proprietary
+    # `ofed_info` userspace tool. Verify via dpkg-query instead.
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" || "$DISTRIBUTION" == "ubuntu26.04-aks" ]]; then
+        dpkg-query -W -f='${Status} ${Version}\n' doca-ofed-26.01-dkms 2>/dev/null | grep -q "^install ok installed "
+        check_exit_code "DOCA-OFED installed (${VERSION_OFED})" "DOCA-OFED not installed"
+        return
+    fi
     # verify OFED installation
     ofed_info | grep ${VERSION_OFED}
     check_exit_code "OFED installed" "OFED not installed"
@@ -119,13 +127,8 @@ function verify_nvidia_driver_installation {
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
 
     # Verify if NVIDIA peer memory module is inserted.
-    # Skipped on Ubuntu 26.04: the build intentionally doesn't load
-    # nvidia-peermem there (no DOCA-OFED kmod -> legacy ib_peer_mem API
-    # absent; GPUDirect RDMA uses the dma-buf path instead).
-    if [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]; then
-        lsmod | grep nvidia_peermem
-        check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
-    fi
+    lsmod | grep nvidia_peermem
+    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
 
     if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled

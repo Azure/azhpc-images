@@ -3,32 +3,106 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-# Ubuntu 26.04 (Resolute Raccoon): skip DOCA-OFED kmod installation entirely.
-# Instead, install the upstream rdma-core userspace tools (ibstat, ibv_devinfo,
-# ibdev2netdev, etc.) from Ubuntu universe so the rest of the build pipeline
-# (HPC-X inbox build, persistent-rdma-naming, IB sanity checks) has the
-# binaries it expects. Kernel-side IB modules are provided by linux-azure.
+# Ubuntu 26.04 (Resolute Raccoon): NVIDIA's official DOCA-Host .deb is not
+# yet published for kernel 7.0 / Ubuntu resolute, but Canonical ships the
+# DOCA-OFED kernel-module source in their universe repo as
+# `doca-ofed-26.01-dkms`. That package provides the same MLNX-patched
+# ib_core/ib_uverbs/mlx5_ib that nvidia-peermem requires for line-rate
+# GDR; functionally it's equivalent to running `mlnxofedinstall
+# --kernel-only` from NVIDIA's tarball on older Ubuntu releases.
 #
-# Note: The Mellanox/NVIDIA-proprietary `ofed_info` tool is NOT shipped by
-# Ubuntu, so OFED-version-string-based checks remain skipped on 26.04.
+# Differences from the older Ubuntu flow that this branch handles:
+#   * No DOCA-Host meta-package yet      -> use Canonical universe DKMS source
+#   * No userspace `doca-ofed` package   -> rdma-core / ibverbs-utils etc.
+#                                            from Ubuntu universe
+#   * No openibd service from Canonical  -> not needed: depmod pre-resolves
+#     every IB module name to /lib/modules/$(uname -r)/updates/dkms/
+#     (DKMS path wins over the inbox kernel/drivers/infiniband/ path), and
+#     the customer VM's first boot loads the DOCA-OFED stack via PCI probe.
+#
+# One side step is required: NVIDIA's GPU-driver DKMS conftest looks for
+# the peer_mem framework symbols in /usr/src/ofa_kernel/default/Module.symvers.
+# Canonical's doca-ofed-26.01-dkms `dkms.conf` does not run the upstream
+# post-build hook that lays down that symvers tree, so we generate it
+# ourselves here. Without this step nvidia-peermem.ko gets built as a
+# stub (NV_MLNX_IB_PEER_MEM_SYMBOLS_PRESENT undefined) and modprobe
+# returns EINVAL.
 if [[ "${DISTRIBUTION}" == "ubuntu26.04" ]]; then
-    echo "##[warning]install_doca.sh: skipping DOCA-OFED kmod installation on Ubuntu 26.04 (using inbox HPC-X + rdma-core userspace)."
-
     if command -v add-apt-repository >/dev/null 2>&1; then
         add-apt-repository -y universe || true
     fi
     apt-get update
 
-    # Userspace IB/RDMA tools from Ubuntu universe (all confirmed published for
-    # resolute as of Apr 2026; no DOCA-Host equivalent on 26.04).
+    # 1. Install the DKMS source package only. The dkms post-install
+    #    trigger builds ib_core / ib_uverbs / mlx5_ib / etc. into
+    #    /lib/modules/$(uname -r)/updates/dkms/ and re-runs depmod and
+    #    update-initramfs.
+    #
+    #    Do NOT install the prebuilt `linux-modules-doca-ofed-26.01-azure`:
+    #    its modules and a fresh DKMS rebuild produce different symbol
+    #    CRCs (built in different environments), and mixing them causes
+    #    nvidia-peermem to fail loading with
+    #    "disagrees about version of symbol ib_register_peer_memory_client".
+    apt-get install -y --no-install-recommends doca-ofed-26.01-dkms
+
+    # 2. Userspace IB/RDMA tools from Ubuntu universe (Canonical does not
+    #    yet ship a userspace `doca-ofed` for resolute). These give us
+    #    ibstat, ibv_devinfo, ibdev2netdev, perftest etc. that the rest of
+    #    the pipeline (HPC-X build, persistent-rdma-naming, NHC checks)
+    #    expects.
     apt-get install -y --no-install-recommends \
-        rdma-core ibverbs-utils ibverbs-providers infiniband-diags \
+        rdma-core ibverbs-utils ibverbs-providers infiniband-diags perftest \
         libibverbs-dev libibumad-dev librdmacm-dev libibmad-dev
 
-    # Record placeholder component versions so write_component_version's downstream
-    # consumers don't choke on missing keys.
-    write_component_version "DOCA" "skipped-ubuntu26.04"
-    write_component_version "OFED" "inbox-rdma-core"
+    # 3. Generate Module.symvers and place it where NVIDIA's conftest looks.
+    DOCA_DKMS_SRC=$(ls -1d /usr/src/doca-ofed-26.01-dkms-* 2>/dev/null | head -1)
+    if [[ -z "${DOCA_DKMS_SRC}" ]]; then
+        echo "##[error]install_doca.sh: doca-ofed-26.01-dkms source tree not found under /usr/src" >&2
+        exit 1
+    fi
+
+    DOCA_BUILD_TMP=$(mktemp -d)
+    cp -a "${DOCA_DKMS_SRC}/." "${DOCA_BUILD_TMP}/"
+    (
+        cd "${DOCA_BUILD_TMP}/mlnx-ofed-kernel"
+        ./configure \
+            --kernel-version="$(uname -r)" \
+            --kernel-sources="/lib/modules/$(uname -r)/build" \
+            --with-core-mod \
+            --with-user_mad-mod \
+            --with-user_access-mod \
+            --with-addr_trans-mod \
+            --with-mlx5-mod \
+            --with-mlxfw-mod \
+            --with-ipoib-mod
+        make -j"$(nproc)"
+    )
+
+    OFA_DST=/usr/src/ofa_kernel-dkms/default
+    mkdir -p "${OFA_DST}"
+    cp -ar "${DOCA_BUILD_TMP}/mlnx-ofed-kernel/include"        "${OFA_DST}/"
+    cp -ar "${DOCA_BUILD_TMP}/mlnx-ofed-kernel"/config*        "${OFA_DST}/"
+    cp -ar "${DOCA_BUILD_TMP}/mlnx-ofed-kernel"/compat*        "${OFA_DST}/"
+    cp -ar "${DOCA_BUILD_TMP}/mlnx-ofed-kernel"/ofed_scripts   "${OFA_DST}/"
+    cp -a  "${DOCA_BUILD_TMP}/mlnx-ofed-kernel"/Module.symvers "${OFA_DST}/"
+
+    mkdir -p /usr/src/ofa_kernel
+    update-alternatives --install \
+        /usr/src/ofa_kernel/default ofa_kernel_headers "${OFA_DST}" 17
+
+    # Sanity check: peer_mem and dmabuf framework symbols must be visible
+    # to NVIDIA's conftest, otherwise nvidia-peermem.ko ships as a stub.
+    if ! grep -q 'ib_register_peer_memory_client' "${OFA_DST}/Module.symvers" \
+       || ! grep -q 'ib_umem_dmabuf_get_pinned'   "${OFA_DST}/Module.symvers"; then
+        echo "##[error]install_doca.sh: peer_mem / dmabuf exports missing from generated Module.symvers" >&2
+        exit 1
+    fi
+
+    rm -rf "${DOCA_BUILD_TMP}"
+
+    DOCA_OFED_VERSION=$(dpkg-query -W -f='${Version}' doca-ofed-26.01-dkms 2>/dev/null || echo "unknown")
+    write_component_version "DOCA" "26.01-canonical"
+    write_component_version "OFED" "${DOCA_OFED_VERSION}"
 
     exit 0
 fi

@@ -39,7 +39,8 @@ ib_index=0
 
 # Enumerate IB/RoCE devices directly from sysfs so this works on distros where
 # the Mellanox/DOCA-OFED \`ibdev2netdev\` helper is not installed (e.g. Ubuntu
-# 26.04, which uses inbox rdma-core + infiniband-diags only).
+# 26.04, where Canonical's doca-ofed-26.01-dkms ships only kernel modules and
+# we rely on inbox rdma-core + infiniband-diags userspace).
 shopt -s nullglob
 ib_devices=( /sys/class/infiniband/* )
 shopt -u nullglob

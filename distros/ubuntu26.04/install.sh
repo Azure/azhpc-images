@@ -44,10 +44,12 @@ fi
 echo "##[warning]Skipping Lustre client install on Ubuntu 26.04 (no AMLFS packages for this kernel/distro yet)."
 
 # install DOCA OFED
-# On Ubuntu 26.04 install_doca.sh skips the DOCA-OFED kernel-module install
-# (no NVIDIA-published DOCA-Host package yet, and the Ubuntu universe
-# `doca-ofed-26.01-dkms` path was deferred too). It still installs upstream
-# rdma-core userspace tools so HPC-X (inbox build) and IB diagnostics work.
+# On Ubuntu 26.04 install_doca.sh installs Canonical's `doca-ofed-26.01-dkms`
+# (NVIDIA's DOCA-Host .deb is not yet published for kernel 7.0 / resolute) plus
+# rdma-core userspace from Ubuntu universe. Must run BEFORE
+# install_nvidiagpudriver.sh so NVIDIA's DKMS conftest can detect the peer_mem
+# framework symbols at /usr/src/ofa_kernel/default/Module.symvers and build a
+# real (non-stub) nvidia-peermem.ko.
 $COMPONENT_DIR/install_doca.sh
 
 # install PMIX
@@ -126,9 +128,7 @@ rm -Rf -- */
 $COMPONENT_DIR/hpc-tuning.sh
 
 # install persistent rdma naming
-# This service relies on ibdev2netdev / ibv_devinfo from DOCA-OFED user-space tools.
-# Run as best-effort on Ubuntu 26.04 since DOCA-OFED is skipped.
-$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh || echo "##[warning]install_azure_persistent_rdma_naming.sh failed on Ubuntu 26.04 (DOCA-OFED skipped); continuing."
+$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
 
 if [[ "$SKU" != "GB200" ]]; then
 

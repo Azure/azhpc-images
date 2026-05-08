@@ -64,17 +64,9 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
     # load the nvidia-peermem coming as a part of NVIDIA GPU driver
-    # Skipped on Ubuntu 26.04: nvidia-peermem requires the legacy
-    # ib_register_peer_memory_client() symbol exported by MLNX/DOCA-OFED's
-    # patched ib_core. The 26.04 build deliberately doesn't install
-    # DOCA-OFED kernel modules (no DOCA-Host package for kernel 7.0 yet),
-    # so the load returns EINVAL. GPUDirect RDMA on inbox kernels uses the
-    # dma-buf path instead, which doesn't need this module.
-    if [[ "$DISTRIBUTION" != "ubuntu26.04" ]]; then
-        modprobe nvidia-peermem
-        # verify if loaded
-        lsmod | grep nvidia_peermem
-    fi
+    modprobe nvidia-peermem
+    # verify if loaded
+    lsmod | grep nvidia_peermem
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL - .run file installation
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
@@ -101,12 +93,8 @@ else
 fi
 write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 
-# Skipped on Ubuntu 26.04: see nvidia-peermem skip above. Without DOCA-OFED's
-# patched ib_core the module can't load, so don't queue it for boot either.
-if [[ "$DISTRIBUTION" != "ubuntu26.04" ]]; then
-    touch /etc/modules-load.d/nvidia-peermem.conf
-    echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
-fi
+touch /etc/modules-load.d/nvidia-peermem.conf
+echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
 if [[ "$DISTRIBUTION" != *-aks ]]; then
     # Install CUDA toolkit

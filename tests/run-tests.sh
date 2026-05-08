@@ -72,22 +72,6 @@ function verify_common_components {
         verify_package_updates;
     fi
 
-    # Best-effort: Ubuntu 26.04 currently builds without DOCA-OFED, so OFED/IB
-    # and the MPI stacks that link against DOCA libs aren't expected to work.
-    # Skip those common verifications until DOCA-Host ships a 26.04 package.
-    if [[ "$DISTRIBUTION" == "ubuntu26.04" || "$DISTRIBUTION" == "ubuntu26.04-aks" ]]; then
-        echo "##[warning]Skipping OFED/IB/HPC-X/MVAPICH/MKL common verifications on $DISTRIBUTION (DOCA-OFED not installed)."
-        if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
-        verify_gcc_installation;
-        verify_azcopy_installation;
-        verify_pssh_installation;
-        if [[ "$VMSIZE" != "standard_nd128isr_ndr_gb200_v6" && "$VMSIZE" != "standard_nd128isr_gb300_v6" ]]; then
-            verify_hpcdiag_installation;
-            verify_aznfs_installation;
-        fi
-        return
-    fi
-
     verify_ofed_installation;
     verify_ib_device_status;
     verify_ib_modules_and_devices;
@@ -98,7 +82,11 @@ function verify_common_components {
     verify_ompi_installation;
     verify_pssh_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
-        verify_mvapich2_installation;
+        # MVAPICH is intentionally not built on Ubuntu 26.04 (libfabric +
+        # MVAPICH 4.1 don't compile on resolute's gcc 15; see install_mpis.sh).
+        if [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]; then
+            verify_mvapich2_installation;
+        fi
         verify_mkl_installation;
         verify_hpcdiag_installation;
         verify_aznfs_installation;

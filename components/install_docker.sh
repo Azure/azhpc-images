@@ -5,9 +5,17 @@ source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine and CLI
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt-get install -y moby-engine
-    apt-get install -y moby-cli
-    apt-get install -y moby-buildx
+    if [[ "$ARCHITECTURE" == "aarch64" && "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+        # Baremetal aarch64: pin to a specific moby version from the baremetal package repo.
+        moby_metadata=$(get_component_config "moby")
+        MOBY_VERSION=$(jq -r '.version' <<< $moby_metadata)
+        apt-get install -y moby-engine=${MOBY_VERSION}
+        apt-get install -y moby-cli=${MOBY_VERSION}
+    else
+        apt-get install -y moby-engine
+        apt-get install -y moby-cli
+        apt-get install -y moby-buildx
+    fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
@@ -25,12 +33,13 @@ $COMPONENT_DIR/install_nvidia_container_toolkit.sh
 systemctl enable docker
 systemctl restart docker
 
-# restart containerd service
+# restart containerd service and wait for socket to be ready
 systemctl restart containerd
-
-# wait for containerd socket to be ready, recheck every second up to 30s
 for i in $(seq 1 30); do
-    [ -S /run/containerd/containerd.sock ] && break
+    if [ -S /run/containerd/containerd.sock ]; then
+        break
+    fi
+    echo "Waiting for containerd socket... ($i/30)"
     sleep 1
 done
 

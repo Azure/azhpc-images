@@ -124,9 +124,9 @@ build {
     except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
-        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
         "mkdir -p ${path.root}/../prebuilt",
-        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages.tar.gz -C ${path.root}/../prebuilt --strip-components=1"
+        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }
 
@@ -186,6 +186,15 @@ build {
     pause_after       = "5m"
     inline            = [
       "(sleep 5; sudo shutdown -r now) &"
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
+    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline          = [
+      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
 

@@ -20,6 +20,10 @@ set -euo pipefail
 # Idempotent: only builds modules that aren't already present for the current
 # kernel.  Tolerates per-module failures so a problem in one module doesn't
 # block the others.
+#
+# This script does NOT restart openibd; the calling pipeline is responsible
+# for rebooting afterwards so the system comes up cleanly with the new OFED
+# modules in place.
 # =============================================================================
 
 if ! command -v dkms &>/dev/null; then
@@ -66,19 +70,17 @@ done
 # Single depmod pass so any newly-installed modules are discoverable.
 depmod -a "${KVER}" || true
 
-# Restart openibd so it picks up the freshly-built modules.  This may legitimately
-# fail if mlnx-ofed-kernel itself didn't build, in which case downstream tests
-# will surface the real problem.
-if systemctl list-unit-files openibd.service &>/dev/null; then
-    echo "[refresh_ofed_dkms] Restarting openibd"
-    systemctl reset-failed openibd.service 2>/dev/null || true
-    systemctl restart openibd.service || \
-        echo "##[warning][refresh_ofed_dkms] openibd restart returned non-zero"
-fi
+# NOTE: We deliberately do NOT restart openibd here.  Live-restarting openibd
+# unloads mlx5_core and detaches the Azure SR-IOV IB VFs.  When the VFs come
+# back via VMBus hotplug, the freshly-swapped OFED ib_ipoib does not reliably
+# (re)create the ib0..ib7 IPoIB netdevs, leaving the system with LinkUp ports
+# but no usable netdevs.  Instead, the build pipeline reboots after this
+# script runs so the kernel comes up cleanly with the new OFED modules from
+# the start (equivalent to a normal install path).
 
 if (( rebuild_failed )); then
     echo "##[warning][refresh_ofed_dkms] One or more OFED DKMS modules failed to build"
 fi
 
-echo "[refresh_ofed_dkms] Done"
+echo "[refresh_ofed_dkms] Done (reboot required to activate new modules)"
 exit 0

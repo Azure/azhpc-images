@@ -236,17 +236,20 @@ install_ubuntu_lts_kernel() {
                 # Because we suppressed the kernel postinst.d/dkms hook above,
                 # DKMS modules were never (re)built for the new kernel during
                 # the package configure step.  After reboot the VM would come
-                # up on the new kernel with no nvidia.ko / mlnx-ofed-kernel /
-                # knem / xpmem / etc. available, breaking nvidia-smi, openibd
-                # and the test runner.
+                # up on the new kernel with no nvidia.ko / knem / xpmem / etc.
+                # available, breaking nvidia-smi and HPC-X.
                 #
-                # Trigger DKMS autoinstall manually for the new kernel so the
-                # modules are present after reboot.  We tolerate failures
-                # because iser/isert depend on mlnx-ofed-kernel symbols but
-                # DKMS processes modules alphabetically, so they fail before
-                # mlnx-ofed-kernel is built.  All other modules (including the
-                # ones we actually need) install successfully, and iser/isert
-                # are rebuilt later by the OFED/DOCA reinstall in install.sh.
+                # Manually rebuild the DKMS modules that MUST match the new
+                # kernel.  We deliberately SKIP the OFED kernel modules
+                # (mlnx-ofed-kernel, iser, isert, srp): rebuilding MOFED for
+                # kernel ${kernel_ver}.X while the system is still running on
+                # ${kernel_ver}.X-2 makes the MOFED pre_build configure probe
+                # the wrong kernel, producing an mlx5_core.ko that overrides
+                # the in-tree driver and then fails to enumerate the Azure
+                # SR-IOV IB VFs after reboot (no devices in lspci).  The
+                # in-tree mlx5_core shipped with linux-modules-${kernel_ver}*
+                # binds to the VFs correctly, and OFED userspace continues to
+                # report the installed OFED version unchanged.
                 local target_kernel
                 target_kernel=$(dpkg-query -W -f='${Version}' "linux-image-azure-${kernel_ver}" 2>/dev/null \
                     | sed -E "s/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1-azure/" | head -n1)
@@ -256,11 +259,38 @@ install_ubuntu_lts_kernel() {
                         | sort -V | tail -n1)
                 fi
                 if [[ -n "${target_kernel}" ]]; then
-                    echo "##[section]Triggering DKMS autoinstall for kernel ${target_kernel}"
-                    dkms autoinstall -k "${target_kernel}" || \
-                        echo "##[warning]dkms autoinstall reported failures (likely iser/isert ordering); continuing"
+                    # Modules that ARE safe (and necessary) to rebuild against
+                    # the new kernel from the running ${kernel_ver}.X-2 kernel.
+                    local -a dkms_rebuild_modules=(
+                        nvidia
+                        gdrdrv
+                        knem
+                        xpmem
+                        kernel-mft-dkms
+                        lustre-client-modules
+                    )
+                    local mod_name mod_dir mod_ver
+                    for mod_name in "${dkms_rebuild_modules[@]}"; do
+                        # /var/lib/dkms/<name>/<version>/source is the canonical layout
+                        mod_dir=$(ls -1d /var/lib/dkms/"${mod_name}"/*/source 2>/dev/null | head -n1 || true)
+                        if [[ -z "${mod_dir}" ]]; then
+                            echo "##[debug]DKMS module ${mod_name} not registered; skipping"
+                            continue
+                        fi
+                        mod_ver=$(basename "$(dirname "${mod_dir}")")
+                        echo "##[section]Building DKMS module ${mod_name}/${mod_ver} for kernel ${target_kernel}"
+                        # Build, install, and tolerate failure for this single
+                        # module so a problem with one (e.g. lustre on a new
+                        # kernel) doesn't stop the others.
+                        if ! dkms install --no-depmod "${mod_name}/${mod_ver}" -k "${target_kernel}" --force; then
+                            echo "##[warning]dkms install failed for ${mod_name}/${mod_ver} on ${target_kernel}; continuing"
+                        fi
+                    done
+                    # Single depmod pass after all modules are in place.
+                    depmod -a "${target_kernel}" || true
+                    echo "##[section]Skipping mlnx-ofed-kernel DKMS rebuild (in-tree mlx5_core will be used after reboot)"
                 else
-                    echo "##[warning]Could not determine target kernel version; skipping DKMS autoinstall"
+                    echo "##[warning]Could not determine target kernel version; skipping DKMS rebuilds"
                 fi
             fi
 

@@ -193,19 +193,29 @@ install_ubuntu_lts_kernel() {
 
             # When DKMS modules are already registered (e.g. refresh builds from a
             # previous HPC image), installing a new kernel triggers DKMS autoinstall
-            # during the header_postinst.d hook.  The OFED iser/isert modules depend
-            # on mlnx-ofed-kernel being built first, but DKMS processes modules
-            # alphabetically, causing iser/isert to fail and dpkg to abort the header
-            # package.  Temporarily disable the DKMS header hook so the kernel
-            # packages install cleanly; DKMS modules will be rebuilt by the
-            # install.sh scripts (DOCA/OFED reinstall) and by the post-install
-            # kernel trigger after reboot.
-            local dkms_hook="/etc/kernel/header_postinst.d/dkms"
-            local dkms_hook_disabled=false
-            if [[ -x "${dkms_hook}" ]] && [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
-                echo "##[section]Temporarily disabling DKMS header hook (OFED modules detected)"
-                chmod -x "${dkms_hook}"
-                dkms_hook_disabled=true
+            # during the kernel postinst hooks.  The OFED iser/isert modules depend
+            # on mlnx-ofed-kernel symbols, but DKMS processes modules alphabetically,
+            # so iser/isert build before mlnx-ofed-kernel and fail.  That makes
+            # `run-parts /etc/kernel/postinst.d` exit non-zero and dpkg aborts the
+            # `linux-image-*-azure` package configure.
+            #
+            # Temporarily disable BOTH kernel DKMS hooks (image and headers) so the
+            # kernel packages install cleanly.  DKMS modules are rebuilt by the
+            # install.sh scripts (DOCA/OFED reinstall) afterwards, and the running
+            # kernel keeps using the existing modules until reboot.
+            local dkms_hooks=(
+                "/etc/kernel/postinst.d/dkms"
+                "/etc/kernel/header_postinst.d/dkms"
+            )
+            local disabled_dkms_hooks=()
+            if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
+                for dkms_hook in "${dkms_hooks[@]}"; do
+                    if [[ -x "${dkms_hook}" ]]; then
+                        echo "##[section]Temporarily disabling DKMS hook ${dkms_hook} (OFED modules detected)"
+                        chmod -x "${dkms_hook}"
+                        disabled_dkms_hooks+=("${dkms_hook}")
+                    fi
+                done
             fi
 
             # Install the versioned kernel meta-package
@@ -216,10 +226,12 @@ install_ubuntu_lts_kernel() {
                 apt install -y linux-modules-extra-azure-${kernel_ver}
             fi
 
-            # Re-enable the DKMS header hook if we disabled it
-            if [[ "${dkms_hook_disabled}" == true ]]; then
-                echo "##[section]Re-enabling DKMS header hook"
-                chmod +x "${dkms_hook}"
+            # Re-enable any DKMS hooks we disabled
+            if (( ${#disabled_dkms_hooks[@]} > 0 )); then
+                for dkms_hook in "${disabled_dkms_hooks[@]}"; do
+                    echo "##[section]Re-enabling DKMS hook ${dkms_hook}"
+                    chmod +x "${dkms_hook}"
+                done
             fi
 
             # Purge non-target kernels

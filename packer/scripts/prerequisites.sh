@@ -232,6 +232,36 @@ install_ubuntu_lts_kernel() {
                     echo "##[section]Re-enabling DKMS hook ${dkms_hook}"
                     chmod +x "${dkms_hook}"
                 done
+
+                # Because we suppressed the kernel postinst.d/dkms hook above,
+                # DKMS modules were never (re)built for the new kernel during
+                # the package configure step.  After reboot the VM would come
+                # up on the new kernel with no nvidia.ko / mlnx-ofed-kernel /
+                # knem / xpmem / etc. available, breaking nvidia-smi, openibd
+                # and the test runner.
+                #
+                # Trigger DKMS autoinstall manually for the new kernel so the
+                # modules are present after reboot.  We tolerate failures
+                # because iser/isert depend on mlnx-ofed-kernel symbols but
+                # DKMS processes modules alphabetically, so they fail before
+                # mlnx-ofed-kernel is built.  All other modules (including the
+                # ones we actually need) install successfully, and iser/isert
+                # are rebuilt later by the OFED/DOCA reinstall in install.sh.
+                local target_kernel
+                target_kernel=$(dpkg-query -W -f='${Version}' "linux-image-azure-${kernel_ver}" 2>/dev/null \
+                    | sed -E "s/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1-azure/" | head -n1)
+                if [[ -z "${target_kernel}" ]]; then
+                    target_kernel=$(ls -1 /lib/modules/ \
+                        | grep -E "^${kernel_ver//./\\.}\.[0-9]+-[0-9]+-azure$" \
+                        | sort -V | tail -n1)
+                fi
+                if [[ -n "${target_kernel}" ]]; then
+                    echo "##[section]Triggering DKMS autoinstall for kernel ${target_kernel}"
+                    dkms autoinstall -k "${target_kernel}" || \
+                        echo "##[warning]dkms autoinstall reported failures (likely iser/isert ordering); continuing"
+                else
+                    echo "##[warning]Could not determine target kernel version; skipping DKMS autoinstall"
+                fi
             fi
 
             # Purge non-target kernels

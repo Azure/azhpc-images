@@ -190,6 +190,15 @@ build {
   }
 
   provisioner "shell" {
+    name            = "(Refresh mode) Rebuild OFED DKMS modules for the running kernel"
+    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline          = [
+      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_ofed_dkms.sh",
+    ]
+  }
+
+  provisioner "shell" {
     name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
     except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"

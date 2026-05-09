@@ -303,17 +303,22 @@ if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
     fi
     write_version "RCCL" "${RCCL_VERSION}"
     
-    # AOCL
+    # AOCL — installed by install_amd_libs.sh, which flattens lib/include into
+    # /opt/amd and carries the version only in the modulefile name.
     AOCL_VERSION=""
-    AOCL_DIR=$(ls -d /opt/AMD/aocl* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${AOCL_DIR}" ]]; then
-        AOCL_VERSION=$(basename "${AOCL_DIR}" | sed 's/^aocl-//' | sed 's/^aocl_//')
+    AOCL_MODULEFILE=$(ls -1 \
+        /usr/share/modules/modulefiles/amd/aocl-* \
+        /usr/share/Modules/modulefiles/amd/aocl-* \
+        2>/dev/null | grep -v '/aocl$' | sort -V | tail -1 || true)
+    if [[ -n "${AOCL_MODULEFILE}" ]]; then
+        AOCL_VERSION=$(basename "${AOCL_MODULEFILE}" | sed 's/^aocl-//')
     fi
     write_version "AOCL" "${AOCL_VERSION}"
-    
-    # AOCC
+
+    # AOCC — installed under /opt/amd/aocc-compiler-<version>/ by
+    # install_amd_libs.sh (INSTALL_PREFIX=/opt/amd, lowercase).
     AOCC_VERSION=""
-    AOCC_DIR=$(ls -d /opt/AMD/aocc-compiler-* 2>/dev/null | sort -V | tail -1 || true)
+    AOCC_DIR=$(ls -d /opt/amd/aocc-compiler-* /opt/AMD/aocc-compiler-* 2>/dev/null | sort -V | tail -1 || true)
     if [[ -n "${AOCC_DIR}" ]]; then
         AOCC_VERSION=$(basename "${AOCC_DIR}" | sed 's/^aocc-compiler-//')
     fi

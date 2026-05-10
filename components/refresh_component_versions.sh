@@ -302,28 +302,43 @@ if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
         RCCL_VERSION=$(basename "${RCCL_DIR}" | sed 's/^rccl-//')
     fi
     write_version "RCCL" "${RCCL_VERSION}"
-    
-    # AOCL — installed by install_amd_libs.sh, which flattens lib/include into
-    # /opt/amd and carries the version only in the modulefile name.
-    AOCL_VERSION=""
-    AOCL_MODULEFILE=$(ls -1 \
-        /usr/share/modules/modulefiles/amd/aocl-* \
-        /usr/share/Modules/modulefiles/amd/aocl-* \
-        2>/dev/null | grep -v '/aocl$' | sort -V | tail -1 || true)
-    if [[ -n "${AOCL_MODULEFILE}" ]]; then
-        AOCL_VERSION=$(basename "${AOCL_MODULEFILE}" | sed 's/^aocl-//')
-    fi
-    write_version "AOCL" "${AOCL_VERSION}"
-
-    # AOCC — installed under /opt/amd/aocc-compiler-<version>/ by
-    # install_amd_libs.sh (INSTALL_PREFIX=/opt/amd, lowercase).
-    AOCC_VERSION=""
-    AOCC_DIR=$(ls -d /opt/amd/aocc-compiler-* /opt/AMD/aocc-compiler-* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${AOCC_DIR}" ]]; then
-        AOCC_VERSION=$(basename "${AOCC_DIR}" | sed 's/^aocc-compiler-//')
-    fi
-    write_version "AOCC" "${AOCC_VERSION}"
 fi
+
+# ---- AMD CPU compilers / libs (installed on x86_64 for BOTH NVIDIA and AMD
+# GPU builds via components/install_amd_libs.sh) ----
+echo "[AMD CPU Libraries]"
+
+# AOCL — install_amd_libs.sh flattens lib/include into /opt/amd; the version
+# is preserved only in the modulefile name (e.g. amd/aocl-5.1.0).
+AOCL_VERSION=""
+AOCL_MODULEFILE=$(ls -1 \
+    /usr/share/modules/modulefiles/amd/aocl-* \
+    /usr/share/Modules/modulefiles/amd/aocl-* \
+    2>/dev/null | grep -v '/aocl$' | sort -V | tail -1 || true)
+if [[ -n "${AOCL_MODULEFILE}" ]]; then
+    AOCL_VERSION=$(basename "${AOCL_MODULEFILE}" | sed 's/^aocl-//')
+fi
+write_version "AOCL" "${AOCL_VERSION}"
+
+# AOCC — install_amd_libs.sh copies the extracted folder to
+# /opt/amd/aocc-compiler-<version>/.  Some legacy images use uppercase
+# /opt/AMD/aocc-compiler-<version>/ (AMD installer default), so check both.
+AOCC_VERSION=""
+AOCC_DIR=$(ls -d /opt/amd/aocc-compiler-* /opt/AMD/aocc-compiler-* 2>/dev/null | sort -V | tail -1 || true)
+if [[ -n "${AOCC_DIR}" ]]; then
+    AOCC_VERSION=$(basename "${AOCC_DIR}" | sed 's/^aocc-compiler-//')
+fi
+# Last-resort fallback: query the installed clang binary that ships with AOCC.
+if [[ -z "${AOCC_VERSION}" ]]; then
+    for clang_bin in /opt/amd/aocc-compiler-*/bin/clang /opt/AMD/aocc-compiler-*/bin/clang; do
+        if [[ -x "${clang_bin}" ]]; then
+            AOCC_VERSION=$("${clang_bin}" --version 2>/dev/null \
+                | sed -nE 's/.*AOCC[_ ]([0-9][0-9.]*).*/\1/p' | head -1 || true)
+            [[ -n "${AOCC_VERSION}" ]] && break
+        fi
+    done
+fi
+write_version "AOCC" "${AOCC_VERSION}"
 
 # ---- Intel MKL ----
 echo "[Intel Libraries]"

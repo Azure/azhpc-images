@@ -64,9 +64,22 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
     # load the nvidia-peermem coming as a part of NVIDIA GPU driver
-    modprobe nvidia-peermem
-    # verify if loaded
-    lsmod | grep nvidia_peermem
+    # Ubuntu 26.04: skip the build-time modprobe. The freshly-built
+    # nvidia-peermem.ko links against MLNX peer_mem exports
+    # (ib_register_peer_memory_client, ib_umem_dmabuf_get_pinned) provided by
+    # the doca-ofed-26.01-dkms ib_core under /lib/modules/$(uname -r)/updates/dkms/.
+    # That module is not loaded into the running build kernel (the inbox
+    # ib_core was auto-loaded at boot for accelerated networking and cannot
+    # be hot-swapped here), so modprobe fails with "Unknown symbol". The
+    # /etc/modules-load.d/nvidia-peermem.conf written below loads it on
+    # first boot, by which time depmod resolves ib_core to the DKMS copy.
+    if . /etc/os-release && [[ "${ID}" == "ubuntu" && "${VERSION_ID}" == "26.04" ]]; then
+        echo "Ubuntu 26.04 detected; deferring nvidia-peermem load to first boot."
+    else
+        modprobe nvidia-peermem
+        # verify if loaded
+        lsmod | grep nvidia_peermem
+    fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL - .run file installation
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)

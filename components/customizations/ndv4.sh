@@ -29,4 +29,3 @@ echo "NVIDIA Fabric Manager is active."
 
 ## load nvidia-peermem module
 modprobe nvidia-peermem
-

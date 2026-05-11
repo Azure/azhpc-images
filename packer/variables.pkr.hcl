@@ -43,6 +43,38 @@ locals {
   os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local.distro_version}"
 }
 
+variable "kernel_version" {
+  type        = string
+  description = "Kernel minor version override (e.g. 6.8, 6.14, 6.17). Leave empty for distro default LTS kernel."
+  default     = env("KERNEL_VERSION")
+}
+locals {
+  # Default LTS kernel versions per distro
+  default_kernel_versions = {
+    "ubuntu" = {
+      "22.04" = "5.15"
+      "24.04" = "6.8"
+    }
+    "alma" = {
+      "8.10" = "4.18"
+      "9.7"  = "5.14"
+    }
+    "rocky" = {
+      "8.10" = "4.18"
+      "9.7"  = "5.14"
+    }
+    "azurelinux" = {
+      "3.0" = "6.6"
+    }
+  }
+  _kernel_version_raw = coalesce(var.kernel_version, "Default")
+  kernel_version = (
+    local._kernel_version_raw == "Default"
+    ? try(local.default_kernel_versions[local.os_family][local.distro_version], "")
+    : local._kernel_version_raw
+  )
+}
+
 variable "vm_size" {
   type        = string
   description = "VM SKU to use for image building"
@@ -390,6 +422,24 @@ variable "sig_replication_regions" {
   description = "Regions to replicate the image to (defaults to the build VM's region if not set)"
   default     = null
 }
+locals {
+  # When enable_first_party_specifics is on and no explicit regions are provided,
+  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
+  first_party_sig_replication_regions = (
+    local.gpu_sku == "MI300X"
+      ? ["westus", "francecentral", "eastus2euap", local.azure_location]
+      : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
+        ? ["southeastus5", local.azure_location]
+        : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+  )
+  sig_replication_regions = (
+    var.sig_replication_regions != null
+      ? var.sig_replication_regions
+      : var.enable_first_party_specifics
+        ? distinct(local.first_party_sig_replication_regions)
+        : null
+  )
+}
 
 variable "storage_account_type" {
   type        = string
@@ -417,7 +467,7 @@ locals {
 variable "azl_prebuilt_version" {
   type        = string
   description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL3_PREBUILT_VERSION")
+  default     = env("AZL_PREBUILT_VERSION")
 }
 
 # =============================================================================
@@ -434,6 +484,12 @@ variable "gb200_partuuid" {
   type        = string
   description = "Disk PartUUID for GB200 builds (required for GB200 SKU). Set to 'None' for non-GB200 builds."
   default     = env("PARTUUID")
+}
+
+variable "azl3gb200_prebuilt_version" {
+  type        = string
+  description = "Version for AzureLinux 3.0 GB200 internal bits (e.g., 0.0.1)"
+  default     = env("AZL3GB200_PREBUILT_VERSION")
 }
 
 # =============================================================================
@@ -487,6 +543,9 @@ locals {
       "Marketplace-Non-FIPS" = {
         "ubuntu" = {
           "24.04" = ["Canonical", "ubuntu-24_04-lts", "server-arm64"]
+        },
+        "azurelinux" = {
+          "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-kernel-hwe-arm64"]
         }
       }
     },

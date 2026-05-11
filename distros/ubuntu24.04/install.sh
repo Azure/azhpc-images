@@ -95,24 +95,43 @@ SVCEOF
     # The default boot loads apupci.ko via modprobe without dma_mem, so /dev/apu-dma-mem is never created
     # even though GRUB reserves 256GB DMA memory (memmap=256G$90G).
     # This service re-loads the driver using loaddriver.sh dma_mem which checks /proc/cmdline internally.
+    #
+    # The service also loads maianexus.ko (no systemd unit ships with the MAIA package),
+    # and pre-cleans any stale /dev/apu* / /dev/maianexus* dummy stubs left behind by
+    # earlier boot stages — otherwise the dummies (created with major 1,3 = /dev/null)
+    # would shadow the real char devices the driver tries to register, leaving every
+    # /dev/apuN as /dev/null and breaking libapu IOCTLs.
     echo "##[section]Installing MAIA apupci DMA driver service"
     cat <<'DMAEOF' | sudo tee /etc/systemd/system/maia-driver-dma.service
 [Unit]
-Description=Load apupci driver with DMA reserved memory enabled
-# Run after the module is first auto-loaded by the kernel, so we can rmmod+reload
-After=systemd-modules-load.service
+Description=Load MAIA apupci (with DMA reserved memory) and maianexus drivers
+# Run after auto-load + udev so we can clear stale stubs and reload cleanly
+After=systemd-modules-load.service systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+Before=maia-devices.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# Clear any stale stubs from earlier boot stages so the kernel drivers can
+# register their real char devices unimpeded.
+ExecStartPre=/bin/sh -c 'rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true'
 ExecStart=/bin/bash -c '\
-    LOADDRIVER=/opt/maia/drivers/vfdriver/release/driver/loaddriver.sh; \
-    if [ ! -x "$LOADDRIVER" ]; then \
-        echo "maia-driver-dma: loaddriver.sh not found at $LOADDRIVER, skipping"; \
-        exit 0; \
+    LOADDRIVER_DIR=/opt/maia/drivers/vfdriver/release/driver; \
+    if [ ! -x "$LOADDRIVER_DIR/loaddriver.sh" ]; then \
+        echo "maia-driver-dma: $LOADDRIVER_DIR/loaddriver.sh not found, skipping apupci"; \
+    else \
+        rmmod apupci 2>/dev/null || true; \
+        (cd "$LOADDRIVER_DIR" && ./loaddriver.sh dma_mem) || echo "maia-driver-dma: apupci load failed"; \
     fi; \
-    rmmod apupci 2>/dev/null || true; \
-    "$LOADDRIVER" dma_mem; \
+    NEXUS_LOAD=/opt/maia/drivers/maianexus/utils/load_maianexus.sh; \
+    NEXUS_ZIP=/opt/maia/drivers/maianexus/maianexus_ubuntu_2404.zip; \
+    if [ ! -x "$NEXUS_LOAD" ] || [ ! -f "$NEXUS_ZIP" ]; then \
+        echo "maia-driver-dma: maianexus loader or zip not found, skipping maianexus"; \
+    else \
+        rmmod maianexus 2>/dev/null || true; \
+        "$NEXUS_LOAD" -z "$NEXUS_ZIP" || echo "maia-driver-dma: maianexus load failed"; \
+    fi; \
     udevadm settle --timeout=30 || true'
 
 [Install]

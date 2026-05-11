@@ -47,51 +47,62 @@ fi
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 
-# TODO: switch to building from ROCm/rocm-systems
-git clone https://github.com/ROCmSoftwarePlatform/rccl-tests
-pushd ./rccl-tests
-
+# Build rccl-tests from the modern home in ROCm/rocm-systems using its CMake
+# build system. This supersedes the legacy ROCmSoftwarePlatform/rccl-tests
+# Makefile flow and handles hipify automatically for all distros.
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
 if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-    # RCCL from ROCm packages
-    RCCLLIB="/opt/rocm/lib/librccl.so"
-    RCCLDIR="/opt/rocm"
+    # RCCL ships via ROCm apt packages and lives in /opt/rocm
+    RCCL_PREFIX="/opt/rocm"
 else
-    RCCLLIB="/opt/rccl/lib/librccl.so"
-    RCCLDIR="/opt/rccl"
-fi
-
-echo "gfx942" > target.lst
-echo "gfx90a" >> target.lst
-
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    ROCM_TARGET_LST=$(pwd)/target.lst make -j$(nproc) MPI=1 NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    mkdir -p build/hipify
-    hipify-perl -quiet-warnings verifiable/verifiable.h > build/hipify/verifiable.h
-    ROCM_TARGET_LST=$(pwd)/target.lst make -j$(nproc) MPI=1 MPI_HOME=$HPCX NCCL_HOME=$RCCLDIR CUSTOM_RCCL_LIB=$RCCLLIB
-fi
-popd
-
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt install -y libpci-dev
+    # RCCL was built from source above and installed in /opt/rccl
+    RCCL_PREFIX="/opt/rccl"
 fi
 
 DEST_TEST_DIR=/opt/rccl-tests
 mkdir -p $DEST_TEST_DIR
 
-cp -r ./rccl-tests/build/* $DEST_TEST_DIR
-rm -rf rccl-tests
+# Sparse-clone only the rccl-tests subproject of rocm-systems to keep the
+# clone small.
+git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
+pushd ./rocm-systems
+git sparse-checkout set projects/rccl-tests
+pushd projects/rccl-tests
 
-git clone https://github.com/ROCm/rdma-perftest
+mkdir build
+pushd build
+# Add /opt/rocm/bin to PATH so the CMake build can find hipify-perl,
+# hipconfig, and amdclang++ via its toolchain file.
+PATH=/opt/rocm/bin:$PATH cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;/opt/rocm;$HPCX" \
+    -DROCM_PATH=/opt/rocm \
+    -DUSE_MPI=ON \
+    ..
+make -j$(nproc)
+# Place perf binaries directly under /opt/rccl-tests to preserve the layout
+# expected by tests/test-definitions.sh.
+cp ./*_perf $DEST_TEST_DIR/
+popd  # build
+popd  # projects/rccl-tests
+popd  # rocm-systems
+rm -rf rocm-systems
+
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    apt install -y libpci-dev
+fi
+
+# Upstream linux-rdma/perftest has full ROCm/HIP support, superseding the
+# dormant ROCm/rdma-perftest fork.
+git clone https://github.com/linux-rdma/perftest.git
 mkdir -p /opt/rocm-perftest
-pushd ./rdma-perftest
+pushd ./perftest
 ./autogen.sh
 ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
 make -j$(nproc)
 make install
 
 popd
-rm -rf rdma-perftest
+rm -rf perftest

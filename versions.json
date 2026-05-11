@@ -1021,9 +1021,9 @@
         },
         "ubuntu24.04": {
             "x86_64":{
-                "version": "7.2.0",
-                "url": "https://repo.radeon.com/amdgpu-install/7.2/ubuntu/noble/amdgpu-install_7.2.70200-1_all.deb",
-                "sha256": "9b9127cfbcffd20c6e1a8a080c3bb2977db22b7bbf82d7c406056c2a507cb17e"
+                "version": "7.2.3",
+                "url": "https://repo.radeon.com/amdgpu-install/7.2.3/ubuntu/noble/amdgpu-install_7.2.3.70203-1_all.deb",
+                "sha256": "15606d326bd6d8a0a6c467625cb50c45fa6ecebcf483db04da911efe57b933d9"
             }
         },
         "azurelinux3.0": {

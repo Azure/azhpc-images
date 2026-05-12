@@ -101,6 +101,68 @@ SVCEOF
     # earlier boot stages — otherwise the dummies (created with major 1,3 = /dev/null)
     # would shadow the real char devices the driver tries to register, leaving every
     # /dev/apuN as /dev/null and breaking libapu IOCTLs.
+    #
+    # Hardware gate: the helper script /usr/local/bin/maia-load-drivers.sh first
+    # checks for a MAIA200 PCI device (1414:00bd) and exits 0 without doing
+    # anything on hosts that don't have one (e.g. the Standard_D16s_v5 build
+    # VM used to bake this image).  Without the gate, loaddriver.sh hangs the
+    # kernel during boot on non-MAIA hosts, sshd never starts, and the build
+    # pipeline's post-reboot SSH probe times out.
+    echo "##[section]Installing MAIA driver loader helper"
+    cat <<'LOADEROF' | sudo tee /usr/local/bin/maia-load-drivers.sh
+#!/bin/bash
+# Load the MAIA apupci (with DMA reserved memory) and maianexus kernel
+# drivers, but only on hosts that actually have MAIA200 hardware.
+# On non-MAIA hosts (e.g. the build VM), exit 0 immediately without touching
+# the kernel — running loaddriver.sh there can hang/panic the kernel.
+
+set -u
+
+# Hardware gate: any PCI device with vendor 0x1414 (Microsoft) AND device
+# 0x00bd (MAIA200) qualifies as MAIA hardware.
+have_maia=0
+for dev in /sys/bus/pci/devices/*; do
+    [ -r "$dev/vendor" ] && [ -r "$dev/device" ] || continue
+    [ "$(cat "$dev/vendor")" = "0x1414" ] || continue
+    [ "$(cat "$dev/device")" = "0x00bd" ] || continue
+    have_maia=1
+    break
+done
+
+if [ "$have_maia" -eq 0 ]; then
+    echo "maia-drivers: no MAIA200 PCI device (1414:00bd) found, skipping driver load"
+    exit 0
+fi
+
+# Clear stale /dev stubs so the drivers can register their real char devices.
+rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true
+
+# Load apupci with DMA reserved memory enabled.  loaddriver.sh uses a
+# relative path for apupci.ko, so we must cd into its directory.
+LOADDRIVER_DIR=/opt/maia/drivers/vfdriver/release/driver
+if [ ! -x "$LOADDRIVER_DIR/loaddriver.sh" ]; then
+    echo "maia-drivers: $LOADDRIVER_DIR/loaddriver.sh not found, skipping apupci"
+else
+    rmmod apupci 2>/dev/null || true
+    if ! ( cd "$LOADDRIVER_DIR" && ./loaddriver.sh dma_mem ); then
+        echo "maia-drivers: apupci load failed"
+    fi
+fi
+
+# Load maianexus from the bundled per-kernel zip.
+NEXUS_LOAD=/opt/maia/drivers/maianexus/utils/load_maianexus.sh
+NEXUS_ZIP=/opt/maia/drivers/maianexus/maianexus_ubuntu_2404.zip
+if [ ! -x "$NEXUS_LOAD" ] || [ ! -f "$NEXUS_ZIP" ]; then
+    echo "maia-drivers: maianexus loader or zip not found, skipping maianexus"
+else
+    rmmod maianexus 2>/dev/null || true
+    "$NEXUS_LOAD" -z "$NEXUS_ZIP" || echo "maia-drivers: maianexus load failed"
+fi
+
+udevadm settle --timeout=30 || true
+LOADEROF
+    sudo chmod +x /usr/local/bin/maia-load-drivers.sh
+
     echo "##[section]Installing MAIA apupci DMA driver service"
     cat <<'DMAEOF' | sudo tee /etc/systemd/system/maia-driver-dma.service
 [Unit]
@@ -110,9 +172,9 @@ Description=Load MAIA apupci (with DMA reserved memory) and maianexus drivers
 # and would block multi-user.target → sshd never starts → unreachable VM.
 After=systemd-modules-load.service
 Before=maia-devices.service
-# Skip on hosts without the MAIA driver tree (e.g. the ADO build agent VM
-# itself), so we don't block the boot of non-MAIA boxes.
-ConditionPathExists=/opt/maia/drivers/vfdriver/release/driver/loaddriver.sh
+# Skip the unit entirely if the helper script is missing (defensive — should
+# never happen on an HPC image).
+ConditionPathExists=/usr/local/bin/maia-load-drivers.sh
 
 [Service]
 Type=oneshot
@@ -120,26 +182,7 @@ RemainAfterExit=yes
 # Cap the worst-case runtime: if anything hangs, fail the unit instead of
 # blocking multi-user.target indefinitely.
 TimeoutStartSec=300
-# Clear any stale stubs from earlier boot stages so the kernel drivers can
-# register their real char devices unimpeded.
-ExecStartPre=/bin/sh -c 'rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true'
-ExecStart=/bin/bash -c '\
-    LOADDRIVER_DIR=/opt/maia/drivers/vfdriver/release/driver; \
-    if [ ! -x "$LOADDRIVER_DIR/loaddriver.sh" ]; then \
-        echo "maia-driver-dma: $LOADDRIVER_DIR/loaddriver.sh not found, skipping apupci"; \
-    else \
-        rmmod apupci 2>/dev/null || true; \
-        (cd "$LOADDRIVER_DIR" && ./loaddriver.sh dma_mem) || echo "maia-driver-dma: apupci load failed"; \
-    fi; \
-    NEXUS_LOAD=/opt/maia/drivers/maianexus/utils/load_maianexus.sh; \
-    NEXUS_ZIP=/opt/maia/drivers/maianexus/maianexus_ubuntu_2404.zip; \
-    if [ ! -x "$NEXUS_LOAD" ] || [ ! -f "$NEXUS_ZIP" ]; then \
-        echo "maia-driver-dma: maianexus loader or zip not found, skipping maianexus"; \
-    else \
-        rmmod maianexus 2>/dev/null || true; \
-        "$NEXUS_LOAD" -z "$NEXUS_ZIP" || echo "maia-driver-dma: maianexus load failed"; \
-    fi; \
-    udevadm settle --timeout=30 || true'
+ExecStart=/usr/local/bin/maia-load-drivers.sh
 
 [Install]
 WantedBy=multi-user.target

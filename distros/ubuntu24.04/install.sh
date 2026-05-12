@@ -105,14 +105,21 @@ SVCEOF
     cat <<'DMAEOF' | sudo tee /etc/systemd/system/maia-driver-dma.service
 [Unit]
 Description=Load MAIA apupci (with DMA reserved memory) and maianexus drivers
-# Run after auto-load + udev so we can clear stale stubs and reload cleanly
-After=systemd-modules-load.service systemd-udev-settle.service
-Wants=systemd-udev-settle.service
+# Only depend on kernel auto-modload — do NOT pull in systemd-udev-settle.service,
+# which can hang for hours on Azure VMs (continuous uevent stream from waagent)
+# and would block multi-user.target → sshd never starts → unreachable VM.
+After=systemd-modules-load.service
 Before=maia-devices.service
+# Skip on hosts without the MAIA driver tree (e.g. the ADO build agent VM
+# itself), so we don't block the boot of non-MAIA boxes.
+ConditionPathExists=/opt/maia/drivers/vfdriver/release/driver/loaddriver.sh
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# Cap the worst-case runtime: if anything hangs, fail the unit instead of
+# blocking multi-user.target indefinitely.
+TimeoutStartSec=300
 # Clear any stale stubs from earlier boot stages so the kernel drivers can
 # register their real char devices unimpeded.
 ExecStartPre=/bin/sh -c 'rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true'

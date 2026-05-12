@@ -165,20 +165,21 @@ EOF
 
     while IFS=: read -r module_name required_dep; do
         [[ -n "${module_name}" ]] || continue
+        [[ -n "${required_dep}" ]] || continue
         local module_dkms_dir="/var/lib/dkms/${module_name}"
         [[ -d "${module_dkms_dir}" ]] || continue
 
         local dkms_conf
         for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
             [[ -f "${dkms_conf}" ]] || continue
-            if grep -qE "BUILD_DEPENDS\\[[0-9]+\\].*${required_dep}" "${dkms_conf}"; then
+            if awk -v dep="${required_dep}" '$0 ~ /^BUILD_DEPENDS\[[0-9]+\]=/ && index($0, dep) {found=1} END {exit !found}' "${dkms_conf}"; then
                 continue
             fi
 
             local next_idx=0
             if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
                 local max_idx
-                max_idx=$(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/[^0-9]//g' | sort -n | tail -n1)
+                max_idx=$(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/^BUILD_DEPENDS\[([0-9]+)\]=$/\1/' | sort -n | tail -n1)
                 if [[ -n "${max_idx}" ]]; then
                     next_idx=$(( max_idx + 1 ))
                 fi

@@ -174,6 +174,8 @@ EOF
         for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
             [[ -f "${dkms_conf}" ]] || continue
             # Skip if BUILD_DEPENDS already declares this dependency.
+            # We only inspect BUILD_DEPENDS[N]=... lines and perform a literal
+            # substring check for the dependency token.
             if awk -v dep="${required_dep}" '$0 ~ /^BUILD_DEPENDS\[[0-9]+\]=/ && index($0, dep) {found=1} END {exit !found}' "${dkms_conf}"; then
                 continue
             fi
@@ -181,6 +183,7 @@ EOF
             local next_idx=0
             if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
                 local max_idx
+                # Split on "[" and "]" so field 2 is N in BUILD_DEPENDS[N]=...
                 max_idx=$(awk -F'[][]' '/^BUILD_DEPENDS\[[0-9]+\]=/ {found=1; if ($2+0 > max) max=$2+0} END {if (found) print max}' "${dkms_conf}")
                 if [[ -n "${max_idx}" ]]; then
                     next_idx=$(( max_idx + 1 ))

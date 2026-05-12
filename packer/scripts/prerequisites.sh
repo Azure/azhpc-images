@@ -148,6 +148,45 @@ install_ubuntu_gb200_kernel() {
 }
 
 ####
+# @Brief        : Add missing OFED DKMS dependency ordering for kernel autoinstall
+# @Param        : None
+# @RetVal       : 0 on success
+####
+configure_ofed_dkms_build_depends() {
+    local override_file="/etc/dkms/azhpc-ofed-build-depends.conf"
+    mkdir -p /etc/dkms
+
+    # Keep dependency policy in /etc/dkms so downstream upgrades use the same order.
+    cat > "${override_file}" <<'EOF'
+iser:mlnx-ofed-kernel
+isert:mlnx-ofed-kernel
+srp:mlnx-ofed-kernel
+EOF
+
+    while IFS=: read -r module_name required_dep; do
+        [[ -n "${module_name}" ]] || continue
+        local module_dkms_dir="/var/lib/dkms/${module_name}"
+        [[ -d "${module_dkms_dir}" ]] || continue
+
+        local dkms_conf
+        for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
+            [[ -f "${dkms_conf}" ]] || continue
+            if grep -qE "BUILD_DEPENDS\\[[0-9]+\\].*${required_dep}" "${dkms_conf}"; then
+                continue
+            fi
+
+            local next_idx=0
+            if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
+                next_idx=$(( $(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/[^0-9]//g' | sort -n | tail -n1) + 1 ))
+            fi
+
+            echo "##[section]Adding BUILD_DEPENDS[${next_idx}]=\"${required_dep}\" to ${dkms_conf}"
+            printf '\nBUILD_DEPENDS[%s]=\"%s\"\n' "${next_idx}" "${required_dep}" >> "${dkms_conf}"
+        done
+    done < "${override_file}"
+}
+
+####
 # @Brief        : Install LTS kernel for Ubuntu (non-GB200)
 # @Param        : OS version (e.g., 24.04, 22.04)
 # @RetVal       : 0 on success
@@ -190,32 +229,8 @@ install_ubuntu_lts_kernel() {
                     purge_patterns+=" \"linux-image-${minor}*\" \"linux-azure-${minor}*\" \"linux-cloud-tools-${minor}*\" \"linux-headers-${minor}*\" \"linux-modules-${minor}*\" \"linux-tools-${minor}*\""
                 fi
             done
-
-            # When DKMS modules are already registered (e.g. refresh builds from a
-            # previous HPC image), installing a new kernel triggers DKMS autoinstall
-            # during the kernel postinst hooks.  The OFED iser/isert modules depend
-            # on mlnx-ofed-kernel symbols, but DKMS processes modules alphabetically,
-            # so iser/isert build before mlnx-ofed-kernel and fail.  That makes
-            # `run-parts /etc/kernel/postinst.d` exit non-zero and dpkg aborts the
-            # `linux-image-*-azure` package configure.
-            #
-            # Temporarily disable BOTH kernel DKMS hooks (image and headers) so the
-            # kernel packages install cleanly.  DKMS modules are rebuilt by the
-            # install.sh scripts (DOCA/OFED reinstall) afterwards, and the running
-            # kernel keeps using the existing modules until reboot.
-            local dkms_hooks=(
-                "/etc/kernel/postinst.d/dkms"
-                "/etc/kernel/header_postinst.d/dkms"
-            )
-            local disabled_dkms_hooks=()
             if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
-                for dkms_hook in "${dkms_hooks[@]}"; do
-                    if [[ -x "${dkms_hook}" ]]; then
-                        echo "##[section]Temporarily disabling DKMS hook ${dkms_hook} (OFED modules detected)"
-                        chmod -x "${dkms_hook}"
-                        disabled_dkms_hooks+=("${dkms_hook}")
-                    fi
-                done
+                configure_ofed_dkms_build_depends
             fi
 
             # Install the versioned kernel meta-package
@@ -224,74 +239,6 @@ install_ubuntu_lts_kernel() {
             # Install modules-extra if available for this kernel version
             if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
                 apt install -y linux-modules-extra-azure-${kernel_ver}
-            fi
-
-            # Re-enable any DKMS hooks we disabled
-            if (( ${#disabled_dkms_hooks[@]} > 0 )); then
-                for dkms_hook in "${disabled_dkms_hooks[@]}"; do
-                    echo "##[section]Re-enabling DKMS hook ${dkms_hook}"
-                    chmod +x "${dkms_hook}"
-                done
-
-                # Because we suppressed the kernel postinst.d/dkms hook above,
-                # DKMS modules were never (re)built for the new kernel during
-                # the package configure step.  After reboot the VM would come
-                # up on the new kernel with no nvidia.ko / knem / xpmem / etc.
-                # available, breaking nvidia-smi and HPC-X.
-                #
-                # Manually rebuild the DKMS modules that MUST match the new
-                # kernel.  We deliberately SKIP the OFED kernel modules
-                # (mlnx-ofed-kernel, iser, isert, srp): rebuilding MOFED for
-                # kernel ${kernel_ver}.X while the system is still running on
-                # ${kernel_ver}.X-2 makes the MOFED pre_build configure probe
-                # the wrong kernel, producing an mlx5_core.ko that overrides
-                # the in-tree driver and then fails to enumerate the Azure
-                # SR-IOV IB VFs after reboot (no devices in lspci).  The
-                # in-tree mlx5_core shipped with linux-modules-${kernel_ver}*
-                # binds to the VFs correctly, and OFED userspace continues to
-                # report the installed OFED version unchanged.
-                local target_kernel
-                target_kernel=$(dpkg-query -W -f='${Version}' "linux-image-azure-${kernel_ver}" 2>/dev/null \
-                    | sed -E "s/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1-azure/" | head -n1)
-                if [[ -z "${target_kernel}" ]]; then
-                    target_kernel=$(ls -1 /lib/modules/ \
-                        | grep -E "^${kernel_ver//./\\.}\.[0-9]+-[0-9]+-azure$" \
-                        | sort -V | tail -n1)
-                fi
-                if [[ -n "${target_kernel}" ]]; then
-                    # Modules that ARE safe (and necessary) to rebuild against
-                    # the new kernel from the running ${kernel_ver}.X-2 kernel.
-                    local -a dkms_rebuild_modules=(
-                        nvidia
-                        gdrdrv
-                        knem
-                        xpmem
-                        kernel-mft-dkms
-                        lustre-client-modules
-                    )
-                    local mod_name mod_dir mod_ver
-                    for mod_name in "${dkms_rebuild_modules[@]}"; do
-                        # /var/lib/dkms/<name>/<version>/source is the canonical layout
-                        mod_dir=$(ls -1d /var/lib/dkms/"${mod_name}"/*/source 2>/dev/null | head -n1 || true)
-                        if [[ -z "${mod_dir}" ]]; then
-                            echo "##[debug]DKMS module ${mod_name} not registered; skipping"
-                            continue
-                        fi
-                        mod_ver=$(basename "$(dirname "${mod_dir}")")
-                        echo "##[section]Building DKMS module ${mod_name}/${mod_ver} for kernel ${target_kernel}"
-                        # Build, install, and tolerate failure for this single
-                        # module so a problem with one (e.g. lustre on a new
-                        # kernel) doesn't stop the others.
-                        if ! dkms install --no-depmod "${mod_name}/${mod_ver}" -k "${target_kernel}" --force; then
-                            echo "##[warning]dkms install failed for ${mod_name}/${mod_ver} on ${target_kernel}; continuing"
-                        fi
-                    done
-                    # Single depmod pass after all modules are in place.
-                    depmod -a "${target_kernel}" || true
-                    echo "##[section]Skipping mlnx-ofed-kernel DKMS rebuild (in-tree mlx5_core will be used after reboot)"
-                else
-                    echo "##[warning]Could not determine target kernel version; skipping DKMS rebuilds"
-                fi
             fi
 
             # Purge non-target kernels

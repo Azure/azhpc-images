@@ -343,7 +343,14 @@ function verify_docker_installation {
 }
 
 function verify_ib_modules_and_devices {
-    if ! systemctl is-active openibd > /dev/null 2>&1; then
+    # Ubuntu 26.04 uses Canonical's `doca-ofed-26.01-dkms`, which does not
+    # ship an `openibd` service (DKMS pre-resolves the module paths via
+    # depmod, and PCI probe loads the stack on first boot). Skip the
+    # service check on that distro; the module/device checks below still
+    # validate that the IB stack is functional.
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" || "$DISTRIBUTION" == "ubuntu26.04-aks" ]]; then
+        echo "[SKIP] : openibd service check (not provided on ${DISTRIBUTION})"
+    elif ! systemctl is-active openibd > /dev/null 2>&1; then
         echo "*** openibd service is not active!" >&2
         systemctl status --no-pager openibd >&2
         exit_on_error

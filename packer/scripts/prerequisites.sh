@@ -148,53 +148,22 @@ install_ubuntu_gb200_kernel() {
 }
 
 ####
-# @Brief        : Add missing OFED DKMS dependency ordering for kernel autoinstall
+# @Brief        : Add OFED DKMS dependency overrides under /etc/dkms
 # @Param        : None
 # @RetVal       : 0 on success
 ####
 configure_ofed_dkms_build_depends() {
-    local override_file="/etc/dkms/azhpc-ofed-build-depends.conf"
     mkdir -p /etc/dkms
 
-    # Keep dependency policy in /etc/dkms; this script reuses it on subsequent
-    # runs before kernel installs so refresh/upgrade paths stay consistent.
-    cat > "${override_file}" <<'EOF'
-iser:mlnx-ofed-kernel
-isert:mlnx-ofed-kernel
-srp:mlnx-ofed-kernel
+    cat > /etc/dkms/iser.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
 EOF
-
-    # Format: <module_name>:<required_dependency>
-    while IFS=: read -r module_name required_dep; do
-        [[ -n "${module_name}" ]] || continue
-        [[ -n "${required_dep}" ]] || continue
-        local module_dkms_dir="/var/lib/dkms/${module_name}"
-        [[ -d "${module_dkms_dir}" ]] || continue
-
-        local dkms_conf
-        for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
-            [[ -f "${dkms_conf}" ]] || continue
-            # Skip if BUILD_DEPENDS already declares this dependency token.
-            # Field split pattern keeps dependency tokens (alnum, ., _, +, -)
-            # and treats all other characters as separators.
-            if awk -v dep="${required_dep}" -F'[^A-Za-z0-9._+-]+' 'BEGIN {found=0} /^BUILD_DEPENDS\[[0-9]+\]=/ {for (i=1; i<=NF; i++) if ($i==dep) {found=1; exit}} END {exit !found}' "${dkms_conf}"; then
-                continue
-            fi
-
-            local next_idx=0
-            if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
-                local max_idx
-                # Split on "[" and "]" so field 2 is N in BUILD_DEPENDS[N]=...
-                max_idx=$(awk -F'[][]' 'BEGIN {found=0; max=0} /^BUILD_DEPENDS\[[0-9]+\]=/ {found=1; if ($2+0 > max) max=$2+0} END {if (found) print max}' "${dkms_conf}")
-                if [[ -n "${max_idx}" ]]; then
-                    next_idx=$(( max_idx + 1 ))
-                fi
-            fi
-
-            echo "##[section]Adding BUILD_DEPENDS[${next_idx}]=\"${required_dep}\" to ${dkms_conf}"
-            printf '\nBUILD_DEPENDS[%s]="%s"\n' "${next_idx}" "${required_dep}" >> "${dkms_conf}"
-        done
-    done < "${override_file}"
+    cat > /etc/dkms/isert.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
+EOF
+    cat > /etc/dkms/srp.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
+EOF
 }
 
 ####
@@ -240,9 +209,7 @@ install_ubuntu_lts_kernel() {
                     purge_patterns+=" \"linux-image-${minor}*\" \"linux-azure-${minor}*\" \"linux-cloud-tools-${minor}*\" \"linux-headers-${minor}*\" \"linux-modules-${minor}*\" \"linux-tools-${minor}*\""
                 fi
             done
-            if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
-                configure_ofed_dkms_build_depends
-            fi
+            configure_ofed_dkms_build_depends
 
             # Install the versioned kernel meta-package
             apt install -y linux-azure-${kernel_ver}

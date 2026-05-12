@@ -153,6 +153,7 @@ install_ubuntu_gb200_kernel() {
 # @RetVal       : 0 on success
 ####
 configure_ofed_dkms_build_depends() {
+    [[ -d /var/lib/dkms/mlnx-ofed-kernel ]] || return 0
     mkdir -p /etc/dkms
 
     cat > /etc/dkms/iser.conf <<'EOF'

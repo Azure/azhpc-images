@@ -164,6 +164,7 @@ isert:mlnx-ofed-kernel
 srp:mlnx-ofed-kernel
 EOF
 
+    # Format: <module_name>:<required_dependency>
     while IFS=: read -r module_name required_dep; do
         [[ -n "${module_name}" ]] || continue
         [[ -n "${required_dep}" ]] || continue
@@ -174,6 +175,8 @@ EOF
         for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
             [[ -f "${dkms_conf}" ]] || continue
             # Skip if BUILD_DEPENDS already declares this dependency token.
+            # Field split pattern keeps dependency tokens (alnum, ., _, +, -)
+            # and treats all other characters as separators.
             if awk -v dep="${required_dep}" -F'[^A-Za-z0-9._+-]+' 'BEGIN {found=0} /^BUILD_DEPENDS\[[0-9]+\]=/ {for (i=1; i<=NF; i++) if ($i==dep) {found=1; exit}} END {exit !found}' "${dkms_conf}"; then
                 continue
             fi

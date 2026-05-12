@@ -209,7 +209,9 @@ install_ubuntu_lts_kernel() {
                     purge_patterns+=" \"linux-image-${minor}*\" \"linux-azure-${minor}*\" \"linux-cloud-tools-${minor}*\" \"linux-headers-${minor}*\" \"linux-modules-${minor}*\" \"linux-tools-${minor}*\""
                 fi
             done
-            configure_ofed_dkms_build_depends
+            if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
+                configure_ofed_dkms_build_depends
+            fi
 
             # Install the versioned kernel meta-package
             apt install -y linux-azure-${kernel_ver}

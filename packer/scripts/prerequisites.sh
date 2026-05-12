@@ -177,11 +177,15 @@ EOF
 
             local next_idx=0
             if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
-                next_idx=$(( $(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/[^0-9]//g' | sort -n | tail -n1) + 1 ))
+                local max_idx
+                max_idx=$(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/[^0-9]//g' | sort -n | tail -n1)
+                if [[ -n "${max_idx}" ]]; then
+                    next_idx=$(( max_idx + 1 ))
+                fi
             fi
 
             echo "##[section]Adding BUILD_DEPENDS[${next_idx}]=\"${required_dep}\" to ${dkms_conf}"
-            printf '\nBUILD_DEPENDS[%s]=\"%s\"\n' "${next_idx}" "${required_dep}" >> "${dkms_conf}"
+            printf '\nBUILD_DEPENDS[%s]="%s"\n' "${next_idx}" "${required_dep}" >> "${dkms_conf}"
         done
     done < "${override_file}"
 }

@@ -156,7 +156,8 @@ configure_ofed_dkms_build_depends() {
     local override_file="/etc/dkms/azhpc-ofed-build-depends.conf"
     mkdir -p /etc/dkms
 
-    # Keep dependency policy in /etc/dkms so downstream upgrades use the same order.
+    # Keep dependency policy in /etc/dkms; this script reuses it on subsequent
+    # runs before kernel installs so refresh/upgrade paths stay consistent.
     cat > "${override_file}" <<'EOF'
 iser:mlnx-ofed-kernel
 isert:mlnx-ofed-kernel
@@ -172,6 +173,7 @@ EOF
         local dkms_conf
         for dkms_conf in "${module_dkms_dir}"/*/source/dkms.conf; do
             [[ -f "${dkms_conf}" ]] || continue
+            # Skip if BUILD_DEPENDS already declares this dependency.
             if awk -v dep="${required_dep}" '$0 ~ /^BUILD_DEPENDS\[[0-9]+\]=/ && index($0, dep) {found=1} END {exit !found}' "${dkms_conf}"; then
                 continue
             fi
@@ -179,7 +181,7 @@ EOF
             local next_idx=0
             if grep -qE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}"; then
                 local max_idx
-                max_idx=$(grep -oE '^BUILD_DEPENDS\[[0-9]+\]=' "${dkms_conf}" | sed -E 's/^BUILD_DEPENDS\[([0-9]+)\]=$/\1/' | sort -n | tail -n1)
+                max_idx=$(awk -F'[][]' '/^BUILD_DEPENDS\[[0-9]+\]=/ {found=1; if ($2+0 > max) max=$2+0} END {if (found) print max}' "${dkms_conf}")
                 if [[ -n "${max_idx}" ]]; then
                     next_idx=$(( max_idx + 1 ))
                 fi

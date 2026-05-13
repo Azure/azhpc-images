@@ -21,6 +21,7 @@ apt-get -y install numactl \
                    tk \
                    texinfo \
                    libudev-dev \
+                   libiberty-dev \
                    binutils \
                    binutils-dev \
                    selinux-policy-dev \

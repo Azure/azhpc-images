@@ -70,6 +70,7 @@ function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
     if [[ -z "${validation_mode:-}" ]]; then
         verify_package_updates;
+    fi
 
     if has_infiniband; then
         verify_ofed_installation;

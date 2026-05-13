@@ -43,7 +43,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
         # then upgrade all other pre-installed components.
         if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
-            apt-mark hold linux-nvidia-64k-hwe-24.04
+            apt-mark hold linux-azure-nvidia
         else
             apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
         fi

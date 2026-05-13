@@ -83,6 +83,7 @@ if sku_has_infiniband; then
     make
     make install
     popd
+    write_component_version "NCCL-RDMA_SHARP_PLUGIN" ${NCCL_RDMA_SHARP_COMMIT}
 fi
 
 # Build the nccl tests

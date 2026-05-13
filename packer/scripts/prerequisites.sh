@@ -136,7 +136,7 @@ install_ubuntu_gb200_kernel() {
     
     # Configure GRUB for GB200
     # Add GB200-specific kernel parameters
-    sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 numa_balancing=disable preempt=none net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
+    sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 numa_balancing=disable net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     
     # Blacklist nouveau driver
     echo 'blacklist nouveau' >> /etc/modprobe.d/blacklist.conf

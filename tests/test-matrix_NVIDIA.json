@@ -17,6 +17,10 @@
         "gb-family":{
             "components": ["check_nvidia_driver","check_cuda", "check_nccl", "check_docker", "check_dcgm", "check_nvlink", "check_nvbandwidth", "check_nvloom"],
             "services": ["check_nvidia_imex", "check_sunrpc_tcp_settings"]
+        },
+        "A100plus":{
+            "components": ["check_nvidia_driver", "check_cuda", "check_nccl", "check_docker", "check_dcgm", "check_nvlink"],
+            "services": ["check_sunrpc_tcp_settings"]
         }
     },
     "ubuntu24.04-aks": {

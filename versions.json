@@ -949,6 +949,9 @@
         "ubuntu24.04": {
             "aarch64":{
                 "version": "29.1.4-ubuntu24.04u1"
+            },
+            "x86_64":{
+                "version": "29.1.4-ubuntu24.04u1"
             }
         }
     },

@@ -52,8 +52,7 @@ apt-get -y install numactl \
                    nfs-common \
                    pssh \
                    dos2unix \
-                   azcopy \
-                   libnss-myhostname
+                   azcopy
 
 # Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
 if [[ "${NODE_TYPE:-azure-vm}" != "baremetal" ]]; then

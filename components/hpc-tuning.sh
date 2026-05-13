@@ -65,24 +65,40 @@ install -d /etc/gai.conf.d
 echo 'precedence ::ffff:0:0/96  100' \
   | sudo tee /etc/gai.conf.d/00-prefer-ipv4.conf
 
+
+# Ensure local hostname resolves before DNS to avoid lookup delays in MPI/SSH bootstrap
+# Install nss-myhostname (package name varies by distro; RHEL/Azure Linux bundle it in systemd-libs)
+if [[ $DISTRIBUTION == ubuntu* ]]; then
+    apt install -y libnss-myhostname
+elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
+    yum install -y systemd-libs
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    tdnf install -y systemd-libs
+fi
+sed -i 's/^hosts:.*/hosts:          files myhostname dns/' /etc/nsswitch.conf
+
 if [[ "$SKU" == "GB200" ]]; then
-    # Increase eth1 (AN VF) RX ring buffer to 8192 to reduce packet drops under high-throughput RDMA traffic
+    # Increase MANA VF RX ring buffer to 8192 to reduce packet drops under high-throughput traffic
     if [[ $DISTRIBUTION == ubuntu* ]]; then
         # Ubuntu uses systemd-networkd → networkd-dispatcher
         install -d /etc/networkd-dispatcher/configured.d
-        cat > /etc/networkd-dispatcher/configured.d/10-vf-ring <<'EOF'
+        cat > /etc/networkd-dispatcher/configured.d/10-vf-ring <<'SCRIPT'
 #!/bin/sh
-for nic in eth1; do /usr/sbin/ethtool -G "$nic" rx 8192 2>/dev/null; done
-EOF
+for nic in /sys/class/net/*/; do
+    nic=$(basename "$nic")
+    driver=$(basename "$(readlink -f "/sys/class/net/${nic}/device/driver" 2>/dev/null)" 2>/dev/null)
+    [ "$driver" = "mana" ] && /usr/sbin/ethtool -G "$nic" rx 8192 2>/dev/null
+done
+SCRIPT
         chmod +x /etc/networkd-dispatcher/configured.d/10-vf-ring
     else
         # Alma/Rocky/Azure Linux use NetworkManager → NM dispatcher
-        cat > /etc/NetworkManager/dispatcher.d/10-vf-ring <<'EOF'
+        cat > /etc/NetworkManager/dispatcher.d/10-vf-ring <<'SCRIPT'
 #!/bin/sh
-if [ "$1" = "eth1" ] && [ "$2" = "up" ]; then
-    /usr/sbin/ethtool -G eth1 rx 8192 2>/dev/null
-fi
-EOF
+[ "$2" = "up" ] || exit 0
+driver=$(basename "$(readlink -f "/sys/class/net/${1}/device/driver" 2>/dev/null)" 2>/dev/null)
+[ "$driver" = "mana" ] && /usr/sbin/ethtool -G "$1" rx 8192 2>/dev/null
+SCRIPT
         chmod +x /etc/NetworkManager/dispatcher.d/10-vf-ring
     fi
 fi

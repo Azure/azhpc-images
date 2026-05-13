@@ -129,7 +129,7 @@ fi
 
 $COMPONENT_DIR/install_gdrcopy.sh
 
-if [ "${SKU_FAMILY}" == "gb-family" ]; then
+if [ "${SKU_FAMILY}" != "gb-family" ]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else

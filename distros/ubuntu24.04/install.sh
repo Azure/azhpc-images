@@ -18,6 +18,7 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 source ../../utils/set_properties.sh
+source ${UTILS_DIR}/utilities.sh
 
 ./install_utils.sh
 

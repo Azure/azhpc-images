@@ -830,7 +830,7 @@
                         }
                     }
                 },
-                "version": "2.29.3-1",
+                "version": "2.29.7-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }

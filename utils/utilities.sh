@@ -130,11 +130,6 @@ function sku_has_infiniband {
     ! _is_ncv6_sku
 }
 
-# Whether the current SKU has NVLink/NVSwitch fabric.
-function sku_has_nvlink {
-    ! _is_ncv6_sku
-}
-
 # Whether this SKU uses UCX as its MPI transport layer.
 function sku_uses_ucx {
     ! _is_ncv6_sku

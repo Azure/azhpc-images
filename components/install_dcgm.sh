@@ -14,11 +14,10 @@ SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 
-# Get DCGM version from versions.json.
-dcgm_metadata=$(get_component_config "dcgm")
-DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    # Get DCGM version from versions.json
+    dcgm_metadata=$(get_component_config "dcgm")
+    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     apt-get install -y \
         datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
@@ -36,6 +35,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
+    # Get DCGM version from versions.json
+    dcgm_metadata=$(get_component_config "dcgm")
+    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
     if [ "$1" = "V100" ]; then

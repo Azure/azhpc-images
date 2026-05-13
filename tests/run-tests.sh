@@ -32,6 +32,7 @@ function test_service {
         check_nvidia_fabricmanager) verify_nvidia_fabricmanager_service;;
         check_sunrpc_tcp_settings) verify_sunrpc_tcp_settings_service;;
         check_nvidia_imex) verify_nvidia_imex_service;;
+        check_nvidia_persistenced) verify_nvidia_persistenced_service;;
         check_azure_persistent_rdma_naming) verify_azure_persistent_rdma_naming_service;;
         *) ;;
     esac
@@ -70,6 +71,7 @@ function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
     if [[ -z "${validation_mode:-}" ]]; then
         verify_package_updates;
+    fi
 
     if has_infiniband; then
         verify_ofed_installation;

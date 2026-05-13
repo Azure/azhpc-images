@@ -19,8 +19,6 @@ fi
 
 source ../../utils/set_properties.sh
 
-source ${UTILS_DIR}/utilities.sh
-
 ./install_utils.sh
 
 if [ "$SKU" != "GB200" ]; then

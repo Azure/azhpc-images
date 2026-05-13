@@ -75,7 +75,6 @@ elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $D
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y systemd-libs
 fi
-sed -i 's/^hosts:.*/hosts:          files myhostname dns/' /etc/nsswitch.conf
 
 if [[ "$SKU" == "GB200" ]]; then
     # Increase MANA VF RX ring buffer to 8192 to reduce packet drops under high-throughput traffic

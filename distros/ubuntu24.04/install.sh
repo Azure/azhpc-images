@@ -163,6 +163,7 @@ $COMPONENT_DIR/trivy_scan.sh
 # Disable Predictive Network interface renaming
 ./disable_predictive_interface_renaming.sh
 
+$COMPONENT_DIR/log_kernel_version.sh
 # clear history
 # Uncomment the line below if you are running this on a VM
 # $UTILS_DIR/clear_history.sh

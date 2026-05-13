@@ -3,8 +3,11 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-# On Ubuntu 24.04, RCCL comes from ROCm packages; build from source on other distros
-if [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
+# On Ubuntu 24.04 and Azure Linux 3, RCCL comes from ROCm packages; build from source on other distros
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    tdnf install -y rccl rccl-devel rccl-unittests
+    write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
+elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
     rccl_metadata=$(get_component_config "rccl")
     rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
@@ -53,8 +56,8 @@ echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
-if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-    # RCCL ships via ROCm apt packages and lives in /opt/rocm
+if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
+    # RCCL ships via ROCm distro packages and lives in /opt/rocm
     RCCL_PREFIX="/opt/rocm"
 else
     # RCCL was built from source above and installed in /opt/rccl

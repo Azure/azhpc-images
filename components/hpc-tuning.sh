@@ -65,14 +65,26 @@ install -d /etc/gai.conf.d
 echo 'precedence ::ffff:0:0/96  100' \
   | sudo tee /etc/gai.conf.d/00-prefer-ipv4.conf
 
-if [[ "$SKU" == "GB200" ]]; then 
+if [[ "$SKU" == "GB200" ]]; then
     # Increase eth1 (AN VF) RX ring buffer to 8192 to reduce packet drops under high-throughput RDMA traffic
-    install -d /etc/networkd-dispatcher/configured.d
-    cat > /etc/networkd-dispatcher/configured.d/10-vf-ring <<'EOF'
+    if [[ $DISTRIBUTION == ubuntu* ]]; then
+        # Ubuntu uses systemd-networkd → networkd-dispatcher
+        install -d /etc/networkd-dispatcher/configured.d
+        cat > /etc/networkd-dispatcher/configured.d/10-vf-ring <<'EOF'
 #!/bin/sh
 for nic in eth1; do /usr/sbin/ethtool -G "$nic" rx 8192 2>/dev/null; done
 EOF
-chmod +x /etc/networkd-dispatcher/configured.d/10-vf-ring
+        chmod +x /etc/networkd-dispatcher/configured.d/10-vf-ring
+    else
+        # Alma/Rocky/Azure Linux use NetworkManager → NM dispatcher
+        cat > /etc/NetworkManager/dispatcher.d/10-vf-ring <<'EOF'
+#!/bin/sh
+if [ "$1" = "eth1" ] && [ "$2" = "up" ]; then
+    /usr/sbin/ethtool -G eth1 rx 8192 2>/dev/null
+fi
+EOF
+        chmod +x /etc/NetworkManager/dispatcher.d/10-vf-ring
+    fi
 fi
 
 ## Systemd service for starting sunrpc and adding setting parameters

@@ -108,7 +108,7 @@ install_ubuntu_gb200_kernel() {
 
     # Remove non-nvidia kernel packages
     local packages_to_remove
-    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.14/ && $2 !~ /nvidia/ {print $2}' || true)
+    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.(14|17)/ && $2 !~ /nvidia/ {print $2}' || true)
     if [[ -n "${packages_to_remove}" ]]; then
         apt-get purge -y ${packages_to_remove}
     fi

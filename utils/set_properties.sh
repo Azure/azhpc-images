@@ -73,3 +73,5 @@ fi
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/versions.json)
+
+source ${UTILS_DIR}/utilities.sh

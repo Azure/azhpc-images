@@ -65,17 +65,6 @@ install -d /etc/gai.conf.d
 echo 'precedence ::ffff:0:0/96  100' \
   | sudo tee /etc/gai.conf.d/00-prefer-ipv4.conf
 
-
-# Ensure local hostname resolves before DNS to avoid lookup delays in MPI/SSH bootstrap
-# Install nss-myhostname (package name varies by distro; RHEL/Azure Linux bundle it in systemd-libs)
-if [[ $DISTRIBUTION == ubuntu* ]]; then
-    apt install -y libnss-myhostname
-elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
-    yum install -y systemd-libs
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y systemd-libs
-fi
-
 if [[ "$SKU" == "GB200" ]]; then
     # Increase MANA VF RX ring buffer to 8192 to reduce packet drops under high-throughput traffic
     if [[ $DISTRIBUTION == ubuntu* ]]; then

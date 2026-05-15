@@ -438,11 +438,13 @@ locals {
   first_party_sig_replication_regions = (
     local.gpu_sku == "MI300X"
       ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-      : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-        ? ["southeastus5", "northeastus5" ,local.azure_location]
-          : local.gpu_sku == "GB200"
-          ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
-            : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+      : local.gpu_sku == "NCv6"
+        ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
+        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
+          ? ["southeastus5", "northeastus5" ,local.azure_location]
+            : local.gpu_sku == "GB200"
+            ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
+              : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null

@@ -384,22 +384,22 @@
                 "nvidia_gb200": {
                     "baremetal": {
                         "driver": {
-                            "version": "580.105.08",
+                            "version": "580.126.20",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.105.08-1"
+                            "version": "580.126.20-1"
                         }
                     }
                 },
                 "nvidia_gb300": {
                     "baremetal": {
                         "driver": {
-                            "version": "580.105.08",
+                            "version": "580.126.20",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.105.08-1"
+                            "version": "580.126.20-1"
                         }
                     }
                 },

@@ -100,11 +100,22 @@ install_ubuntu_gb200_kernel() {
     export NEEDRESTART_MODE=a
     
     apt-get update
-    apt-get install -y linux-azure-nvidia
-
-    # Hold kernel version when not building Lustre from source
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
-        apt-mark hold linux-azure-nvidia
+    if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
+        sudo apt-get install linux-azure-nvidia -y  
+        # Hold kernel version when not building Lustre from source
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+            sudo apt-mark hold linux-azure-nvidia
+        fi
+    elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
+        sudo apt-get install linux-azure-nvidia-6.17 -y  
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+            sudo apt-mark hold linux-azure-nvidia-6.17
+        fi
+    else #kernel 6.8
+        sudo apt-get install linux-azure-nvidia-6.8 -y
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+            sudo apt-mark hold linux-azure-nvidia-6.8
+        fi
     fi
     
     # Purge non-nvidia kernels
@@ -112,7 +123,7 @@ install_ubuntu_gb200_kernel() {
 
     # Remove non-nvidia kernel packages
     local packages_to_remove
-    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.14/ && $2 !~ /nvidia/ {print $2}' || true)
+    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.(14|17)/ && $2 !~ /nvidia/ {print $2}' || true)
     if [[ -n "${packages_to_remove}" ]]; then
         apt-get purge -y ${packages_to_remove}
     fi

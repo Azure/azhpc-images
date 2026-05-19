@@ -21,12 +21,6 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-if [ "$SKU" != "GB200" ]; then
-    # update cmake
-    $COMPONENT_DIR/install_cmake.sh
-
-fi
-
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 

@@ -29,9 +29,6 @@ source ../../utils/set_properties.sh
 # Fix python3-setools bug for CycleCloud compatibility (Rocky 8.x only, but safe to run on 9.x)
 $COMPONENT_DIR/fix_setools_cyclecloud.sh
 
-# update cmake
-$COMPONENT_DIR/install_cmake.sh
-
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 

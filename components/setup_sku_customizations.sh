@@ -179,14 +179,4 @@ if [[ $DISTRIBUTION == "azurelinux3.0" && "$ARCHITECTURE" == "aarch64" ]]; then
 fi
 
 systemctl enable sku-customizations
-# modprobe nvidia-peermem cannot work before first reboot. Starting sku-customizations will fail. 
-if [[ $DISTRIBUTION != "azurelinux3.0" ]]; then
-    systemctl start sku-customizations
-    systemctl is-active --quiet sku-customizations
-    error_code=$?
-    if [ ${error_code} -ne 0 ]
-    then
-        echo "SKU Customizations service Inactive!"
-        exit ${error_code}
-    fi
-fi
+# Do NOT `systemctl start sku-customizations` at build time (unnecessary pre-reboot and may fail on general-purpose SKUs)

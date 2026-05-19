@@ -63,10 +63,15 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Apply nvprofiling settings
     echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
-    # load the nvidia-peermem coming as a part of NVIDIA GPU driver
-    modprobe nvidia-peermem
-    # verify if loaded
-    lsmod | grep nvidia_peermem
+    # nvidia-peermem is NOT modprobe'd at build time. Loading it before the
+    # first reboot is fragile across the matrix of distros / kernels we
+    # support (e.g. Ubuntu 26.04 needs DOCA-OFED's patched ib_core in
+    # /lib/modules/$(uname -r)/updates/dkms/ which is not active in the
+    # build kernel; general-purpose build SKUs have no IB hardware to load
+    # against; baremetal builds reboot before IB is fully up). The module is
+    # queued for first boot via /etc/modules-load.d/nvidia-peermem.conf
+    # written below and via the openibd ExecStartPost drop-in installed by
+    # setup_sku_customizations.sh.
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL - .run file installation
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
@@ -85,11 +90,10 @@ else
     if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
         dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
     fi
-    # load the nvidia-peermem coming as a part of NVIDIA GPU driver
-    # Reference - https://download.nvidia.com/XFree86/Linux-x86_64/510.85.02/README/nvidia-peermem.html
-    modprobe nvidia-peermem
-    # verify if loaded
-    lsmod | grep nvidia_peermem
+    # nvidia-peermem is NOT modprobe'd at build time -- see comment in the
+    # Ubuntu branch above. The module is queued for first boot via
+    # /etc/modules-load.d/nvidia-peermem.conf written below and via the
+    # openibd ExecStartPost drop-in installed by setup_sku_customizations.sh.
 fi
 write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 

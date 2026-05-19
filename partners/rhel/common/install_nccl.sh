@@ -22,7 +22,7 @@ wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
-make -j src.build
+make -j$(nproc) src.build
 make pkg.redhat.build
 rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
 rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm

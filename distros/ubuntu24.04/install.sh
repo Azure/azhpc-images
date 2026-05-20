@@ -202,8 +202,8 @@ DMAEOF
     sudo mkdir -p /opt/maia/logs/mccl
     sudo chmod 777 /opt/maia/logs/mccl
 
-    export TOP_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
-    export COMPONENT_DIR="${TOP_DIR}/components"
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    export COMPONENT_DIR="$(cd "${SCRIPT_DIR}/../../components" && pwd)"
     export ARCHITECTURE=$(uname -m)
     export SKIP_FILES=()
 

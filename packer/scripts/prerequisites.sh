@@ -100,15 +100,23 @@ install_ubuntu_gb200_kernel() {
     export NEEDRESTART_MODE=a
     
     apt-get update
-    apt-get install -y linux-azure-nvidia
-    apt-mark hold linux-azure-nvidia
+    if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
+        sudo apt-get install linux-azure-nvidia -y  
+        sudo apt-mark hold linux-azure-nvidia
+    elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
+        sudo apt-get install linux-azure-nvidia-6.17 -y  
+        sudo apt-mark hold linux-azure-nvidia-6.17
+    else #kernel 6.8
+        sudo apt-get install linux-azure-nvidia-6.8 -y
+        sudo apt-mark hold linux-azure-nvidia-6.8                
+    fi
     
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
 
     # Remove non-nvidia kernel packages
     local packages_to_remove
-    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.14/ && $2 !~ /nvidia/ {print $2}' || true)
+    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.(14|17)/ && $2 !~ /nvidia/ {print $2}' || true)
     if [[ -n "${packages_to_remove}" ]]; then
         apt-get purge -y ${packages_to_remove}
     fi

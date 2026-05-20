@@ -202,6 +202,8 @@ DMAEOF
     sudo mkdir -p /opt/maia/logs/mccl
     sudo chmod 777 /opt/maia/logs/mccl
 
+    $COMPONENT_DIR/trivy_scan.sh
+
     echo "##[section]MAIA200 VM configurations complete"
     echo "MAIA200 SKU: guest stack is installed separately via install_dependencies.sh"
     exit 0

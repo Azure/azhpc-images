@@ -82,19 +82,27 @@ locals {
 
 variable "vm_size" {
   type        = string
-  description = "VM SKU to use for image building"
+  description = "VM SKU to target for the image."
   default     = env("GPU_SIZE_OPTION")
 }
+
+variable "build_vm_size" {
+  type        = string
+  description = "VM SKU to use for the build VM. Defaults to vm_size if not explicitly set, but can be set independently to e.g. a general-purpose VM SKU, at the cost of skip_validation at build time."
+  default     = env("BUILD_VM_SIZE_OPTION")
+}
+
 locals {
-  vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
+  target_vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
+  build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
 locals {
   gpu_sku = (
-    local.vm_size == "Standard_ND40rs_v2" ? "V100" :
-    local.vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
-    local.vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
+    local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
+    local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
+    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
   gpu_platform = (
@@ -164,11 +172,12 @@ variable "skip_hpc" {
 
 variable "skip_validation" {
   type        = bool
-  description = "Skip test and health check validation (useful for faster debugging)"
-  default     = false
+  description = "Skip test and health check validation. Useful for building images on general-purpose VM SKUs."
+  default     = null
 }
 locals {
-  skip_validation = var.skip_validation || var.skip_hpc
+  # Skip validation if build_vm_size is set and different from vm_size (usually meaning using a general-purpose SKU for the build VM)
+  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.vm_size)) || var.skip_hpc)
 }
 
 variable "public_key" {
@@ -484,11 +493,13 @@ locals {
   first_party_sig_replication_regions = (
     local.gpu_sku == "MI300X"
       ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-      : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-        ? ["southeastus5", "northeastus5" ,local.azure_location]
-          : local.gpu_sku == "GB200"
-          ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
-            : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+      : local.gpu_sku == "NCv6"
+        ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
+        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
+          ? ["southeastus5", "northeastus5" ,local.azure_location]
+            : local.gpu_sku == "GB200"
+            ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
+              : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null
@@ -591,7 +602,7 @@ locals {
     ""
   ) : ""
   
-  architecture = local.vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "aarch64" : "x86_64"
+  architecture = (startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")) ? "aarch64" : "x86_64"
   short_uuid   = substr(replace(lower(uuidv4()), "-", ""), 0, 6)
 
   image_name = "${local.os_family}-${local.distro_version_safe}${local.azl_type_suffix}-${local.gpu_platform}-${local.gpu_sku}-hpc-${local.architecture}-${local.numeric_timestamp}-${local.short_uuid}"
@@ -709,6 +720,6 @@ locals {
       }
     }
   }
-  internal_sig_image_definition = (local.skip_create_artifacts || local.is_experimental_image) ? "Experimental" : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
+  internal_sig_image_definition = (local.skip_create_artifacts || local.is_experimental_image) ? (local.architecture == "x86_64" ? "Experimental" : "Experimental-arm64") : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
   sig_image_name = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
 }

@@ -30,7 +30,7 @@ wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
-make -j src.build
+make -j$(nproc) src.build
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     make pkg.debian.build
     pushd build/pkg/deb/

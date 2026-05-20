@@ -266,17 +266,7 @@ build {
   }
   
   provisioner "shell" {
-    name           = "Run tests (pre-reboot)"
-    except         = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline         = [
-      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
-    ]
-  }
-  
-  provisioner "shell" {
     name              = "Reboot"
-    except            = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true

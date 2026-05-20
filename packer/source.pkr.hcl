@@ -91,7 +91,7 @@ source "azure-arm" "hpc" {
   
   # VM Configuration
   os_type         = "Linux"
-  vm_size         = local.vm_size
+  vm_size         = local.build_vm_size
   os_disk_size_gb = 64
   
   # SSH Configuration

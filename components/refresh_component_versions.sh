@@ -136,10 +136,13 @@ write_version "OMPI" "${OMPI_VERSION}"
 
 # ---- MPI: Intel MPI ----
 IMPI_VERSION=""
-# Intel MPI is typically under /opt/intel/compilers_and_libraries_*/linux/mpi or modulefiles
-if [ -d /opt/intel ]; then
-    # Try to find from modulefile or directory name
-    IMPI_DIR=$(ls -d /opt/intel/oneapi/mpi/* 2>/dev/null | sort -V | tail -1 || true)
+# Intel MPI installs to /opt/intel/oneapi/mpi/<version>/ with a 'latest'
+# symlink alongside the versioned directory. Exclude symlinks (including
+# 'latest') so we pick the real versioned directory; otherwise sort -V
+# would happily return 'latest' (letters sort after digits).
+if [ -d /opt/intel/oneapi/mpi ]; then
+    IMPI_DIR=$(find /opt/intel/oneapi/mpi -mindepth 1 -maxdepth 1 -type d ! -name latest 2>/dev/null \
+        | sort -V | tail -1 || true)
     if [[ -n "${IMPI_DIR}" ]]; then
         IMPI_VERSION=$(basename "${IMPI_DIR}")
     fi
@@ -205,13 +208,54 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NVIDIA" "${NVIDIA_VERSION}"
     
     # CUDA
+    # Order of preference (most precise first):
+    #   1. /usr/local/cuda/version.json — modern CUDA (>=11) ships the full
+    #      patch version here (e.g. "13.0.88").
+    #   2. nvcc --version — parse the "V<X.Y.Z>" build string for the full
+    #      patch version. nvcc isn't always on PATH for non-login shells,
+    #      so call /usr/local/cuda/bin/nvcc directly.
+    #   3. /usr/local/cuda/version.txt — legacy CUDA (<11).
+    #   4. readlink -f /usr/local/cuda — follow the full alternatives chain
+    #      (/usr/local/cuda -> /etc/alternatives/cuda -> /usr/local/cuda-X.Y)
+    #      and use the leaf directory name. This only carries major.minor.
     CUDA_VERSION=""
-    if command -v nvcc &>/dev/null; then
-        CUDA_VERSION=$(nvcc --version 2>/dev/null | grep "release" | awk '{print $5}' | sed 's/,//' || true)
-    elif [ -f /usr/local/cuda/version.txt ]; then
-        CUDA_VERSION=$(cat /usr/local/cuda/version.txt | awk '{print $3}' || true)
-    elif [ -L /usr/local/cuda ]; then
-        CUDA_VERSION=$(readlink /usr/local/cuda | sed 's/.*cuda-//' || true)
+    if [ -f /usr/local/cuda/version.json ]; then
+        if command -v jq &>/dev/null; then
+            CUDA_VERSION=$(jq -r '.cuda.version // empty' /usr/local/cuda/version.json 2>/dev/null || true)
+        fi
+        if [[ -z "${CUDA_VERSION}" ]]; then
+            # jq missing or absent key — fall back to a minimal grep/sed.
+            CUDA_VERSION=$(grep -A2 '"cuda"' /usr/local/cuda/version.json 2>/dev/null \
+                | sed -nE 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' \
+                | head -1 || true)
+        fi
+    fi
+    if [[ -z "${CUDA_VERSION}" ]]; then
+        NVCC_BIN=""
+        if command -v nvcc &>/dev/null; then
+            NVCC_BIN="nvcc"
+        elif [ -x /usr/local/cuda/bin/nvcc ]; then
+            NVCC_BIN="/usr/local/cuda/bin/nvcc"
+        fi
+        if [[ -n "${NVCC_BIN}" ]]; then
+            # Prefer the precise "V<X.Y.Z>" token over "release X.Y".
+            CUDA_VERSION=$("${NVCC_BIN}" --version 2>/dev/null \
+                | sed -nE 's/.*[, ]V([0-9][0-9.]*).*/\1/p' | head -1 || true)
+            if [[ -z "${CUDA_VERSION}" ]]; then
+                CUDA_VERSION=$("${NVCC_BIN}" --version 2>/dev/null \
+                    | grep "release" | awk '{print $5}' | sed 's/,//' || true)
+            fi
+        fi
+    fi
+    if [[ -z "${CUDA_VERSION}" ]] && [ -f /usr/local/cuda/version.txt ]; then
+        CUDA_VERSION=$(awk '{print $3}' /usr/local/cuda/version.txt 2>/dev/null || true)
+    fi
+    if [[ -z "${CUDA_VERSION}" ]] && [ -e /usr/local/cuda ]; then
+        # readlink -f follows the entire alternatives chain to the real dir.
+        CUDA_REAL=$(readlink -f /usr/local/cuda 2>/dev/null || true)
+        if [[ -n "${CUDA_REAL}" ]]; then
+            CUDA_VERSION=$(basename "${CUDA_REAL}" | sed -nE 's/^cuda-?([0-9][0-9.]*)$/\1/p' || true)
+        fi
     fi
     write_version "CUDA" "${CUDA_VERSION}"
     
@@ -230,14 +274,16 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     # Prefer package-manager metadata: it works on general-purpose build SKUs
     # (no NVSwitch hardware), is unaffected by whether the fabricmanager
     # service can start, and matches install_nvidia_fabric_manager.sh which
-    # also reads the version from dpkg.
+    # also reads the version from dpkg. Keep the full Debian/RPM version
+    # string (including '-<revision>') so it round-trips with what the
+    # install script wrote (e.g. '580.126.16-1').
     NFM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         NFM_VERSION=$(dpkg-query -W -f='${Version}\n' 'nvidia-fabricmanager-*' 'nvidia-fabricmanager' 2>/dev/null \
-            | head -1 | sed 's/-.*//' || true)
+            | head -1 || true)
     fi
     if [[ -z "${NFM_VERSION}" ]] && command -v rpm &>/dev/null; then
-        NFM_VERSION=$(rpm -qa 'nvidia-fabric-manager*' 'nvidia-fabricmanager*' --qf '%{VERSION}\n' 2>/dev/null \
+        NFM_VERSION=$(rpm -qa 'nvidia-fabric-manager*' 'nvidia-fabricmanager*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
             | sort -V | tail -1 || true)
     fi
     # Last resort: ask the binary itself. nv-fabricmanager --version prints
@@ -259,16 +305,19 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     # Prefer package-manager metadata: `dcgmi --version` normally prints
     # without GPU but may behave inconsistently across releases, and it is
     # not present on systems where only the daemon package is installed.
+    # Keep the full version string (with epoch '1:' and Debian '-<rev>'
+    # suffix) so it matches install_dcgm.sh's write_component_version call
+    # (e.g. '1:4.5.2-1').
     echo "[DCGM]"
     DCGM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         DCGM_VERSION=$(dpkg-query -W -f='${Version}\n' \
             'datacenter-gpu-manager-4-core' 'datacenter-gpu-manager-4-cuda*' \
             'datacenter-gpu-manager' 2>/dev/null \
-            | head -1 | sed 's/-.*//' || true)
+            | head -1 || true)
     fi
     if [[ -z "${DCGM_VERSION}" ]] && command -v rpm &>/dev/null; then
-        DCGM_VERSION=$(rpm -qa 'datacenter-gpu-manager-4-cuda*' 'datacenter-gpu-manager*' --qf '%{VERSION}\n' 2>/dev/null \
+        DCGM_VERSION=$(rpm -qa 'datacenter-gpu-manager-4-cuda*' 'datacenter-gpu-manager*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
             | sort -V | tail -1 || true)
     fi
     if [[ -z "${DCGM_VERSION}" ]] && command -v dcgmi &>/dev/null; then
@@ -277,14 +326,16 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "DCGM" "${DCGM_VERSION}"
     
     # GDRCopy
+    # Keep the full Debian/RPM version string so the entry matches what
+    # install_gdrcopy.sh writes (e.g. '2.5.2-1' from versions.json).
     echo "[GDRCopy]"
     GDRCOPY_VERSION=""
     if command -v dpkg-query &>/dev/null; then
-        GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy 2>/dev/null | sed 's/-.*//' || true)
-        [[ -z "${GDRCOPY_VERSION}" ]] && GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy-tools 2>/dev/null | sed 's/-.*//' || true)
+        GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy 2>/dev/null || true)
+        [[ -z "${GDRCOPY_VERSION}" ]] && GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy-tools 2>/dev/null || true)
     fi
     if [[ -z "${GDRCOPY_VERSION}" ]] && command -v rpm &>/dev/null; then
-        GDRCOPY_VERSION=$(rpm -q --qf '%{VERSION}' gdrcopy 2>/dev/null || true)
+        GDRCOPY_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' gdrcopy 2>/dev/null || true)
         [[ "${GDRCOPY_VERSION}" == *"not installed"* ]] && GDRCOPY_VERSION=""
     fi
     write_version "GDRCOPY" "${GDRCOPY_VERSION}"
@@ -298,19 +349,28 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "DOCKER" "${DOCKER_VERSION}"
     
     MOBY_VERSION=""
+    # Keep the full Debian/RPM version string (including '-ubuntu24.04u1'
+    # or '-<release>' suffix) so it round-trips with install_docker.sh's
+    # `apt list --installed` output, e.g. '29.4.3-ubuntu24.04u1'.
     if command -v dpkg-query &>/dev/null; then
-        MOBY_VERSION=$(dpkg-query -W -f='${Version}' moby-engine 2>/dev/null | sed 's/-.*//' || true)
+        MOBY_VERSION=$(dpkg-query -W -f='${Version}' moby-engine 2>/dev/null || true)
     fi
     if [[ -z "${MOBY_VERSION}" ]] && command -v rpm &>/dev/null; then
-        MOBY_VERSION=$(rpm -q --qf '%{VERSION}' moby-engine 2>/dev/null || true)
+        MOBY_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' moby-engine 2>/dev/null || true)
         [[ "${MOBY_VERSION}" == *"not installed"* ]] && MOBY_VERSION=""
     fi
     write_version "MOBY_ENGINE" "${MOBY_VERSION}"
     
     # NVIDIA Container Toolkit
+    # `nvidia-container-toolkit --version` prints two lines:
+    #   NVIDIA Container Runtime Hook version <X.Y.Z>
+    #   commit: <sha>
+    # We want only the version on the first line; take head -1 first so
+    # awk doesn't emit a value per line (which would embed a newline in
+    # the JSON manifest).
     NCTK_VERSION=""
     if command -v nvidia-container-toolkit &>/dev/null; then
-        NCTK_VERSION=$(nvidia-container-toolkit --version 2>/dev/null | awk '{print $NF}' || true)
+        NCTK_VERSION=$(nvidia-container-toolkit --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
     fi
     write_version "NVIDIA_CONTAINER_TOOLKIT" "${NCTK_VERSION}"
     
@@ -422,9 +482,30 @@ fi
 write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}"
 
 # ---- Lustre ----
+# Prefer package-manager metadata so the refreshed value round-trips with
+# install_lustre_client.sh: on Ubuntu+build-from-source it writes the
+# dpkg ${Version} of lustre-client-utils (e.g. '2.16.1-17-g43573dd-1'),
+# on Ubuntu+repo it writes the amlfs-lustre-client-* version, and on RHEL
+# it writes the underscore-form package version. `lfs --version` only
+# returns the build's internal version string (underscores, no Debian
+# revision), so it's a last-resort fallback.
 echo "[Lustre]"
 LUSTRE_VERSION=""
-if command -v lfs &>/dev/null; then
+if command -v dpkg-query &>/dev/null; then
+    # Build-from-source path installs lustre-client-utils.
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
+        | head -1 | cut -d'~' -f1 || true)
+    # Repo path installs amlfs-lustre-client-<kernel-suffix>.
+    if [[ -z "${LUSTRE_VERSION}" ]]; then
+        LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' 'amlfs-lustre-client-*' 2>/dev/null \
+            | head -1 | cut -d'~' -f1 || true)
+    fi
+fi
+if [[ -z "${LUSTRE_VERSION}" ]] && command -v rpm &>/dev/null; then
+    LUSTRE_VERSION=$(rpm -qa 'amlfs-lustre-client-*' 'lustre-client*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
+        | head -1 || true)
+fi
+if [[ -z "${LUSTRE_VERSION}" ]] && command -v lfs &>/dev/null; then
     LUSTRE_VERSION=$(lfs --version 2>/dev/null | awk '{print $2}' || true)
 fi
 write_version "LUSTRE" "${LUSTRE_VERSION}"

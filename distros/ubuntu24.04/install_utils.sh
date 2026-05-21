@@ -1,6 +1,12 @@
 #!/bin/bash
 set -ex
 
+# Trust the new "Microsoft TLS RSA Root G2" before any HTTPS calls to
+# Microsoft endpoints. Ubuntu Jammy's ca-certificates package has not yet
+# been refreshed to include this root, so endpoints like
+# download.microsoft.com would otherwise fail TLS verification.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Setup microsoft packages repository
 curl -sSL -O https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
 dpkg -i packages-microsoft-prod.deb

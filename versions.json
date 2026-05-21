@@ -1018,7 +1018,7 @@
     },
     "pmix": {
         "common": {
-            "version": "4.2.9-1"
+            "version": "4.2.9-2"
         },
         "azurelinux3.0": {
             "x86_64": {

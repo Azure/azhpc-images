@@ -22,6 +22,46 @@ Pin-Priority: -1
 PIN
 
     apt-get update
+
+    # doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the DOCA-bundled
+    # Open MPI .deb. We never use that binary at runtime — HPC-X (installed later by
+    # install_mpis.sh) provides Open MPI at /opt — and the .deb ships
+    # /etc/pmix-mca-params.conf, colliding with the pmix package installed by
+    # install_pmix.sh (pmix >=4.2.9-2 dropped its `Conflicts: openmpi`, so dpkg now
+    # aborts with "trying to overwrite /etc/pmix-mca-params.conf").
+    #
+    # Inhibit the DOCA openmpi by installing an empty equivs marker that
+    # `Provides: openmpi (= <doca-version>)`, satisfying doca-ofed's strict-equality
+    # dep so apt never pulls in the real openmpi .deb. Same pattern as
+    # ucx-provides-libucx0 in install_rocm.sh.
+    apt-get install -y equivs
+    openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
+    if [[ -z "$openmpi_version" ]]; then
+        echo "ERROR: could not read openmpi version from DOCA repo" >&2
+        exit 1
+    fi
+    cat > /tmp/hpcx-provides-openmpi <<EOF
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: hpcx-provides-openmpi
+Provides: openmpi (= ${openmpi_version})
+Version: ${openmpi_version}
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package to inhibit the DOCA-bundled openmpi
+ HPC-X (installed by install_mpis.sh into /opt) provides Open MPI at runtime,
+ so the DOCA openmpi .deb is redundant and additionally collides with
+ /etc/pmix-mca-params.conf from the separately-installed pmix package.
+EOF
+    (
+        cd /tmp
+        equivs-build /tmp/hpcx-provides-openmpi
+        dpkg -i /tmp/hpcx-provides-openmpi_*_all.deb
+    )
+    rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
+
     apt-get -y install doca-ofed
 
     # Mark doca-ofed's dependencies (the OFED userspace + kernel modules) as

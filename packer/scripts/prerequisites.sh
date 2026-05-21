@@ -243,6 +243,7 @@ install_ubuntu_lts_kernel() {
             apt autoremove -y
             apt upgrade -y
 
+            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
             # Hold kernel and set GRUB default when not building Lustre from source
             if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-${kernel_ver}
@@ -265,6 +266,7 @@ install_ubuntu_lts_kernel() {
             
             apt upgrade -y
 
+            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
             # Hold kernel and set GRUB default when not building Lustre from source
             if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-lts-22.04

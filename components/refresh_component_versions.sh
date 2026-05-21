@@ -28,12 +28,16 @@ COMPONENT_VERSIONS_FILE="/opt/azurehpc/component_versions.txt"
 
 mkdir -p /opt/azurehpc
 
-# Start with an empty JSON object (or preserve ImageVersion from existing file)
-if [ -f "${COMPONENT_VERSIONS_FILE}" ]; then
-    EXISTING_IMAGE_VERSION=$(jq -r '.ImageVersion // empty' "${COMPONENT_VERSIONS_FILE}" 2>/dev/null || true)
+# Refresh is non-destructive: existing entries (written by install_*.sh via
+# write_component_version) are preserved unless we successfully re-detect a
+# component from the system. This matters for components whose version
+# cannot be queried without GPU/IB hardware (e.g. NVBANDWIDTH, NVLOOM) when
+# the build runs on a general-purpose SKU — the value written at install
+# time stays in the manifest. The write_version helper below skips empty
+# detections, so undetected components simply retain their previous entry.
+if [ ! -f "${COMPONENT_VERSIONS_FILE}" ]; then
+    echo '{}' > "${COMPONENT_VERSIONS_FILE}"
 fi
-
-echo '{}' > "${COMPONENT_VERSIONS_FILE}"
 
 # Helper: write version only if non-empty
 write_version() {
@@ -43,7 +47,7 @@ write_version() {
         write_component_version "${component}" "${version}"
         echo "  [OK] ${component} = ${version}"
     else
-        echo "  [--] ${component} not detected"
+        echo "  [--] ${component} not detected (keeping existing entry, if any)"
     fi
 }
 
@@ -157,11 +161,46 @@ write_version "MPIFILEUTILS" "${MPIFILEUTILS_VERSION}"
 # ---- NVIDIA Components ----
 if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     echo "[NVIDIA GPU Stack]"
-    
+
     # NVIDIA driver
+    # Avoid nvidia-smi here — it requires GPU hardware and fails on
+    # general-purpose build SKUs. Read the version directly from the kernel
+    # module metadata (modinfo works on the .ko file without loading it and
+    # without any GPU present); fall back to /sys (only if the module is
+    # loaded) and finally to package-manager queries.
     NVIDIA_VERSION=""
-    if command -v nvidia-smi &>/dev/null; then
-        NVIDIA_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1 || true)
+    if command -v modinfo &>/dev/null; then
+        NVIDIA_VERSION=$(modinfo nvidia 2>/dev/null | awk '/^version:/{print $2; exit}' || true)
+        # If 'modinfo nvidia' can't resolve via depmod's index (e.g. depmod
+        # wasn't refreshed), point modinfo directly at the .ko file.
+        if [[ -z "${NVIDIA_VERSION}" ]]; then
+            NVIDIA_KO=$(find /lib/modules -type f \( -name 'nvidia.ko' -o -name 'nvidia.ko.xz' -o -name 'nvidia.ko.zst' -o -name 'nvidia.ko.gz' \) 2>/dev/null | head -1)
+            if [[ -n "${NVIDIA_KO}" ]]; then
+                NVIDIA_VERSION=$(modinfo -F version "${NVIDIA_KO}" 2>/dev/null || true)
+            fi
+        fi
+    fi
+    if [[ -z "${NVIDIA_VERSION}" && -r /sys/module/nvidia/version ]]; then
+        NVIDIA_VERSION=$(cat /sys/module/nvidia/version 2>/dev/null || true)
+    fi
+    if [[ -z "${NVIDIA_VERSION}" ]] && command -v dpkg-query &>/dev/null; then
+        # Try the open / proprietary driver packages and the cuda-drivers
+        # metapackage in turn. nvidia-driver-* (proprietary) and nvidia-open-*
+        # both carry the driver version as the deb upstream version.
+        for pkg_pattern in 'nvidia-open-[0-9]*' 'nvidia-driver-[0-9]*' 'cuda-drivers'; do
+            NVIDIA_VERSION=$(dpkg-query -W -f='${Version}\n' "${pkg_pattern}" 2>/dev/null \
+                | head -1 | sed 's/-.*//' || true)
+            [[ -n "${NVIDIA_VERSION}" ]] && break
+        done
+    fi
+    if [[ -z "${NVIDIA_VERSION}" ]] && command -v rpm &>/dev/null; then
+        NVIDIA_VERSION=$(rpm -qa 'nvidia-driver*' --qf '%{VERSION}\n' 2>/dev/null \
+            | sort -V | tail -1 || true)
+        # Last resort: cuda-drivers metapackage (RPM-based AzureLinux/RHEL).
+        if [[ -z "${NVIDIA_VERSION}" ]]; then
+            NVIDIA_VERSION=$(rpm -q --qf '%{VERSION}' cuda-drivers 2>/dev/null || true)
+            [[ "${NVIDIA_VERSION}" == *"not installed"* ]] && NVIDIA_VERSION=""
+        fi
     fi
     write_version "NVIDIA" "${NVIDIA_VERSION}"
     
@@ -188,17 +227,24 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NCCL" "${NCCL_VERSION}"
     
     # NVIDIA Fabric Manager
+    # Prefer package-manager metadata: it works on general-purpose build SKUs
+    # (no NVSwitch hardware), is unaffected by whether the fabricmanager
+    # service can start, and matches install_nvidia_fabric_manager.sh which
+    # also reads the version from dpkg.
     NFM_VERSION=""
-    if command -v nv-fabricmanager &>/dev/null; then
-        NFM_VERSION=$(nv-fabricmanager --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+[\.\d]*' | head -1 || true)
+    if command -v dpkg-query &>/dev/null; then
+        NFM_VERSION=$(dpkg-query -W -f='${Version}\n' 'nvidia-fabricmanager-*' 'nvidia-fabricmanager' 2>/dev/null \
+            | head -1 | sed 's/-.*//' || true)
     fi
-    if [[ -z "${NFM_VERSION}" ]]; then
-        if command -v dpkg-query &>/dev/null; then
-            NFM_VERSION=$(dpkg-query -W -f='${Version}' nvidia-fabricmanager-* 2>/dev/null | head -1 | sed 's/-.*//' || true)
-        fi
-        if [[ -z "${NFM_VERSION}" ]] && command -v rpm &>/dev/null; then
-            NFM_VERSION=$(rpm -qa 'nvidia-fabricmanager*' --qf '%{VERSION}\n' 2>/dev/null | head -1 || true)
-        fi
+    if [[ -z "${NFM_VERSION}" ]] && command -v rpm &>/dev/null; then
+        NFM_VERSION=$(rpm -qa 'nvidia-fabric-manager*' 'nvidia-fabricmanager*' --qf '%{VERSION}\n' 2>/dev/null \
+            | sort -V | tail -1 || true)
+    fi
+    # Last resort: ask the binary itself. nv-fabricmanager --version prints
+    # without contacting hardware, so it normally works even on a general SKU,
+    # but only if the package is actually present.
+    if [[ -z "${NFM_VERSION}" ]] && command -v nv-fabricmanager &>/dev/null; then
+        NFM_VERSION=$(nv-fabricmanager --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+[\.\d]*' | head -1 || true)
     fi
     write_version "NVIDIA_FABRIC_MANAGER" "${NFM_VERSION}"
 
@@ -210,9 +256,22 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "IMEX" "${IMEX_VERSION}"
     
     # DCGM
+    # Prefer package-manager metadata: `dcgmi --version` normally prints
+    # without GPU but may behave inconsistently across releases, and it is
+    # not present on systems where only the daemon package is installed.
     echo "[DCGM]"
     DCGM_VERSION=""
-    if command -v dcgmi &>/dev/null; then
+    if command -v dpkg-query &>/dev/null; then
+        DCGM_VERSION=$(dpkg-query -W -f='${Version}\n' \
+            'datacenter-gpu-manager-4-core' 'datacenter-gpu-manager-4-cuda*' \
+            'datacenter-gpu-manager' 2>/dev/null \
+            | head -1 | sed 's/-.*//' || true)
+    fi
+    if [[ -z "${DCGM_VERSION}" ]] && command -v rpm &>/dev/null; then
+        DCGM_VERSION=$(rpm -qa 'datacenter-gpu-manager-4-cuda*' 'datacenter-gpu-manager*' --qf '%{VERSION}\n' 2>/dev/null \
+            | sort -V | tail -1 || true)
+    fi
+    if [[ -z "${DCGM_VERSION}" ]] && command -v dcgmi &>/dev/null; then
         DCGM_VERSION=$(dcgmi --version 2>/dev/null | awk '{print $3}' | head -1 || true)
     fi
     write_version "DCGM" "${DCGM_VERSION}"
@@ -256,30 +315,41 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NVIDIA_CONTAINER_TOOLKIT" "${NCTK_VERSION}"
     
     # NVBandwidth
+    # The nvbandwidth binary is installed to /opt/nvidia/nvbandwidth/ and is
+    # not on PATH. Running `nvbandwidth --version` initializes CUDA on entry,
+    # so it fails on general-purpose build SKUs that have no GPU. There is
+    # also no version metadata on disk to read. Refresh is non-destructive,
+    # so on a general SKU the entry written at install time by
+    # install_nvbandwidth_tool.sh is retained as the source of truth.
     echo "[NVBandwidth]"
     NVBANDWIDTH_VERSION=""
-    if command -v nvbandwidth &>/dev/null; then
-        NVBANDWIDTH_VERSION=$(nvbandwidth --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
+    if [ -x /opt/nvidia/nvbandwidth/nvbandwidth ]; then
+        # Best-effort: only succeeds when a GPU is present.
+        NVBANDWIDTH_VERSION=$(/opt/nvidia/nvbandwidth/nvbandwidth --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
     fi
     write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}"
 
     # NVSHMEM
+    # Installed as the libnvshmem3-cuda-<MAJOR> package (apt/tdnf) by
+    # install_nvshmem.sh — there is no /opt path to inspect.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
-    NVSHMEM_DIR=$(ls -d /opt/nvshmem* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${NVSHMEM_DIR}" ]]; then
-        NVSHMEM_VERSION=$(basename "${NVSHMEM_DIR}" | sed 's/^nvshmem_//' | sed 's/^nvshmem-//')
+    if command -v dpkg-query &>/dev/null; then
+        NVSHMEM_VERSION=$(dpkg-query -W -f='${Version}\n' 'libnvshmem3-cuda-*' 2>/dev/null \
+            | sort -V | tail -1 | sed 's/+.*//' || true)
+    fi
+    if [[ -z "${NVSHMEM_VERSION}" ]] && command -v rpm &>/dev/null; then
+        NVSHMEM_VERSION=$(rpm -qa 'libnvshmem3-cuda-*' --qf '%{VERSION}\n' 2>/dev/null \
+            | sort -V | tail -1 || true)
     fi
     write_version "NVSHMEM" "${NVSHMEM_VERSION}"
 
     # NVLOOM
+    # install_nvloom.sh leaves no version metadata on disk and the binary
+    # cannot self-report without GPU/MPI. Refresh is non-destructive, so the
+    # entry written by install_nvloom.sh is retained on general SKUs.
     echo "[NVLOOM]"
-    NVLOOM_VERSION=""
-    NVLOOM_DIR=$(ls -d /opt/nvloom* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${NVLOOM_DIR}" ]]; then
-        NVLOOM_VERSION=$(basename "${NVLOOM_DIR}" | sed 's/^nvloom-//')
-    fi
-    write_version "NVLOOM" "${NVLOOM_VERSION}"
+    write_version "NVLOOM" ""
 fi
 
 # ---- AMD Components ----
@@ -413,13 +483,6 @@ elif command -v python3.12 &>/dev/null && [ -f /usr/sbin/waagent ]; then
 fi
 write_version "WAAGENT" "${WAAGENT_VERSION}"
 write_version "WAAGENT_EXTENSIONS" "${WAAGENT_EXT_VERSION}"
-
-# ---- Restore ImageVersion if it was set ----
-if [[ -n "${EXISTING_IMAGE_VERSION:-}" ]]; then
-    echo ""
-    echo "[Preserving previous ImageVersion: ${EXISTING_IMAGE_VERSION}]"
-    write_component_version "ImageVersion" "${EXISTING_IMAGE_VERSION}"
-fi
 
 echo ""
 echo "=== component_versions.txt refresh complete ==="

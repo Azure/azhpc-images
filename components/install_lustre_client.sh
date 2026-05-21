@@ -8,7 +8,7 @@ lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
 # Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
-# Set to "true" to build from source (current default), "false" to use DKMS packages.
+# Set to "true" to build from source (current default), "false" to use prebuild binaries.
 KERNEL_MINOR=$(uname -r | grep -oP '^\d+\.\d+')
 LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
 
@@ -16,37 +16,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; the
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
-    # we need to make a marker package to tell apt that HPC-X provides its own OpenMPI, so that lustre-tests can install properly
-    # On AMD/ROCm builds, libopenmpi3t64 is already installed (indirect dep of mivisionx-dev),
-    # so we must not conflict with it — it already satisfies the libopenmpi3 virtual package.
-    apt install -y equivs
-
-    PROVIDES="openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common"
-    CONFLICTS="openmpi-bin, libopenmpi-dev, libopenmpi3, openmpi-common"
-    if dpkg -s libopenmpi3t64 &>/dev/null; then
-        PROVIDES="openmpi-bin, libopenmpi-dev, openmpi-common"
-        CONFLICTS="openmpi-bin, libopenmpi-dev, openmpi-common"
-    fi
-
-    cat <<EOF > /tmp/hpcx-provides-openmpi-bin
-Section: misc
-Priority: optional
-Homepage: https://github.com/Azure/azhpc-images
-Standards-Version: 3.9.2
-
-Package: hpcx-provides-openmpi-bin
-Provides: ${PROVIDES}
-Conflicts: ${CONFLICTS}
-Version: 4.1
-Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package in Azure HPC Image to indicate that HPC-X provides OpenMPI binaries
- Upstream OpenMPI (i.e. OpenMPI packaged by Ubuntu) is unsuitable for HPC purposes, and depends on vulnerable PMIx with fixes behind Ubuntu Pro paywall on Jammy.
-EOF
-
-    equivs-build /tmp/hpcx-provides-openmpi-bin
-    dpkg -i ./hpcx-provides-openmpi-bin_4.1_all.deb
-    rm -f ./hpcx-provides-openmpi-bin_4.1_all.deb
-    rm -f /tmp/hpcx-provides-openmpi-bin
+    # The hpcx-provides-openmpi marker package (installed earlier by install_doca.sh)
+    # already tells apt that HPC-X provides openmpi-bin, libopenmpi-dev and
+    # openmpi-common, so lustre-tests can install without pulling in Canonical's
+    # upstream Open MPI.
 
     # use dev headers from HPC-X OpenMPI installation for lustre-tests
     source /etc/profile.d/modules.sh

@@ -36,7 +36,7 @@ variable "os_version" {
 
 variable "lustre_build_from_source" {
   type    = string
-  default = "false"
+  default = env("LUSTRE_BUILD_FROM_SOURCE")
 }
 
 locals {

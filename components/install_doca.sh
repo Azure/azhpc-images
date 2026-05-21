@@ -63,22 +63,6 @@ EOF
     rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
 
     apt-get -y install doca-ofed
-
-    # Mark doca-ofed's dependencies (the OFED userspace + kernel modules) as
-    # manually-installed so they survive any subsequent `apt autoremove`.
-    # Later components (e.g. install_pmix.sh installing libevent-dev/libhwloc-dev)
-    # may remove the doca-ofed meta-package due to conflicts with openmpi, which
-    # would otherwise leave the entire OFED stack flagged auto-installed and
-    # liable to be swept away by autoremove (e.g. in install_dynolog_drl.sh).
-    # Scoped to Ubuntu 22.04 where this conflict has been observed.
-    if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
-        DOCA_OFED_DEPS=$(apt-cache depends --recurse --no-recommends --no-suggests \
-            --no-conflicts --no-breaks --no-replaces --no-enhances doca-ofed \
-            2>/dev/null | awk '/^\w/ {print $1}' | sort -u)
-        if [[ -n "$DOCA_OFED_DEPS" ]]; then
-            apt-mark manual $DOCA_OFED_DEPS || true
-        fi
-    fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all

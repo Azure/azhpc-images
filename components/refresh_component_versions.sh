@@ -419,22 +419,32 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         DCGM_VERSION=$(dcgmi --version 2>/dev/null | awk '{print $3}' | head -1 || true)
     fi
     write_version "DCGM" "${DCGM_VERSION}"
-    
+
     # GDRCopy
-    # Keep the full Debian/RPM version string so the entry matches what
-    # install_gdrcopy.sh writes (e.g. '2.5.2-1' from versions.json).
+    # install_gdrcopy.sh writes the full version string from versions.json
+    # (e.g. '2.5.2-1'), but the deb's control-file Version field is just
+    # the upstream-only '2.5.2' (the '-1' lives only in the .deb filename),
+    # so a dpkg-query round-trip would silently downgrade the manifest on
+    # every refresh.
+    #
+    # GDRCopy is pinned on every distro the refresh script targets:
+    #   - Ubuntu (source build): all 4 .debs are `apt-mark hold`'d right
+    #     after `dpkg -i`, so `apt upgrade` cannot mutate them.
+    #   - RHEL family: install_gdrcopy.sh appends `gdrcopy*` to the
+    #     `exclude=` line in /etc/dnf/dnf.conf, so `dnf update` skips them.
+    #   - AzureLinux 3.0: install_gdrcopy.sh already reads the installed
+    #     version back from `tdnf list installed`, so install and refresh
+    #     trivially agree (and gdrcopy isn't auto-upgraded in practice).
+    #
+    # Since apt/dnf/tdnf upgrades cannot drift GDRCopy under this script,
+    # the entry written by install_gdrcopy.sh on the base image remains
+    # ground truth across in-place refreshes. Mark as best-effort and skip
+    # detection so the soft-preserve path keeps the precise install-time
+    # value (with the '-<rev>' suffix) intact.
     echo "[GDRCopy]"
     GDRCOPY_VERSION=""
-    if command -v dpkg-query &>/dev/null; then
-        GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy 2>/dev/null || true)
-        [[ -z "${GDRCOPY_VERSION}" ]] && GDRCOPY_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy-tools 2>/dev/null || true)
-    fi
-    if [[ -z "${GDRCOPY_VERSION}" ]] && command -v rpm &>/dev/null; then
-        GDRCOPY_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' gdrcopy 2>/dev/null || true)
-        [[ "${GDRCOPY_VERSION}" == *"not installed"* ]] && GDRCOPY_VERSION=""
-    fi
-    write_version "GDRCOPY" "${GDRCOPY_VERSION}"
-    
+    write_version "GDRCOPY" "${GDRCOPY_VERSION}" best-effort
+
     # Docker / Moby Engine
     echo "[Container Runtime]"
     DOCKER_VERSION=""
@@ -510,23 +520,40 @@ fi
 # ---- AMD Components ----
 if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
     echo "[AMD GPU Stack]"
-    
+
     # ROCm
+    # install_rocm.sh writes the bare MAJOR.MINOR.PATCH from versions.json
+    # (e.g. "6.4.4"), but ROCm's on-disk version file /opt/rocm/.info/version
+    # carries an additional "-<build>" suffix appended by AMD's packaging
+    # (e.g. "6.4.4-129"). Strip the trailing "-<digits>" so the refreshed
+    # value round-trips with what install_rocm.sh recorded. `rocminfo`'s
+    # "Runtime Version" output already lacks the suffix, so no strip needed
+    # there.
     ROCM_VERSION=""
     if [ -f /opt/rocm/.info/version ]; then
-        ROCM_VERSION=$(cat /opt/rocm/.info/version 2>/dev/null || true)
+        ROCM_VERSION=$(cat /opt/rocm/.info/version 2>/dev/null | sed -E 's/-[0-9]+$//' || true)
     elif command -v rocminfo &>/dev/null; then
         ROCM_VERSION=$(rocminfo 2>/dev/null | grep "Runtime Version" | awk '{print $NF}' || true)
     fi
     write_version "ROCM" "${ROCM_VERSION}"
-    
+
     # RCCL
+    # install_rccl.sh builds RCCL from source and installs it to the
+    # VERSIONLESS prefix /opt/rccl/ (cmake -DCMAKE_INSTALL_PREFIX=/opt/rccl).
+    # There is no /opt/rccl-<X.Y.Z>/ directory to read the version from.
+    # The previous detector globbed /opt/rccl* and sort -V'd it; on AMD
+    # images that also install the RCCL test suite under /opt/rccl-tests/,
+    # `sort -V` ranks "rccl-tests" AFTER "rccl" (letters > digits), and the
+    # subsequent `sed 's/^rccl-//'` then produced the literal string
+    # "tests" as the manifest value.
+    #
+    # /opt/rccl/ is a from-source install and is NOT managed by apt/dnf, so
+    # `apt upgrade` cannot mutate it. The entry written by install_rccl.sh
+    # on the base image remains ground truth across in-place refreshes.
+    # Mark as best-effort and skip detection so the soft-preserve path
+    # keeps the precise install-time value intact.
     RCCL_VERSION=""
-    RCCL_DIR=$(ls -d /opt/rccl* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${RCCL_DIR}" ]]; then
-        RCCL_VERSION=$(basename "${RCCL_DIR}" | sed 's/^rccl-//')
-    fi
-    write_version "RCCL" "${RCCL_VERSION}"
+    write_version "RCCL" "${RCCL_VERSION}" best-effort
 fi
 
 # ---- AMD CPU compilers / libs (installed on x86_64 for BOTH NVIDIA and AMD

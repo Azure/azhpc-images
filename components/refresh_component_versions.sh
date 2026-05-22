@@ -195,19 +195,23 @@ fi
 write_version "OMPI" "${OMPI_VERSION}"
 
 # ---- MPI: Intel MPI ----
+# install_mpis.sh writes the precise marketing version from versions.json
+# (e.g. "2021.16.1"), but the Intel oneAPI offline installer creates the
+# install directory at /opt/intel/oneapi/mpi/<major.minor>/ — the trailing
+# ".<patch>" is lost on disk. Falling back to the directory basename would
+# downgrade the manifest from "2021.16.1" to "2021.16" on every refresh.
+#
+# Intel oneAPI components live entirely under /opt/intel and are NOT
+# managed by apt/dnf, so they cannot be mutated by the `apt upgrade` step
+# that motivates this script. The entry written by install_mpis.sh on the
+# base image therefore remains ground truth across in-place refreshes.
+# Mark as best-effort and skip detection entirely so the soft-preserve
+# path keeps the precise install-time value.
+#
+# (mpirun --version, the only on-system source we have, also reports just
+# the major.minor — so there is no precise auto-detection path available.)
 IMPI_VERSION=""
-# Intel MPI installs to /opt/intel/oneapi/mpi/<version>/ with a 'latest'
-# symlink alongside the versioned directory. Exclude symlinks (including
-# 'latest') so we pick the real versioned directory; otherwise sort -V
-# would happily return 'latest' (letters sort after digits).
-if [ -d /opt/intel/oneapi/mpi ]; then
-    IMPI_DIR=$(find /opt/intel/oneapi/mpi -mindepth 1 -maxdepth 1 -type d ! -name latest 2>/dev/null \
-        | sort -V | tail -1 || true)
-    if [[ -n "${IMPI_DIR}" ]]; then
-        IMPI_VERSION=$(basename "${IMPI_DIR}")
-    fi
-fi
-write_version "IMPI" "${IMPI_VERSION}"
+write_version "IMPI" "${IMPI_VERSION}" best-effort
 
 # ---- mpiFileUtils ----
 # install_mpifileutils.sh builds from a versioned tarball and installs into
@@ -270,27 +274,33 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NVIDIA" "${NVIDIA_VERSION}"
     
     # CUDA
-    # Order of preference (most precise first):
-    #   1. /usr/local/cuda/version.json — modern CUDA (>=11) ships the full
-    #      patch version here (e.g. "13.0.88").
-    #   2. nvcc --version — parse the "V<X.Y.Z>" build string for the full
-    #      patch version. nvcc isn't always on PATH for non-login shells,
-    #      so call /usr/local/cuda/bin/nvcc directly.
-    #   3. /usr/local/cuda/version.txt — legacy CUDA (<11).
-    #   4. readlink -f /usr/local/cuda — follow the full alternatives chain
+    # install_nvidiagpudriver.sh writes the value parsed from
+    #   `nvcc --version | grep release | awk '{print $6}' | cut -c2-`
+    # which is the "V<X.Y.Z>" build/toolchain version (e.g. "13.0.88").
+    # The CUDA Toolkit ships two distinct version strings in
+    # /usr/local/cuda/version.json:
+    #   .cuda.version   — marketing/release version (e.g. "13.0.3")
+    #   .nvcc.version   — build/toolchain version (e.g. "13.0.88")
+    # To round-trip with install_nvidiagpudriver.sh we MUST prefer the
+    # nvcc/toolchain build number, not the marketing version.
+    #
+    # Order of preference (most precise + round-trips with install):
+    #   1. /usr/local/cuda/version.json .nvcc.version — full build version,
+    #      doesn't need nvcc on PATH or a working CUDA shell environment.
+    #   2. nvcc --version "V<X.Y.Z>" token — same value, queried from the
+    #      binary directly. /usr/local/cuda/bin/nvcc usually isn't on PATH
+    #      for non-login shells, so call it by absolute path.
+    #   3. /usr/local/cuda/version.json .cuda.version — marketing version,
+    #      LESS precise than nvcc.version but still preferable to nothing.
+    #      Older CUDA Toolkit releases (pre-13) may only ship this key.
+    #   4. /usr/local/cuda/version.txt — legacy CUDA (<11) fallback.
+    #   5. readlink -f /usr/local/cuda — follows the full alternatives chain
     #      (/usr/local/cuda -> /etc/alternatives/cuda -> /usr/local/cuda-X.Y)
-    #      and use the leaf directory name. This only carries major.minor.
+    #      and uses the leaf directory name. Only carries major.minor.
     CUDA_VERSION=""
-    if [ -f /usr/local/cuda/version.json ]; then
-        if command -v jq &>/dev/null; then
-            CUDA_VERSION=$(jq -r '.cuda.version // empty' /usr/local/cuda/version.json 2>/dev/null || true)
-        fi
-        if [[ -z "${CUDA_VERSION}" ]]; then
-            # jq missing or absent key — fall back to a minimal grep/sed.
-            CUDA_VERSION=$(grep -A2 '"cuda"' /usr/local/cuda/version.json 2>/dev/null \
-                | sed -nE 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' \
-                | head -1 || true)
-        fi
+    if [ -f /usr/local/cuda/version.json ] && command -v jq &>/dev/null; then
+        # Prefer .nvcc.version (matches install_nvidiagpudriver.sh's nvcc -V parse).
+        CUDA_VERSION=$(jq -r '.nvcc.version // empty' /usr/local/cuda/version.json 2>/dev/null || true)
     fi
     if [[ -z "${CUDA_VERSION}" ]]; then
         NVCC_BIN=""
@@ -307,6 +317,19 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
                 CUDA_VERSION=$("${NVCC_BIN}" --version 2>/dev/null \
                     | grep "release" | awk '{print $5}' | sed 's/,//' || true)
             fi
+        fi
+    fi
+    if [[ -z "${CUDA_VERSION}" ]] && [ -f /usr/local/cuda/version.json ]; then
+        # Last-resort: marketing version (.cuda.version). Less precise than
+        # .nvcc.version but at least we get major.minor.patch.
+        if command -v jq &>/dev/null; then
+            CUDA_VERSION=$(jq -r '.cuda.version // empty' /usr/local/cuda/version.json 2>/dev/null || true)
+        fi
+        if [[ -z "${CUDA_VERSION}" ]]; then
+            # jq missing — minimal grep/sed for the "cuda" block.
+            CUDA_VERSION=$(grep -A2 '"cuda"' /usr/local/cuda/version.json 2>/dev/null \
+                | sed -nE 's/.*"version"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' \
+                | head -1 || true)
         fi
     fi
     if [[ -z "${CUDA_VERSION}" ]] && [ -f /usr/local/cuda/version.txt ]; then
@@ -543,25 +566,22 @@ fi
 write_version "AOCC" "${AOCC_VERSION}"
 
 # ---- Intel MKL ----
-# install_intel_libs.sh runs the oneAPI offline installer with default
-# paths, so MKL lands at /opt/intel/oneapi/mkl/<version>/ alongside a
-# 'latest' symlink. sort -V puts 'latest' AFTER digit-prefixed versions
-# (because 'l' > '2' lexically), so the previous detector picked 'latest',
-# correctly rejected it via the basename guard, but had no fallback to the
-# next entry — the variable was left empty and the prior manifest entry
-# was silently kept across refreshes. Same fix pattern as IMPI above:
-# enumerate with `find ... -type d ! -name latest` so the symlink never
-# enters the candidate list.
+# install_intel_libs.sh writes the precise marketing version from
+# versions.json (e.g. "2025.3.1.11"), but the Intel oneAPI offline
+# installer lands MKL at /opt/intel/oneapi/mkl/<major.minor>/ — the
+# trailing ".<patch>.<build>" is lost on disk. Falling back to the
+# directory basename would downgrade the manifest from "2025.3.1.11" to
+# "2025.3" on every refresh.
+#
+# Same rationale as IMPI above: Intel oneAPI components live under
+# /opt/intel and are NOT managed by apt/dnf, so they cannot be mutated by
+# the `apt upgrade` step that motivates this script. The entry written by
+# install_intel_libs.sh on the base image remains ground truth across
+# in-place refreshes. Mark as best-effort and skip detection so the
+# soft-preserve path keeps the install-time value intact.
 echo "[Intel Libraries]"
 INTEL_MKL_VERSION=""
-if [ -d /opt/intel/oneapi/mkl ]; then
-    MKL_DIR=$(find /opt/intel/oneapi/mkl -mindepth 1 -maxdepth 1 -type d ! -name latest 2>/dev/null \
-        | sort -V | tail -1 || true)
-    if [[ -n "${MKL_DIR}" ]]; then
-        INTEL_MKL_VERSION=$(basename "${MKL_DIR}")
-    fi
-fi
-write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}"
+write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
 
 # ---- Lustre ----
 # Prefer package-manager metadata so the refreshed value round-trips with

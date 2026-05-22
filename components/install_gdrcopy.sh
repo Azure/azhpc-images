@@ -81,4 +81,19 @@ else
         popd
     fi
 fi    
-write_component_version "GDRCOPY" ${GDRCOPY_VERSION}
+# Record the version the package manager actually registered, not the raw
+# string from versions.json. For gdrcopy on Ubuntu, the .deb's control-file
+# Version field is the upstream-only string (e.g. "2.5.2") even though the
+# .deb filename and versions.json carry an explicit "-<rev>" suffix
+# ("2.5.2-1"). components/refresh_component_versions.sh reads back via
+# dpkg-query, so writing the same dpkg ${Version} here makes the manifest
+# round-trip exactly across in-place refreshes.
+GDRCOPY_INSTALLED_VERSION=""
+if command -v dpkg-query &>/dev/null; then
+    GDRCOPY_INSTALLED_VERSION=$(dpkg-query -W -f='${Version}' gdrcopy 2>/dev/null || true)
+fi
+if [[ -z "${GDRCOPY_INSTALLED_VERSION}" ]] && command -v rpm &>/dev/null; then
+    GDRCOPY_INSTALLED_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' gdrcopy 2>/dev/null || true)
+    [[ "${GDRCOPY_INSTALLED_VERSION}" == *"not installed"* ]] && GDRCOPY_INSTALLED_VERSION=""
+fi
+write_component_version "GDRCOPY" "${GDRCOPY_INSTALLED_VERSION:-${GDRCOPY_VERSION}}"

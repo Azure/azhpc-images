@@ -100,6 +100,14 @@ install_ubuntu_gb200_kernel() {
     export NEEDRESTART_MODE=a
     
     apt-get update
+
+    # In-place refresh: ensure DKMS builds OFED modules in dependency order
+    # (iser/isert/srp need mlnx-ofed-kernel built first, but DKMS autoinstall
+    # processes modules alphabetically and would otherwise fail).
+    if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
+        configure_ofed_dkms_build_depends
+    fi
+
     if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
         sudo apt-get install linux-azure-nvidia -y  
         # Hold kernel version when not building Lustre from source

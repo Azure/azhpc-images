@@ -2,10 +2,7 @@
 set -ex
 
 # Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
-# calls to Microsoft endpoints. Some Microsoft front-ends (e.g.
-# download.microsoft.com) serve an incomplete chain that omits the
-# cross-signed bridge to DigiCert Global Root G2, so the client must
-# resolve "Microsoft TLS RSA Root G2" locally to complete the path.
+# calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
 # Setup microsoft packages repository

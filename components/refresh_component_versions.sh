@@ -8,9 +8,12 @@ set -euo pipefail
 # installed versions of all HPC components on the running system.
 #
 # This script is used during "in-place refresh" builds where an existing HPC
-# image is used as a base and components are upgraded. Since the install scripts
-# may not all be re-run, this script queries the system (package managers,
-# binaries, modulefiles, etc.) to build an accurate manifest.
+# image is used as a base and only `apt update` / `apt upgrade` is run to
+# pick up newer general packages, kernels, and kmods. None of the
+# components/install_*.sh scripts are re-executed in this mode, so the
+# manifest written at original build time can drift from what's actually
+# installed. This script queries the system (package managers, binaries,
+# modulefiles, etc.) to rebuild an accurate manifest from ground truth.
 #
 # Usage:
 #   sudo bash refresh_component_versions.sh [GPU_PLATFORM]
@@ -26,6 +29,13 @@ source "${SCRIPT_DIR}/../utils/utilities.sh" || { echo "ERROR: Failed to source 
 GPU_PLATFORM="${1:-NVIDIA}"
 COMPONENT_VERSIONS_FILE="/opt/azurehpc/component_versions.txt"
 
+# STRICT=1 fails the script at the end if any REQUIRED detector returned
+# empty. Default is warn-only so existing CI keeps passing while operators
+# investigate. The counter is incremented by write_version when a
+# 'required' detector misses; see the trailing summary block.
+STRICT="${STRICT:-0}"
+REQUIRED_MISSING=0
+
 mkdir -p /opt/azurehpc
 
 # Refresh is non-destructive: existing entries (written by install_*.sh via
@@ -39,16 +49,45 @@ if [ ! -f "${COMPONENT_VERSIONS_FILE}" ]; then
     echo '{}' > "${COMPONENT_VERSIONS_FILE}"
 fi
 
-# Helper: write version only if non-empty
+# Helper: write a component's version, classified by tier.
+#
+# Tiers:
+#   required    (default) — The detector MUST succeed on the build host:
+#                 the component is either apt/dnf-managed (so apt upgrade
+#                 can mutate it between builds and the manifest must
+#                 reflect the new version) or has a stable, hardware-free
+#                 on-disk version signal. An empty result is treated as a
+#                 regression: log [WARN], increment REQUIRED_MISSING, and
+#                 (when STRICT=1) fail the script at the end. Soft-preserve
+#                 still happens — we don't drop the prior entry — but the
+#                 build is no longer silent about it.
+#   best-effort — The detector cannot reliably succeed on the build host.
+#                 Either the component is hardware-gated (e.g. NVBANDWIDTH
+#                 needs a GPU to self-report, NVLOOM has no on-disk
+#                 metadata at all, IMEX only ships on GB200) or the
+#                 install layout deliberately encodes no version (e.g.
+#                 mpifileutils, Moneo, dynolog). For these, the prior
+#                 manifest entry written by install_*.sh is the source of
+#                 truth; an empty refresh result is expected and silently
+#                 retains it.
 write_version() {
     local component="$1"
     local version="$2"
+    local tier="${3:-required}"
     if [[ -n "${version}" && "${version}" != "null" ]]; then
         write_component_version "${component}" "${version}"
         echo "  [OK] ${component} = ${version}"
-    else
-        echo "  [--] ${component} not detected (keeping existing entry, if any)"
+        return
     fi
+    case "${tier}" in
+        best-effort)
+            echo "  [skip] ${component} (best-effort, keeping existing entry, if any)"
+            ;;
+        required|*)
+            echo "  [WARN] ${component} REQUIRED detector returned empty; keeping existing entry, if any"
+            REQUIRED_MISSING=$((REQUIRED_MISSING + 1))
+            ;;
+    esac
 }
 
 echo "=== Refreshing component_versions.txt ==="
@@ -77,25 +116,46 @@ if command -v ofed_info &>/dev/null; then
     write_version "OFED" "${OFED_VERSION}"
 fi
 
-# DOCA version: check dpkg or rpm
+# DOCA version: check dpkg or rpm.
+# install_doca.sh installs the 'doca-host' .deb on Ubuntu (which then
+# pulls in doca-ofed via apt), and either 'doca-host' or 'doca-extra' /
+# 'doca-ofed' on RPM-based distros. The legacy 'doca-runtime' metapackage
+# referenced by the previous detector no longer exists in DOCA 3.x.
+# install_doca.sh writes only the leading 'X.Y.Z' from versions.json, so
+# strip the trailing '-<build>-<ofed>-<distro>' suffix to round-trip.
 DOCA_VERSION=""
 if command -v dpkg-query &>/dev/null; then
-    DOCA_VERSION=$(dpkg-query -W -f='${Version}' doca-runtime 2>/dev/null | sed 's/-.*//' || true)
+    DOCA_VERSION=$(dpkg-query -W -f='${Version}\n' doca-host doca-ofed doca-runtime 2>/dev/null \
+        | head -1 | sed 's/-.*//' || true)
 fi
 if [[ -z "${DOCA_VERSION}" ]] && command -v rpm &>/dev/null; then
-    DOCA_VERSION=$(rpm -q --qf '%{VERSION}' doca-runtime 2>/dev/null || true)
-    [[ "${DOCA_VERSION}" == *"not installed"* ]] && DOCA_VERSION=""
+    DOCA_VERSION=$(rpm -qa 'doca-host' 'doca-ofed' 'doca-runtime' --qf '%{VERSION}\n' 2>/dev/null \
+        | head -1 | sed 's/-.*//' || true)
 fi
 write_version "DOCA" "${DOCA_VERSION}"
 
 # ---- PMIx ----
+# install_pmix.sh installs the 'pmix' apt package (Ubuntu) / 'pmix' dnf
+# package (RHEL/AzureLinux) and writes the package version (e.g.
+# '4.2.9-1') to the manifest. Prefer package-manager metadata so the
+# refreshed value round-trips with what install_pmix.sh wrote; pmix_info
+# and pkg-config are unreliable here (pmix_info lives in HPC-X's tree and
+# isn't on PATH; pkg-config needs libpmix-dev which isn't installed).
 echo "[PMIx]"
 PMIX_VERSION=""
-if command -v pmix_info &>/dev/null; then
+if command -v dpkg-query &>/dev/null; then
+    PMIX_VERSION=$(dpkg-query -W -f='${Version}\n' pmix 2>/dev/null || true)
+fi
+if [[ -z "${PMIX_VERSION}" ]] && command -v rpm &>/dev/null; then
+    PMIX_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}\n' pmix 2>/dev/null || true)
+    [[ "${PMIX_VERSION}" == *"not installed"* ]] && PMIX_VERSION=""
+fi
+# Last-resort fallbacks (rarely needed; the apt/dnf path above is the
+# install_pmix.sh code path on every supported distro).
+if [[ -z "${PMIX_VERSION}" ]] && command -v pmix_info &>/dev/null; then
     PMIX_VERSION=$(pmix_info --pretty-print 2>/dev/null | grep "PMIx:" | head -1 | awk '{print $NF}' || true)
 fi
 if [[ -z "${PMIX_VERSION}" ]]; then
-    # Try pkg-config
     PMIX_VERSION=$(pkg-config --modversion pmix 2>/dev/null || true)
 fi
 write_version "PMIX" "${PMIX_VERSION}"
@@ -150,16 +210,18 @@ fi
 write_version "IMPI" "${IMPI_VERSION}"
 
 # ---- mpiFileUtils ----
+# install_mpifileutils.sh builds from a versioned tarball and installs into
+# the versionless prefix /opt/mpifileutils/. No version is encoded in the
+# install layout, the CLI tools (dbcast/dcp/...) don't reliably expose
+# --version, and there is no pkg-config file shipped by upstream. The
+# previous detector both (a) gated on `command -v dbcast`, which is never
+# on PATH because /opt/mpifileutils/bin isn't, and (b) globbed for
+# /opt/mpifileutils-*, which never matches the real install dir.
+# Best-effort soft-preserve is correct: apt upgrade cannot mutate
+# /opt/mpifileutils, so the entry written by install_mpifileutils.sh on
+# the base image is still ground truth.
 echo "[mpiFileUtils]"
-MPIFILEUTILS_VERSION=""
-if command -v dbcast &>/dev/null; then
-    # mpifileutils doesn't always have --version; check the install path
-    MFU_DIR=$(ls -d /opt/mpifileutils-* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${MFU_DIR}" ]]; then
-        MPIFILEUTILS_VERSION=$(basename "${MFU_DIR}" | sed 's/^mpifileutils-//')
-    fi
-fi
-write_version "MPIFILEUTILS" "${MPIFILEUTILS_VERSION}"
+write_version "MPIFILEUTILS" "" best-effort
 
 # ---- NVIDIA Components ----
 if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
@@ -294,30 +356,40 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVIDIA_FABRIC_MANAGER" "${NFM_VERSION}"
 
-    # IMEX (only on GB200)
+    # IMEX (only on GB200). Best-effort: nvidia-imex-* is not installed on
+    # any other SKU; an empty result is expected and the prior manifest
+    # entry (if any) is the source of truth.
     IMEX_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         IMEX_VERSION=$(dpkg-query -W -f='${Version}' nvidia-imex-* 2>/dev/null | head -1 | sed 's/-.*//' || true)
     fi
-    write_version "IMEX" "${IMEX_VERSION}"
+    write_version "IMEX" "${IMEX_VERSION}" best-effort
     
     # DCGM
-    # Prefer package-manager metadata: `dcgmi --version` normally prints
-    # without GPU but may behave inconsistently across releases, and it is
-    # not present on systems where only the daemon package is installed.
-    # Keep the full version string (with epoch '1:' and Debian '-<rev>'
-    # suffix) so it matches install_dcgm.sh's write_component_version call
-    # (e.g. '1:4.5.2-1').
+    # The 'datacenter-gpu-manager-4-core' package is CUDA-version-agnostic
+    # and is always installed by install_dcgm.sh alongside one or more
+    # cuda<N> sub-packages (the sub-packages vary by SKU's compute
+    # capability, so we don't query them). Keep the full version string
+    # (with epoch '1:' and Debian '-<rev>' suffix) so it round-trips with
+    # install_dcgm.sh's write_component_version call (e.g. '1:4.5.3-1').
+    #
+    # The previous detector globbed three patterns in one dpkg-query call
+    # (...-core ...-cuda* and the unversioned name); the multi-arg call
+    # was returning empty under set -euo pipefail on Ubuntu 24.04 even
+    # though `-core` was installed in 'hi' (hold + installed) state, so we
+    # silently kept the previous manifest's version across apt upgrades.
+    # Querying the single package directly is more robust.
     echo "[DCGM]"
     DCGM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
-        DCGM_VERSION=$(dpkg-query -W -f='${Version}\n' \
-            'datacenter-gpu-manager-4-core' 'datacenter-gpu-manager-4-cuda*' \
-            'datacenter-gpu-manager' 2>/dev/null \
-            | head -1 || true)
+        DCGM_VERSION=$(dpkg-query -W -f='${Version}\n' datacenter-gpu-manager-4-core 2>/dev/null || true)
+    fi
+    if [[ -z "${DCGM_VERSION}" ]] && command -v dpkg-query &>/dev/null; then
+        # Legacy DCGM 3.x packaging used a single unversioned name.
+        DCGM_VERSION=$(dpkg-query -W -f='${Version}\n' datacenter-gpu-manager 2>/dev/null || true)
     fi
     if [[ -z "${DCGM_VERSION}" ]] && command -v rpm &>/dev/null; then
-        DCGM_VERSION=$(rpm -qa 'datacenter-gpu-manager-4-cuda*' 'datacenter-gpu-manager*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
+        DCGM_VERSION=$(rpm -qa 'datacenter-gpu-manager-4-core' 'datacenter-gpu-manager*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
             | sort -V | tail -1 || true)
     fi
     if [[ -z "${DCGM_VERSION}" ]] && command -v dcgmi &>/dev/null; then
@@ -384,10 +456,10 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     echo "[NVBandwidth]"
     NVBANDWIDTH_VERSION=""
     if [ -x /opt/nvidia/nvbandwidth/nvbandwidth ]; then
-        # Best-effort: only succeeds when a GPU is present.
+        # Only succeeds when a GPU is present; harmless when it doesn't.
         NVBANDWIDTH_VERSION=$(/opt/nvidia/nvbandwidth/nvbandwidth --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
     fi
-    write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}"
+    write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
 
     # NVSHMEM
     # Installed as the libnvshmem3-cuda-<MAJOR> package (apt/tdnf) by
@@ -409,7 +481,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     # cannot self-report without GPU/MPI. Refresh is non-destructive, so the
     # entry written by install_nvloom.sh is retained on general SKUs.
     echo "[NVLOOM]"
-    write_version "NVLOOM" ""
+    write_version "NVLOOM" "" best-effort
 fi
 
 # ---- AMD Components ----
@@ -471,11 +543,21 @@ fi
 write_version "AOCC" "${AOCC_VERSION}"
 
 # ---- Intel MKL ----
+# install_intel_libs.sh runs the oneAPI offline installer with default
+# paths, so MKL lands at /opt/intel/oneapi/mkl/<version>/ alongside a
+# 'latest' symlink. sort -V puts 'latest' AFTER digit-prefixed versions
+# (because 'l' > '2' lexically), so the previous detector picked 'latest',
+# correctly rejected it via the basename guard, but had no fallback to the
+# next entry — the variable was left empty and the prior manifest entry
+# was silently kept across refreshes. Same fix pattern as IMPI above:
+# enumerate with `find ... -type d ! -name latest` so the symlink never
+# enters the candidate list.
 echo "[Intel Libraries]"
 INTEL_MKL_VERSION=""
 if [ -d /opt/intel/oneapi/mkl ]; then
-    MKL_DIR=$(ls -d /opt/intel/oneapi/mkl/* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${MKL_DIR}" && "$(basename "${MKL_DIR}")" != "latest" ]]; then
+    MKL_DIR=$(find /opt/intel/oneapi/mkl -mindepth 1 -maxdepth 1 -type d ! -name latest 2>/dev/null \
+        | sort -V | tail -1 || true)
+    if [[ -n "${MKL_DIR}" ]]; then
         INTEL_MKL_VERSION=$(basename "${MKL_DIR}")
     fi
 fi
@@ -511,10 +593,15 @@ fi
 write_version "LUSTRE" "${LUSTRE_VERSION}"
 
 # ---- dynolog / dyno_relay_logger ----
+# install_dynolog_drl.sh builds both from a git tag and installs them to
+# /usr/local/bin without a Debian package and without a sidecar version
+# file. `dynolog --version` and `dyno_relay_logger --version` exist but
+# the format isn't guaranteed across upstream versions. Treat as
+# best-effort: the entry written by install_dynolog_drl.sh is the source
+# of truth, and apt upgrade can't mutate the /usr/local/bin binaries.
 echo "[Dynolog]"
 DYNOLOG_VERSION=""
 if command -v dynolog &>/dev/null; then
-    # dynolog might not have --version, check package
     if command -v dpkg-query &>/dev/null; then
         DYNOLOG_VERSION=$(dpkg-query -W -f='${Version}' dynolog 2>/dev/null | sed 's/-.*//' || true)
     fi
@@ -523,15 +610,19 @@ if command -v dynolog &>/dev/null; then
         [[ "${DYNOLOG_VERSION}" == *"not installed"* ]] && DYNOLOG_VERSION=""
     fi
 fi
-write_version "dynolog" "${DYNOLOG_VERSION}"
+write_version "dynolog" "${DYNOLOG_VERSION}" best-effort
 
 DRL_VERSION=""
 if command -v dyno_relay_logger &>/dev/null; then
     DRL_VERSION=$(dyno_relay_logger --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
 fi
-write_version "dyno_relay_logger" "${DRL_VERSION}"
+write_version "dyno_relay_logger" "${DRL_VERSION}" best-effort
 
 # ---- Monitoring Tools (Moneo) ----
+# install_monitoring_tools.sh extracts the Moneo source tarball to
+# /opt/azurehpc/tools/Moneo/ but does not drop a version.txt sidecar, so
+# the on-disk install has no version signal. Best-effort soft-preserve
+# of the entry written by install_monitoring_tools.sh.
 echo "[Monitoring]"
 MONEO_VERSION=""
 if [ -d /opt/azurehpc/tools/Moneo ]; then
@@ -539,9 +630,12 @@ if [ -d /opt/azurehpc/tools/Moneo ]; then
         MONEO_VERSION=$(cat /opt/azurehpc/tools/Moneo/version.txt 2>/dev/null || true)
     fi
 fi
-write_version "MONEO" "${MONEO_VERSION}"
+write_version "MONEO" "${MONEO_VERSION}" best-effort
 
 # ---- Azure Health Checks ----
+# Same situation as Moneo: install_health_checks.sh clones the repo into
+# /opt/azurehpc/test/azurehpc-health-checks/ but doesn't write a
+# version.txt sidecar. Best-effort soft-preserve.
 echo "[Health Checks]"
 AZHC_VERSION=""
 if [ -d /opt/azurehpc/test/azurehpc-health-checks ]; then
@@ -549,7 +643,7 @@ if [ -d /opt/azurehpc/test/azurehpc-health-checks ]; then
         AZHC_VERSION=$(cat /opt/azurehpc/test/azurehpc-health-checks/version.txt 2>/dev/null || true)
     fi
 fi
-write_version "AZ_HEALTH_CHECKS" "${AZHC_VERSION}"
+write_version "AZ_HEALTH_CHECKS" "${AZHC_VERSION}" best-effort
 
 # ---- WAAgent ----
 echo "[WAAgent]"
@@ -566,8 +660,21 @@ write_version "WAAGENT" "${WAAGENT_VERSION}"
 write_version "WAAGENT_EXTENSIONS" "${WAAGENT_EXT_VERSION}"
 
 echo ""
+if [[ "${REQUIRED_MISSING}" -gt 0 ]]; then
+    echo "WARNING: ${REQUIRED_MISSING} REQUIRED detector(s) returned empty."
+    echo "         The manifest entries for those components were inherited from"
+    echo "         the prior build and may be STALE if apt upgrade changed the"
+    echo "         underlying packages. Audit the [WARN] lines above and fix the"
+    echo "         affected detector(s) in components/refresh_component_versions.sh."
+fi
 echo "=== component_versions.txt refresh complete ==="
 echo "Output: ${COMPONENT_VERSIONS_FILE}"
 echo ""
 echo "Contents:"
 cat "${COMPONENT_VERSIONS_FILE}"
+
+if [[ "${REQUIRED_MISSING}" -gt 0 && "${STRICT}" == "1" ]]; then
+    echo ""
+    echo "STRICT=1: failing build because ${REQUIRED_MISSING} REQUIRED detector(s) returned empty."
+    exit 1
+fi

@@ -48,7 +48,7 @@ else
     sed -i 's/^exclude=.*/#exclude_disabled_for_install/' /etc/yum.repos.d/doca.repo
 
     dnf -y install doca-ofed-userspace
-    dnf -y install doca-ofed
+    dnf -y install doca-ofed --disableexcludes=main
 
     # Restore exclusion to prevent conflicts during subsequent yum update
     sed -i 's/^#exclude_disabled_for_install/exclude=mlnx-ofa_kernel*/' /etc/yum.repos.d/doca.repo

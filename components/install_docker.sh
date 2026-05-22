@@ -21,6 +21,10 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-cli
     tdnf install -y docker-buildx
 else
+    if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
+        yum install -y container-selinux
+        yum module disable container-tools -y
+    fi
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     yum install -y moby-engine
     yum install -y moby-cli

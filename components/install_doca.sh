@@ -41,15 +41,18 @@ else
     /opt/mellanox/doca/tools/doca-kernel-support
     FINAL_REPO_FILE=$(find /tmp/DOCA.*/ -name 'doca-kernel-repo-*.rpm' -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
     rpm -i $FINAL_REPO_FILE
-    dnf config-manager --save --setopt=doca.exclude='mlnx-ofa_kernel*'
 
-    # Backup
-    cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
-    sed -i '/^exclude=/d' /etc/dnf/dnf.conf
+    # The kernel-specific repo RPM adds exclude=mlnx-ofa_kernel* to doca.repo
+    # Temporarily remove it so doca-ofed can install, then restore it to prevent
+    # conflicts during later yum update
+    sed -i 's/^exclude=.*/#exclude_disabled_for_install/' /etc/yum.repos.d/doca.repo
+
     dnf -y install doca-ofed-userspace
     dnf -y install doca-ofed
-    # Restore exclusion
-    mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
+
+    # Restore exclusion to prevent conflicts during subsequent yum update
+    sed -i 's/^#exclude_disabled_for_install/exclude=mlnx-ofa_kernel*/' /etc/yum.repos.d/doca.repo
+    dnf config-manager --set-disabled 'doca-kernel-*'
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

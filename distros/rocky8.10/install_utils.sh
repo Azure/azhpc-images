@@ -3,6 +3,13 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+# Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
+# calls to Microsoft endpoints. Some Microsoft front-ends (e.g.
+# download.microsoft.com) serve an incomplete chain that omits the
+# cross-signed bridge to DigiCert Global Root G2, so the client must
+# resolve "Microsoft TLS RSA Root G2" locally to complete the path.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
 curl https://packages.microsoft.com/config/rhel/8/prod.repo > ./microsoft-prod.repo

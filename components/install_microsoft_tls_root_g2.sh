@@ -1,35 +1,81 @@
 #!/bin/bash
 set -ex
 
-# Bootstrap the "Microsoft TLS RSA Root G2" trust anchor on Ubuntu.
+# Bootstrap the "Microsoft TLS RSA Root G2" trust anchor on any supported distro.
 #
 # Microsoft has rotated public-facing endpoints (e.g. download.microsoft.com)
-# to a chain rooted at "Microsoft TLS RSA Root G2" (self-signed root issued
-# 2025-04-10, valid until 2040). Mozilla's NSS bundle includes this root,
-# but Ubuntu Noble/Jammy's `ca-certificates` package (still 20240203 as of
-# this writing) has not yet been refreshed, so the new root is absent from
-# /etc/ssl/certs/ca-certificates.crt. TLS verification against affected
-# endpoints fails with "unable to get local issuer certificate".
+# to a chain issued by a new intermediate, "Microsoft TLS G2 RSA CA OCSP NN",
+# whose issuer is "Microsoft TLS RSA Root G2". That root exists in two
+# forms with the same Subject and the same public key but different issuers:
+#   * self-signed root  (anchor; issued by itself, valid until 2040)
+#   * cross-signed cert (intermediate; issued by DigiCert Global Root G2)
+#
+# The acute problem is a server-side chain-configuration inconsistency at
+# Microsoft, not a missing trust anchor in the distro:
+#
+#   * Some Microsoft front-ends serve the FULL chain --
+#       leaf
+#         -> "Microsoft TLS G2 RSA CA OCSP NN" (intermediate)
+#         -> "Microsoft TLS RSA Root G2"       (cross-signed by
+#                                              DigiCert Global Root G2)
+#     The client then anchors at DigiCert Global Root G2, which is already
+#     in every supported distro's trust store, and TLS verification
+#     succeeds out of the box.
+#
+#   * Other front-ends serve ONLY the first two certs --
+#       leaf
+#         -> "Microsoft TLS G2 RSA CA OCSP NN" (intermediate)
+#     The cross-signed bridge to DigiCert is omitted. The client must then
+#     resolve the issuer of that intermediate locally, and unless the
+#     self-signed "Microsoft TLS RSA Root G2" is present in the trust
+#     store, path-building dead-ends and openssl/curl/etc. report:
+#       "unable to get local issuer certificate" (verify error 20).
+#
+# Installing the self-signed "Microsoft TLS RSA Root G2" as a local trust
+# anchor closes that gap: it terminates the chain locally when the server
+# omits the cross-signed bridge, and is a no-op when the server does
+# return the full chain (the existing DigiCert path is preferred).
 #
 # This script fetches the root over plain HTTP from Microsoft's PKI
-# repository, pins its SHA-256 fingerprint, and installs it as a local
-# trust anchor via update-ca-certificates. Once Ubuntu ships a refreshed
-# ca-certificates package containing the G2 root, this anchor becomes
-# redundant but harmless.
+# repository, pins its SHA-256 fingerprint, and installs it using the
+# distro-appropriate layout:
+#   Ubuntu       :  /usr/local/share/ca-certificates/  +  update-ca-certificates
+#   RHEL family  :  /etc/pki/ca-trust/source/anchors/  +  update-ca-trust
+#   Azure Linux  :  /etc/pki/ca-trust/source/anchors/  +  update-ca-trust
+#
+# Once Microsoft fixes the partial-chain endpoints (or otherwise stops
+# relying on the new G2 CA), this anchor becomes redundant but harmless.
+
+source ${UTILS_DIR}/utilities.sh
 
 ROOT_URL="http://www.microsoft.com/pkiops/certs/Microsoft%20TLS%20RSA%20Root%20G2.crt"
 ROOT_SHA256="6a170583db584151e1c454eeca2a64cc5d8e484a5bd1156e720b4458654ee9e5"
-ANCHOR_PATH="/usr/local/share/ca-certificates/Microsoft_TLS_RSA_Root_G2.crt"
+ANCHOR_NAME="Microsoft_TLS_RSA_Root_G2"
+
+# Select trust-store layout per distro family (matches the convention used
+# in install_aznfs.sh and other components).
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    ANCHOR_DIR="/usr/local/share/ca-certificates"
+    ANCHOR_FILE="${ANCHOR_DIR}/${ANCHOR_NAME}.crt"
+    TRUST_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
+    update_trust() { update-ca-certificates; }
+elif [[ $DISTRIBUTION == *"almalinux"* || $DISTRIBUTION == *"rocky"* || $DISTRIBUTION == *"rhel"* || $DISTRIBUTION == *"azurelinux"* ]]; then
+    ANCHOR_DIR="/etc/pki/ca-trust/source/anchors"
+    ANCHOR_FILE="${ANCHOR_DIR}/${ANCHOR_NAME}.pem"
+    TRUST_BUNDLE="/etc/pki/tls/certs/ca-bundle.crt"
+    update_trust() { update-ca-trust extract; }
+else
+    echo "Unsupported DISTRIBUTION='${DISTRIBUTION:-unset}'; refusing to install Microsoft TLS RSA Root G2 anchor."
+    exit 1
+fi
 
 # Idempotency: if a previous image bake already installed the anchor, exit.
-if [[ -f "${ANCHOR_PATH}" ]]; then
-    echo "Microsoft TLS RSA Root G2 anchor already present at ${ANCHOR_PATH}; skipping."
+if [[ -f "${ANCHOR_FILE}" ]]; then
+    echo "Microsoft TLS RSA Root G2 anchor already present at ${ANCHOR_FILE}; skipping."
     exit 0
 fi
 
-# Ensure tooling is present (ca-certificates and curl are normally pre-installed,
-# but harden against minimal base images).
-apt-get install -y --no-install-recommends ca-certificates curl openssl
+mkdir -p "${ANCHOR_DIR}"
 
 TMP_DER="$(mktemp --suffix=.cer)"
 TMP_PEM="$(mktemp --suffix=.pem)"
@@ -41,11 +87,11 @@ curl -fsSL --connect-timeout 15 --retry 3 --retry-delay 5 \
 # Pin by SHA-256 of the DER encoding (== canonical X.509 fingerprint).
 echo "${ROOT_SHA256}  ${TMP_DER}" | sha256sum -c -
 
-# /usr/local/share/ca-certificates/ requires PEM-encoded *.crt files.
+# Normalize to PEM; both anchor layouts accept PEM-encoded certificates.
 openssl x509 -inform DER -in "${TMP_DER}" -out "${TMP_PEM}"
 
-install -m 0644 "${TMP_PEM}" "${ANCHOR_PATH}"
-update-ca-certificates
+install -m 0644 "${TMP_PEM}" "${ANCHOR_FILE}"
+update_trust
 
 # Sanity check: the new root must appear in the consolidated trust bundle.
-grep -q "Microsoft TLS RSA Root G2" /etc/ssl/certs/ca-certificates.crt
+grep -q "Microsoft TLS RSA Root G2" "${TRUST_BUNDLE}"

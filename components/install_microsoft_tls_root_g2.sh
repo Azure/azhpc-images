@@ -1,5 +1,6 @@
 #!/bin/bash
 set -ex
+set -o pipefail
 
 # Bootstrap the "Microsoft TLS RSA Root G2" trust anchor on any supported distro.
 #
@@ -108,6 +109,9 @@ update_trust
 # supported distro: crl2pkcs7 wraps the PEM blocks into a single PKCS#7
 # envelope, then `pkcs7 -print_certs -noout` renders one stable
 # "subject=... issuer=..." line per certificate that we can grep.
-openssl crl2pkcs7 -nocrl -certfile "${TRUST_BUNDLE}" \
-    | openssl pkcs7 -print_certs -noout \
-    | grep -q "Microsoft TLS RSA Root G2"
+if ! openssl crl2pkcs7 -nocrl -certfile "${TRUST_BUNDLE}" \
+        | openssl pkcs7 -print_certs -noout \
+        | grep -q "Microsoft TLS RSA Root G2"; then
+    echo "ERROR: 'Microsoft TLS RSA Root G2' not found in consolidated trust bundle ${TRUST_BUNDLE} after installing anchor ${ANCHOR_FILE} and running update_trust." >&2
+    exit 1
+fi

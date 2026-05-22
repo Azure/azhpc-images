@@ -94,4 +94,20 @@ install -m 0644 "${TMP_PEM}" "${ANCHOR_FILE}"
 update_trust
 
 # Sanity check: the new root must appear in the consolidated trust bundle.
-grep -q "Microsoft TLS RSA Root G2" "${TRUST_BUNDLE}"
+#
+# The consolidated bundle is *not* human-readable text on every distro:
+#   * Ubuntu /etc/ssl/certs/ca-certificates.crt is bare concatenated PEM
+#     blocks with no per-cert header lines, so a plain `grep` for the
+#     Subject name never matches (the name only lives base64-encoded
+#     inside the certificate body).
+#   * RHEL-family /etc/pki/tls/certs/ca-bundle.crt does emit per-cert
+#     comment headers, where `grep` would match -- but relying on that
+#     would silently regress on Ubuntu.
+#
+# Walk the bundle through openssl so the check is identical on every
+# supported distro: crl2pkcs7 wraps the PEM blocks into a single PKCS#7
+# envelope, then `pkcs7 -print_certs -noout` renders one stable
+# "subject=... issuer=..." line per certificate that we can grep.
+openssl crl2pkcs7 -nocrl -certfile "${TRUST_BUNDLE}" \
+    | openssl pkcs7 -print_certs -noout \
+    | grep -q "Microsoft TLS RSA Root G2"

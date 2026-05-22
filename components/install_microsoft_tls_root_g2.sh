@@ -69,7 +69,7 @@ else
     exit 1
 fi
 
-# Idempotency: if a previous image bake already installed the anchor, exit.
+# Idempotency: if the base image already has the anchor, exit.
 if [[ -f "${ANCHOR_FILE}" ]]; then
     echo "Microsoft TLS RSA Root G2 anchor already present at ${ANCHOR_FILE}; skipping."
     exit 0

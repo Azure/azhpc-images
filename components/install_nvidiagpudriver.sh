@@ -133,7 +133,7 @@ fi
 
 $COMPONENT_DIR/install_gdrcopy.sh
 
-if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+if [ "${SKU_FAMILY}" != "gb-family" ]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else
@@ -152,9 +152,6 @@ else
     cat <<EOF >> /etc/modprobe.d/nvidia.conf
 options nvidia NVreg_CreateImexChannel0=1
 EOF
-
-    grep -q 'RMBug5172204War=4' /etc/modprobe.d/nvidia.conf 2>/dev/null || \
-        echo 'options nvidia NVreg_RegistryDwords="RMBug5172204War=4"' | tee -a /etc/modprobe.d/nvidia.conf
 
     # Ensure modprobe settings are available when nvidia module loads on next boot
     dracut --force

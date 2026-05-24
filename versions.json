@@ -725,7 +725,7 @@
                         "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                         "distribution": "Ubuntu24_04"
                     }
-                },                
+                },
                 "version": "2.5.2-1",
                 "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                 "distribution": "Ubuntu24_04"
@@ -830,7 +830,7 @@
                         }
                     }
                 },
-                "version": "2.29.3-1",
+                "version": "2.29.7-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }

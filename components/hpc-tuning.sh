@@ -59,6 +59,38 @@ echo "net.ipv4.neigh.default.gc_thresh2 = 8192" >> /etc/sysctl.conf
 echo "net.ipv4.neigh.default.gc_thresh3 = 16384" >> /etc/sysctl.conf
 echo "sunrpc.tcp_max_slot_table_entries = 128" >> /etc/sysctl.conf
 
+
+# Prefer IPv4 over IPv6 for DNS resolution (Azure services, NFS mounts, and MPI bootstrap use IPv4)
+install -d /etc/gai.conf.d
+echo 'precedence ::ffff:0:0/96  100' \
+  | sudo tee /etc/gai.conf.d/00-prefer-ipv4.conf
+
+if [[ "$SKU" == "GB200" ]]; then
+    # Increase MANA VF RX ring buffer to 8192 to reduce packet drops under high-throughput traffic
+    if [[ $DISTRIBUTION == ubuntu* ]]; then
+        # Ubuntu uses systemd-networkd → networkd-dispatcher
+        install -d /etc/networkd-dispatcher/configured.d
+        cat > /etc/networkd-dispatcher/configured.d/10-vf-ring <<'SCRIPT'
+#!/bin/sh
+for nic in /sys/class/net/*/; do
+    nic=$(basename "$nic")
+    driver=$(basename "$(readlink -f "/sys/class/net/${nic}/device/driver" 2>/dev/null)" 2>/dev/null)
+    [ "$driver" = "mana" ] && /usr/sbin/ethtool -G "$nic" rx 8192 2>/dev/null
+done
+SCRIPT
+        chmod +x /etc/networkd-dispatcher/configured.d/10-vf-ring
+    else
+        # Alma/Rocky/Azure Linux use NetworkManager → NM dispatcher
+        cat > /etc/NetworkManager/dispatcher.d/10-vf-ring <<'SCRIPT'
+#!/bin/sh
+[ "$2" = "up" ] || exit 0
+driver=$(basename "$(readlink -f "/sys/class/net/${1}/device/driver" 2>/dev/null)" 2>/dev/null)
+[ "$driver" = "mana" ] && /usr/sbin/ethtool -G "$1" rx 8192 2>/dev/null
+SCRIPT
+        chmod +x /etc/NetworkManager/dispatcher.d/10-vf-ring
+    fi
+fi
+
 ## Systemd service for starting sunrpc and adding setting parameters
 cat <<EOF >/usr/sbin/sunrpc_tcp_settings.sh
 #!/bin/bash

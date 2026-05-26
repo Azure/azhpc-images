@@ -30,10 +30,14 @@ else
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    yum update -y
-
     yum clean expire-cache
-    yum install -y nvidia-container-toolkit
+
+    # Install only the NVIDIA container toolkit from its dedicated repo.
+    yum install -y \
+        --disablerepo='cuda-*' \
+        --setopt=obsoletes=0 \
+        --exclude='cuda-*' --exclude='cccl-*' --exclude='libcu*' \
+        nvidia-container-toolkit
 
     # Mark the installed packages on hold to disable updates
     sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf

@@ -71,9 +71,13 @@ function verify_common_components {
     if [[ -z "${validation_mode:-}" ]]; then
         verify_package_updates;
     fi
-    verify_ofed_installation;
-    verify_ib_device_status;
-    verify_ib_modules_and_devices;
+
+    if has_infiniband; then
+        verify_ofed_installation;
+        verify_ib_device_status;
+        verify_ib_modules_and_devices;
+    fi
+
     if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
     verify_gcc_installation;
     verify_azcopy_installation;
@@ -125,6 +129,7 @@ function set_test_matrix {
     else
         case ${VMSIZE} in
             standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
+            standard_nc*_rtxpro6000bse_v6) sku="ncv6";;
             *) sku="common";;
         esac
     fi

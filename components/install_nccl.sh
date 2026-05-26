@@ -62,26 +62,28 @@ else
 fi
 popd
 
-# Install the nccl rdma sharp plugin
-mkdir -p /usr/local/nccl-rdma-sharp-plugins
-git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
-pushd nccl-rdma-sharp-plugins
-git checkout ${NCCL_RDMA_SHARP_COMMIT}
+# Install the nccl rdma sharp plugin. Skip for non-IB SKUs (no DOCA-OFED, no SHARP, no GPUDirect RDMA)
+if sku_has_infiniband; then
+    mkdir -p /usr/local/nccl-rdma-sharp-plugins
+    git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
+    pushd nccl-rdma-sharp-plugins
+    git checkout ${NCCL_RDMA_SHARP_COMMIT}
 
-# Run libtoolize
-if [[ "$DISTRIBUTION" == "ubuntu22.04" && "$SKU" == "GB200" ]]; then
-    # To get around configure.ac:44: error: required file './ltmain.sh' not found
-    apt install libtool -y
-    libtoolize
-elif [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
-    libtoolize --verbose
+    # Run libtoolize
+    if [[ "$DISTRIBUTION" == "ubuntu22.04" && "$SKU" == "GB200" ]]; then
+        # To get around configure.ac:44: error: required file './ltmain.sh' not found
+        apt install libtool -y
+        libtoolize
+    elif [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
+        libtoolize --verbose
+    fi
+
+    ./autogen.sh
+    ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
+    make
+    make install
+    popd
 fi
-
-./autogen.sh
-./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
-make
-make install
-popd
 
 # Build the nccl tests
 source /etc/profile.d/modules.sh

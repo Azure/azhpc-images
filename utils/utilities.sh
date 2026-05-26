@@ -115,3 +115,27 @@ verify_checksum() {
         return 1
     fi
 }
+
+# Private helper that matches NCv6.
+function _is_ncv6_sku {
+    case "$SKU" in
+        NCv6) return 0 ;;
+        *)    return 1 ;;
+    esac
+}
+
+# Whether the current SKU has InfiniBand hardware.
+# Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
+function sku_has_infiniband {
+    ! _is_ncv6_sku
+}
+
+# Whether the current SKU has NVLink/NVSwitch fabric.
+function sku_has_nvlink {
+    ! _is_ncv6_sku
+}
+
+# Whether this SKU uses UCX as its MPI transport layer.
+function sku_uses_ucx {
+    ! _is_ncv6_sku
+}

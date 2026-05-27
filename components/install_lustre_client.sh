@@ -178,13 +178,22 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     # The DKMS RPM `Provides: kmod-lustre-client = %{version}`, satisfying
     # lustre-client's dependency without the static kmod-lustre-client RPM.
     #
+    # `kver=$(uname -r)` must be passed on the make command line: the upstream
+    # autoMakefile.am `srpm` (and `dkms-srpm` in client mode) targets invoke
+    # rpmbuild with `--define "kver ${kver}"` where `${kver}` is a Make-level
+    # variable (NOT a shell or rpm macro). When unset, rpmbuild receives
+    # `--define "kver "` and aborts with `error: Macro %kver has empty body`,
+    # overriding the `%{!?kver: %global kver %(uname -r)}` fallback in the
+    # spec. Note the sibling `kver_no_arch` line uses `%{nil}` correctly --
+    # the inconsistency is upstream's.
+    #
     # The version-digit glob `[0-9]*` after `lustre-client-` matches only the
     # userland `lustre-client-<ver>...rpm` (and `lustre-client-dkms-<ver>...rpm`
     # in the second glob) -- it excludes the sibling `lustre-client-devel-*`,
     # `lustre-client-tests-*`, and `kmod-lustre-client-*` RPMs because `d`/`t`/
     # `kmod-` are not digits.
-    IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make rpms
-    make dkms-rpms
+    IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make kver=$(uname -r) rpms
+    make kver=$(uname -r) dkms-rpms
     dnf install -y ./lustre-client-[0-9]*.$(uname -m).rpm \
                    ./lustre-client-dkms-[0-9]*.noarch.rpm
     popd

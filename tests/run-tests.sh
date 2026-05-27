@@ -115,6 +115,11 @@ function initiate_test_suite {
 # until Fabric Manager finishes setting up the NVLink fabric, which would cause
 # gdrcopy_sanity (and other CUDA tools) to fail during build-time validation.
 # This is a no-op on non-NVSwitch SKUs and idempotent on running VMs.
+#
+# Note: This script is invoked by the Packer "shell" provisioner as the
+# non-root build user (e.g. hpcuser), so any state-changing systemctl call
+# must go through sudo or polkit will reject it with "Interactive
+# authentication required".
 function ensure_nvidia_fabricmanager_active {
     # Match the same SKU set used by verify_nvidia_fabricmanager_service:
     # NDv4 A100 (NVSwitch) and NDv5 H100/H200 (NVSwitch).
@@ -130,13 +135,13 @@ function ensure_nvidia_fabricmanager_active {
         return 0
     fi
     echo "Starting nvidia-fabricmanager.service for build-time validation..."
-    systemctl start nvidia-fabricmanager.service || true
+    sudo -n systemctl start nvidia-fabricmanager.service || true
     # Wait up to 60s for FM to reach active state and complete fabric setup.
     local retries=0
     while ! systemctl is-active --quiet nvidia-fabricmanager.service; do
         if (( retries++ >= 60 )); then
             echo "Warning: nvidia-fabricmanager.service did not become active within 60s"
-            systemctl --no-pager status nvidia-fabricmanager.service || true
+            sudo -n systemctl --no-pager status nvidia-fabricmanager.service || true
             return 0
         fi
         sleep 1

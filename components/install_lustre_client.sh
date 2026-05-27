@@ -223,7 +223,7 @@ else
     if sudo dnf list --available amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${LUSTRE_KERNEL_SUFFIX}-1 2>/dev/null | grep -q "Available Packages"; then
         echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
         dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${LUSTRE_KERNEL_SUFFIX}-1
-        sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
+        dnf_pin_packages "amlfs*"
     elif sudo dnf list --available "amlfs-lustre-client-${LUSTRE_VERSION_UNDERSCORE}-${KERNEL_MINOR}.*" 2>/dev/null | grep -q "Available Packages"; then
         # Packages exist for this kernel minor version but not for the exact patch version.
         echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."

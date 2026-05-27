@@ -134,3 +134,46 @@ function sku_has_infiniband {
 function sku_uses_ucx {
     ! _is_ncv6_sku
 }
+
+############################################################################
+# @Brief    : Idempotently pin packages so 'dnf'/'yum update' won't upgrade
+#             them. Maintains a single 'exclude=PKG1 PKG2 ...' line in
+#             /etc/dnf/dnf.conf, creating it if absent.
+#
+# Replaces the legacy
+#     sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf
+# pattern, which silently corrupted the last line of dnf.conf (e.g.
+# 'skip_if_unavailable=False') on distros/configurations where the
+# 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7 with
+# LUSTRE_BUILD_FROM_SOURCE=true). A broken pin lets subsequent
+# 'yum update -y' upgrade pinned packages -- most critically
+# nvidia-fabricmanager, which must match the NVIDIA driver version exactly.
+#
+# @Args     : One or more package names/globs (e.g. "ucx*" "openmpi").
+# @Returns  : 0 on success, 0 (no-op) if /etc/dnf/dnf.conf is absent.
+############################################################################
+function dnf_pin_packages {
+    [[ -f /etc/dnf/dnf.conf ]] || return 0
+    local pkgs=("$@")
+    [[ ${#pkgs[@]} -gt 0 ]] || return 0
+    local current="" new=""
+    if grep -q '^exclude=' /etc/dnf/dnf.conf; then
+        current=$(sed -n 's/^exclude=//p' /etc/dnf/dnf.conf | head -n1)
+        new="$current"
+        for p in "${pkgs[@]}"; do
+            # Skip if already present (whitespace-bounded match).
+            case " $current " in
+                *" $p "*) continue ;;
+            esac
+            new="$new $p"
+        done
+        new="${new# }"
+        if [[ "$new" != "$current" ]]; then
+            # '|' is safe as a sed delimiter: package globs contain only
+            # [A-Za-z0-9._*-], never '|' or '\'.
+            sed -i "s|^exclude=.*|exclude=${new}|" /etc/dnf/dnf.conf
+        fi
+    else
+        echo "exclude=${pkgs[*]}" >> /etc/dnf/dnf.conf
+    fi
+}

@@ -458,8 +458,11 @@ function verify_dcgm_installation {
 }
 
 function verify_sku_customization_service {
-    # Check if the SKU customization service is active
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5|standard_nc.*_rtxpro6000bse_v6"
+    # Check if the SKU customization service is active.
+    # Note: bash =~ is ERE, so 'nd96is.*_h[12]00_v5' is the regex equivalent of
+    # the glob 'nd96is*_h[1-2]00_v5' used in setup_sku_customizations.sh and
+    # correctly matches real SKUs Standard_ND96isr_H100_v5 / H200_v5.
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
@@ -468,8 +471,10 @@ function verify_sku_customization_service {
 }
 
 function verify_nvidia_fabricmanager_service {
-    # Check if the NVIDIA Fabricmanager service is active
-    local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
+    # Check if the NVIDIA Fabricmanager service is active.
+    # Covers NDv4 A100 (NVSwitch) and NDv5 H100/H200 (NVSwitch). See note in
+    # verify_sku_customization_service for the regex form.
+    local valid_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet nvidia-fabricmanager

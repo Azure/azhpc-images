@@ -34,6 +34,11 @@ variable "os_version" {
   default     = env("OS_VERSION")
 }
 
+variable "lustre_build_from_source" {
+  type    = string
+  default = env("LUSTRE_BUILD_FROM_SOURCE")
+}
+
 locals {
   # derive os_version from os_family + distro_version if not explicitly set
   os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
@@ -285,6 +290,56 @@ locals {
     local.buildid_tag,
     var.extra_tags,
   )
+}
+
+# =============================================================================
+# In-Place Refresh Mode
+# =============================================================================
+# When refresh_mode is enabled, a previously built HPC image (from SIG) is used
+# as the base instead of a marketplace image. This allows upgrading components
+# in-place rather than building from scratch, dramatically reducing build time.
+# =============================================================================
+
+variable "refresh_mode" {
+  type        = string
+  description = "Enable in-place refresh mode: use a previous HPC image as base and upgrade components"
+  default     = env("REFRESH_MODE")
+}
+locals {
+  refresh_mode = try(convert(lower(var.refresh_mode), bool), false)
+}
+
+variable "refresh_base_image_id" {
+  type        = string
+  description = "Full SIG image version resource ID to use as base for refresh builds (e.g., /subscriptions/.../galleries/.../images/.../versions/...)"
+  default     = env("REFRESH_BASE_IMAGE_ID")
+}
+
+variable "refresh_base_image_version" {
+  type        = string
+  description = "SIG image version to use as base for refresh builds when using the same gallery (e.g., 2504.15.1). Alternative to refresh_base_image_id."
+  default     = env("REFRESH_BASE_IMAGE_VERSION")
+}
+locals {
+  # Build the full SIG image ID from gallery details + version when refresh_base_image_id is not directly provided
+  refresh_base_image_id = coalesce(
+    var.refresh_base_image_id,
+    var.refresh_base_image_version != null && var.refresh_base_image_version != "" ? "/subscriptions/${var.sig_subscription_id}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${var.refresh_base_image_version}" : null,
+    "not-set"
+  )
+
+  # Validate that a base image is specified when refresh mode is enabled
+  _refresh_id_valid = !local.refresh_mode || local.refresh_base_image_id != "not-set"
+  _refresh_id_check = local._refresh_id_valid ? true : file("ERROR: refresh_mode is enabled but neither refresh_base_image_id nor refresh_base_image_version was provided")
+
+  # Parse the SIG image ID into components for the shared_image_gallery source block
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/galleries/{gallery}/images/{image}/versions/{version}
+  _refresh_id_parts = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
+  refresh_sig_subscription   = local.refresh_mode ? local._refresh_id_parts[2] : ""
+  refresh_sig_resource_group = local.refresh_mode ? local._refresh_id_parts[4] : ""
+  refresh_sig_gallery_name   = local.refresh_mode ? local._refresh_id_parts[8] : ""
+  refresh_sig_image_name     = local.refresh_mode ? local._refresh_id_parts[10] : ""
+  refresh_sig_image_version  = local.refresh_mode ? local._refresh_id_parts[12] : ""
 }
 
 # =============================================================================

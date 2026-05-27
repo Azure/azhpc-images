@@ -25,11 +25,7 @@ source ${UTILS_DIR}/utilities.sh
 if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
-
 fi
-
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
 
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
 if sku_has_infiniband; then
@@ -98,6 +94,9 @@ if [ "$GPU" = "AMD" ]; then
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
+
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
 
 if [ "$ARCHITECTURE" == "x86_64" ]; then
 

@@ -23,17 +23,31 @@ PIN
 
     apt-get update
 
-    # doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the DOCA-bundled
-    # Open MPI .deb. We never use that binary at runtime — HPC-X (installed later by
-    # install_mpis.sh) provides Open MPI at /opt — and the .deb ships
-    # /etc/pmix-mca-params.conf, colliding with the pmix package installed by
-    # install_pmix.sh (pmix >=4.2.9-2 dropped its `Conflicts: openmpi`, so dpkg now
-    # aborts with "trying to overwrite /etc/pmix-mca-params.conf").
+    # Install a single equivs marker package telling apt that HPC-X provides Open MPI,
+    # blocking two separate attempts to install an upstream Open MPI .deb:
     #
-    # Inhibit the DOCA openmpi by installing an empty equivs marker that
-    # `Provides: openmpi (= <doca-version>)`, satisfying doca-ofed's strict-equality
-    # dep so apt never pulls in the real openmpi .deb. Same pattern as
-    # ucx-provides-libucx0 in install_rocm.sh.
+    #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
+    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
+    #     (installed later by install_mpis.sh) provides Open MPI at /opt — and the
+    #     .deb ships /etc/pmix-mca-params.conf, colliding with the pmix package
+    #     installed by install_pmix.sh (pmix >=4.2.9-2 dropped its
+    #     `Conflicts: openmpi`, so dpkg now aborts with "trying to overwrite
+    #     /etc/pmix-mca-params.conf").
+    #
+    #  2. lustre-tests (pulled in later by install_lustre_client.sh on builds that
+    #     build AMLFS kmod from source) depends on `openmpi-bin`, `libopenmpi-dev`,
+    #     `openmpi-common`, which would otherwise drag in Canonical's upstream
+    #     Open MPI. Canonical's Open MPI is unsuitable for HPC purposes and on
+    #     Jammy depends on a vulnerable PMIx with fixes behind the Ubuntu Pro
+    #     paywall.
+    #
+    # We satisfy doca-ofed's strict-equality dep by `Provides: openmpi (= <doca-version>)`,
+    # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
+    # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
+    # already-installed Canonical Open MPI is removed when the marker is installed.
+    # We deliberately do not touch `libopenmpi3` at all: on AMD/ROCm builds,
+    # `libopenmpi3t64` is already installed (indirect dep of mivisionx-dev) and
+    # provides it. Same pattern as ucx-provides-libucx0 in install_rocm.sh.
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$openmpi_version" ]]; then
@@ -47,13 +61,17 @@ Homepage: https://github.com/Azure/azhpc-images
 Standards-Version: 3.9.2
 
 Package: hpcx-provides-openmpi
-Provides: openmpi (= ${openmpi_version})
+Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common
+Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
 Version: ${openmpi_version}
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package to inhibit the DOCA-bundled openmpi
+Description: marker package to indicate that HPC-X provides Open MPI
  HPC-X (installed by install_mpis.sh into /opt) provides Open MPI at runtime,
- so the DOCA openmpi .deb is redundant and additionally collides with
- /etc/pmix-mca-params.conf from the separately-installed pmix package.
+ so both the DOCA-bundled openmpi .deb and Canonical's upstream openmpi
+ packages are redundant. The DOCA openmpi additionally collides with
+ /etc/pmix-mca-params.conf from the separately-installed pmix package, and
+ Canonical's openmpi on Jammy depends on a vulnerable PMIx with fixes behind
+ the Ubuntu Pro paywall.
 EOF
     (
         cd /tmp

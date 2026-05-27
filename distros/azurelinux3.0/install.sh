@@ -102,6 +102,9 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
 
 fi
 
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
+
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
 

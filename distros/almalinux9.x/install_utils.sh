@@ -81,13 +81,14 @@ rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 ## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
 yum install -y kernel-abi-stablelists
 
-## Disable kernel updates (skipped when building Lustre from source so that
-## DKMS-style rebuilds can keep up with kernel upgrades, matching the Ubuntu
-## prerequisites.sh behavior). The shim*/grub2* sed lines extend the just-
-## added exclude= directive, so they must stay inside the same conditional --
-## running them without an exclude line would corrupt the previous last line
-## of dnf.conf (e.g. skip_if_unavailable=False).
-if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+## Disable kernel updates (skipped when building Lustre from source or when
+## refreshing an image in-place so that DKMS-style rebuilds can keep up with
+## kernel upgrades, matching the Ubuntu prerequisites.sh behavior). The
+## shim*/grub2* sed lines extend the just-added exclude= directive, so they
+## must stay inside the same conditional -- running them without an exclude
+## line would corrupt the previous last line of dnf.conf (e.g.
+## skip_if_unavailable=False).
+if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
     echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
     # Disable dependencies on kernel core
     sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf

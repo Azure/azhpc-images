@@ -107,14 +107,24 @@ else
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 
-    # Pin mft (Mellanox Firmware Tools) packages to the DOCA-shipped versions.
-    # The cuda-rhel9 repo (configured later by install_nvidiagpudriver.sh) also
-    # ships mft at a newer version (e.g. 4.35.0.159-1 vs DOCA's 4.34.1-10). We
-    # want mft to track DOCA, not CUDA -- it's part of the Mellanox userland that
-    # must stay coherent with the installed OFED/DOCA. Without this pin,
-    # 'dnf check-update' in verify_package_updates exits 100 ("Stale packages
-    # found") because cuda-rhel9 advertises a newer mft.
-    dnf_pin_packages "mft" "mft-mlx5" "mft-nvredfish" "kernel-mft*"
+    # Pin everything DOCA installed so later 'yum update -y' calls don't try
+    # to "upgrade" them. Auto-discovered from the 'doca' (userland) and
+    # 'doca-kernel-<kver>' (built by doca-kernel-support) repos, so the list
+    # stays self-maintaining across DOCA releases. Pinning is required to
+    # avoid three conflict sources: EL9.x baseos rdma-core refreshes shipping
+    # ABI-incompatible libibverbs/perftest, cuda-rhel9 shipping a newer mft
+    # than DOCA, and the kernel-suffixed mlnx-ofa_kernel-source violating
+    # mlnx-ofa_kernel-dkms's strict-equality dep.
+    mapfile -t doca_pkgs < <(
+        dnf repoquery --installed --quiet --qf '%{name}\n' \
+            --disablerepo='*' --enablerepo='doca*' 2>/dev/null \
+        | sort -u
+    )
+    if [[ ${#doca_pkgs[@]} -gt 0 ]]; then
+        dnf_pin_packages "${doca_pkgs[@]}"
+    else
+        echo "WARN: dnf repoquery returned no DOCA-installed packages; skipping pin" >&2
+    fi
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

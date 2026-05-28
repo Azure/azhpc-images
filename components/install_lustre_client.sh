@@ -86,37 +86,20 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         exit 0
     fi
 elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
-    # RHEL-family build from source: AlmaLinux, Rocky Linux, RHEL, etc.
-    # Mirrors the Ubuntu build-from-source flow above so that AMLFS kmod is
-    # delivered as a DKMS package and auto-rebuilds against any future host
-    # kernel (via `dnf upgrade kernel`). The same upstream branch is used
-    # because the patches in arsdragonfly/dkms-${LUSTRE_BUILD_FROM_SOURCE_VERSION}
-    # only touch debian/* and a clang-specific CFLAGS toggle in
-    # config/lustre-toolchain.m4; nothing in the RPM build path is altered.
-
-    # Install Lustre build dependencies. Most of the base toolchain (gcc, make,
-    # autoconf, automake, libtool, rpm-build, kernel-rpm-macros, libnl3-devel,
-    # python3-devel, kernel-devel/headers/modules-extra for the running kernel,
-    # and `dkms` from EPEL) is already pulled in by distros/<rhel>/install_utils.sh
-    # via the "Development Tools" group + the explicit yum install lists. Here
-    # we add only the packages that are specific to compiling the Lustre client
-    # userland + kmod from source. Note that `kernel-devel` is required at both
-    # bake time (initial dkms autoinstall) AND on the running host whenever the
-    # kernel is upgraded -- install_utils.sh deliberately omits `kernel*` from
-    # /etc/dnf/dnf.conf `exclude=` on the build-from-source path so kernel and
-    # kernel-devel can be upgraded together by `dnf upgrade`.
+    # RHEL-family build-from-source: mirrors the Ubuntu flow above so AMLFS
+    # kmod ships as a DKMS RPM that auto-rebuilds against future host kernels
+    # via `dnf upgrade kernel`. Same arsdragonfly/dkms-* branch -- its patches
+    # only touch debian/* and a clang CFLAGS toggle, so the RPM path is
+    # unchanged. Base toolchain (gcc/autotools/rpm-build/kernel-*-devel/dkms)
+    # comes from distros/<rhel>/install_utils.sh; only the lustre-specific
+    # libs are added below.
     #
-    # NOTE: We deliberately do NOT install openmpi-devel. lustre.spec.in only
-    # declares `BuildRequires: openmpi-devel` inside the lustre-tests subpackage
-    # (gated by `%{with lustre_tests}` AND `%{with mpi}`), and we pass
-    # `--disable-tests` to configure below which makes lustre append
-    # `--without lustre_tests` to RPMBUILD_BINARY_ARGS, dropping that BR. We
-    # don't install the lustre-tests RPM in the baked image anyway. Installing
-    # the appstream openmpi-devel here would conflict with the DOCA-bundled
-    # OpenMPI (clusterkit on EL9 / opensm-libs on EL8 pin DOCA's openmpi
-    # `4.1.9a1`, while the appstream `openmpi-devel` requires the namespaced
-    # provide `libmpi.so.40()(64bit)(openmpi-x86_64)` which DOCA's openmpi
-    # doesn't carry), aborting `dnf install` before lustre is even built.
+    # openmpi-devel is intentionally skipped: it's only a BuildRequires of
+    # the lustre-tests subpackage (disabled via --disable-tests below) and
+    # would conflict with DOCA's openmpi 4.1.9a1 (strict-pinned by clusterkit
+    # on EL9 / opensm-libs on EL8) -- appstream openmpi-devel needs the
+    # `libmpi.so.40()(64bit)(openmpi-x86_64)` namespaced provide that DOCA's
+    # openmpi doesn't carry, aborting `dnf install` before lustre builds.
     dnf install -y \
         libyaml-devel \
         openssl-devel \
@@ -130,31 +113,21 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
         bison \
         flex
 
-    # Workaround for the same day-1 gap that motivates the Ubuntu branch above:
-    # the AMLFS yumrepo publishes per-kernel `kmod-lustre-client` RPMs that lag
-    # behind new RHEL kernel patch releases (see the prebuilt branch's
-    # "##[error]The AMLFS repo likely hasn't published a package for this
-    # kernel patch version yet" path). Building from source as a DKMS package
-    # decouples lustre from a specific kernel: the `lustre-client-dkms` RPM
-    # ships only the kernel module source under /usr/src/lustre-client-<ver>/,
-    # and `dkms` rebuilds the module on each kernel change. This matches the
-    # Ubuntu `make dkms-debs` flow and is what allows the `kernel*` exclude in
-    # distros/<rhel>/install_utils.sh to be skipped on the build-from-source
-    # path (see the "DKMS-style rebuilds can keep up with kernel upgrades"
-    # note there) so the host can run `dnf upgrade` without holding the kernel.
+    # DKMS build decouples lustre from the running kernel: lustre-client-dkms
+    # ships only the kernel-module source under /usr/src/lustre-client-<ver>/
+    # and dkms rebuilds on each kernel change. Same intent as the Ubuntu
+    # `make dkms-debs` flow above; works around the AMLFS yumrepo's day-1 gap
+    # after new RHEL kernel patches, and lets distros/<rhel>/install_utils.sh
+    # skip pinning `kernel*` on this path so the host can `dnf upgrade kernel`.
     lustre_branch="arsdragonfly/dkms-$LUSTRE_BUILD_FROM_SOURCE_VERSION"
     git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
     pushd amlFilesystem-lustre
     sh ./autogen.sh
-    # --disable-tests: skip building the lustre-tests subpackage. This also
-    # propagates `--without lustre_tests` into RPMBUILD_BINARY_ARGS (see
-    # config/lustre-build.m4 LB_CONFIG_RPMBUILD_OPTIONS), which removes the
-    # `BuildRequires: openmpi-devel` that would otherwise fail dep-check given
-    # the DOCA-bundled OpenMPI installed earlier (see note above). The
-    # --with-o2ib path here is consumed by `make rpms` for the userland build
-    # only; the DKMS rebuild on the host runs its own `./configure` via
-    # lustre-dkms_pre-build.sh which auto-detects OFED headers under
-    # /usr/src/ofa_kernel/default (the symlink installed by DOCA).
+    # --disable-tests also propagates `--without lustre_tests` into
+    # RPMBUILD_BINARY_ARGS, dropping the openmpi-devel BR (see note above).
+    # --with-o2ib applies only to the userland `make rpms`; the DKMS rebuild
+    # on the host runs its own ./configure via lustre-dkms_pre-build.sh and
+    # auto-detects OFED headers at /usr/src/ofa_kernel/default (DOCA symlink).
     ./configure --with-linux=/usr/src/kernels/$(uname -r) \
                 --with-o2ib=/usr/src/ofa_kernel/default \
                 --disable-server \
@@ -164,34 +137,20 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
                 --disable-tests \
                 --enable-quota
 
-    # Two-target build (unlike Ubuntu's unified `dkms-debs`, RHEL splits this):
-    #   1. `make rpms`      -> lustre.spec.in -> lustre-client (userland),
-    #                          lustre-client-devel, lustre-iokit, and
-    #                          kmod-lustre-client (a kernel-pinned kmod we
-    #                          deliberately DO NOT install -- DKMS replaces it).
-    #   2. `make dkms-rpms` -> lustre-dkms.spec.in -> lustre-client-dkms (noarch).
-    #                          Packages the source tree + a generated dkms.conf;
-    #                          the RPM postinst then runs `dkms autoinstall`
-    #                          which compiles the module against `uname -r`.
-    #                          On future `dnf upgrade kernel`, dkms hooks
-    #                          rebuild against the new kernel automatically.
-    # The DKMS RPM `Provides: kmod-lustre-client = %{version}`, satisfying
-    # lustre-client's dependency without the static kmod-lustre-client RPM.
-    #
-    # `kver=$(uname -r)` must be passed on the make command line: the upstream
-    # autoMakefile.am `srpm` (and `dkms-srpm` in client mode) targets invoke
-    # rpmbuild with `--define "kver ${kver}"` where `${kver}` is a Make-level
-    # variable (NOT a shell or rpm macro). When unset, rpmbuild receives
-    # `--define "kver "` and aborts with `error: Macro %kver has empty body`,
-    # overriding the `%{!?kver: %global kver %(uname -r)}` fallback in the
-    # spec. Note the sibling `kver_no_arch` line uses `%{nil}` correctly --
-    # the inconsistency is upstream's.
-    #
-    # The version-digit glob `[0-9]*` after `lustre-client-` matches only the
-    # userland `lustre-client-<ver>...rpm` (and `lustre-client-dkms-<ver>...rpm`
-    # in the second glob) -- it excludes the sibling `lustre-client-devel-*`,
-    # `lustre-client-tests-*`, and `kmod-lustre-client-*` RPMs because `d`/`t`/
-    # `kmod-` are not digits.
+    # Two-target build (RHEL splits what Ubuntu's `make dkms-debs` does in one):
+    #   `make rpms`      -> lustre-client (userland) + -devel + -iokit +
+    #                       kmod-lustre-client (NOT installed -- DKMS replaces it)
+    #   `make dkms-rpms` -> lustre-client-dkms (noarch); postinst runs
+    #                       `dkms autoinstall` for the bake kernel, and dkms
+    #                       hooks rebuild on future `dnf upgrade kernel`.
+    #                       Provides: kmod-lustre-client = %{version}, so
+    #                       lustre-client's dep is satisfied without the static RPM.
+    # `kver=$(uname -r)` MUST be on the make command line: upstream's
+    # srpm/dkms-srpm targets pass `--define "kver ${kver}"` as a Make variable
+    # (overriding the spec's `%(uname -r)` fallback); unset -> rpmbuild aborts
+    # with `Macro %kver has empty body`.
+    # `[0-9]*` glob matches only the userland + dkms RPMs (excludes -devel,
+    # -tests, kmod-* whose next char is non-digit).
     IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make kver=$(uname -r) rpms
     make kver=$(uname -r) dkms-rpms
     dnf install -y ./lustre-client-[0-9]*.$(uname -m).rpm \

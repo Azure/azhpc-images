@@ -108,16 +108,17 @@ else
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 
     # Pin everything DOCA installed so later 'yum update -y' calls don't try
-    # to "upgrade" them. Auto-discovered from the 'doca' (userland) and
-    # 'doca-kernel-<kver>' (built by doca-kernel-support) repos, so the list
-    # stays self-maintaining across DOCA releases. Pinning is required to
-    # avoid three conflict sources: EL9.x baseos rdma-core refreshes shipping
-    # ABI-incompatible libibverbs/perftest, cuda-rhel9 shipping a newer mft
-    # than DOCA, and the kernel-suffixed mlnx-ofa_kernel-source violating
-    # mlnx-ofa_kernel-dkms's strict-equality dep.
+    # to "upgrade" them. Auto-discovered via rpmdb's `%{from_repo}` field,
+    # which records the repo each package was actually installed from -- the
+    # 'doca' (userland) and 'doca-kernel-<kver>' (built by doca-kernel-support)
+    # repos here -- so the list stays self-maintaining across DOCA releases.
+    # Pinning avoids three conflict sources: EL9.x baseos rdma-core refreshes
+    # shipping ABI-incompatible libibverbs/perftest, cuda-rhel9 shipping a
+    # newer mft than DOCA, and the kernel-suffixed mlnx-ofa_kernel-source
+    # violating mlnx-ofa_kernel-dkms's strict-equality dep.
     mapfile -t doca_pkgs < <(
-        dnf repoquery --installed --quiet --qf '%{name}\n' \
-            --disablerepo='*' --enablerepo='doca*' 2>/dev/null \
+        dnf repoquery --installed --quiet --qf '%{name} %{from_repo}\n' 2>/dev/null \
+        | awk '$2 ~ /^doca/ {print $1}' \
         | sort -u
     )
     if [[ ${#doca_pkgs[@]} -gt 0 ]]; then

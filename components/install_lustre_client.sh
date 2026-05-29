@@ -119,8 +119,11 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     # `make dkms-debs` flow above; works around the AMLFS yumrepo's day-1 gap
     # after new RHEL kernel patches, and lets distros/<rhel>/install_utils.sh
     # skip pinning `kernel*` on this path so the host can `dnf upgrade kernel`.
-    lustre_branch="arsdragonfly/dkms-$LUSTRE_BUILD_FROM_SOURCE_VERSION"
-    git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
+    # Fork carries LU-20071 backport for AlmaLinux 9.8 (kernel 5.14.0-687+
+    # dropped from_timer(); fork rewires cfs_from_timer to timer_container_of).
+    # Revert to arsdragonfly/amlFilesystem-lustre once LU-20071 lands upstream.
+    lustre_branch="normanvuong/dkms-$LUSTRE_BUILD_FROM_SOURCE_VERSION"
+    git clone --branch ${lustre_branch} https://github.com/normanvuong/amlFilesystem-lustre.git
     pushd amlFilesystem-lustre
     sh ./autogen.sh
     # --disable-tests also propagates `--without lustre_tests` into

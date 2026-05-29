@@ -7,9 +7,46 @@ source ${UTILS_DIR}/utilities.sh
 lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+# Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
+# Set to "true" to build from source (current default), "false" to use prebuild binaries.
+KERNEL_MINOR=$(uname -r | grep -oP '^\d+\.\d+')
+LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
+
+if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
+    # The hpcx-provides-openmpi marker package (installed earlier by install_doca.sh)
+    # already tells apt that HPC-X provides openmpi-bin, libopenmpi-dev and
+    # openmpi-common, so lustre-tests can install without pulling in Canonical's
+    # upstream Open MPI.
+
+    # use dev headers from HPC-X OpenMPI installation for lustre-tests
+    source /etc/profile.d/modules.sh
+    module load mpi/hpcx
+
+    # temporary workaround to build AMLFS kmod from source, until we have AMLFS team publish DKMS packages usable on day-1 of new kernel module release
+    lustre_branch="arsdragonfly/dkms-$LUSTRE_VERSION"
+    git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
+    pushd amlFilesystem-lustre
+    sh ./autogen.sh
+    apt update
+    if [ $UBUNTU_VERSION == 24.04 ]; then
+        apt install -y module-assistant libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
+    elif [ $UBUNTU_VERSION == 22.04 ]; then
+        apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
+    fi
+    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
+    #make dkms-debs
+    IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make dkms-debs
+    apt install -y ./debs/lustre-*.deb
+    popd
+    rm -rf amlFilesystem-lustre
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    source /etc/lsb-release
+    UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
     if [ $UBUNTU_VERSION == 24.04 ]; then
         SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
     elif [ $UBUNTU_VERSION == 22.04 ]; then

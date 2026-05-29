@@ -197,7 +197,7 @@
             ]
         }
     },
-    "rocky9.7": {
+    "rocky9.8": {
         "common": {
             "components": [
                 "check_nvidia_driver",

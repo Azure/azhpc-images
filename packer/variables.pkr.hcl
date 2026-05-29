@@ -30,7 +30,7 @@ variable "distro_version" {
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.7, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
@@ -45,9 +45,10 @@ locals {
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
   os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
   distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
-  # Folder suffix for distros/ scripts. AlmaLinux 9.* uses a shared `9.x` folder
-  # since install scripts are not minor-specific. All other distros pin to the minor.
-  _os_script_folder_distro_version = (local.os_family == "alma" && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
+  # share a single `9.x` folder since their install scripts are not minor-specific.
+  # All other distros pin to the minor.
+  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
   os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
@@ -69,7 +70,7 @@ locals {
     }
     "rocky" = {
       "8.10" = "4.18"
-      "9.7"  = "5.14"
+      "9.8"  = "5.14"
     }
     "azurelinux" = {
       "3.0" = "6.6"
@@ -636,7 +637,7 @@ locals {
         },
         "rocky" = {
           "8.10" = ["resf", "rockylinux-x86_64", "8-base"],
-          "9.7"  = ["resf", "rockylinux-x86_64", "9-base"]
+          "9.8"  = ["resf", "rockylinux-x86_64", "9-base"]
         }
       },
       "Marketplace-FIPS" = {

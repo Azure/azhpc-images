@@ -101,6 +101,9 @@ df -h
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh NVIDIA
 
+# write kernel and OS version metadata
+$COMMON_DIR/write_kernel_os_version.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 

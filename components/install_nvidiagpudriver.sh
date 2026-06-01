@@ -114,6 +114,19 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
+
+        # DOCA ships mft tied to the kernel-mft-dkms it built; cuda-rhel9
+        # ships mft on a different cadence (sometimes newer). Letting
+        # cuda-rhel9 offer mft causes 'dnf check-update' to flag a
+        # stale-package upgrade in verify_package_updates and risks an
+        # accidental upgrade that breaks compat with the DOCA-built
+        # kernel-mft-dkms. mft must track DOCA, not CUDA. Same pattern as
+        # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
+        # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
+        # the (removed) global DOCA pin in install_doca.sh.
+        dnf config-manager --save \
+            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=mft* kernel-mft*" >/dev/null
+
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi

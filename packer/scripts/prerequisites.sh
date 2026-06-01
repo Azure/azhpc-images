@@ -110,18 +110,18 @@ install_ubuntu_gb200_kernel() {
 
     if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
         sudo apt-get install linux-azure-nvidia -y  
-        # Hold kernel version when not building Lustre from source
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        # Hold kernel version unless building Lustre from source or refreshing image in-place
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia
         fi
     elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
         sudo apt-get install linux-azure-nvidia-6.17 -y  
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia-6.17
         fi
     else #kernel 6.8
         sudo apt-get install linux-azure-nvidia-6.8 -y
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia-6.8
         fi
     fi
@@ -150,8 +150,8 @@ install_ubuntu_gb200_kernel() {
     done
     
     # Configure GRUB for GB200
-    # Set GRUB saved default when not building Lustre from source
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+    # Set GRUB saved default unless building Lustre from source or refreshing image in-place
+    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
         sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     fi
 
@@ -209,8 +209,8 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
 
-    # Configure GRUB for saved default when not building Lustre from source
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+    # Configure GRUB for saved default unless building Lustre from source or refreshing image in-place
+    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
         sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     fi
     
@@ -252,8 +252,8 @@ install_ubuntu_lts_kernel() {
             apt upgrade -y
 
             # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default when not building Lustre from source
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
+            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-${kernel_ver}
                 local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
                 grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
@@ -275,8 +275,8 @@ install_ubuntu_lts_kernel() {
             apt upgrade -y
 
             # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default when not building Lustre from source
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" ]]; then
+            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
+            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-lts-22.04
                 local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
                 grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"

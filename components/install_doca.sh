@@ -106,6 +106,50 @@ else
     dnf -y install doca-ofed
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
+
+    # Repo-local excludes (deliberately NOT a global /etc/dnf/dnf.conf
+    # pin) so 'dnf check-update' in verify_package_updates only flags
+    # legitimate non-conflicting updates -- not the entire DOCA package
+    # set. The cuda-rhel9 mft exclude is set in install_nvidiagpudriver.sh
+    # at the point cuda-rhel9.repo is added (this repo does not exist yet).
+    #
+    # Conflict A (EL9.x baseos rdma-core refresh): AlmaLinux/Rocky 9.8
+    # (in 2026-05) split out a brand-new RDMA-core stack with a separate
+    # libhns provider and ABI-bumped libibverbs/perftest (IBVERBS_1.15 /
+    # HNS_1.0 symbols) incompatible with DOCA's
+    # libibverbs-2510.0.11-1.el9. Without this exclude,
+    # install_pmix.sh's 'yum update -y' aborts with:
+    #   cannot install both libibverbs-61.0-2.el9 from baseos and
+    #   libibverbs-2510.0.11-1.el9 from @System
+    # DOCA's 'doca' (userland) repo provides the only rdma-core stack
+    # we want at runtime; baseos must never offer alternatives.
+    dnf config-manager --save \
+        --setopt='baseos.excludepkgs=rdma-core* libibverbs* libibumad* librdmacm* libibmad* libhns* perftest infiniband-diags python3-pyverbs iwpmd srp_daemon' \
+        >/dev/null
+
+    # Conflict B (kernel-suffixed mlnx-ofa_kernel-source from the
+    # doca-kernel-<kver> repo just dropped by doca-kernel-support):
+    # violates the strict-equality dep of the already-installed
+    # mlnx-ofa_kernel-dkms (e.g.
+    # 25.10-OFED.25.10.2.4.1.1.1.5.14.0.687.5.3.el9.8.x86.64 vs.
+    # 25.10-OFED.25.10.2.4.1.1.el9). Repo ID is kernel-version-suffixed
+    # (e.g. doca-kernel-5.14.0-687.5.3.el9_8.x86_64) so discover it
+    # from the .repo file the doca-kernel-repo-*.rpm install dropped.
+    shopt -s nullglob
+    doca_kernel_repos=()
+    for f in /etc/yum.repos.d/doca-kernel-*.repo; do
+        repo_id=$(awk -F'[][]' '/^\[/ {print $2; exit}' "$f")
+        [[ -n "$repo_id" ]] && doca_kernel_repos+=("$repo_id")
+    done
+    shopt -u nullglob
+    if [[ ${#doca_kernel_repos[@]} -gt 0 ]]; then
+        for repo_id in "${doca_kernel_repos[@]}"; do
+            dnf config-manager --save \
+                --setopt="${repo_id}.excludepkgs=mlnx-ofa_kernel-source" >/dev/null
+        done
+    else
+        echo "WARN: no /etc/yum.repos.d/doca-kernel-*.repo found; mlnx-ofa_kernel-source exclude not applied" >&2
+    fi
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

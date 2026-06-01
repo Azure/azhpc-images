@@ -87,6 +87,7 @@ build {
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
+      "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }
@@ -171,6 +172,7 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
+    "REFRESH_MODE=${local.refresh_mode}",
     ]
     inline          = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",

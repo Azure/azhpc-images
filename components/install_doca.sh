@@ -22,6 +22,64 @@ Pin-Priority: -1
 PIN
 
     apt-get update
+
+    # Install a single equivs marker package telling apt that HPC-X provides Open MPI,
+    # blocking two separate attempts to install an upstream Open MPI .deb:
+    #
+    #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
+    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
+    #     (installed later by install_mpis.sh) provides Open MPI at /opt — and the
+    #     .deb ships /etc/pmix-mca-params.conf, colliding with the pmix package
+    #     installed by install_pmix.sh (pmix >=4.2.9-2 dropped its
+    #     `Conflicts: openmpi`, so dpkg now aborts with "trying to overwrite
+    #     /etc/pmix-mca-params.conf").
+    #
+    #  2. lustre-tests (pulled in later by install_lustre_client.sh on builds that
+    #     build AMLFS kmod from source) depends on `openmpi-bin`, `libopenmpi-dev`,
+    #     `openmpi-common`, which would otherwise drag in Canonical's upstream
+    #     Open MPI. Canonical's Open MPI is unsuitable for HPC purposes and on
+    #     Jammy depends on a vulnerable PMIx with fixes behind the Ubuntu Pro
+    #     paywall.
+    #
+    # We satisfy doca-ofed's strict-equality dep by `Provides: openmpi (= <doca-version>)`,
+    # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
+    # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
+    # already-installed Canonical Open MPI is removed when the marker is installed.
+    # We deliberately do not touch `libopenmpi3` at all: on AMD/ROCm builds,
+    # `libopenmpi3t64` is already installed (indirect dep of mivisionx-dev) and
+    # provides it. Same pattern as ucx-provides-libucx0 in install_rocm.sh.
+    apt-get install -y equivs
+    openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
+    if [[ -z "$openmpi_version" ]]; then
+        echo "ERROR: could not read openmpi version from DOCA repo" >&2
+        exit 1
+    fi
+    cat > /tmp/hpcx-provides-openmpi <<EOF
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: hpcx-provides-openmpi
+Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common
+Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
+Version: ${openmpi_version}
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package to indicate that HPC-X provides Open MPI
+ HPC-X (installed by install_mpis.sh into /opt) provides Open MPI at runtime,
+ so both the DOCA-bundled openmpi .deb and Canonical's upstream openmpi
+ packages are redundant. The DOCA openmpi additionally collides with
+ /etc/pmix-mca-params.conf from the separately-installed pmix package, and
+ Canonical's openmpi on Jammy depends on a vulnerable PMIx with fixes behind
+ the Ubuntu Pro paywall.
+EOF
+    (
+        cd /tmp
+        equivs-build /tmp/hpcx-provides-openmpi
+        dpkg -i /tmp/hpcx-provides-openmpi_*_all.deb
+    )
+    rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
+
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
@@ -71,14 +129,8 @@ if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
     echo -e "\n# Load IPoIB\nIPOIB_LOAD=no" | sudo tee -a /etc/infiniband/openib.conf
 fi
 
+# Enable only; do not restart at build time. Restarting openibd here probes
+# the build VM's IB hardware (which may be absent on general-purpose build
+# SKUs) and is not required before possible tests post-reboot.
 systemctl daemon-reload
 systemctl enable openibd
-
-/etc/init.d/openibd restart
-/etc/init.d/openibd status
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "OpenIBD not loaded correctly!"
-    exit ${error_code}
-fi

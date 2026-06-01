@@ -575,6 +575,17 @@ function verify_nvidia_imex_service {
     check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
 }
 
+function verify_nvidia_persistenced_service {
+    # nvidia-persistenced attaches to /dev/nvidia* at startup; only meaningful
+    # to verify on a VM that actually has an NVIDIA GPU attached.
+    if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
+        echo "[SKIP] : no NVIDIA GPU detected; skipping nvidia-persistenced service check"
+        return
+    fi
+    systemctl is-active --quiet nvidia-persistenced.service
+    check_exit_code "NVIDIA persistence daemon is active" "NVIDIA persistence daemon is inactive/dead!"
+}
+
 function verify_mpifileutils_installation {
     # Verify mpifileutils binaries exist
     check_exists "/opt/mpifileutils/bin/dbcast"

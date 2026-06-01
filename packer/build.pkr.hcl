@@ -86,6 +86,7 @@ build {
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
+      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
   }
@@ -120,7 +121,7 @@ build {
 
   provisioner "shell-local" {
     name           = "download and extract Azure Linux prebuilts for GB200"
-    except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
         "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
@@ -131,7 +132,7 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
@@ -154,7 +155,7 @@ build {
 
   provisioner "shell" {
     name              = "Reboot"
-    except            = var.skip_hpc ? ["azure-arm.hpc"] : []
+    except            = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
@@ -166,8 +167,11 @@ build {
 
   provisioner "shell" {
     name            = "Install HPC components"
-    except          = var.skip_hpc ? ["azure-arm.hpc"] : []
+    except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+    "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
+    ]
     inline          = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
@@ -175,13 +179,22 @@ build {
 
   provisioner "shell" {
     name              = "Reboot"
-    except            = var.skip_hpc ? ["azure-arm.hpc"] : []
+    except            = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "5m"
     inline            = [
       "(sleep 5; sudo shutdown -r now) &"
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
+    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline          = [
+      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
 
@@ -253,17 +266,7 @@ build {
   }
   
   provisioner "shell" {
-    name           = "Run tests (pre-reboot)"
-    except         = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200") ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline         = [
-      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
-    ]
-  }
-  
-  provisioner "shell" {
     name              = "Reboot"
-    except            = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true

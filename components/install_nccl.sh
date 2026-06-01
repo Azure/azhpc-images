@@ -30,7 +30,7 @@ wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
-make -j src.build
+make -j$(nproc) src.build
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     make pkg.debian.build
     pushd build/pkg/deb/
@@ -83,6 +83,7 @@ if sku_has_infiniband; then
     make
     make install
     popd
+    write_component_version "NCCL-RDMA_SHARP_PLUGIN" ${NCCL_RDMA_SHARP_COMMIT}
 fi
 
 # Build the nccl tests

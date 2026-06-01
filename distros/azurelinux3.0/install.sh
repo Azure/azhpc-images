@@ -86,7 +86,8 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
+rm -rf /var/intel/
+rm -rf /var/cache/* || true
 rm -Rf -- */
 
 # optimizations
@@ -100,6 +101,9 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
     $COMPONENT_DIR/install_health_checks.sh "$GPU"
 
 fi
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh

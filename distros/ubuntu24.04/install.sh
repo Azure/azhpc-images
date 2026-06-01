@@ -140,7 +140,8 @@ if [[ "$SKU" != "GB200" ]]; then
         $COMPONENT_DIR/install_health_checks.sh "$GPU"
     fi
 fi 
-
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 
@@ -149,6 +150,9 @@ $COMPONENT_DIR/copy_test_file.sh
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh
+
+# record OS/kernel versions
+$COMPONENT_DIR/write_os_versions.sh
 
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh

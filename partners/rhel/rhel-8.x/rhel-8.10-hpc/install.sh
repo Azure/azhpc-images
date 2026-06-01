@@ -101,11 +101,17 @@ df -h
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh NVIDIA
 
+# write kernel and OS version metadata
+$COMMON_DIR/write_kernel_os_version.sh
+
 # copy test file
 $COMMON_DIR/copy_test_file.sh
 
 # disable cloud-init
 $RHEL_COMMON_DIR/disable_cloudinit.sh
+
+# record OS/kernel versions
+$COMMON_DIR/write_os_versions.sh
 
 # SKU Customization
 $COMMON_DIR/setup_sku_customizations.sh

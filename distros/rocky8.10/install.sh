@@ -109,8 +109,14 @@ $COMPONENT_DIR/copy_test_file.sh
 # install Azure/NHC Health Checks
 $COMPONENT_DIR/install_health_checks.sh "$GPU"
 
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
+
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh
+
+# record OS/kernel versions
+$COMPONENT_DIR/write_os_versions.sh
 
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh

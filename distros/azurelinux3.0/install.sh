@@ -102,6 +102,9 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
 
 fi
 
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
+
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
 
@@ -117,6 +120,8 @@ $COMPONENT_DIR/add-udev-rules.sh
 # copy test file
 $COMPONENT_DIR/copy_test_file.sh
 
+# record OS/kernel versions
+$COMPONENT_DIR/write_os_versions.sh
 
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh

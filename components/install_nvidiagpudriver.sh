@@ -118,8 +118,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi
 
-    echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee /etc/profile.d/cuda.sh > /dev/null
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile.d/cuda.sh > /dev/null
+    echo 'export PATH="${PATH:+$PATH:}/usr/local/cuda/bin"' | tee /etc/profile.d/cuda.sh > /dev/null
+    echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/local/cuda/lib64"' | tee -a /etc/profile.d/cuda.sh > /dev/null
 
     # Ensure proper permissions
     chmod 644 /etc/profile.d/cuda.sh

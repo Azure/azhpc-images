@@ -242,10 +242,19 @@ RPM_MACROS
     make kver=$(uname -r) dkms-rpms
     # Install set (parity with Ubuntu's `apt install ./debs/lustre-*.deb`):
     #   lustre-client            - userland (`[0-9]*` glob excludes -devel,
-    #                              -iokit, -tests, -dkms whose next char after
-    #                              `lustre-client-` is non-digit).
+    #                              -tests, -dkms whose next char after
+    #                              `lustre-client-` is non-digit; lustre-iokit
+    #                              also excluded -- different prefix).
     #   lustre-client-devel      - required by -tests (`Requires: lustre-devel`).
-    #   lustre-client-iokit      - required by -tests when iokit is on (default).
+    #   lustre-iokit             - benchmarking helpers (obdfilter-survey,
+    #                              sgpdd-survey, ost-survey, ior-survey,
+    #                              mds-survey, stats-collect). NOTE: the
+    #                              lustre.spec iokit subpackage is named
+    #                              `lustre-iokit` -- the `lustre_name=lustre-client`
+    #                              rename only applies to the userland + kmod
+    #                              subpackages, not iokit. Installed here for
+    #                              parity with the Ubuntu `lustre-*.deb` glob;
+    #                              not a hard dep of lustre-client-tests.
     #   lustre-client-tests      - userland tests + MPI binaries built against
     #                              HPC-X, installed under /usr/lib64/lustre-tests-mpi.
     #   kmod-lustre-client-tests - test-only kmods (obd_test.ko, llog_test.ko,
@@ -264,7 +273,7 @@ RPM_MACROS
     # `Provides: kmod-lustre-client = %{version}` satisfies lustre-client's dep.
     dnf install -y ./lustre-client-[0-9]*.$(uname -m).rpm \
                    ./lustre-client-devel-[0-9]*.$(uname -m).rpm \
-                   ./lustre-client-iokit-[0-9]*.$(uname -m).rpm \
+                   ./lustre-iokit-[0-9]*.$(uname -m).rpm \
                    ./lustre-client-tests-[0-9]*.$(uname -m).rpm \
                    ./kmod-lustre-client-tests-[0-9]*.$(uname -m).rpm \
                    ./lustre-client-dkms-[0-9]*.noarch.rpm

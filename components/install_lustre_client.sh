@@ -209,6 +209,23 @@ RPM_MACROS
     git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
     pushd amlFilesystem-lustre
     sh ./autogen.sh
+    # Load HPC-X BEFORE ./configure so lustre's autoconf finds mpicc and
+    # sets lb_cv_mpi_tests=yes. This is the same step the Ubuntu path takes
+    # above (lines 31-32). Without it lustre's configure substitutes
+    # `--without mpi` into autoMakefile.am's RPMBUILD_BINARY_ARGS, and the
+    # downstream `make rpms` then invokes rpmbuild with `--without mpi`
+    # (confirmed in alma9.8 build 32524 log line 81635). That disables
+    # `%{with mpi}` in lustre.spec, gating out the entire `%{?_openmpi_load}`
+    # block in %build, %install, and the tests %files generation -- so the
+    # /etc/rpm/macros.hpcx-lustre override above is never reached and
+    # lustre-client-tests ships with zero MPI binaries.
+    # MPI_BIN is exported here (not just in the macros file) so it survives
+    # rpmbuild's env into the inner ./configure (line 81781 of the same log)
+    # which re-runs in the unpacked srpm tarball and consults MPI_BIN to
+    # decide where to install MPI-linked test binaries.
+    source /etc/profile.d/modules.sh
+    module load mpi/hpcx
+    export MPI_BIN=/usr/lib64/lustre-tests-mpi
     # Tests are enabled (default `%bcond_without lustre_tests`). The marker
     # RPM + _openmpi_load macro override (above) make HPC-X visible to
     # rpmbuild so lustre-client-tests builds MPI-linked binaries

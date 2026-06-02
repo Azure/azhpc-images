@@ -51,6 +51,15 @@ function uses_ucx {
     ! _is_ncv6_sku
 }
 
+# Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
+# Used to gate Fabric Manager checks and bring-up, since cuInit() returns
+# CUDA_ERROR_SYSTEM_NOT_READY on these SKUs until FM finishes NVLink fabric
+# setup. GB200/GB300 use NVLink5 / a separate IMEX flow and are not included.
+function sku_has_nvswitch {
+    local nvswitch_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
+    [[ "${VMSIZE}" =~ ^($nvswitch_sizes)$ ]]
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -458,10 +467,8 @@ function verify_dcgm_installation {
 }
 
 function verify_sku_customization_service {
-    # Check if the SKU customization service is active.
-    # Note: bash =~ is ERE, so 'nd96is.*_h[12]00_v5' is the regex equivalent of
-    # the glob 'nd96is*_h[1-2]00_v5' used in setup_sku_customizations.sh and
-    # correctly matches real SKUs Standard_ND96isr_H100_v5 / H200_v5.
+    # Check if the SKU customization service is active
+    # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
     local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
@@ -471,11 +478,8 @@ function verify_sku_customization_service {
 }
 
 function verify_nvidia_fabricmanager_service {
-    # Check if the NVIDIA Fabricmanager service is active.
-    # Covers NDv4 A100 (NVSwitch) and NDv5 H100/H200 (NVSwitch). See note in
-    # verify_sku_customization_service for the regex form.
-    local valid_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
-    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
+    # Check if the NVIDIA Fabricmanager service is active
+    if sku_has_nvswitch
     then
         systemctl is-active --quiet nvidia-fabricmanager
         check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"

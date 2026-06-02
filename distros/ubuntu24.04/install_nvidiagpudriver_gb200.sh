@@ -17,8 +17,8 @@ if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
     apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     # Set CUDA related environment variables to /etc/bash.bashrc
     echo 'export CUDA_HOME=/usr/local/cuda' | tee -a /etc/profile
-    echo 'export PATH=$CUDA_HOME/bin:$PATH' | tee -a /etc/profile
-    echo 'export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
+    echo 'export PATH="$CUDA_HOME/bin${PATH:+:$PATH}"' | tee -a /etc/profile
+    echo 'export LD_LIBRARY_PATH="$CUDA_HOME/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"' | tee -a /etc/profile
     cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
     write_component_version "CUDA" ${cuda_version}
 

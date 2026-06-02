@@ -84,48 +84,37 @@ EOF
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
-    dnf install -y doca-extra
-    /opt/mellanox/doca/tools/doca-kernel-support
-    dnf install -y doca-ofed-userspace
     dnf -y install doca-ofed
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all
-    
-    # Install DOCA extras for compatibility
-    dnf install -y doca-extra
-    
-    /opt/mellanox/doca/tools/doca-kernel-support
-    FINAL_REPO_FILE=$(find /tmp/DOCA.*/ -name 'doca-kernel-repo-*.rpm' -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
-    rpm -i $FINAL_REPO_FILE
+
     # Backup
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
-    dnf -y install doca-ofed-userspace
     dnf -y install doca-ofed
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 
-    # Pin everything DOCA installed so later 'yum update -y' calls don't try
-    # to "upgrade" them. Auto-discovered via rpmdb's `%{from_repo}` field,
-    # which records the repo each package was actually installed from -- the
-    # 'doca' (userland) and 'doca-kernel-<kver>' (built by doca-kernel-support)
-    # repos here -- so the list stays self-maintaining across DOCA releases.
-    # Pinning avoids three conflict sources: EL9.x baseos rdma-core refreshes
-    # shipping ABI-incompatible libibverbs/perftest, cuda-rhel9 shipping a
-    # newer mft than DOCA, and the kernel-suffixed mlnx-ofa_kernel-source
-    # violating mlnx-ofa_kernel-dkms's strict-equality dep.
-    mapfile -t doca_pkgs < <(
-        dnf repoquery --installed --quiet --qf '%{name} %{from_repo}\n' 2>/dev/null \
-        | awk '$2 ~ /^doca/ {print $1}' \
-        | sort -u
-    )
-    if [[ ${#doca_pkgs[@]} -gt 0 ]]; then
-        dnf_pin_packages "${doca_pkgs[@]}"
-    else
-        echo "WARN: dnf repoquery returned no DOCA-installed packages; skipping pin" >&2
-    fi
+    # Repo-local exclude (deliberately NOT a global /etc/dnf/dnf.conf
+    # pin) so 'dnf check-update' in verify_package_updates only flags
+    # legitimate non-conflicting updates -- not the entire DOCA package
+    # set. The cuda-rhel9 mft exclude is set in install_nvidiagpudriver.sh
+    # at the point cuda-rhel9.repo is added (this repo does not exist yet).
+    #
+    # EL9.x baseos rdma-core refresh: AlmaLinux/Rocky 9.8 (in 2026-05)
+    # split out a brand-new RDMA-core stack with a separate libhns
+    # provider and ABI-bumped libibverbs/perftest (IBVERBS_1.15 / HNS_1.0
+    # symbols) incompatible with DOCA's libibverbs-2510.0.11-1.el9.
+    # Without this exclude, install_pmix.sh's 'yum update -y' aborts with:
+    #   cannot install both libibverbs-61.0-2.el9 from baseos and
+    #   libibverbs-2510.0.11-1.el9 from @System
+    # DOCA's 'doca' (userland) repo provides the only rdma-core stack
+    # we want at runtime; baseos must never offer alternatives.
+    dnf config-manager --save \
+        --setopt='baseos.excludepkgs=rdma-core* libibverbs* libibumad* librdmacm* libibmad* libhns* perftest infiniband-diags python3-pyverbs iwpmd srp_daemon' \
+        >/dev/null
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

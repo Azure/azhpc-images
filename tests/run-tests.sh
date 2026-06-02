@@ -123,8 +123,7 @@ function initiate_test_suite {
 function ensure_nvidia_fabricmanager_active {
     # Match the same SKU set used by verify_nvidia_fabricmanager_service:
     # NDv4 A100 (NVSwitch) and NDv5 H100/H200 (NVSwitch).
-    local valid_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
-    if ! [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]; then
+    if ! sku_has_nvswitch; then
         return 0
     fi
     if ! systemctl list-unit-files nvidia-fabricmanager.service &>/dev/null; then
@@ -279,8 +278,11 @@ set_module_files_path
 set_component_versions
 # Set current SKU and distro
 set_vm_properties $aks_host_flag
+<<<<<<< HEAD
 # Ensure nvidia-fabricmanager is up on NVSwitch SKUs so CUDA can initialize
 # during validation. No-op for AMD platform and non-NVSwitch SKUs.
+=======
+>>>>>>> nguyenvuong/update_rhel_9.8
 if [[ "$gpu_platform" == "NVIDIA" ]]; then
     ensure_nvidia_fabricmanager_active
 fi

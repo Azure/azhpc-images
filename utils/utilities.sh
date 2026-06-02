@@ -150,12 +150,26 @@ function sku_uses_ucx {
 # nvidia-fabricmanager, which must match the NVIDIA driver version exactly.
 #
 # @Args     : One or more package names/globs (e.g. "ucx*" "openmpi").
-# @Returns  : 0 on success, 0 (no-op) if /etc/dnf/dnf.conf is absent.
+#             Empty-string arguments are rejected: callers must not pass
+#             unset variables or empty array expansions. There is no
+#             legitimate "pin nothing" use case -- such a call almost
+#             always indicates a bug (e.g. unset $PACKAGE_NAME or an
+#             empty mapfile result) and would silently corrupt the
+#             'exclude=' line with stray whitespace.
+# @Returns  : 0 on success, 0 (no-op) if /etc/dnf/dnf.conf is absent,
+#             1 if no non-empty package arguments were provided.
 ############################################################################
 function dnf_pin_packages {
     [[ -f /etc/dnf/dnf.conf ]] || return 0
-    local pkgs=("$@")
-    [[ ${#pkgs[@]} -gt 0 ]] || return 0
+    local pkgs=()
+    local arg
+    for arg in "$@"; do
+        [[ -n "$arg" ]] && pkgs+=("$arg")
+    done
+    if [[ ${#pkgs[@]} -eq 0 ]]; then
+        echo "dnf_pin_packages: no non-empty package arguments provided (likely an unset variable or empty array)" >&2
+        return 1
+    fi
     local current="" new=""
     if grep -q '^exclude=' /etc/dnf/dnf.conf; then
         current=$(sed -n 's/^exclude=//p' /etc/dnf/dnf.conf | head -n1)

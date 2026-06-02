@@ -24,7 +24,7 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.7, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.8, 3.0)"
   default     = "24.04"
 }
 

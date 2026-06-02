@@ -55,10 +55,7 @@ else
     
     yum install -y ./${FILENAME}
 
-    # Prevent package from being updated after installation. Critical: FM
-    # version must match the NVIDIA driver version exactly, so a stray
-    # 'yum update -y' (e.g. from install_nvidia_container_toolkit.sh) must
-    # not pull in the latest fabricmanager from the cuda-rhel9 repo.
+    # Prevent package from being updated after installation
     dnf_pin_packages "${PACKAGE_NAME}"
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

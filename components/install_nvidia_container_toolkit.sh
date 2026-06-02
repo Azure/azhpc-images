@@ -32,11 +32,6 @@ else
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    # NOTE: Do NOT run `yum update -y` here. It would upgrade unrelated
-    # packages from the already-configured cuda-rhel9 repo -- most critically
-    # nvidia-fabricmanager (must match the NVIDIA driver version exactly),
-    # libnccl, and mft. `yum install` below will refresh the new repo's
-    # metadata on its own.
     yum clean expire-cache
     yum install -y nvidia-container-toolkit
 

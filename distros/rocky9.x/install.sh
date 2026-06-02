@@ -115,9 +115,6 @@ $COMPONENT_DIR/write_kernel_os_version.sh
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh
 
-# record OS/kernel versions
-$COMPONENT_DIR/write_os_versions.sh
-
 # SKU Customization
 $COMPONENT_DIR/setup_sku_customizations.sh
 

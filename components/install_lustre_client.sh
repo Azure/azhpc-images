@@ -174,22 +174,38 @@ MARKER_SPEC
     # build time, so they find libmpi.so.40 at runtime without needing
     # `module load` to have been run first.
     #
-    # Just exporting MPI_BIN doesn't work: lustre's LB_CONFIG_MPITESTS
-    # m4 macro unconditionally recomputes MPI_BIN from
-    # `which mpicc | xargs dirname`, discarding any env-var override.
-    # The autoconf-substituted value then ends up in lustre/tests/mpi/Makefile
-    # (testdir = @MPI_BIN@) and libtool installs the binaries there at
-    # %install -- while the spec's %files section, which re-runs our macro
-    # to obtain the path for the glob, lists the lustre-private path.
-    # Mismatch -> rpmbuild aborts with "File not found:
-    # <buildroot>/usr/lib64/lustre-tests-mpi/*".
+    # Two distinct consumers expect MPI_BIN to be set, and each reads it
+    # in a different way:
     #
-    # Workaround: make `which mpicc` return /usr/lib64/lustre-tests-mpi/mpicc
-    # by (a) symlinking HPC-X's mpicc into that directory and (b) prepending
-    # /usr/lib64/lustre-tests-mpi to PATH in the macro. Then autoconf
-    # naturally substitutes MPI_BIN=/usr/lib64/lustre-tests-mpi, the install
-    # path and the %files path agree, and libtool still uses HPC-X's real
-    # mpicc (via the symlink) for the compile + link steps.
+    # (1) lustre's configure (LB_CONFIG_MPITESTS m4 macro) -- recomputes
+    #     MPI_BIN from `which mpicc | xargs dirname`, discarding any
+    #     env-var override. The autoconf-substituted value lands in
+    #     lustre/tests/mpi/Makefile as `testdir = @MPI_BIN@`, and that's
+    #     where libtool installs the MPI test binaries at %install.
+    #     -> Handled by symlinking HPC-X's mpicc into
+    #        /usr/lib64/lustre-tests-mpi and prepending that dir to PATH
+    #        (in this macro and in the outer shell below), so
+    #        `which mpicc` returns /usr/lib64/lustre-tests-mpi/mpicc.
+    #
+    # (2) lustre.spec's `%files lustre-tests` shell script -- reads
+    #     $MPI_BIN as a shell env var:
+    #
+    #         if [ -n "$MPI_BIN" ]; then
+    #             echo "$MPI_BIN/*" >>lustre-tests.files
+    #         fi
+    #
+    #     The stock /etc/rpm/macros.openmpi gets away without an
+    #     explicit export because the appstream `mpi/openmpi-x86_64`
+    #     modulefile sets MPI_BIN as a tcl env var. HPC-X's modulefile
+    #     does not set MPI_BIN, so without an explicit export here, the
+    #     test evaluates false, the glob never gets added to
+    #     lustre-tests.files, and rpmbuild's check-files stage aborts
+    #     with "Installed (but unpackaged) file(s)" for every
+    #     /usr/lib64/lustre-tests-mpi/* binary -- plus duplicate
+    #     build-id warnings because the orphan .debug files get
+    #     claimed by both lustre-client-debuginfo and
+    #     lustre-client-tests-debuginfo.
+    #     -> Handled by the explicit `export MPI_BIN=...` below.
     #
     # The file is placed at /etc/rpm/macros.hpcx-lustre so rpm picks it
     # up automatically for every nested rpmbuild invocation (rpm reads
@@ -199,9 +215,11 @@ MARKER_SPEC
 %_openmpi_load \
     . /etc/profile.d/modules.sh; \
     module load mpi/hpcx; \
-    export PATH=/usr/lib64/lustre-tests-mpi:$PATH
+    export PATH=/usr/lib64/lustre-tests-mpi:$PATH; \
+    export MPI_BIN=/usr/lib64/lustre-tests-mpi
 %_openmpi_unload \
-    module unload mpi/hpcx
+    module unload mpi/hpcx; \
+    unset MPI_BIN
 RPM_MACROS
 
     lustre_branch="arsdragonfly/dkms-$LUSTRE_BUILD_FROM_SOURCE_VERSION"
@@ -217,12 +235,18 @@ RPM_MACROS
     #     MPI_BIN=/usr/lib64/lustre-tests-mpi.
     #   - PATH prepended with our private dir so the symlink wins over
     #     HPC-X's own ompi/bin/mpicc.
+    #   - MPI_BIN exported explicitly: see the long comment above; HPC-X
+    #     doesn't set it via its modulefile, and the spec's
+    #     `%files lustre-tests` shell script gates `echo "$MPI_BIN/*"`
+    #     on `[ -n "$MPI_BIN" ]`. This export covers the outer ./configure;
+    #     the macros file above covers rpmbuild's nested shells.
     # The macros file above re-applies the PATH prepend inside rpmbuild;
     # the symlink is on-disk so it's visible to every shell.
     source /etc/profile.d/modules.sh
     module load mpi/hpcx
     ln -sf "$(command -v mpicc)" /usr/lib64/lustre-tests-mpi/mpicc
     export PATH=/usr/lib64/lustre-tests-mpi:$PATH
+    export MPI_BIN=/usr/lib64/lustre-tests-mpi
     
     ./configure --with-linux=/usr/src/kernels/$(uname -r) \
                 --with-o2ib=/usr/src/ofa_kernel/default \

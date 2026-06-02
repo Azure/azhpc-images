@@ -278,11 +278,6 @@ set_module_files_path
 set_component_versions
 # Set current SKU and distro
 set_vm_properties $aks_host_flag
-<<<<<<< HEAD
-# Ensure nvidia-fabricmanager is up on NVSwitch SKUs so CUDA can initialize
-# during validation. No-op for AMD platform and non-NVSwitch SKUs.
-=======
->>>>>>> nguyenvuong/update_rhel_9.8
 if [[ "$gpu_platform" == "NVIDIA" ]]; then
     ensure_nvidia_fabricmanager_active
 fi

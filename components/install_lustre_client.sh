@@ -43,7 +43,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; the
     elif [ $UBUNTU_VERSION == 22.04 ]; then
         apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
     fi
-    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --disable-zfs --disable-snmp --enable-quota
+    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --without-zfs --disable-snmp --enable-quota
     #make dkms-debs
     IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make dkms-debs
     apt install -y ./debs/lustre-*.deb
@@ -220,7 +220,7 @@ RPM_MACROS
                 --with-o2ib=/usr/src/ofa_kernel/default \
                 --disable-server \
                 --disable-ldiskfs \
-                --disable-zfs \
+                --without-zfs \
                 --disable-snmp \
                 --enable-quota
 

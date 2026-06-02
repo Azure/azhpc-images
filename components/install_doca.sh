@@ -84,9 +84,6 @@ EOF
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
-    dnf install -y doca-extra
-    /opt/mellanox/doca/tools/doca-kernel-support
-    dnf install -y doca-ofed-userspace
     dnf -y install doca-ofed
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.

@@ -165,7 +165,7 @@ MARKER_SPEC
     # autoconf would fail to find mpicc, and lustre-tests would build
     # with zero MPI binaries.
     #
-    # MPI_BIN points at a lustre-private path so:
+    # We want MPI_BIN to land at a lustre-private path so:
     #   * lustre's tests/Makefile installs the MPI test binaries there,
     #   * lustre.spec's tests-files section records that path -- rather
     #     than a versioned /opt/hpcx-<ver>/ompi/bin path that would
@@ -173,6 +173,23 @@ MARKER_SPEC
     # Libtool RPATHs each test binary against /opt/hpcx-*/ompi/lib at
     # build time, so they find libmpi.so.40 at runtime without needing
     # `module load` to have been run first.
+    #
+    # Just exporting MPI_BIN doesn't work: lustre's LB_CONFIG_MPITESTS
+    # m4 macro unconditionally recomputes MPI_BIN from
+    # `which mpicc | xargs dirname`, discarding any env-var override.
+    # The autoconf-substituted value then ends up in lustre/tests/mpi/Makefile
+    # (testdir = @MPI_BIN@) and libtool installs the binaries there at
+    # %install -- while the spec's %files section, which re-runs our macro
+    # to obtain the path for the glob, lists the lustre-private path.
+    # Mismatch -> rpmbuild aborts with "File not found:
+    # <buildroot>/usr/lib64/lustre-tests-mpi/*".
+    #
+    # Workaround: make `which mpicc` return /usr/lib64/lustre-tests-mpi/mpicc
+    # by (a) symlinking HPC-X's mpicc into that directory and (b) prepending
+    # /usr/lib64/lustre-tests-mpi to PATH in the macro. Then autoconf
+    # naturally substitutes MPI_BIN=/usr/lib64/lustre-tests-mpi, the install
+    # path and the %files path agree, and libtool still uses HPC-X's real
+    # mpicc (via the symlink) for the compile + link steps.
     #
     # The file is placed at /etc/rpm/macros.hpcx-lustre so rpm picks it
     # up automatically for every nested rpmbuild invocation (rpm reads
@@ -182,7 +199,7 @@ MARKER_SPEC
 %_openmpi_load \
     . /etc/profile.d/modules.sh; \
     module load mpi/hpcx; \
-    export MPI_BIN=/usr/lib64/lustre-tests-mpi
+    export PATH=/usr/lib64/lustre-tests-mpi:$PATH
 %_openmpi_unload \
     module unload mpi/hpcx
 RPM_MACROS
@@ -192,13 +209,20 @@ RPM_MACROS
     pushd amlFilesystem-lustre
     sh ./autogen.sh
 
-    # MPI_BIN is exported here as well as inside the macros file so it
-    # survives into the nested ./configure that rpmbuild kicks off when
-    # rebuilding the srpm -- where it controls the install path for the
-    # MPI-linked test binaries.
+    # Prepare the environment the outer ./configure and the nested
+    # rpmbuild's ./configure will both consume:
+    #   - HPC-X loaded so libmpi/headers are visible and mpicc works.
+    #   - /usr/lib64/lustre-tests-mpi/mpicc symlinked to HPC-X's mpicc
+    #     so `which mpicc` resolves to our path -> autoconf substitutes
+    #     MPI_BIN=/usr/lib64/lustre-tests-mpi.
+    #   - PATH prepended with our private dir so the symlink wins over
+    #     HPC-X's own ompi/bin/mpicc.
+    # The macros file above re-applies the PATH prepend inside rpmbuild;
+    # the symlink is on-disk so it's visible to every shell.
     source /etc/profile.d/modules.sh
     module load mpi/hpcx
-    export MPI_BIN=/usr/lib64/lustre-tests-mpi
+    ln -sf "$(command -v mpicc)" /usr/lib64/lustre-tests-mpi/mpicc
+    export PATH=/usr/lib64/lustre-tests-mpi:$PATH
     
     ./configure --with-linux=/usr/src/kernels/$(uname -r) \
                 --with-o2ib=/usr/src/ofa_kernel/default \
@@ -240,8 +264,11 @@ RPM_MACROS
     # Remove the lustre-specific rpm macro file so it doesn't affect any
     # later rpmbuild calls in this bake. The marker RPM stays installed
     # -- it keeps /usr/lib64/lustre-tests-mpi owned and continues to
-    # satisfy any future openmpi-devel requirement.
-    rm -f /etc/rpm/macros.hpcx-lustre
+    # satisfy any future openmpi-devel requirement. The mpicc symlink
+    # inside the marker dir is also cleaned up: it pointed at a
+    # versioned HPC-X path that would silently dangle on the next HPC-X
+    # upgrade, and nothing post-build needs it.
+    rm -f /etc/rpm/macros.hpcx-lustre /usr/lib64/lustre-tests-mpi/mpicc
     LUSTRE_VERSION=$(rpm -q --queryformat '%{VERSION}\n' lustre-client | head -1)
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.

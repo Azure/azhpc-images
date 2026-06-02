@@ -112,9 +112,28 @@ else
     #   libibverbs-2510.0.11-1.el9 from @System
     # DOCA's 'doca' (userland) repo provides the only rdma-core stack
     # we want at runtime; baseos must never offer alternatives.
-    dnf config-manager --save \
-        --setopt='baseos.excludepkgs=rdma-core* libibverbs* libibumad* librdmacm* libibmad* libhns* perftest infiniband-diags python3-pyverbs iwpmd srp_daemon' \
-        >/dev/null
+    mapfile -t doca_pkgs < <(
+        dnf repoquery --installed --quiet --qf '%{name} %{from_repo}\n' \
+            | awk '$2 ~ /^doca/ {print $1}' | sort -u
+    )
+    if [[ ${#doca_pkgs[@]} -eq 0 ]]; then
+        echo "ERROR: no packages found from doca* repos after doca-ofed install" >&2
+        exit 1
+    fi
+    mapfile -t baseos_pkgs < <(
+        dnf repoquery --quiet --repo=baseos --qf '%{name}\n' '*' | sort -u
+    )
+    mapfile -t baseos_conflicts < <(
+        comm -12 \
+            <(printf '%s\n' "${doca_pkgs[@]}") \
+            <(printf '%s\n' "${baseos_pkgs[@]}")
+    )
+    if [[ ${#baseos_conflicts[@]} -gt 0 ]]; then
+        echo "Pinning ${#baseos_conflicts[@]} baseos package(s) shadowed by DOCA: ${baseos_conflicts[*]}"
+        dnf config-manager --save \
+            --setopt="baseos.excludepkgs=${baseos_conflicts[*]}" \
+            >/dev/null
+    fi
 fi
 
 write_component_version "DOCA" $DOCA_VERSION

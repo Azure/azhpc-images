@@ -314,7 +314,7 @@ update_rhel_packages() {
     if [[ "${os_family}" == "azurelinux"* ]]; then
         sed -i 's/^enabled.*=.*1/enabled=0/' /etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf 2>/dev/null || true
     fi
-    
+
     dnf update -y --refresh
     dnf install -y git
     

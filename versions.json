@@ -974,9 +974,16 @@
         "common": {
             "version": "2.15.6-39-g3e00a10"
         },
+        "almalinux8.10": {
+            "x86_64": {
+                "version": "2.15.6-39-g3e00a10",
+                "build_from_source_version": "2.15.7"
+            }
+        },
         "almalinux9.8": {
             "x86_64": {
-                "version": "2.15.7_33_g79ddf99"
+                "version": "2.15.7_33_g79ddf99",
+                "build_from_source_version": "2.15.7"
             }
         },
         "ubuntu22.04": {
@@ -992,9 +999,16 @@
                 "version": "2.16.1"
             }
         },
+        "rocky8.10": {
+            "x86_64": {
+                "version": "2.15.6-39-g3e00a10",
+                "build_from_source_version": "2.15.7"
+            }
+        },
         "rocky9.8": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99"
+                "version": "2.15.7-33-g79ddf99",
+                "build_from_source_version": "2.15.7"
             }
         }
     },

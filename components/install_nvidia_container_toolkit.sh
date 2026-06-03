@@ -26,7 +26,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install --noplugins -y nvidia-container-toolkit-base nvidia-container-toolkit
     tdnf install --noplugins -y nvidia-container-runtime
-    sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "*nvidia-container*"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \

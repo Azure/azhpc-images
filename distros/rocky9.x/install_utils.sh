@@ -141,12 +141,19 @@ rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 ## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
 dnf install -y kernel-abi-stablelists
 
-## Disable kernel updates (but not kernel-rpm-macros and other tools)
-echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kernel-modules-extra" | tee -a /etc/dnf/dnf.conf
-
-# Disable dependencies on kernel core
-sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
-sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
+## Disable kernel updates (skipped when building Lustre from source or when
+## refreshing an image in-place so that DKMS-style rebuilds can keep up with
+## kernel upgrades, matching the Ubuntu prerequisites.sh behavior). The
+## shim*/grub2* sed lines extend the just-added exclude= directive, so they
+## must stay inside the same conditional -- running them without an exclude
+## line would corrupt the previous last line of dnf.conf (e.g.
+## skip_if_unavailable=False).
+if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+    echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kernel-modules-extra" | tee -a /etc/dnf/dnf.conf
+    # Disable dependencies on kernel core
+    sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
+    sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
+fi
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel

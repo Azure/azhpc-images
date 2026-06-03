@@ -28,9 +28,6 @@ source ../../utils/set_properties.sh
 # update cmake
 $COMPONENT_DIR/install_cmake.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -39,6 +36,10 @@ $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
+
+# install Lustre client (must run after install_doca + install_mpis so the
+# build-from-source path can use /usr/src/ofa_kernel/default and HPC-X)
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install mpifileutils
 $COMPONENT_DIR/install_mpifileutils.sh

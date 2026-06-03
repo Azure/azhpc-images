@@ -315,6 +315,43 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+# Validate /etc/dnf/dnf.conf is well-formed. Build-time only (call sites
+# should gate on validation_mode).
+#
+# Motivation: the legacy `sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf` pattern
+# (see utils/utilities.sh::dnf_pin_packages) appended package globs onto
+# the last line of dnf.conf (e.g. `skip_if_unavailable=False`), which dnf
+# treats as an `Invalid configuration value` *warning* and silently
+# disables the pin -- letting `yum update` upgrade nvidia-fabricmanager
+# out of sync with the driver. This check fails the build if dnf can't
+# parse its own config.
+function verify_dnf_conf {
+    # Only RHEL-family + azurelinux use /etc/dnf/dnf.conf; Ubuntu uses apt.
+    case "${ID}" in
+        almalinux|rocky|rhel|azurelinux) ;;
+        *) return 0 ;;
+    esac
+
+    local conf=/etc/dnf/dnf.conf
+    check_exists "${conf}"
+
+    # dnf must accept the config without `Invalid configuration value`
+    # warnings. Use `-C` so we don't refresh metadata; we only care
+    # whether dnf can parse the config file.
+    local dnf_out
+    dnf_out=$(sudo dnf -C --quiet repolist 2>&1 || true)
+    if grep -qi 'invalid configuration value' <<< "${dnf_out}"; then
+        echo "*** verify_dnf_conf: Error - dnf rejects ${conf}:" >&2
+        grep -i 'invalid configuration' <<< "${dnf_out}" >&2
+        echo "--- ${conf} ---" >&2
+        cat "${conf}" >&2
+        exit_on_error
+        return 0
+    fi
+
+    echo "[OK] : ${conf} parses cleanly"
+}
+
 function verify_package_updates {
     case ${ID} in
         ubuntu)

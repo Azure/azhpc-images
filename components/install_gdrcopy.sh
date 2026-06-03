@@ -76,7 +76,7 @@ else
             rpm -Uvh gdrcopy-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
             rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.noarch.rpm
             rpm -Uvh gdrcopy-kmod-$(uname -r)-nvidia-${NVIDIA_DRIVER_VERSION}-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
-            sed -i "$ s/$/ gdrcopy*/" /etc/dnf/dnf.conf
+            dnf_pin_packages "gdrcopy*"
         fi
         popd
     fi

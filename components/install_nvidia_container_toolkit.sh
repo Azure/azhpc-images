@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Install NVIDIA Container Toolkit
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
@@ -30,13 +32,11 @@ else
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    yum update -y
-
     yum clean expire-cache
     yum install -y nvidia-container-toolkit
 
     # Mark the installed packages on hold to disable updates
-    sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "*nvidia-container*"
 
     # Clean repos
     rm -rf /etc/yum.repos.d/nvidia-*

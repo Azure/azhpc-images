@@ -70,6 +70,7 @@ function test_component {
 function verify_common_components {
     # Skip package updates check in validation mode (only run at build time)
     if [[ -z "${validation_mode:-}" ]]; then
+        verify_dnf_conf;
         verify_package_updates;
     fi
 

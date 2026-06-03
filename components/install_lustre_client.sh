@@ -91,16 +91,11 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     # package so it auto-rebuilds when the host kernel is upgraded, and
     # uses the same lustre source branch as Ubuntu.
     #
-    # Lustre's standard build tools (gcc, autotools, rpm-build,
-    # kernel-*-devel, dkms) are already installed by
-    # distros/<rhel>/install_utils.sh; only lustre-specific dev
-    # libraries are added below.
+    # Lustre's standard build tools are already installed, so just install
+    # lustre-specific dependencies
     #
-    # Note on openmpi-devel: lustre-tests needs it to build, but on
-    # EL+DOCA the stock appstream openmpi-devel cannot install -- it
-    # requires a namespaced provide that DOCA's pinned openmpi does not
-    # ship, so dnf aborts before lustre builds. The workaround below
-    # uses an empty marker RPM (analogous to the hpcx-provides-openmpi
+    # openmpi-devel break DOCA's strict dependency on its own OpenMPI package.
+    # The workaround below uses an empty marker RPM (analogous to the hpcx-provides-openmpi
     # equivs package in install_doca.sh) plus an rpm macro override
     # that points rpmbuild at HPC-X for the actual MPI headers.
     dnf install -y \
@@ -127,6 +122,9 @@ elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     # The marker stays installed after the build, so any future package
     # that requires openmpi-devel resolves through it instead of
     # hitting the same DOCA conflict.
+    #
+    # TODO: temporary dirty fix. The proper fix needs to land upstream
+    # in lustre's build scripts.
     marker_dir=$(mktemp -d)
     cat > "${marker_dir}/hpcx-provides-openmpi-devel.spec" <<'MARKER_SPEC'
 Name:           hpcx-provides-openmpi-devel
@@ -158,59 +156,24 @@ MARKER_SPEC
     dnf install -y "${marker_dir}"/rpmbuild/RPMS/noarch/hpcx-provides-openmpi-devel-*.noarch.rpm
     rm -rf "${marker_dir}"
 
-    # Override the _openmpi_load rpm macro so rpmbuild loads HPC-X when
-    # it builds the lustre-tests subpackage. The stock macro (shipped by
-    # appstream openmpi-devel) loads mpi/openmpi-x86_64; with only the
-    # marker package installed, the macro would expand to empty, lustre's
-    # autoconf would fail to find mpicc, and lustre-tests would build
-    # with zero MPI binaries.
+    # Override _openmpi_load so rpmbuild loads HPC-X (and exports MPI_BIN)
+    # when building the lustre-tests subpackage. The stock macro from
+    # appstream openmpi-devel loads mpi/openmpi-x86_64, which is not
+    # installed; without this override lustre-tests builds with no MPI
+    # binaries.
     #
-    # We want MPI_BIN to land at a lustre-private path so:
-    #   * lustre's tests/Makefile installs the MPI test binaries there,
-    #   * lustre.spec's tests-files section records that path -- rather
-    #     than a versioned /opt/hpcx-<ver>/ompi/bin path that would
-    #     collide with HPC-X's own files and change across HPC-X bumps.
-    # Libtool RPATHs each test binary against /opt/hpcx-*/ompi/lib at
-    # build time, so they find libmpi.so.40 at runtime without needing
-    # `module load` to have been run first.
+    # MPI_BIN points at a lustre-private dir rather than HPC-X's own
+    # ompi/bin so the path baked into lustre.spec's %files stays stable
+    # across HPC-X version bumps. Libtool RPATHs the test binaries
+    # against HPC-X's libs, so they run without `module load` at runtime.
     #
-    # Two distinct consumers expect MPI_BIN to be set, and each reads it
-    # in a different way:
+    # MPI_BIN must be exported explicitly: lustre.spec's `%files
+    # lustre-tests` gates its glob on `[ -n "$MPI_BIN" ]`, and HPC-X's
+    # modulefile (unlike appstream openmpi's) does not set it.
     #
-    # (1) lustre's configure (LB_CONFIG_MPITESTS m4 macro) -- recomputes
-    #     MPI_BIN from `which mpicc | xargs dirname`, discarding any
-    #     env-var override. The autoconf-substituted value lands in
-    #     lustre/tests/mpi/Makefile as `testdir = @MPI_BIN@`, and that's
-    #     where libtool installs the MPI test binaries at %install.
-    #     -> Handled by symlinking HPC-X's mpicc into
-    #        /usr/lib64/lustre-tests-mpi and prepending that dir to PATH
-    #        (in this macro and in the outer shell below), so
-    #        `which mpicc` returns /usr/lib64/lustre-tests-mpi/mpicc.
-    #
-    # (2) lustre.spec's `%files lustre-tests` shell script -- reads
-    #     $MPI_BIN as a shell env var:
-    #
-    #         if [ -n "$MPI_BIN" ]; then
-    #             echo "$MPI_BIN/*" >>lustre-tests.files
-    #         fi
-    #
-    #     The stock /etc/rpm/macros.openmpi gets away without an
-    #     explicit export because the appstream `mpi/openmpi-x86_64`
-    #     modulefile sets MPI_BIN as a tcl env var. HPC-X's modulefile
-    #     does not set MPI_BIN, so without an explicit export here, the
-    #     test evaluates false, the glob never gets added to
-    #     lustre-tests.files, and rpmbuild's check-files stage aborts
-    #     with "Installed (but unpackaged) file(s)" for every
-    #     /usr/lib64/lustre-tests-mpi/* binary -- plus duplicate
-    #     build-id warnings because the orphan .debug files get
-    #     claimed by both lustre-client-debuginfo and
-    #     lustre-client-tests-debuginfo.
-    #     -> Handled by the explicit `export MPI_BIN=...` below.
-    #
-    # The file is placed at /etc/rpm/macros.hpcx-lustre so rpm picks it
-    # up automatically for every nested rpmbuild invocation (rpm reads
-    # any file matching /etc/rpm/macros.*). It's removed after the
-    # build to avoid affecting unrelated rpmbuild calls later in the bake.
+    # Dropped at /etc/rpm/macros.hpcx-lustre so rpm auto-loads it for
+    # every nested rpmbuild (via the /etc/rpm/macros.* glob); removed
+    # after the build to avoid affecting later rpmbuild calls.
     cat > /etc/rpm/macros.hpcx-lustre <<'RPM_MACROS'
 %_openmpi_load \
     . /etc/profile.d/modules.sh; \
@@ -284,49 +247,9 @@ RPM_MACROS
     # auto-generated Requires that bite this lustre+DOCA OFED build,
     # and the workaround for each layer is different.
     #
-    # Layer 1 -- static kmod-lustre-client requires OFED-provided
-    # symbols. kmod-lustre-client (the .ko package built by `make rpms`)
-    # imports IB/RDMA symbols from DOCA OFED's mlx_compat / ib_core /
-    # rdma_cm modules (e.g. `ksym(__ib_alloc_pd) = 0xc3d28cbf`,
-    # `ksym(rdma_create_qp) = 0x7c514669`,
-    # `ksym(mlx_backport_dependency_symbol) = 0x1f057e46`). RHEL's
-    # __find_requires emits a `Requires: ksym(...)` line for each.
-    # DOCA OFED's RPMs (mlnx-ofa_kernel-modules etc.) install the .ko
-    # files that export those symbols, but their packaging
-    # *deliberately strips* rpm-level `Provides: ksym(...)` entries
-    # (a long-standing Mellanox decision so MOFED RPMs are not pinned
-    # to specific kernel versions). Result: no rpm in the system can
-    # satisfy kmod-lustre-client's IB/RDMA ksym Requires, and
-    # `dnf install kmod-lustre-client*.rpm` aborts with ~25
-    # "nothing provides ksym(...)" errors. The fix: do not install
-    # the static kmod-lustre-client at all. lustre-client-dkms's
-    # postinstall runs `dkms install` and builds the .ko in place
-    # directly under /lib/modules/<kver>/extra/; dkms writes to disk
-    # without going through rpm, so no rpm-level ksym check happens.
-    # At runtime, depmod resolves symbols by name against DOCA OFED's
-    # actually-loaded modules and the kernel's CRC check passes because
-    # the .ko's embedded symvers match DOCA OFED's published symvers.
+    # Layer 1 -- DKMS over prebuilt kmod.
     #
-    # Layer 2 -- static kmod-lustre-client-tests requires lustre-internal
-    # symbols. kmod-lustre-client-tests imports symbols from
-    # kmod-lustre-client (e.g. `ksym(__cfs_fail_check_set) = 0xcf61bacb`,
-    # `ksym(llog_cat_add) = 0x0c7120b4`). Those ksym Provides are only
-    # emitted when rpm processes a real .ko file at rpmbuild time. The
-    # dkms package ships source and emits only a package-level
-    # `Provides: kmod-lustre-client = %{version}`, not per-symbol
-    # ksym Provides. The dkms-built .ko files on disk under
-    # /lib/modules/<kver>/extra/ are also invisible to rpm's dep DB.
-    # Result: `dnf install kmod-lustre-client-tests*.rpm` aborts with
-    # ~30 "nothing provides ksym(...)" errors. The fix: install
-    # kmod-lustre-client-tests via `rpm -ivh --nodeps` to bypass the
-    # rpm-level ksym safety check. The test kmod's .ko files
-    # (llog_test.ko, obd_test.ko, kinode.ko, etc.) were built from
-    # the same lustre source tree as the dkms-built core kmod, so at
-    # runtime they load cleanly against the dkms-built lustre.ko --
-    # depmod resolves by name and the kernel's CRC check passes. This
-    # is the same pattern documented on the upstream lustre wiki for
-    # lustre+MOFED builds, where the kmod RPMs are routinely installed
-    # with `rpm -ivh --nodeps` to defeat rpm-level ksym checks.
+    # Layer 2 -- kmod-lustre-client-tests, which is a collection of kmods as test fixtures, lacks DKMS.
     #
     # Tradeoff (already documented as an accepted limitation in
     # repo/lustre-tests-marker-rpm.md): kmod-lustre-client-tests's

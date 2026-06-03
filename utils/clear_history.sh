@@ -105,6 +105,14 @@ then
         apt-get purge -y azure-proxy-agent
     fi
 
+    # Remove Microsoft prod apt source list + keyring (ships mdatp; presence
+    # alone trips downstream policy linters even after the package is purged).
+    rm -f /etc/apt/sources.list.d/microsoft-prod.list
+    rm -f /etc/apt/sources.list.d/microsoft.list
+    rm -f /usr/share/keyrings/microsoft-prod-archive-keyring.gpg
+    rm -f /usr/share/keyrings/microsoft.gpg
+    rm -f /etc/apt/trusted.gpg.d/microsoft*.gpg
+    apt-get update 2>/dev/null || true
 elif [[ $distro == *"AzureLinux"* ]]
 then
     if tdnf list installed | grep -qw mdatp; then
@@ -127,8 +135,60 @@ JEOF
 systemctl restart systemd-journald
 # Stop rsyslog so it releases log file handles
 systemctl stop rsyslog 2>/dev/null || true
-# Delete Defender related files
-rm -rf /var/log/microsoft/mdatp /etc/opt/microsoft/mdatp /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
+
+# Stop and disable mdatp service (in case purge left the unit file behind on
+# some distros where it gets recreated by package post-removal scripts).
+systemctl stop mdatp 2>/dev/null || true
+systemctl disable mdatp 2>/dev/null || true
+
+# Delete Defender related files — extended path list to satisfy Marketplace
+# generalization test 200.4.2 (verify_mdatp_not_preinstalled).
+# References:
+#   https://aka.ms/uninstall-defender-linux
+#   https://aka.ms/mdatp-check-sh
+rm -rf /etc/opt/microsoft/mdatp \
+       /etc/opt/microsoft/mdatp_onboard.json \
+       /var/opt/microsoft/mdatp \
+       /var/opt/microsoft \
+       /opt/microsoft/mdatp \
+       /opt/microsoft/mde \
+       /opt/microsoft \
+       /var/log/microsoft/mdatp \
+       /var/log/microsoft \
+       /etc/audit/rules.d/mdatp.rules \
+       /etc/apparmor.d/mdatp \
+       /etc/apparmor.d/disable/mdatp \
+       /usr/lib/systemd/system/mdatp.service \
+       /etc/systemd/system/multi-user.target.wants/mdatp.service \
+       /var/lib/waagent/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* \
+       /var/log/azure/Microsoft.Azure.AzureDefenderForServers.MDE.Linux* \
+       /var/lib/GuestConfig/extension_logs/Microsoft.Azure.AzureDefenderForServers.MDE.Linux*
+
+# Remove mdatp-xplat / mde_installer leftovers anywhere on disk.
+# These trees contain EICAR test fixtures (e.g. utils_58.py, eicar.com.txt)
+# that the Marketplace malware scanner (200.5.2) flags.
+rm -rf /opt/mdatp-xplat /opt/mde_installer* \
+       /tmp/mdatp-xplat* /tmp/mde_installer* /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py \
+       /root/mdatp-xplat* /root/mde_installer* /root/MicrosoftDefenderATPOnboardingLinuxServer.py \
+       /home/*/mdatp-xplat* /home/*/mde_installer* /home/*/MicrosoftDefenderATPOnboardingLinuxServer.py
+find / -xdev -type f \( -name "eicar.com*" -o -name "utils_58.py" \) \
+    -not -path '/proc/*' -not -path '/sys/*' -delete 2>/dev/null || true
+
+# Final guard: fail the image build if mdatp residue is still present so we
+# never silently ship a non-compliant image.
+if [[ $distro == *"Ubuntu"* ]]; then
+    if dpkg -l 2>/dev/null | grep -qE '^ii\s+(mdatp|microsoft-mdatp)'; then
+        echo "##[error]mdatp package is still installed after purge; aborting image capture"
+        exit 1
+    fi
+fi
+if [ -f /etc/opt/microsoft/mdatp/mdatp_onboard.json ] || \
+   [ -d /var/opt/microsoft/mdatp ] || \
+   [ -d /etc/opt/microsoft/mdatp ]; then
+    echo "##[error]mdatp onboarding/config artifacts still present; aborting image capture"
+    ls -la /etc/opt/microsoft/mdatp /var/opt/microsoft/mdatp 2>/dev/null || true
+    exit 1
+fi
 # Clean journald logs
 if command -v journalctl >/dev/null 2>&1; then
     journalctl --rotate 2>/dev/null || true

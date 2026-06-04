@@ -141,6 +141,16 @@ build {
     ]
   }
 
+  provisioner "shell-local" {
+    name           = "(1P specific) download and extract GB200F prebuilts"
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200F") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "az storage blob download -f /tmp/u24_gb200f_internal_${var.gb200f_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200f_internal_${var.gb200f_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "tar -xvf /tmp/u24_gb200f_internal_${var.gb200f_internal_bits_version}.tar.gz -C ${path.root}/..",
+    ]
+  }
+
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
@@ -171,10 +181,18 @@ build {
     except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
-    "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
-    "REFRESH_MODE=${local.refresh_mode}",
+      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
+      "REFRESH_MODE=${local.refresh_mode}",
+      "ADO_ACCESS_TOKEN=${var.ado_access_token}",
+      "BAREMETAL_ADMIN_PASSWORD=${var.baremetal_admin_password}",
+      "SSH_USERNAME=${var.ssh_username}",
     ]
-    inline          = [
+    # GB200F (baremetal) overlay install.sh takes 5 positional args:
+    #   $1=gpu_platform $2=gpu_sku $3=ADO_ACCESS_TOKEN $4=username $5=login_password
+    # All other variants invoke install.sh with the standard 2 args.
+    inline          = local.gpu_sku == "GB200F" ? [
+      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku} \"$ADO_ACCESS_TOKEN\" \"$SSH_USERNAME\" \"$BAREMETAL_ADMIN_PASSWORD\"",
+    ] : [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }
@@ -266,7 +284,28 @@ build {
     source      = "/opt/azurehpc/component_versions.txt"
     destination = "/tmp/image_manifests/component-versions.json"
   }
-  
+
+  provisioner "shell" {
+    name             = "(Baremetal) enable password + pubkey auth and passwordless sudo"
+    except           = local.target_image_variant == "baremetal_image" ? [] : ["azure-arm.hpc"]
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "SSH_USERNAME=${var.ssh_username}",
+      "BAREMETAL_ADMIN_PASSWORD=${var.baremetal_admin_password}",
+    ]
+    inline = [
+      "mkdir -p /etc/ssh/sshd_config.d",
+      "grep -qi '^PasswordAuthentication yes' /etc/ssh/sshd_config.d/10-enable-password.conf 2>/dev/null || echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/10-enable-password.conf",
+      "grep -qi '^PubkeyAuthentication yes'   /etc/ssh/sshd_config.d/11-enable-pubkey.conf  2>/dev/null || echo 'PubkeyAuthentication yes'   > /etc/ssh/sshd_config.d/11-enable-pubkey.conf",
+      "sshd -t && (systemctl reload sshd 2>/dev/null || systemctl reload ssh 2>/dev/null || systemctl restart sshd || systemctl restart ssh)",
+      "printf '%s:%s\\n' \"$SSH_USERNAME\" \"$BAREMETAL_ADMIN_PASSWORD\" | chpasswd",
+      "mkdir -p /etc/sudoers.d",
+      "echo \"$SSH_USERNAME ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/99-${var.ssh_username}-nopasswd",
+      "chmod 0440 /etc/sudoers.d/99-${var.ssh_username}-nopasswd",
+      "visudo -c -f /etc/sudoers.d/99-${var.ssh_username}-nopasswd",
+    ]
+  }
+
   provisioner "shell" {
     name              = "Reboot"
     inline_shebang    = var.default_inline_shebang
@@ -280,7 +319,7 @@ build {
 
   provisioner "shell" {
     name           = "Run tests (post-reboot)"
-    except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    except         = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200F") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
@@ -288,8 +327,17 @@ build {
   }
 
   provisioner "shell" {
+    name           = "(Baremetal GB200F) Run sanity checks (post-reboot)"
+    except         = (!local.skip_validation && !var.skip_hpc && local.gpu_sku == "GB200F") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "/opt/azurehpc/test/run-sanity-checks.sh"
+    ]
+  }
+
+  provisioner "shell" {
     name            = "Run health checks"
-    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
+    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "GB200F" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",

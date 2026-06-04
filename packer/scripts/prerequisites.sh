@@ -155,8 +155,18 @@ install_ubuntu_gb200_kernel() {
         sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     fi
 
-    # Add GB200-specific kernel parameters
-    sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
+    # Add GB200-specific kernel parameters.
+    # On baremetal (GB200F), the marketplace cloudimg-settings file is absent and the
+    # required cmdline is much smaller. Write directly to /etc/default/grub instead.
+    if [[ "${TARGET_IMAGE_VARIANT:-regular}" == "baremetal_image" ]]; then
+        if grep -q '^GRUB_CMDLINE_LINUX=' /etc/default/grub; then
+            sed -i 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX="efi=disable_early_pci_dma"|' /etc/default/grub
+        else
+            echo 'GRUB_CMDLINE_LINUX="efi=disable_early_pci_dma"' >> /etc/default/grub
+        fi
+    else
+        sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
+    fi
     
     # Blacklist nouveau driver
     echo 'blacklist nouveau' >> /etc/modprobe.d/blacklist.conf
@@ -195,8 +205,8 @@ install_ubuntu_lts_kernel() {
     local version=$1
     local gpu_sku="${GPU_SKU}"
     
-    # GB200 uses a special nvidia kernel, not LTS
-    if [[ "${gpu_sku,,}" == "gb200" ]]; then
+    # GB200 / GB200F (baremetal) use a special nvidia kernel, not LTS
+    if [[ "${gpu_sku,,}" == "gb200" || "${gpu_sku,,}" == "gb200f" ]]; then
         install_ubuntu_gb200_kernel
         return $?
     fi

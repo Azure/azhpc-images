@@ -101,11 +101,33 @@ locals {
   build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
+# =============================================================================
+# Target Image Variant Variables
+# =============================================================================
+# Declared here (above gpu_sku) so that gpu_sku can branch on the variant
+# (e.g. baremetal GB200 maps to GB200F).
+
+variable "target_image_variant" {
+  type        = string
+  description = "Target image variant: regular, aks_host_image, or baremetal_image"
+  default     = env("TARGET_IMAGE_VARIANT")
+  validation {
+    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
+    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
+  }
+}
+locals {
+  target_image_variant = coalesce(var.target_image_variant, "regular")
+  aks_host_image = local.target_image_variant == "aks_host_image"
+  install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
+  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
+}
+
 locals {
   gpu_sku = (
-    local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
-    local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.target_vm_size == "Standard_ND40rs_v2"             ? "V100"   :
+    local.target_vm_size == "Standard_ND96isr_MI300X_v5"     ? "MI300X" :
+    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? (local.target_image_variant == "baremetal_image" ? "GB200F" : "GB200") :
     local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
@@ -499,8 +521,8 @@ locals {
       ? ["westus", "francecentral", "eastus2euap", local.azure_location]
       : local.gpu_sku == "NCv6"
         ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
-        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-          ? ["southeastus5", "northeastus5" ,local.azure_location]
+        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200F"
+          ? ["southeastus5", local.azure_location]
             : local.gpu_sku == "GB200"
             ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
               : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
@@ -566,23 +588,27 @@ variable "azl3gb200_prebuilt_version" {
 }
 
 # =============================================================================
-# Target Image Variant Variables
+# Baremetal Specific Variables
 # =============================================================================
 
-variable "target_image_variant" {
+variable "gb200f_internal_bits_version" {
   type        = string
-  description = "Target image variant: regular, aks_host_image, or baremetal_image"
-  default     = env("TARGET_IMAGE_VARIANT")
-  validation {
-    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
-    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
-  }
+  description = "Version for Ubuntu 24.04 GB200F (baremetal) internal bits"
+  default     = env("U24GB200F_INTERNALBITS_VERSION")
 }
-locals {
-  target_image_variant = coalesce(var.target_image_variant, "regular")
-  aks_host_image = local.target_image_variant == "aks_host_image"
-  install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
+
+variable "baremetal_admin_password" {
+  type        = string
+  description = "Admin password for baremetal images (used by post-install login setup)"
+  default     = env("LOGINPASSWORD")
+  sensitive   = true
+}
+
+variable "ado_access_token" {
+  type        = string
+  description = "Azure DevOps access token used by the overlay install.sh to fetch internal artifacts"
+  default     = env("ADO_ACCESS_TOKEN")
+  sensitive   = true
 }
 
 # =============================================================================
@@ -689,9 +715,10 @@ locals {
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
-    local.gpu_sku == "V100"  ? "V100-" :
-    local.gpu_sku == "GB200" ? "GB200-" :
-    local.gpu_sku == "NCv6"  ? "NCv6-" :
+    local.gpu_sku == "V100"   ? "V100-"   :
+    local.gpu_sku == "GB200"  ? "GB200-"  :
+    local.gpu_sku == "GB200F" ? "GB200F-" :
+    local.gpu_sku == "NCv6"   ? "NCv6-"   :
     ""
   )
   internal_sig_image_definition_details = {

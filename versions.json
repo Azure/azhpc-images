@@ -1068,7 +1068,7 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "6.2.2.1"
+                "version": "7.0.2"
             }
         },
         "rocky8.10": {
@@ -1105,11 +1105,11 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.22.3",
-                "branch": "release/rocm-rel-6.4",
-                "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
-                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
-                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
+                "version": "2.26.6",
+                "branch": "release/rocm-rel-7.0",
+                "commit": "01dfdacf4278d4369dc8c34c8877f4210f1f486b",
+                "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-7.0.2.tar.gz",
+                "sha256": "3e4363163f5de772707c8deea349a00744200733693c76a07ac842e55b6ad19e"
             }
         },
         "rocky8.10": {

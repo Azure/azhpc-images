@@ -45,13 +45,13 @@ EOF
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
    tdnf install -y azurelinux-repos-amd
    tdnf -y install kernel-drivers-gpu-$(uname -r)
-   tdnf -y install amdgpu amdgpu-firmware amdgpu-headers
+   tdnf -y install amdgpu amdgpu-firmware
 
    # Add Azure Linux 3 ROCM repo file
    cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
 [amd_rocm]
 name="AMD ROCM packages repo for Azure Linux 3.0"
-baseurl=https://repo.radeon.com/.hidden/c5c79c1ea1d0aa6008ddbd29c3ea1523/rocm/azurelinux3/${rocm_version}/main/
+baseurl=https://repo.radeon.com/rocm/azurelinux3/${rocm_version}/main/
 enabled=1
 repo_gpgcheck=0
 gpgcheck=0

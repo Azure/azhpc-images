@@ -118,7 +118,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     dnf install -y azurelinux-repos-amd
     dnf -y install kernel-drivers-gpu-$(uname -r)
-    dnf -y install amdgpu amdgpu-firmware amdgpu-headers
+    dnf -y install amdgpu amdgpu-firmware
 
     # Add Azure Linux 3 ROCM repo file
     cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo

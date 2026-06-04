@@ -3,6 +3,10 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+# Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
+# calls to Microsoft endpoints.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Install Kernel dependencies
 if [ "$ARCHITECTURE" = "aarch64" ]; then
     tdnf install -y kernel-hwe-devel-$(uname -r) \

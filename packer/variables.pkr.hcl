@@ -24,14 +24,19 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.7, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.8, 3.0)"
   default     = "24.04"
 }
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, rocky8.10, rocky9.7, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
+}
+
+variable "lustre_build_from_source" {
+  type    = string
+  default = env("LUSTRE_BUILD_FROM_SOURCE")
 }
 
 locals {
@@ -40,7 +45,11 @@ locals {
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
   os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
   distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
-  os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local.distro_version}"
+  # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
+  # share a single `9.x` folder since their install scripts are not minor-specific.
+  # All other distros pin to the minor.
+  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
 variable "kernel_version" {
@@ -57,11 +66,11 @@ locals {
     }
     "alma" = {
       "8.10" = "4.18"
-      "9.7"  = "5.14"
+      "9.8"  = "5.14"
     }
     "rocky" = {
       "8.10" = "4.18"
-      "9.7"  = "5.14"
+      "9.8"  = "5.14"
     }
     "azurelinux" = {
       "3.0" = "6.6"
@@ -285,6 +294,56 @@ locals {
     local.buildid_tag,
     var.extra_tags,
   )
+}
+
+# =============================================================================
+# In-Place Refresh Mode
+# =============================================================================
+# When refresh_mode is enabled, a previously built HPC image (from SIG) is used
+# as the base instead of a marketplace image. This allows upgrading components
+# in-place rather than building from scratch, dramatically reducing build time.
+# =============================================================================
+
+variable "refresh_mode" {
+  type        = string
+  description = "Enable in-place refresh mode: use a previous HPC image as base and upgrade components"
+  default     = env("REFRESH_MODE")
+}
+locals {
+  refresh_mode = try(convert(lower(var.refresh_mode), bool), false)
+}
+
+variable "refresh_base_image_id" {
+  type        = string
+  description = "Full SIG image version resource ID to use as base for refresh builds (e.g., /subscriptions/.../galleries/.../images/.../versions/...)"
+  default     = env("REFRESH_BASE_IMAGE_ID")
+}
+
+variable "refresh_base_image_version" {
+  type        = string
+  description = "SIG image version to use as base for refresh builds when using the same gallery (e.g., 2504.15.1). Alternative to refresh_base_image_id."
+  default     = env("REFRESH_BASE_IMAGE_VERSION")
+}
+locals {
+  # Build the full SIG image ID from gallery details + version when refresh_base_image_id is not directly provided
+  refresh_base_image_id = coalesce(
+    var.refresh_base_image_id,
+    var.refresh_base_image_version != null && var.refresh_base_image_version != "" ? "/subscriptions/${var.sig_subscription_id}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${var.refresh_base_image_version}" : null,
+    "not-set"
+  )
+
+  # Validate that a base image is specified when refresh mode is enabled
+  _refresh_id_valid = !local.refresh_mode || local.refresh_base_image_id != "not-set"
+  _refresh_id_check = local._refresh_id_valid ? true : file("ERROR: refresh_mode is enabled but neither refresh_base_image_id nor refresh_base_image_version was provided")
+
+  # Parse the SIG image ID into components for the shared_image_gallery source block
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/galleries/{gallery}/images/{image}/versions/{version}
+  _refresh_id_parts = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
+  refresh_sig_subscription   = local.refresh_mode ? local._refresh_id_parts[2] : ""
+  refresh_sig_resource_group = local.refresh_mode ? local._refresh_id_parts[4] : ""
+  refresh_sig_gallery_name   = local.refresh_mode ? local._refresh_id_parts[8] : ""
+  refresh_sig_image_name     = local.refresh_mode ? local._refresh_id_parts[10] : ""
+  refresh_sig_image_version  = local.refresh_mode ? local._refresh_id_parts[12] : ""
 }
 
 # =============================================================================
@@ -571,14 +630,14 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.7" = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.8" = ["almalinux", "almalinux-x86_64", "9-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
         },
         "rocky" = {
           "8.10" = ["resf", "rockylinux-x86_64", "8-base"],
-          "9.7"  = ["resf", "rockylinux-x86_64", "9-base"]
+          "9.8"  = ["resf", "rockylinux-x86_64", "9-base"]
         }
       },
       "Marketplace-FIPS" = {
@@ -643,7 +702,7 @@ locals {
       },
       "alma" = {
         "8.10"  = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "9.7"   = "AlmaLinuxHPC-9.7-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "9.8"   = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
         "3.0"   = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"

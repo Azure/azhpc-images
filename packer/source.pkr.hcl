@@ -59,14 +59,14 @@ source "azure-arm" "hpc" {
     }
   }
   
-  # Base Marketplace image info
-  image_publisher = local.image_publisher
-  image_offer     = local.image_offer
-  image_sku       = local.image_sku
+  # Base Marketplace image info (disabled in refresh mode — SIG image used instead)
+  image_publisher = local.refresh_mode ? null : local.image_publisher
+  image_offer     = local.refresh_mode ? null : local.image_offer
+  image_sku       = local.refresh_mode ? null : local.image_sku
 
   # Marketplace plan info (required for images with purchase agreements, e.g. Rocky Linux)
   dynamic "plan_info" {
-    for_each = local.has_plan_info ? [local.builtin_marketplace_plan_info[local.os_family]] : []
+    for_each = (!local.refresh_mode && local.has_plan_info) ? [local.builtin_marketplace_plan_info[local.os_family]] : []
     content {
       plan_name      = plan_info.value.plan_name
       plan_product   = plan_info.value.plan_product
@@ -74,11 +74,18 @@ source "azure-arm" "hpc" {
     }
   }
   
-  # Base Direct Shared Gallery image info
+  # Base image from Shared Image Gallery (refresh mode or direct shared gallery)
   dynamic "shared_image_gallery" {
-    for_each = (local.direct_shared_gallery_image_id != null && local.direct_shared_gallery_image_id != "") ? [1] : []
+    for_each = local.refresh_mode ? [1] : (local.direct_shared_gallery_image_id != null && local.direct_shared_gallery_image_id != "") ? [1] : []
     content {
-      direct_shared_gallery_image_id = local.direct_shared_gallery_image_id
+      # In refresh mode, use the specified previous HPC image version from SIG
+      # Otherwise, use the direct shared gallery image (e.g. 1P Azure Linux images)
+      image_name       = local.refresh_mode ? local.refresh_sig_image_name : null
+      gallery_name     = local.refresh_mode ? local.refresh_sig_gallery_name : null
+      image_version    = local.refresh_mode ? local.refresh_sig_image_version : null
+      resource_group   = local.refresh_mode ? local.refresh_sig_resource_group : null
+      subscription     = local.refresh_mode ? local.refresh_sig_subscription : null
+      direct_shared_gallery_image_id = local.refresh_mode ? null : local.direct_shared_gallery_image_id
     }
   }
   

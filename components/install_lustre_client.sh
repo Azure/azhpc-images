@@ -14,43 +14,11 @@ LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 LUSTRE_BUILD_FROM_SOURCE_VERSION=$(jq -r '.build_from_source_version // empty' <<< $lustre_metadata)
 LUSTRE_BUILD_FROM_SOURCE_VERSION=${LUSTRE_BUILD_FROM_SOURCE_VERSION:-$LUSTRE_VERSION}
 
-# Toggle between building AMLFS kmod from source vs installing DKMS packages from the repo.
-# Set to "true" to build from source (current default), "false" to use prebuild binaries.
-KERNEL_MINOR=$(uname -r | grep -oP '^\d+\.\d+')
+# Toggle RHEL-family builds between building AMLFS kmod from source vs installing repo packages.
+# Ubuntu always installs the PMC DKMS package directly.
 LUSTRE_BUILD_FROM_SOURCE=$(echo "${LUSTRE_BUILD_FROM_SOURCE:-false}" | tr '[:upper:]' '[:lower:]')
 
-if [[ $DISTRIBUTION == *"ubuntu"* && $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
-    source /etc/lsb-release
-    UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
-
-    # The hpcx-provides-openmpi marker package (installed earlier by install_doca.sh)
-    # already tells apt that HPC-X provides openmpi-bin, libopenmpi-dev and
-    # openmpi-common, so lustre-tests can install without pulling in Canonical's
-    # upstream Open MPI.
-
-    # use dev headers from HPC-X OpenMPI installation for lustre-tests
-    source /etc/profile.d/modules.sh
-    module load mpi/hpcx
-
-    # temporary workaround to build AMLFS kmod from source, until we have AMLFS team publish DKMS packages usable on day-1 of new kernel module release
-    lustre_branch="arsdragonfly/dkms-$LUSTRE_BUILD_FROM_SOURCE_VERSION"
-    git clone --branch ${lustre_branch} https://github.com/arsdragonfly/amlFilesystem-lustre.git
-    pushd amlFilesystem-lustre
-    sh ./autogen.sh
-    apt update
-    if [ $UBUNTU_VERSION == 24.04 ]; then
-        apt install -y module-assistant libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
-    elif [ $UBUNTU_VERSION == 22.04 ]; then
-        apt install -y module-assistant dpatch libselinux-dev libsnmp-dev mpi-default-dev quilt libssl-dev swig
-    fi
-    ./configure --with-linux=/usr/src/linux-headers-$(uname -r) --with-o2ib=/usr/src/ofa_kernel/default --disable-server --disable-ldiskfs --without-zfs --disable-snmp --enable-quota
-    #make dkms-debs
-    IB_OPTIONS="--with-o2ib=/usr/src/ofa_kernel/default" make dkms-debs
-    apt install -y ./debs/lustre-*.deb
-    popd
-    rm -rf amlFilesystem-lustre
-    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils | cut -d~ -f1)
-elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
@@ -65,31 +33,12 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
     apt-get update
 
-    CURRENT_KERNEL=$(uname -r)
-    # Extract kernel minor version (e.g., "6.8" from "6.8.0-1052-azure")
-    KERNEL_MINOR=$(echo "$CURRENT_KERNEL" | grep -oP '^\d+\.\d+')
-
-    if apt-cache show amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL} 2>/dev/null | grep -q "Version:"; then
-        echo "Lustre client package for kernel ${CURRENT_KERNEL} is available in the repo."
-        apt-get install -y amlfs-lustre-client-${LUSTRE_VERSION}=${CURRENT_KERNEL}
-        apt-mark hold amlfs-lustre-client-${LUSTRE_VERSION}
-    elif apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep -q "^${KERNEL_MINOR}\."; then
-        # Packages exist for this kernel minor version but not for the exact patch version.
-        # This likely means the repo hasn't published a package for the latest kernel update yet.
-        echo "##[error]Lustre client packages exist for kernel ${KERNEL_MINOR}.x but not for the exact version ${CURRENT_KERNEL}."
-        echo "##[error]The AMLFS repo likely hasn't published a package for this kernel patch version yet."
-        apt-cache showpkg amlfs-lustre-client-${LUSTRE_VERSION} 2>/dev/null | grep "^${KERNEL_MINOR}\." | head -5
-        exit 1
-    else
-        # No packages exist for this kernel minor version at all (e.g., HWE kernel 6.14, 6.17).
-        echo "##[warning]No Lustre client packages available for kernel minor version ${KERNEL_MINOR}. Skipping Lustre installation."
-        exit 0
-    fi
+    apt-get install -y amlfs-lustre-client-dkms
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' amlfs-lustre-client-dkms | cut -d~ -f1)
 elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
-    # RHEL-family build-from-source path: same approach as the Ubuntu
-    # path above, but produces RPMs. Builds the lustre kmod as a DKMS
-    # package so it auto-rebuilds when the host kernel is upgraded, and
-    # uses the same lustre source branch as Ubuntu.
+    # RHEL-family build-from-source path: produces RPMs and builds the
+    # lustre kmod as a DKMS package so it auto-rebuilds when the host
+    # kernel is upgraded.
     #
     # Lustre's standard build tools are already installed, so just install
     # lustre-specific dependencies

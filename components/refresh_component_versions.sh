@@ -614,17 +614,17 @@ write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
 # Prefer package-manager metadata so the refreshed value round-trips with
 # install_lustre_client.sh: on Ubuntu+build-from-source it writes the
 # dpkg ${Version} of lustre-client-utils (e.g. '2.16.1-17-g43573dd-1'),
-# on Ubuntu+repo it writes the amlfs-lustre-client-* version, and on RHEL
-# it writes the underscore-form package version. `lfs --version` only
-# returns the build's internal version string (underscores, no Debian
-# revision), so it's a last-resort fallback.
+# on Ubuntu+repo it writes the version-suffixed amlfs-lustre-client-dkms-*
+# package version, and on RHEL it writes the underscore-form package version.
+# `lfs --version` only returns the build's internal version string
+# (underscores, no Debian revision), so it's a last-resort fallback.
 echo "[Lustre]"
 LUSTRE_VERSION=""
 if command -v dpkg-query &>/dev/null; then
     # Build-from-source path installs lustre-client-utils.
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
         | head -1 | cut -d'~' -f1 || true)
-    # Repo path installs amlfs-lustre-client-<kernel-suffix>.
+    # Repo path installs version-suffixed amlfs-lustre-client-dkms-* packages.
     if [[ -z "${LUSTRE_VERSION}" ]]; then
         LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' 'amlfs-lustre-client-*' 2>/dev/null \
             | head -1 | cut -d'~' -f1 || true)

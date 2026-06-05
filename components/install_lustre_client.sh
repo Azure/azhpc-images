@@ -33,8 +33,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
     apt-get update
 
-    apt-get install -y amlfs-lustre-client-dkms
-    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' amlfs-lustre-client-dkms | cut -d~ -f1)
+    LUSTRE_PACKAGE="amlfs-lustre-client-dkms-${LUSTRE_VERSION}"
+    apt-get install -y "${LUSTRE_PACKAGE}"
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' "${LUSTRE_PACKAGE}" | cut -d~ -f1)
 elif [[ $LUSTRE_BUILD_FROM_SOURCE == "true" ]]; then
     # RHEL-family build-from-source path: produces RPMs and builds the
     # lustre kmod as a DKMS package so it auto-rebuilds when the host

@@ -993,10 +993,10 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.17.0-18-g4ad5f00"
+                "version": "2.16.1-22-g584eedc"
             },
             "x86_64": {
-                "version": "2.17.0-18-g4ad5f00"
+                "version": "2.16.1-22-g584eedc"
             }
         },
         "rocky8.10": {

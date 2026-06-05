@@ -17,8 +17,8 @@ if [[ $DISTRIBUTION != ubuntu24.04-aks ]]; then
     apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     # Set CUDA related environment variables to /etc/bash.bashrc
     echo 'export CUDA_HOME=/usr/local/cuda' | tee -a /etc/profile
-    echo 'export PATH=$CUDA_HOME/bin:$PATH' | tee -a /etc/profile
-    echo 'export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH' | tee -a /etc/profile
+    echo 'export PATH="$CUDA_HOME/bin${PATH:+:$PATH}"' | tee -a /etc/profile
+    echo 'export LD_LIBRARY_PATH="$CUDA_HOME/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"' | tee -a /etc/profile
     cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
     write_component_version "CUDA" ${cuda_version}
 
@@ -51,18 +51,27 @@ rm /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
 # Apply nvprofiling settings
 echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
-# Enable CDMM mode
-modprobe nvidia NVreg_CoherentGPUMemoryMode=driver 
+# Persist CDMM (Coherent GPU Memory Mode) = "driver" for first boot.
+# Doing the live `modprobe nvidia NVreg_CoherentGPUMemoryMode=driver` here was
+# previously used to flip the running build kernel into CDMM mode, but it
+# requires a coherent ARM/Blackwell GPU to be present (i.e. an actual GB200
+# build SKU). The /etc/modprobe.d entry alone is sufficient: the very next
+# `modprobe nvidia` -- which happens on the customer VM's first boot via the
+# /etc/modules-load.d/nvidia-peermem.conf chain, udev, or systemd auto-load --
+# picks up the option from modprobe.d.
 echo options nvidia NVreg_CoherentGPUMemoryMode=driver > /etc/modprobe.d/nvidia-openrm.conf
 
 $COMPONENT_DIR/configure_nvidia_persistence.sh
 
-# Verify the installation
-nvidia-smi
-
-# Write the driver versions to the component versions file
-nvidia_driver_version=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n 1)
-write_component_version "NVIDIA" $nvidia_driver_version
+# Write the installed driver version from dpkg metadata (do NOT call
+# nvidia-smi here: it requires a real NVIDIA GPU and fails on
+# general-purpose build SKUs). dpkg returns the Debian package version (for
+# example, 580.105.08-0ubuntu1); nvidia-smi reports the upstream driver
+# version, so strip any Debian revision/epoch before writing component data.
+nvidia_driver_package_version=$(dpkg-query -W -f='${Version}' "nvidia-driver-${NVIDIA_GPU_DRIVER_MAJOR_VERSION}-open")
+nvidia_driver_version=${nvidia_driver_package_version%%-*}
+nvidia_driver_version=${nvidia_driver_version##*:}
+write_component_version "NVIDIA" "${nvidia_driver_version}"
 
 
 $COMPONENT_DIR/install_gdrcopy.sh

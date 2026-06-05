@@ -25,11 +25,8 @@ write_component_version "DOCA" $DOCA_VERSION
 OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 write_component_version "OFED" $OFED_VERSION
 
-/etc/init.d/openibd restart
-/etc/init.d/openibd status
-error_code=$?
-if [ ${error_code} -ne 0 ]
-then
-    echo "OpenIBD not loaded correctly!"
-    exit ${error_code}
-fi
+# Enable only; do not restart at build time. Restarting openibd here probes
+# the build VM's IB hardware (which may be absent on general-purpose build
+# SKUs) and is not required before possible tests post-reboot.
+systemctl daemon-reload
+systemctl enable openibd

@@ -33,7 +33,16 @@ elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
     pushd ./${rccl_folder}/build
 
     # aggressively crank up the number of compiler given that we have 2TB of memory to spare on MI300X
-    sed -i -E 's/(target_compile_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)12/\196/' ../CMakeLists.txt
+    sed -i -E "s/(target_compile_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)12/\1$(nproc)/" ../CMakeLists.txt
+    # Clamp link-time parallelism: amdgcn-link is memory-hungry and the upstream default (16)
+    # OOM-kills the linker on smaller builders (e.g. 32 GB ARM). Mirror the later RCCL logic of
+    # reserving ~16 GB per linker job, with a hard cap of 16 (also clamp to >= 1).
+    mem_gb=$(awk '/^MemTotal:/ {printf "%d", $2/1024/1024}' /proc/meminfo)
+    num_linker_jobs=$(( (mem_gb + 15) / 16 ))
+    if (( num_linker_jobs > 16 )); then num_linker_jobs=16; fi
+    if (( num_linker_jobs < 1  )); then num_linker_jobs=1;  fi
+    echo "RCCL link parallelism: detected ${mem_gb} GB RAM -> -parallel-jobs=${num_linker_jobs}"
+    sed -i -E "s/(target_link_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)[0-9]+/\1${num_linker_jobs}/" ../CMakeLists.txt
 
     CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
     make -j$(nproc)

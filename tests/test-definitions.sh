@@ -33,6 +33,33 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
+# Private helper that matches NCv6 VM sizes.
+function _is_ncv6_sku {
+    local ncv6_sizes="standard_nc.*_rtxpro6000bse_v6"
+    [[ "${VMSIZE}" =~ ^($ncv6_sizes)$ ]]
+}
+
+function has_infiniband {
+    ! _is_ncv6_sku
+}
+
+function has_nvlink {
+    ! _is_ncv6_sku
+}
+
+function uses_ucx {
+    ! _is_ncv6_sku
+}
+
+# Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
+# Used to gate Fabric Manager checks and bring-up, since cuInit() returns
+# CUDA_ERROR_SYSTEM_NOT_READY on these SKUs until FM finishes NVLink fabric
+# setup. GB200/GB300 use NVLink5 / a separate IMEX flow and are not included.
+function sku_has_nvswitch {
+    local nvswitch_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
+    [[ "${VMSIZE}" =~ ^($nvswitch_sizes)$ ]]
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -72,16 +99,22 @@ function verify_hpcx_installation {
     module avail
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx"
+
+    # UCX SKUs: use UCX RC transport. Non-UCX SKUs: no args needed (built with libfabric, auto-selects OFI).
+    local mpi_args=""
+    if uses_ucx; then
+        mpi_args="-x UCX_TLS=rc"
+    fi
     
     module load mpi/hpcx
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
 
     check_exists "${MODULE_FILES_ROOT}/mpi/hpcx-pmix"
 
     module load mpi/hpcx-pmix
-    mpirun -np 2 --map-by ppr:2:node -x UCX_TLS=rc ${HPCX_OSU_DIR}/osu_latency
+    mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X with PMIx" "Failed to run HPC-X with PMIx"
     module unload mpi/hpcx-pmix
     module purge
@@ -91,18 +124,27 @@ function verify_mvapich2_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/mvapich"
 
     module load mpi/mvapich
-    # Env MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
     local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0  -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    if uses_ucx; then
+        # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
+        mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
+    else
+        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
+        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
+    fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
 }
 
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
+
+    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
+    local fi_provider="mlx"
+    if ! has_infiniband; then fi_provider="tcp"; fi
     
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=mlx -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
@@ -118,9 +160,11 @@ function verify_nvidia_driver_installation {
     nvidia_driver_cuda_version=$(nvidia-smi --version | tail -n 1 | awk -F':' '{print $2}' | tr -d "[:space:]")
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
-    # Verify if NVIDIA peer memory module is inserted
-    lsmod | grep nvidia_peermem
-    check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    # Verify if NVIDIA peer memory module is inserted on SKUs with IB
+    if has_infiniband; then
+        lsmod | grep nvidia_peermem
+        check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
+    fi
 
     if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
         # Verify if NVIDIA driver CDMM mode is enabled
@@ -215,6 +259,21 @@ function verify_nccl_installation {
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
     fi
+
+    case ${VMSIZE} in
+        standard_nc*_rtxpro6000bse_v6)
+            local ncv6_gpu_count
+            ncv6_gpu_count=$(nvidia-smi -L | grep -c "^GPU")
+            mpirun -np ${ncv6_gpu_count} \
+            --allow-run-as-root \
+            --map-by ppr:${ncv6_gpu_count}:node \
+            -x LD_LIBRARY_PATH \
+            -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -x NCCL_SOCKET_IFNAME=eth0 \
+            -x NCCL_DEBUG=WARN \
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+        *) ;;
+    esac
     check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
@@ -256,6 +315,43 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+# Validate /etc/dnf/dnf.conf is well-formed. Build-time only (call sites
+# should gate on validation_mode).
+#
+# Motivation: the legacy `sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf` pattern
+# (see utils/utilities.sh::dnf_pin_packages) appended package globs onto
+# the last line of dnf.conf (e.g. `skip_if_unavailable=False`), which dnf
+# treats as an `Invalid configuration value` *warning* and silently
+# disables the pin -- letting `yum update` upgrade nvidia-fabricmanager
+# out of sync with the driver. This check fails the build if dnf can't
+# parse its own config.
+function verify_dnf_conf {
+    # Only RHEL-family + azurelinux use /etc/dnf/dnf.conf; Ubuntu uses apt.
+    case "${ID}" in
+        almalinux|rocky|rhel|azurelinux) ;;
+        *) return 0 ;;
+    esac
+
+    local conf=/etc/dnf/dnf.conf
+    check_exists "${conf}"
+
+    # dnf must accept the config without `Invalid configuration value`
+    # warnings. Use `-C` so we don't refresh metadata; we only care
+    # whether dnf can parse the config file.
+    local dnf_out
+    dnf_out=$(sudo dnf -C --quiet repolist 2>&1 || true)
+    if grep -qi 'invalid configuration value' <<< "${dnf_out}"; then
+        echo "*** verify_dnf_conf: Error - dnf rejects ${conf}:" >&2
+        grep -i 'invalid configuration' <<< "${dnf_out}" >&2
+        echo "--- ${conf} ---" >&2
+        cat "${conf}" >&2
+        exit_on_error
+        return 0
+    fi
+
+    echo "[OK] : ${conf} parses cleanly"
+}
+
 function verify_package_updates {
     case ${ID} in
         ubuntu)
@@ -280,15 +376,7 @@ function verify_package_updates {
         azurelinux) true;;
         *)
             sudo dnf -y makecache 
-            sudo dnf check-update -y --refresh
-            local exit_code=$?
-            if [[ $exit_code -eq 0 ]] || [[ $exit_code -eq 100 ]]; then
-                # Exit code 100 means updates are available — not an error
-                true
-            else
-                (exit $exit_code)
-            fi
-            ;;
+            sudo dnf check-update -y --refresh;;
     esac
     check_exit_code "No stale packages" "Stale packages found!"
 }
@@ -417,7 +505,8 @@ function verify_dcgm_installation {
 
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5"
+    # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
@@ -427,8 +516,7 @@ function verify_sku_customization_service {
 
 function verify_nvidia_fabricmanager_service {
     # Check if the NVIDIA Fabricmanager service is active
-    local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
-    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
+    if sku_has_nvswitch
     then
         systemctl is-active --quiet nvidia-fabricmanager
         check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
@@ -463,6 +551,9 @@ function verify_nvloom_setup {
 }
 
 function verify_nvlink_setup {
+    # Skip NVLink checks on SKUs without NVLink
+    if ! has_nvlink; then return; fi
+
     # Verify nvlink setup
     nvidia-smi nvlink --status
     check_exit_code "NVLINK Reports Healthy" "Unhealthy NVLINK setup!"
@@ -528,6 +619,17 @@ function verify_nvidia_imex_service {
     # Check if nvidia caps imex channel exists
     ls -al /dev/nvidia-caps-imex-channels/channel0
     check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
+}
+
+function verify_nvidia_persistenced_service {
+    # nvidia-persistenced attaches to /dev/nvidia* at startup; only meaningful
+    # to verify on a VM that actually has an NVIDIA GPU attached.
+    if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
+        echo "[SKIP] : no NVIDIA GPU detected; skipping nvidia-persistenced service check"
+        return
+    fi
+    systemctl is-active --quiet nvidia-persistenced.service
+    check_exit_code "NVIDIA persistence daemon is active" "NVIDIA persistence daemon is inactive/dead!"
 }
 
 function verify_mpifileutils_installation {

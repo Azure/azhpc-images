@@ -32,6 +32,7 @@ else
         standard_nc80adis_h100_v5)        topoFamily="ncv5" ;;
         standard_nd96is*_h[1-2]00_v5)    topoFamily="ndv5" ;;
         standard_nd128is*_gb[2-3]00_v6)  topoFamily="gb-family" ;;
+        standard_nc*_rtxpro6000bse_v6)    topoFamily="ncv6" ;;
         *) topoFamily="" ;;
     esac
 fi
@@ -45,6 +46,7 @@ case \$topoFamily in
     ncv5)      /opt/azurehpc/customizations/ncv5.sh;;
     ndv5)      /opt/azurehpc/customizations/ndv5.sh;;
     gb-family) /opt/azurehpc/customizations/ndv6.sh;;
+    ncv6)      /opt/azurehpc/customizations/ncv6.sh;;
     *)         echo "No SKU customization for topoFamily='\$topoFamily'";;
 esac
 EOF
@@ -72,6 +74,7 @@ rm -rf /opt/microsoft/ncv4
 rm -rf /opt/microsoft/ndv2
 rm -rf /opt/microsoft/ndv4
 rm -rf /opt/microsoft/ndv5
+rm -rf /opt/microsoft/ncv6
 
 # Clear contents of nccl.conf
 cat /dev/null > /etc/nccl.conf
@@ -176,14 +179,4 @@ if [[ $DISTRIBUTION == "azurelinux3.0" && "$ARCHITECTURE" == "aarch64" ]]; then
 fi
 
 systemctl enable sku-customizations
-# modprobe nvidia-peermem cannot work before first reboot. Starting sku-customizations will fail. 
-if [[ $DISTRIBUTION != "azurelinux3.0" ]]; then
-    systemctl start sku-customizations
-    systemctl is-active --quiet sku-customizations
-    error_code=$?
-    if [ ${error_code} -ne 0 ]
-    then
-        echo "SKU Customizations service Inactive!"
-        exit ${error_code}
-    fi
-fi
+# Do NOT `systemctl start sku-customizations` at build time (unnecessary pre-reboot and may fail on general-purpose SKUs)

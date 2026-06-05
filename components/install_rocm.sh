@@ -45,18 +45,8 @@ EOF
         apt install -y amdgpu-dkms rocm
         # ROCm bundles RCCL
         write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
-        # Grant access to GPUs to all users via udev rules
-        wget https://repo.radeon.com/amdgpu/30.30/ubuntu/pool/main/a/amdgpu-insecure-instinct-udev-rules/amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.24.04_all.deb
-        sudo apt install ./amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.24.04_all.deb
-        rm -f amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.24.04_all.deb
-        udevadm control --reload-rules && sudo udevadm trigger
     else
-        # Grant access to GPUs to all users via udev rules
         amdgpu-install -y --usecase=graphics,rocm
-        wget https://repo.radeon.com/amdgpu/30.30/ubuntu/pool/main/a/amdgpu-insecure-instinct-udev-rules/amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.22.04_all.deb
-        sudo apt install ./amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.22.04_all.deb
-        rm -f amdgpu-insecure-instinct-udev-rules_30.30.0.0-2278356.22.04_all.deb
-        udevadm control --reload-rules && sudo udevadm trigger
     fi
     apt install -y rocm-bandwidth-test
     rm -f ./${DEBPACKAGE}
@@ -79,21 +69,16 @@ EOF
     tdnf repolist --refresh
     tdnf install -y rocm-dev rocm-validation-suite rocm-bandwidth-test
     tdnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validation-suite
-
-    #Add self to render and video groups so they can access gpus.
-    usermod -a -G render $(logname)
-    usermod -a -G video $(logname)
-
     tdnf install -y rocm-bandwidth-test
+fi
 
-    #Grant access to GPUs to all users via udev rules
-    cat <<'EOF' > /etc/udev/rules.d/99-amdgpu-permissive.rules
+#Grant access to GPUs to all users via udev rules
+cat <<'EOF' > /etc/udev/rules.d/99-amdgpu-permissive.rules
 KERNEL=="kfd", MODE="0666"
 SUBSYSTEM=="drm", KERNEL=="renderD*", MODE="0666"
 EOF
+udevadm control --reload-rules && sudo udevadm trigger
 
-    udevadm control --reload-rules && sudo udevadm trigger
-fi
 write_component_version "ROCM" ${rocm_version}
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then

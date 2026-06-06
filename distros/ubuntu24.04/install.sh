@@ -140,8 +140,18 @@ rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true
 # Load apupci with DMA reserved memory enabled.  loaddriver.sh uses a
 # relative path for apupci.ko, so we must cd into its directory.
 LOADDRIVER_DIR=/opt/maia/drivers/vfdriver/release/driver
-if [ ! -x "$LOADDRIVER_DIR/loaddriver.sh" ]; then
-    echo "maia-drivers: $LOADDRIVER_DIR/loaddriver.sh not found, skipping apupci"
+LOADDRIVER_SH="$LOADDRIVER_DIR/loaddriver.sh"
+# Self-heal: the aifx-maia-guest-stack tarball historically ships loaddriver.sh
+# with mode 0664 (no +x).  Without +x the [ -x ] test below silently skips
+# apupci on every boot, /dev/apu-dma-mem is never created, and downstream
+# validation fails far later.  If the file exists but isn't executable, chmod
+# it now and log the heal so the regression is detectable in the boot journal.
+if [ -f "$LOADDRIVER_SH" ] && [ ! -x "$LOADDRIVER_SH" ]; then
+    echo "maia-drivers: $LOADDRIVER_SH exists but is not executable — applying chmod +x"
+    chmod +x "$LOADDRIVER_SH" || echo "maia-drivers: chmod +x failed on $LOADDRIVER_SH"
+fi
+if [ ! -x "$LOADDRIVER_SH" ]; then
+    echo "maia-drivers: $LOADDRIVER_SH not found, skipping apupci"
 else
     rmmod apupci 2>/dev/null || true
     if ! ( cd "$LOADDRIVER_DIR" && ./loaddriver.sh dma_mem ); then
@@ -152,6 +162,11 @@ fi
 # Load maianexus from the bundled per-kernel zip.
 NEXUS_LOAD=/opt/maia/drivers/maianexus/utils/load_maianexus.sh
 NEXUS_ZIP=/opt/maia/drivers/maianexus/maianexus_ubuntu_2404.zip
+# Same self-heal as loaddriver.sh above — load_maianexus.sh is also shipped 0664.
+if [ -f "$NEXUS_LOAD" ] && [ ! -x "$NEXUS_LOAD" ]; then
+    echo "maia-drivers: $NEXUS_LOAD exists but is not executable — applying chmod +x"
+    chmod +x "$NEXUS_LOAD" || echo "maia-drivers: chmod +x failed on $NEXUS_LOAD"
+fi
 if [ ! -x "$NEXUS_LOAD" ] || [ ! -f "$NEXUS_ZIP" ]; then
     echo "maia-drivers: maianexus loader or zip not found, skipping maianexus"
 else

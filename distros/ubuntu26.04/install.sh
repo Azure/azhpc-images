@@ -44,12 +44,6 @@ fi
 echo "##[warning]Skipping Lustre client install on Ubuntu 26.04 (no AMLFS packages for this kernel/distro yet)."
 
 # install DOCA OFED
-# On Ubuntu 26.04 install_doca.sh installs Canonical's `doca-ofed-26.01-dkms`
-# (NVIDIA's DOCA-Host .deb is not yet published for kernel 7.0 / resolute) plus
-# rdma-core userspace from Ubuntu universe. Must run BEFORE
-# install_nvidiagpudriver.sh so NVIDIA's DKMS conftest can detect the peer_mem
-# framework symbols at /usr/src/ofa_kernel/default/Module.symvers and build a
-# real (non-stub) nvidia-peermem.ko.
 $COMPONENT_DIR/install_doca.sh
 
 # install PMIX

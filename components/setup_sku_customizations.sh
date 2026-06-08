@@ -156,22 +156,3 @@ if [[ $DISTRIBUTION == "azurelinux3.0" && "$ARCHITECTURE" == "aarch64" ]]; then
 fi
 
 systemctl enable sku-customizations
-# modprobe nvidia-peermem cannot work before first reboot. Starting sku-customizations will fail.
-# Ubuntu 26.04: nvidia-peermem.ko links against MLNX peer_mem exports
-# (ib_register_peer_memory_client, ib_umem_dmabuf_get_pinned) provided by the
-# doca-ofed-26.01-dkms ib_core under /lib/modules/$(uname -r)/updates/dkms/.
-# That module is not loaded into the running build kernel (inbox ib_core was
-# auto-loaded at boot for accelerated networking and cannot be hot-swapped),
-# so any modprobe nvidia-peermem here fails with "Unknown symbol" and the
-# oneshot unit exits non-zero. The unit is already enabled above and will
-# run on first boot, by which time depmod resolves ib_core to the DKMS copy.
-if [[ $DISTRIBUTION != "azurelinux3.0" && $DISTRIBUTION != "ubuntu26.04" ]]; then
-    systemctl start sku-customizations
-    systemctl is-active --quiet sku-customizations
-    error_code=$?
-    if [ ${error_code} -ne 0 ]
-    then
-        echo "SKU Customizations service Inactive!"
-        exit ${error_code}
-    fi
-fi

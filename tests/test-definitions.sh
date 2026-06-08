@@ -35,14 +35,6 @@ function ver {
 
 # verify OFED installation
 function verify_ofed_installation {
-    # Ubuntu 26.04 uses Canonical's `doca-ofed-26.01-dkms` (universe), which
-    # ships the kernel-side DOCA-OFED stack but not NVIDIA's proprietary
-    # `ofed_info` userspace tool. Verify via dpkg-query instead.
-    if [[ "$DISTRIBUTION" == "ubuntu26.04" || "$DISTRIBUTION" == "ubuntu26.04-aks" ]]; then
-        dpkg-query -W -f='${Status} ${Version}\n' doca-ofed-26.01-dkms 2>/dev/null | grep -q "^install ok installed "
-        check_exit_code "DOCA-OFED installed (${VERSION_OFED})" "DOCA-OFED not installed"
-        return
-    fi
     # verify OFED installation
     ofed_info | grep ${VERSION_OFED}
     check_exit_code "OFED installed" "OFED not installed"
@@ -343,14 +335,7 @@ function verify_docker_installation {
 }
 
 function verify_ib_modules_and_devices {
-    # Ubuntu 26.04 uses Canonical's `doca-ofed-26.01-dkms`, which does not
-    # ship an `openibd` service (DKMS pre-resolves the module paths via
-    # depmod, and PCI probe loads the stack on first boot). Skip the
-    # service check on that distro; the module/device checks below still
-    # validate that the IB stack is functional.
-    if [[ "$DISTRIBUTION" == "ubuntu26.04" || "$DISTRIBUTION" == "ubuntu26.04-aks" ]]; then
-        echo "[SKIP] : openibd service check (not provided on ${DISTRIBUTION})"
-    elif ! systemctl is-active openibd > /dev/null 2>&1; then
+    if ! systemctl is-active openibd > /dev/null 2>&1; then
         echo "*** openibd service is not active!" >&2
         systemctl status --no-pager openibd >&2
         exit_on_error
@@ -457,9 +442,11 @@ function verify_sunrpc_tcp_settings_service {
 }
 
 function verify_azure_persistent_rdma_naming_service {
-    # Check if the azure persistent rdma naming service is active
-    systemctl is-active --quiet azure_persistent_rdma_naming
-    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
+    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
+
+    systemctl is-active --quiet azure_persistent_rdma_naming.timer
+    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
 }
 
 function verify_nvbandwidth_setup {

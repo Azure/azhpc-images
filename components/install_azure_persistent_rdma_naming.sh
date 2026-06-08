@@ -5,7 +5,6 @@ source ${UTILS_DIR}/utilities.sh
 
 #
 # install rdma_rename with NAME_FIXED option
-# install rdma_rename monitor
 #
 rdma_core_metadata=$(get_component_config "rdma_core")
 RDMA_CORE_VERSION=$(jq -r '.version' <<< $rdma_core_metadata)
@@ -34,31 +33,31 @@ cat <<EOF >/usr/sbin/azure_persistent_rdma_naming.sh
 
 rdma_rename=/usr/sbin/rdma_rename_${RDMA_CORE_VERSION}
 
-an_index=0
-ib_index=0
+mapfile -t all_devices < <(ibdev2netdev -v | sort -n | awk '{print \$2}')
 
-# Enumerate IB/RoCE devices directly from sysfs so this works on distros where
-# the Mellanox/DOCA-OFED \`ibdev2netdev\` helper is not installed (e.g. Ubuntu
-# 26.04, where Canonical's doca-ofed-26.01-dkms ships only kernel modules and
-# we rely on inbox rdma-core + infiniband-diags userspace).
-shopt -s nullglob
-ib_devices=( /sys/class/infiniband/* )
-shopt -u nullglob
+next_index() {
+	local prefix=\$1
+	local max_index=-1
+	local dev suffix
 
-# Skip already-renamed devices so the loop is idempotent across reboots.
-filtered=()
-for ibpath in "\${ib_devices[@]}"; do
-	dev=\$(basename "\$ibpath")
-	case "\$dev" in
+	for dev in "\${all_devices[@]}"; do
+		suffix=\${dev#\$prefix}
+		if [[ "\$dev" == "\$prefix"* && "\$suffix" =~ ^[0-9]+$ && "\$suffix" -gt "\$max_index" ]]; then
+			max_index=\$suffix
+		fi
+	done
+
+	echo \$((max_index + 1))
+}
+
+an_index=\$(next_index mlx5_an)
+ib_index=\$(next_index mlx5_ib)
+
+for old_device in "\${all_devices[@]}"; do
+
+	case "\$old_device" in
 		mlx5_ib*|mlx5_an*) continue ;;
 	esac
-	filtered+=( "\$dev" )
-done
-
-# Natural sort so mlx5_0..mlx5_9..mlx5_10 come out in the expected order.
-mapfile -t sorted_devs < <(printf '%s\n' "\${filtered[@]}" | sort -V)
-
-for old_device in "\${sorted_devs[@]}"; do
 
 	link_layer=\$(ibv_devinfo -d \$old_device | sed -n 's/^[\ \t]*link_layer:[\ \t]*\([a-zA-Z]*\)\$/\1/p')
 	
@@ -85,20 +84,34 @@ chmod 755 /usr/sbin/azure_persistent_rdma_naming.sh
 cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming.service
 [Unit]
 Description=Azure persistent RDMA naming
-After=network.target systemd-udev-settle.service
+After=network.target systemd-udev-settle.service openibd.service
 Wants=systemd-udev-settle.service
 
 [Service]
 Type=oneshot
 ExecStart=/usr/sbin/azure_persistent_rdma_naming.sh
-RemainAfterExit=true
 StandardOutput=journal
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-systemctl enable azure_persistent_rdma_naming.service
-systemctl start azure_persistent_rdma_naming.service
+cat <<EOF >/etc/systemd/system/azure_persistent_rdma_naming.timer
+[Unit]
+Description=Retry Azure persistent RDMA naming
 
-$COMPONENT_DIR/install_azure_persistent_rdma_naming_monitor.sh      
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=azure_persistent_rdma_naming.service
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload
+systemctl enable azure_persistent_rdma_naming.service
+systemctl enable azure_persistent_rdma_naming.timer
+systemctl start azure_persistent_rdma_naming.service
+systemctl start azure_persistent_rdma_naming.timer

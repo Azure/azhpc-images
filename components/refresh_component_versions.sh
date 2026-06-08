@@ -4,23 +4,19 @@ set -euo pipefail
 # =============================================================================
 # Refresh Component Versions
 # =============================================================================
-# Regenerates /opt/azurehpc/component_versions.txt by detecting the actual
-# installed versions of all HPC components on the running system.
+# Regenerates /opt/azurehpc/component_versions.txt by detecting installed
+# versions of all HPC components on the running system.
 #
-# This script is used during "in-place refresh" builds where an existing HPC
-# image is used as a base and only `apt update` / `apt upgrade` is run to
-# pick up newer general packages, kernels, and kmods. None of the
-# components/install_*.sh scripts are re-executed in this mode, so the
-# manifest written at original build time can drift from what's actually
-# installed. This script queries the system (package managers, binaries,
-# modulefiles, etc.) to rebuild an accurate manifest from ground truth.
+# Used during "in-place refresh" builds: an existing HPC image is the base
+# and only `apt update` / `apt upgrade` runs. install_*.sh scripts do NOT
+# re-run, so the manifest can drift. This script rebuilds it from ground
+# truth (package managers, binaries, modulefiles, etc.).
 #
 # Usage:
 #   sudo bash refresh_component_versions.sh [GPU_PLATFORM]
 #   GPU_PLATFORM: NVIDIA or AMD (default: NVIDIA)
 #
-# Output:
-#   /opt/azurehpc/component_versions.txt (JSON)
+# Output: /opt/azurehpc/component_versions.txt (JSON)
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,47 +25,28 @@ source "${SCRIPT_DIR}/../utils/utilities.sh" || { echo "ERROR: Failed to source 
 GPU_PLATFORM="${1:-NVIDIA}"
 COMPONENT_VERSIONS_FILE="/opt/azurehpc/component_versions.txt"
 
-# STRICT=1 fails the script at the end if any REQUIRED detector returned
-# empty. Default is warn-only so existing CI keeps passing while operators
-# investigate. The counter is incremented by write_version when a
-# 'required' detector misses; see the trailing summary block.
+# STRICT=1 fails the script if any REQUIRED detector returned empty.
+# Default is warn-only; write_version bumps REQUIRED_MISSING per miss.
 STRICT="${STRICT:-0}"
 REQUIRED_MISSING=0
 
 mkdir -p /opt/azurehpc
 
-# Refresh is non-destructive: existing entries (written by install_*.sh via
-# write_component_version) are preserved unless we successfully re-detect a
-# component from the system. This matters for components whose version
-# cannot be queried without GPU/IB hardware (e.g. NVBANDWIDTH, NVLOOM) when
-# the build runs on a general-purpose SKU — the value written at install
-# time stays in the manifest. The write_version helper below skips empty
-# detections, so undetected components simply retain their previous entry.
+# Refresh is non-destructive: write_version preserves existing entries when
+# detection returns empty, so components that can't be queried without
+# hardware (NVBANDWIDTH, NVLOOM, ...) keep the value written at install time.
 if [ ! -f "${COMPONENT_VERSIONS_FILE}" ]; then
     echo '{}' > "${COMPONENT_VERSIONS_FILE}"
 fi
 
 # Helper: write a component's version, classified by tier.
 #
-# Tiers:
-#   required    (default) — The detector MUST succeed on the build host:
-#                 the component is either apt/dnf-managed (so apt upgrade
-#                 can mutate it between builds and the manifest must
-#                 reflect the new version) or has a stable, hardware-free
-#                 on-disk version signal. An empty result is treated as a
-#                 regression: log [WARN], increment REQUIRED_MISSING, and
-#                 (when STRICT=1) fail the script at the end. Soft-preserve
-#                 still happens — we don't drop the prior entry — but the
-#                 build is no longer silent about it.
-#   best-effort — The detector cannot reliably succeed on the build host.
-#                 Either the component is hardware-gated (e.g. NVBANDWIDTH
-#                 needs a GPU to self-report, NVLOOM has no on-disk
-#                 metadata at all, IMEX only ships on GB200) or the
-#                 install layout deliberately encodes no version (e.g.
-#                 mpifileutils, Moneo, dynolog). For these, the prior
-#                 manifest entry written by install_*.sh is the source of
-#                 truth; an empty refresh result is expected and silently
-#                 retains it.
+#   required    (default) — detector MUST succeed. Empty -> [WARN], bump
+#                 REQUIRED_MISSING, fail under STRICT=1. Prior entry is
+#                 still soft-preserved.
+#   best-effort — detector may legitimately fail (hardware-gated, no
+#                 on-disk version signal, etc). Empty is silent; the entry
+#                 written by install_*.sh is the source of truth.
 write_version() {
     local component="$1"
     local version="$2"
@@ -103,8 +80,25 @@ OS_VERSION=$(. /etc/os-release 2>/dev/null && echo "${ID}${VERSION_ID}" || true)
 write_version "OS" "${OS_VERSION}"
 
 # ---- CMAKE ----
+# install_cmake.sh drops the upstream tarball at /usr/local/bin/cmake.
+# Pin the lookup there: sudo's secure_path puts /usr/bin first on RHEL,
+# so any distro/EPEL cmake rpm would shadow the tarball and downgrade
+# the manifest. Fall back to PATH only if the install path is missing.
 echo "[CMake]"
-CMAKE_VERSION=$(cmake --version 2>/dev/null | head -1 | awk '{print $3}' || true)
+CMAKE_VERSION=""
+CMAKE_BIN=""
+for candidate in /usr/local/bin/cmake /usr/bin/cmake; do
+    if [ -x "${candidate}" ]; then
+        CMAKE_BIN="${candidate}"
+        break
+    fi
+done
+if [[ -z "${CMAKE_BIN}" ]] && command -v cmake &>/dev/null; then
+    CMAKE_BIN="$(command -v cmake)"
+fi
+if [[ -n "${CMAKE_BIN}" ]]; then
+    CMAKE_VERSION=$("${CMAKE_BIN}" --version 2>/dev/null | head -1 | awk '{print $3}' || true)
+fi
 write_version "CMAKE" "${CMAKE_VERSION}"
 
 # ---- DOCA / OFED ----
@@ -116,13 +110,9 @@ if command -v ofed_info &>/dev/null; then
     write_version "OFED" "${OFED_VERSION}"
 fi
 
-# DOCA version: check dpkg or rpm.
-# install_doca.sh installs the 'doca-host' .deb on Ubuntu (which then
-# pulls in doca-ofed via apt), and either 'doca-host' or 'doca-extra' /
-# 'doca-ofed' on RPM-based distros. The legacy 'doca-runtime' metapackage
-# referenced by the previous detector no longer exists in DOCA 3.x.
-# install_doca.sh writes only the leading 'X.Y.Z' from versions.json, so
-# strip the trailing '-<build>-<ofed>-<distro>' suffix to round-trip.
+# DOCA: install_doca.sh installs 'doca-host' (Ubuntu, pulls doca-ofed) or
+# 'doca-host'/'doca-ofed' (RPM) and writes only the leading 'X.Y.Z' from
+# versions.json, so strip the '-<build>-<ofed>-<distro>' suffix to round-trip.
 DOCA_VERSION=""
 if command -v dpkg-query &>/dev/null; then
     DOCA_VERSION=$(dpkg-query -W -f='${Version}\n' doca-host doca-ofed doca-runtime 2>/dev/null \
@@ -135,12 +125,10 @@ fi
 write_version "DOCA" "${DOCA_VERSION}"
 
 # ---- PMIx ----
-# install_pmix.sh installs the 'pmix' apt package (Ubuntu) / 'pmix' dnf
-# package (RHEL/AzureLinux) and writes the package version (e.g.
-# '4.2.9-1') to the manifest. Prefer package-manager metadata so the
-# refreshed value round-trips with what install_pmix.sh wrote; pmix_info
-# and pkg-config are unreliable here (pmix_info lives in HPC-X's tree and
-# isn't on PATH; pkg-config needs libpmix-dev which isn't installed).
+# install_pmix.sh installs the 'pmix' apt/dnf package and writes its
+# version (e.g. '4.2.9-1'). Prefer package-manager metadata to round-trip;
+# pmix_info/pkg-config are last-resort fallbacks (pmix_info lives in HPC-X
+# and isn't on PATH; pkg-config needs libpmix-dev).
 echo "[PMIx]"
 PMIX_VERSION=""
 if command -v dpkg-query &>/dev/null; then
@@ -150,8 +138,7 @@ if [[ -z "${PMIX_VERSION}" ]] && command -v rpm &>/dev/null; then
     PMIX_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}\n' pmix 2>/dev/null || true)
     [[ "${PMIX_VERSION}" == *"not installed"* ]] && PMIX_VERSION=""
 fi
-# Last-resort fallbacks (rarely needed; the apt/dnf path above is the
-# install_pmix.sh code path on every supported distro).
+# Last-resort fallbacks.
 if [[ -z "${PMIX_VERSION}" ]] && command -v pmix_info &>/dev/null; then
     PMIX_VERSION=$(pmix_info --pretty-print 2>/dev/null | grep "PMIx:" | head -1 | awk '{print $NF}' || true)
 fi
@@ -195,35 +182,19 @@ fi
 write_version "OMPI" "${OMPI_VERSION}"
 
 # ---- MPI: Intel MPI ----
-# install_mpis.sh writes the precise marketing version from versions.json
-# (e.g. "2021.16.1"), but the Intel oneAPI offline installer creates the
-# install directory at /opt/intel/oneapi/mpi/<major.minor>/ — the trailing
-# ".<patch>" is lost on disk. Falling back to the directory basename would
-# downgrade the manifest from "2021.16.1" to "2021.16" on every refresh.
-#
-# Intel oneAPI components live entirely under /opt/intel and are NOT
-# managed by apt/dnf, so they cannot be mutated by the `apt upgrade` step
-# that motivates this script. The entry written by install_mpis.sh on the
-# base image therefore remains ground truth across in-place refreshes.
-# Mark as best-effort and skip detection entirely so the soft-preserve
-# path keeps the precise install-time value.
-#
-# (mpirun --version, the only on-system source we have, also reports just
-# the major.minor — so there is no precise auto-detection path available.)
+# install_mpis.sh writes the precise marketing version (e.g. "2021.16.1"),
+# but Intel oneAPI's installer truncates the on-disk path to major.minor
+# (/opt/intel/oneapi/mpi/<major.minor>/) and mpirun --version reports the
+# same truncated value. No on-system source carries the full version.
+# /opt/intel is not apt/dnf-managed, so it can't drift across refreshes.
+# Best-effort: keep the install-time entry.
 IMPI_VERSION=""
 write_version "IMPI" "${IMPI_VERSION}" best-effort
 
 # ---- mpiFileUtils ----
-# install_mpifileutils.sh builds from a versioned tarball and installs into
-# the versionless prefix /opt/mpifileutils/. No version is encoded in the
-# install layout, the CLI tools (dbcast/dcp/...) don't reliably expose
-# --version, and there is no pkg-config file shipped by upstream. The
-# previous detector both (a) gated on `command -v dbcast`, which is never
-# on PATH because /opt/mpifileutils/bin isn't, and (b) globbed for
-# /opt/mpifileutils-*, which never matches the real install dir.
-# Best-effort soft-preserve is correct: apt upgrade cannot mutate
-# /opt/mpifileutils, so the entry written by install_mpifileutils.sh on
-# the base image is still ground truth.
+# install_mpifileutils.sh installs to the versionless prefix
+# /opt/mpifileutils/ with no on-disk version, no pkg-config, and no
+# reliable CLI --version. Not apt/dnf-managed, so best-effort soft-preserve.
 echo "[mpiFileUtils]"
 write_version "MPIFILEUTILS" "" best-effort
 
@@ -232,16 +203,14 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     echo "[NVIDIA GPU Stack]"
 
     # NVIDIA driver
-    # Avoid nvidia-smi here — it requires GPU hardware and fails on
-    # general-purpose build SKUs. Read the version directly from the kernel
-    # module metadata (modinfo works on the .ko file without loading it and
-    # without any GPU present); fall back to /sys (only if the module is
-    # loaded) and finally to package-manager queries.
+    # Avoid nvidia-smi: requires GPU hardware. Read the version from kernel
+    # module metadata (modinfo works on the .ko without loading it or
+    # needing a GPU); fall back to /sys (needs module loaded) then to
+    # package-manager queries.
     NVIDIA_VERSION=""
     if command -v modinfo &>/dev/null; then
         NVIDIA_VERSION=$(modinfo nvidia 2>/dev/null | awk '/^version:/{print $2; exit}' || true)
-        # If 'modinfo nvidia' can't resolve via depmod's index (e.g. depmod
-        # wasn't refreshed), point modinfo directly at the .ko file.
+        # If depmod's index can't resolve 'nvidia', point modinfo at the .ko.
         if [[ -z "${NVIDIA_VERSION}" ]]; then
             NVIDIA_KO=$(find /lib/modules -type f \( -name 'nvidia.ko' -o -name 'nvidia.ko.xz' -o -name 'nvidia.ko.zst' -o -name 'nvidia.ko.gz' \) 2>/dev/null | head -1)
             if [[ -n "${NVIDIA_KO}" ]]; then
@@ -253,9 +222,8 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         NVIDIA_VERSION=$(cat /sys/module/nvidia/version 2>/dev/null || true)
     fi
     if [[ -z "${NVIDIA_VERSION}" ]] && command -v dpkg-query &>/dev/null; then
-        # Try the open / proprietary driver packages and the cuda-drivers
-        # metapackage in turn. nvidia-driver-* (proprietary) and nvidia-open-*
-        # both carry the driver version as the deb upstream version.
+        # Open / proprietary driver pkgs carry the driver version as the
+        # deb upstream version; cuda-drivers metapackage as last resort.
         for pkg_pattern in 'nvidia-open-[0-9]*' 'nvidia-driver-[0-9]*' 'cuda-drivers'; do
             NVIDIA_VERSION=$(dpkg-query -W -f='${Version}\n' "${pkg_pattern}" 2>/dev/null \
                 | head -1 | sed 's/-.*//' || true)
@@ -274,29 +242,20 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NVIDIA" "${NVIDIA_VERSION}"
     
     # CUDA
-    # install_nvidiagpudriver.sh writes the value parsed from
-    #   `nvcc --version | grep release | awk '{print $6}' | cut -c2-`
-    # which is the "V<X.Y.Z>" build/toolchain version (e.g. "13.0.88").
-    # The CUDA Toolkit ships two distinct version strings in
-    # /usr/local/cuda/version.json:
-    #   .cuda.version   — marketing/release version (e.g. "13.0.3")
-    #   .nvcc.version   — build/toolchain version (e.g. "13.0.88")
-    # To round-trip with install_nvidiagpudriver.sh we MUST prefer the
-    # nvcc/toolchain build number, not the marketing version.
+    # install_nvidiagpudriver.sh writes the build/toolchain version parsed
+    # from `nvcc --version` (the "V<X.Y.Z>" token, e.g. "13.0.88").
+    # /usr/local/cuda/version.json carries two strings:
+    #   .cuda.version — marketing version (e.g. "13.0.3")
+    #   .nvcc.version — build/toolchain version (e.g. "13.0.88")
+    # Prefer .nvcc.version to round-trip with install_nvidiagpudriver.sh.
     #
-    # Order of preference (most precise + round-trips with install):
-    #   1. /usr/local/cuda/version.json .nvcc.version — full build version,
-    #      doesn't need nvcc on PATH or a working CUDA shell environment.
-    #   2. nvcc --version "V<X.Y.Z>" token — same value, queried from the
-    #      binary directly. /usr/local/cuda/bin/nvcc usually isn't on PATH
-    #      for non-login shells, so call it by absolute path.
-    #   3. /usr/local/cuda/version.json .cuda.version — marketing version,
-    #      LESS precise than nvcc.version but still preferable to nothing.
-    #      Older CUDA Toolkit releases (pre-13) may only ship this key.
-    #   4. /usr/local/cuda/version.txt — legacy CUDA (<11) fallback.
-    #   5. readlink -f /usr/local/cuda — follows the full alternatives chain
-    #      (/usr/local/cuda -> /etc/alternatives/cuda -> /usr/local/cuda-X.Y)
-    #      and uses the leaf directory name. Only carries major.minor.
+    # Preference order:
+    #   1. version.json .nvcc.version
+    #   2. nvcc --version "V<X.Y.Z>" (call by abs path; nvcc isn't on PATH
+    #      for non-login shells)
+    #   3. version.json .cuda.version (older toolkits may only ship this key)
+    #   4. /usr/local/cuda/version.txt (legacy CUDA <11)
+    #   5. /usr/local/cuda symlink target (major.minor only)
     CUDA_VERSION=""
     if [ -f /usr/local/cuda/version.json ] && command -v jq &>/dev/null; then
         # Prefer .nvcc.version (matches install_nvidiagpudriver.sh's nvcc -V parse).
@@ -320,8 +279,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         fi
     fi
     if [[ -z "${CUDA_VERSION}" ]] && [ -f /usr/local/cuda/version.json ]; then
-        # Last-resort: marketing version (.cuda.version). Less precise than
-        # .nvcc.version but at least we get major.minor.patch.
+        # Marketing version (.cuda.version) — less precise but at least M.m.p.
         if command -v jq &>/dev/null; then
             CUDA_VERSION=$(jq -r '.cuda.version // empty' /usr/local/cuda/version.json 2>/dev/null || true)
         fi
@@ -336,7 +294,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         CUDA_VERSION=$(awk '{print $3}' /usr/local/cuda/version.txt 2>/dev/null || true)
     fi
     if [[ -z "${CUDA_VERSION}" ]] && [ -e /usr/local/cuda ]; then
-        # readlink -f follows the entire alternatives chain to the real dir.
+        # Follow alternatives chain to the real cuda-X.Y dir.
         CUDA_REAL=$(readlink -f /usr/local/cuda 2>/dev/null || true)
         if [[ -n "${CUDA_REAL}" ]]; then
             CUDA_VERSION=$(basename "${CUDA_REAL}" | sed -nE 's/^cuda-?([0-9][0-9.]*)$/\1/p' || true)
@@ -356,12 +314,9 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NCCL" "${NCCL_VERSION}"
     
     # NVIDIA Fabric Manager
-    # Prefer package-manager metadata: it works on general-purpose build SKUs
-    # (no NVSwitch hardware), is unaffected by whether the fabricmanager
-    # service can start, and matches install_nvidia_fabric_manager.sh which
-    # also reads the version from dpkg. Keep the full Debian/RPM version
-    # string (including '-<revision>') so it round-trips with what the
-    # install script wrote (e.g. '580.126.16-1').
+    # Prefer package-manager metadata: works on general SKUs, matches
+    # install_nvidia_fabric_manager.sh. Keep '-<revision>' (e.g.
+    # '580.126.16-1') for round-trip.
     NFM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         NFM_VERSION=$(dpkg-query -W -f='${Version}\n' 'nvidia-fabricmanager-*' 'nvidia-fabricmanager' 2>/dev/null \
@@ -371,17 +326,14 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         NFM_VERSION=$(rpm -qa 'nvidia-fabric-manager*' 'nvidia-fabricmanager*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
             | sort -V | tail -1 || true)
     fi
-    # Last resort: ask the binary itself. nv-fabricmanager --version prints
-    # without contacting hardware, so it normally works even on a general SKU,
-    # but only if the package is actually present.
+    # Last resort: binary self-report (no hardware contact, but requires pkg).
     if [[ -z "${NFM_VERSION}" ]] && command -v nv-fabricmanager &>/dev/null; then
         NFM_VERSION=$(nv-fabricmanager --version 2>/dev/null | grep -oP '[\d]+\.[\d]+\.[\d]+[\.\d]*' | head -1 || true)
     fi
     write_version "NVIDIA_FABRIC_MANAGER" "${NFM_VERSION}"
 
-    # IMEX (only on GB200). Best-effort: nvidia-imex-* is not installed on
-    # any other SKU; an empty result is expected and the prior manifest
-    # entry (if any) is the source of truth.
+    # IMEX: only ships on GB200. Best-effort — empty result is expected
+    # everywhere else.
     IMEX_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         IMEX_VERSION=$(dpkg-query -W -f='${Version}' nvidia-imex-* 2>/dev/null | head -1 | sed 's/-.*//' || true)
@@ -389,19 +341,13 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "IMEX" "${IMEX_VERSION}" best-effort
     
     # DCGM
-    # The 'datacenter-gpu-manager-4-core' package is CUDA-version-agnostic
-    # and is always installed by install_dcgm.sh alongside one or more
-    # cuda<N> sub-packages (the sub-packages vary by SKU's compute
-    # capability, so we don't query them). Keep the full version string
-    # (with epoch '1:' and Debian '-<rev>' suffix) so it round-trips with
-    # install_dcgm.sh's write_component_version call (e.g. '1:4.5.3-1').
-    #
-    # The previous detector globbed three patterns in one dpkg-query call
-    # (...-core ...-cuda* and the unversioned name); the multi-arg call
-    # was returning empty under set -euo pipefail on Ubuntu 24.04 even
-    # though `-core` was installed in 'hi' (hold + installed) state, so we
-    # silently kept the previous manifest's version across apt upgrades.
-    # Querying the single package directly is more robust.
+    # 'datacenter-gpu-manager-4-core' is CUDA-version-agnostic and is
+    # always installed by install_dcgm.sh alongside cuda<N> sub-packages
+    # (which vary by SKU compute capability and aren't queried here). Keep
+    # the full version (epoch '1:', Debian '-<rev>' suffix) for round-trip
+    # (e.g. '1:4.5.3-1'). Query the single package by exact name — a
+    # multi-glob dpkg-query silently returned empty for held packages
+    # under set -euo pipefail.
     echo "[DCGM]"
     DCGM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
@@ -421,26 +367,13 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "DCGM" "${DCGM_VERSION}"
 
     # GDRCopy
-    # install_gdrcopy.sh writes the full version string from versions.json
-    # (e.g. '2.5.2-1'), but the deb's control-file Version field is just
-    # the upstream-only '2.5.2' (the '-1' lives only in the .deb filename),
-    # so a dpkg-query round-trip would silently downgrade the manifest on
-    # every refresh.
-    #
-    # GDRCopy is pinned on every distro the refresh script targets:
-    #   - Ubuntu (source build): all 4 .debs are `apt-mark hold`'d right
-    #     after `dpkg -i`, so `apt upgrade` cannot mutate them.
-    #   - RHEL family: install_gdrcopy.sh appends `gdrcopy*` to the
-    #     `exclude=` line in /etc/dnf/dnf.conf, so `dnf update` skips them.
-    #   - AzureLinux 3.0: install_gdrcopy.sh already reads the installed
-    #     version back from `tdnf list installed`, so install and refresh
-    #     trivially agree (and gdrcopy isn't auto-upgraded in practice).
-    #
-    # Since apt/dnf/tdnf upgrades cannot drift GDRCopy under this script,
-    # the entry written by install_gdrcopy.sh on the base image remains
-    # ground truth across in-place refreshes. Mark as best-effort and skip
-    # detection so the soft-preserve path keeps the precise install-time
-    # value (with the '-<rev>' suffix) intact.
+    # install_gdrcopy.sh writes the full version (e.g. '2.5.2-1'), but
+    # dpkg's Version field only has the upstream '2.5.2' (the '-1' lives
+    # in the .deb filename), so dpkg-query would downgrade the manifest.
+    # GDRCopy is pinned on every target distro (apt-mark hold on Ubuntu,
+    # dnf.conf exclude on RHEL, no auto-upgrade on AzureLinux), so it
+    # can't drift here. Best-effort soft-preserve keeps the precise
+    # install-time value (with '-<rev>' suffix) intact.
     echo "[GDRCopy]"
     GDRCOPY_VERSION=""
     write_version "GDRCOPY" "${GDRCOPY_VERSION}" best-effort
@@ -454,9 +387,8 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "DOCKER" "${DOCKER_VERSION}"
     
     MOBY_VERSION=""
-    # Keep the full Debian/RPM version string (including '-ubuntu24.04u1'
-    # or '-<release>' suffix) so it round-trips with install_docker.sh's
-    # `apt list --installed` output, e.g. '29.4.3-ubuntu24.04u1'.
+    # Keep full Debian/RPM version (e.g. '29.4.3-ubuntu24.04u1') to round-trip
+    # with install_docker.sh's `apt list --installed` output.
     if command -v dpkg-query &>/dev/null; then
         MOBY_VERSION=$(dpkg-query -W -f='${Version}' moby-engine 2>/dev/null || true)
     fi
@@ -467,12 +399,8 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "MOBY_ENGINE" "${MOBY_VERSION}"
     
     # NVIDIA Container Toolkit
-    # `nvidia-container-toolkit --version` prints two lines:
-    #   NVIDIA Container Runtime Hook version <X.Y.Z>
-    #   commit: <sha>
-    # We want only the version on the first line; take head -1 first so
-    # awk doesn't emit a value per line (which would embed a newline in
-    # the JSON manifest).
+    # `nvidia-container-toolkit --version` prints two lines (version + commit).
+    # head -1 first so awk doesn't embed a newline into the JSON manifest.
     NCTK_VERSION=""
     if command -v nvidia-container-toolkit &>/dev/null; then
         NCTK_VERSION=$(nvidia-container-toolkit --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
@@ -480,12 +408,9 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     write_version "NVIDIA_CONTAINER_TOOLKIT" "${NCTK_VERSION}"
     
     # NVBandwidth
-    # The nvbandwidth binary is installed to /opt/nvidia/nvbandwidth/ and is
-    # not on PATH. Running `nvbandwidth --version` initializes CUDA on entry,
-    # so it fails on general-purpose build SKUs that have no GPU. There is
-    # also no version metadata on disk to read. Refresh is non-destructive,
-    # so on a general SKU the entry written at install time by
-    # install_nvbandwidth_tool.sh is retained as the source of truth.
+    # Binary lives at /opt/nvidia/nvbandwidth/ (not on PATH); `--version`
+    # initializes CUDA and fails on non-GPU SKUs, and there's no on-disk
+    # version metadata. Best-effort: keep install-time entry on general SKUs.
     echo "[NVBandwidth]"
     NVBANDWIDTH_VERSION=""
     if [ -x /opt/nvidia/nvbandwidth/nvbandwidth ]; then
@@ -494,9 +419,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
 
-    # NVSHMEM
-    # Installed as the libnvshmem3-cuda-<MAJOR> package (apt/tdnf) by
-    # install_nvshmem.sh — there is no /opt path to inspect.
+    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/tdnf); no /opt path.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
     if command -v dpkg-query &>/dev/null; then
@@ -509,10 +432,8 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVSHMEM" "${NVSHMEM_VERSION}"
 
-    # NVLOOM
-    # install_nvloom.sh leaves no version metadata on disk and the binary
-    # cannot self-report without GPU/MPI. Refresh is non-destructive, so the
-    # entry written by install_nvloom.sh is retained on general SKUs.
+    # NVLOOM: no on-disk version signal and the binary needs GPU/MPI.
+    # Best-effort soft-preserve.
     echo "[NVLOOM]"
     write_version "NVLOOM" "" best-effort
 fi
@@ -522,13 +443,10 @@ if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
     echo "[AMD GPU Stack]"
 
     # ROCm
-    # install_rocm.sh writes the bare MAJOR.MINOR.PATCH from versions.json
-    # (e.g. "6.4.4"), but ROCm's on-disk version file /opt/rocm/.info/version
-    # carries an additional "-<build>" suffix appended by AMD's packaging
-    # (e.g. "6.4.4-129"). Strip the trailing "-<digits>" so the refreshed
-    # value round-trips with what install_rocm.sh recorded. `rocminfo`'s
-    # "Runtime Version" output already lacks the suffix, so no strip needed
-    # there.
+    # install_rocm.sh writes bare MAJOR.MINOR.PATCH (e.g. "6.4.4"), but
+    # /opt/rocm/.info/version carries an extra "-<build>" suffix from AMD's
+    # packaging (e.g. "6.4.4-129"). Strip it to round-trip. `rocminfo`'s
+    # Runtime Version already lacks the suffix.
     ROCM_VERSION=""
     if [ -f /opt/rocm/.info/version ]; then
         ROCM_VERSION=$(cat /opt/rocm/.info/version 2>/dev/null | sed -E 's/-[0-9]+$//' || true)
@@ -538,20 +456,11 @@ if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
     write_version "ROCM" "${ROCM_VERSION}"
 
     # RCCL
-    # install_rccl.sh builds RCCL from source and installs it to the
-    # VERSIONLESS prefix /opt/rccl/ (cmake -DCMAKE_INSTALL_PREFIX=/opt/rccl).
-    # There is no /opt/rccl-<X.Y.Z>/ directory to read the version from.
-    # The previous detector globbed /opt/rccl* and sort -V'd it; on AMD
-    # images that also install the RCCL test suite under /opt/rccl-tests/,
-    # `sort -V` ranks "rccl-tests" AFTER "rccl" (letters > digits), and the
-    # subsequent `sed 's/^rccl-//'` then produced the literal string
-    # "tests" as the manifest value.
-    #
-    # /opt/rccl/ is a from-source install and is NOT managed by apt/dnf, so
-    # `apt upgrade` cannot mutate it. The entry written by install_rccl.sh
-    # on the base image remains ground truth across in-place refreshes.
-    # Mark as best-effort and skip detection so the soft-preserve path
-    # keeps the precise install-time value intact.
+    # install_rccl.sh builds from source into the versionless prefix
+    # /opt/rccl/ — no version on disk and not apt/dnf-managed, so it can't
+    # drift. Best-effort soft-preserve keeps the install-time value.
+    # (A previous glob-based detector accidentally picked up /opt/rccl-tests/
+    # and produced the literal string "tests".)
     RCCL_VERSION=""
     write_version "RCCL" "${RCCL_VERSION}" best-effort
 fi
@@ -593,31 +502,21 @@ fi
 write_version "AOCC" "${AOCC_VERSION}"
 
 # ---- Intel MKL ----
-# install_intel_libs.sh writes the precise marketing version from
-# versions.json (e.g. "2025.3.1.11"), but the Intel oneAPI offline
-# installer lands MKL at /opt/intel/oneapi/mkl/<major.minor>/ — the
-# trailing ".<patch>.<build>" is lost on disk. Falling back to the
-# directory basename would downgrade the manifest from "2025.3.1.11" to
-# "2025.3" on every refresh.
-#
-# Same rationale as IMPI above: Intel oneAPI components live under
-# /opt/intel and are NOT managed by apt/dnf, so they cannot be mutated by
-# the `apt upgrade` step that motivates this script. The entry written by
-# install_intel_libs.sh on the base image remains ground truth across
-# in-place refreshes. Mark as best-effort and skip detection so the
-# soft-preserve path keeps the install-time value intact.
+# install_intel_libs.sh writes the precise version (e.g. "2025.3.1.11"),
+# but oneAPI's installer truncates the on-disk dir to major.minor
+# (/opt/intel/oneapi/mkl/<major.minor>/). Same story as IMPI: /opt/intel
+# isn't apt/dnf-managed, so it can't drift here. Best-effort soft-preserve.
 echo "[Intel Libraries]"
 INTEL_MKL_VERSION=""
 write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
 
 # ---- Lustre ----
-# Prefer package-manager metadata so the refreshed value round-trips with
-# install_lustre_client.sh: on Ubuntu+build-from-source it writes the
-# dpkg ${Version} of lustre-client-utils (e.g. '2.16.1-17-g43573dd-1'),
-# on Ubuntu+repo it writes the version-suffixed amlfs-lustre-client-dkms-*
-# package version, and on RHEL it writes the underscore-form package version.
-# `lfs --version` only returns the build's internal version string
-# (underscores, no Debian revision), so it's a last-resort fallback.
+# Prefer package-manager metadata to round-trip with install_lustre_client.sh:
+#   Ubuntu source build: dpkg ${Version} of lustre-client-utils
+#   Ubuntu repo:         version-suffixed amlfs-lustre-client-dkms-* ${Version}
+#   RHEL:                amlfs-lustre-client-* / lustre-client*
+# `lfs --version` only returns the build's internal version (no Debian
+# revision); last-resort fallback only.
 echo "[Lustre]"
 LUSTRE_VERSION=""
 if command -v dpkg-query &>/dev/null; then
@@ -640,12 +539,10 @@ fi
 write_version "LUSTRE" "${LUSTRE_VERSION}"
 
 # ---- dynolog / dyno_relay_logger ----
-# install_dynolog_drl.sh builds both from a git tag and installs them to
-# /usr/local/bin without a Debian package and without a sidecar version
-# file. `dynolog --version` and `dyno_relay_logger --version` exist but
-# the format isn't guaranteed across upstream versions. Treat as
-# best-effort: the entry written by install_dynolog_drl.sh is the source
-# of truth, and apt upgrade can't mutate the /usr/local/bin binaries.
+# install_dynolog_drl.sh builds from a git tag into /usr/local/bin with no
+# package and no version sidecar. CLI --version formats aren't stable.
+# Best-effort: install-time entry is source of truth; /usr/local/bin can't
+# drift via apt.
 echo "[Dynolog]"
 DYNOLOG_VERSION=""
 if command -v dynolog &>/dev/null; then
@@ -666,10 +563,8 @@ fi
 write_version "dyno_relay_logger" "${DRL_VERSION}" best-effort
 
 # ---- Monitoring Tools (Moneo) ----
-# install_monitoring_tools.sh extracts the Moneo source tarball to
-# /opt/azurehpc/tools/Moneo/ but does not drop a version.txt sidecar, so
-# the on-disk install has no version signal. Best-effort soft-preserve
-# of the entry written by install_monitoring_tools.sh.
+# install_monitoring_tools.sh extracts Moneo to /opt/azurehpc/tools/Moneo/
+# without a version sidecar. Best-effort soft-preserve.
 echo "[Monitoring]"
 MONEO_VERSION=""
 if [ -d /opt/azurehpc/tools/Moneo ]; then
@@ -680,9 +575,8 @@ fi
 write_version "MONEO" "${MONEO_VERSION}" best-effort
 
 # ---- Azure Health Checks ----
-# Same situation as Moneo: install_health_checks.sh clones the repo into
-# /opt/azurehpc/test/azurehpc-health-checks/ but doesn't write a
-# version.txt sidecar. Best-effort soft-preserve.
+# install_health_checks.sh clones to /opt/azurehpc/test/azurehpc-health-checks/
+# without a version sidecar. Best-effort soft-preserve.
 echo "[Health Checks]"
 AZHC_VERSION=""
 if [ -d /opt/azurehpc/test/azurehpc-health-checks ]; then
@@ -693,15 +587,50 @@ fi
 write_version "AZ_HEALTH_CHECKS" "${AZHC_VERSION}" best-effort
 
 # ---- WAAgent ----
+# On Alma9/Rocky9/RHEL9, install_waagent.sh installs WALinuxAgent via
+# `python3.12 setup.py install` (system python3 9 is too old) and rewrites
+# the systemd unit's ExecStart= line to point at python3.12. The rpm-shipped
+# /usr/sbin/waagent shebang still says #!/usr/bin/python3, which resolves
+# to the system python and reports the OLDER rpm-managed azurelinuxagent.
+#
+# Read the interpreter back out of the ExecStart= line instead of hard-coding
+# python3.12 — robust to future Alma versions.
 echo "[WAAgent]"
 WAAGENT_VERSION=""
 WAAGENT_EXT_VERSION=""
-if command -v waagent &>/dev/null; then
-    WAAGENT_VERSION=$(waagent --version 2>/dev/null | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}' || true)
-    WAAGENT_EXT_VERSION=$(waagent --version 2>/dev/null | sed '3q;d' | awk -F' ' '{print $4}' || true)
-elif command -v python3.12 &>/dev/null && [ -f /usr/sbin/waagent ]; then
-    WAAGENT_VERSION=$(python3.12 -u /usr/sbin/waagent --version 2>/dev/null | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}' || true)
-    WAAGENT_EXT_VERSION=$(python3.12 -u /usr/sbin/waagent --version 2>/dev/null | sed '3q;d' | awk -F' ' '{print $4}' || true)
+
+# Find the ExecStart= interpreter the unit was configured with. Unit may
+# live in /usr/lib (vendor) or /etc (override); Ubuntu uses
+# walinuxagent.service, others use waagent.service. ExecStart= format is
+# `<interpreter> -u /usr/sbin/waagent -daemon` — grab the first token.
+WAAGENT_PY=""
+for svc in \
+    /usr/lib/systemd/system/waagent.service \
+    /usr/lib/systemd/system/walinuxagent.service \
+    /etc/systemd/system/waagent.service \
+    /etc/systemd/system/walinuxagent.service; do
+    [ -f "${svc}" ] || continue
+    candidate=$(awk -F'=' '/^ExecStart=/{print $2; exit}' "${svc}" 2>/dev/null \
+        | awk '{print $1}')
+    if [[ -n "${candidate}" && -x "${candidate}" ]]; then
+        WAAGENT_PY="${candidate}"
+        break
+    fi
+done
+
+WAAGENT_OUT=""
+if [[ -n "${WAAGENT_PY}" && -f /usr/sbin/waagent ]]; then
+    WAAGENT_OUT=$("${WAAGENT_PY}" -u /usr/sbin/waagent --version 2>/dev/null || true)
+fi
+# Fallback: distros where the unit wasn't rewritten (Ubuntu, AzureLinux,
+# RHEL/Alma 8) — shebang-resolved interpreter is correct on these.
+if [[ -z "${WAAGENT_OUT}" ]] && command -v waagent &>/dev/null; then
+    WAAGENT_OUT=$(waagent --version 2>/dev/null || true)
+fi
+
+if [[ -n "${WAAGENT_OUT}" ]]; then
+    WAAGENT_VERSION=$(echo "${WAAGENT_OUT}" | head -n 1 | awk -F' ' '{print $1}' | awk -F- '{print $2}' || true)
+    WAAGENT_EXT_VERSION=$(echo "${WAAGENT_OUT}" | sed '3q;d' | awk -F' ' '{print $4}' || true)
 fi
 write_version "WAAGENT" "${WAAGENT_VERSION}"
 write_version "WAAGENT_EXTENSIONS" "${WAAGENT_EXT_VERSION}"
@@ -709,10 +638,9 @@ write_version "WAAGENT_EXTENSIONS" "${WAAGENT_EXT_VERSION}"
 echo ""
 if [[ "${REQUIRED_MISSING}" -gt 0 ]]; then
     echo "WARNING: ${REQUIRED_MISSING} REQUIRED detector(s) returned empty."
-    echo "         The manifest entries for those components were inherited from"
-    echo "         the prior build and may be STALE if apt upgrade changed the"
-    echo "         underlying packages. Audit the [WARN] lines above and fix the"
-    echo "         affected detector(s) in components/refresh_component_versions.sh."
+    echo "         Inherited manifest entries may be STALE if apt upgrade"
+    echo "         changed the underlying packages. Audit the [WARN] lines"
+    echo "         above and fix detectors in refresh_component_versions.sh."
 fi
 echo "=== component_versions.txt refresh complete ==="
 echo "Output: ${COMPONENT_VERSIONS_FILE}"

@@ -27,9 +27,6 @@ source ../../utils/set_properties.sh
 # update cmake
 $COMPONENT_DIR/install_cmake.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -68,6 +65,9 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
+
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh
 
@@ -80,7 +80,8 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
+rm -rf /var/intel/
+rm -rf /var/cache/* || true
 rm -Rf -- */
 
 # optimizations
@@ -106,6 +107,9 @@ $COMPONENT_DIR/copy_test_file.sh
 
 # install Azure/NHC Health Checks
 $COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh

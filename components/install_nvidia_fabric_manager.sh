@@ -28,7 +28,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # installed from PMC.  The driver kmod and fabric manager versions must
     # match exactly, so exclude the CUDA repo copies and let tdnf resolve to
     # the PMC-sourced packages whose versions track the 1P-signed driver.
-    echo "exclude=nvidia-fabricmanager* nvidia-fabric-manager-5* libnvidia-nscq-5*" >> /etc/yum.repos.d/cuda-azl3.repo
+    echo "exclude=nvidia-fabricmanager* nvidia-fabric-manager* libnvidia-nscq*" >> /etc/yum.repos.d/cuda-azl3.repo
 
     # tdnf does not respect exclude= directive of repo config
     dnf install -y nvidia-fabric-manager \
@@ -56,6 +56,6 @@ else
     yum install -y ./${FILENAME}
 
     # Prevent package from being updated after installation
-    sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
+    dnf_pin_packages "${PACKAGE_NAME}"
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

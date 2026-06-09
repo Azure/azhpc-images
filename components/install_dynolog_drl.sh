@@ -83,6 +83,19 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     popd
     rm -rf /tmp/dynolog
 
+    ldconfig
+    DCGM_LIB=$(ldconfig -p | awk '/libdcgm\.so(\.[0-9]+)* / {print $NF; exit}')
+    [[ -z "$DCGM_LIB" ]] && { echo "FATAL: libdcgm.so not found"; exit 1; }
+
+    # NOTE: picking more than one subgroup in the same letter group induces multiplexing in DCGM that tanks performance when MPI ranks per node
+    # is equal to number of cores
+    # A.1: 1002 sm_active, 1003 sm_occupancy, 1004 tensor_active, 1006 fp64_active
+    # A.2: 1008 fp16_active, 1013 tensor_imma_active, 1014 tensor_hmma_active
+    # A.3: 1007 fp32_active
+    # B.0: 1005 dram_active
+    # C.0: 1009 pcie_tx, 1010 pcie_rx
+    # D.0: 1001 gr_engine_active
+    # E.0: 1011 nvlink_tx, 1012 nvlink_rx
     cat <<-EOF > /etc/systemd/system/dynolog.service
 [Unit]
 Description=dynolog
@@ -90,7 +103,7 @@ After=nvidia-dcgm.service
 
 [Service]
 Environment="GLOG_logtostderr=1" "GLOG_minloglevel=2"
-ExecStart=/opt/dynolog/bin/dynolog -enable_ipc_monitor=true -enable_gpu_monitor=true -kernel_monitor_reporting_interval_s=10 -dcgm_lib_path=/usr/lib/libdcgm.so -dcgm_reporting_interval_s=10 -use_udsrelay=true -dcgm_fields="100,155,204,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012"
+ExecStart=/opt/dynolog/bin/dynolog -enable_ipc_monitor=true -enable_gpu_monitor=true -kernel_monitor_reporting_interval_s=10 -dcgm_lib_path=${DCGM_LIB} -dcgm_reporting_interval_s=10 -use_udsrelay=true -dcgm_fields="100,155,204,1001,1005,1008,1009,1010,1011,1012,1013,1014"
 Restart=always
 RestartSec=60s
 User=root

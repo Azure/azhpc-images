@@ -149,7 +149,8 @@ find /var/log -type f \( -name "*.log" -o -name "*.log.*" -o -name "*.gz" -o -re
 : > /var/log/btmp || true
 
 rm -rf /var/lib/systemd/random-seed 
-rm -rf /var/intel/ /var/cache/* /var/lib/cloud/instances/*
+rm -rf /var/intel/
+rm -rf /var/cache/* || true
 rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz

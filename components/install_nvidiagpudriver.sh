@@ -32,7 +32,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # or before switching to dnf
     # tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
     tdnf install -y --disablerepo=cuda-azl3-x86_64 --disablerepo=cuda-azl3-sbsa $AL3_GPU_DRIVER_PACKAGES
-    NVIDIA_DRIVER_VERSION=$(sudo tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    NVIDIA_DRIVER_VERSION=$(tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
     # Temp disable NVIDIA driver updates
     mkdir -p /etc/tdnf/locks.d
@@ -63,6 +63,15 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Apply nvprofiling settings
     echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
+    # nvidia-peermem is NOT modprobe'd at build time. Loading it before the
+    # first reboot is fragile across the matrix of distros / kernels we
+    # support (e.g. Ubuntu 26.04 needs DOCA-OFED's patched ib_core in
+    # /lib/modules/$(uname -r)/updates/dkms/ which is not active in the
+    # build kernel; general-purpose build SKUs have no IB hardware to load
+    # against; baremetal builds reboot before IB is fully up). The module is
+    # queued for first boot via /etc/modules-load.d/nvidia-peermem.conf
+    # written below and via the openibd ExecStartPost drop-in installed by
+    # setup_sku_customizations.sh.
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL - .run file installation
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
@@ -81,6 +90,10 @@ else
     if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
         dkms install --no-depmod -m nvidia -v ${NVIDIA_DRIVER_VERSION} -k `uname -r` --force
     fi
+    # nvidia-peermem is NOT modprobe'd at build time -- see comment in the
+    # Ubuntu branch above. The module is queued for first boot via
+    # /etc/modules-load.d/nvidia-peermem.conf written below and via the
+    # openibd ExecStartPost drop-in installed by setup_sku_customizations.sh.
 fi
 write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 
@@ -101,30 +114,33 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
+
+        # DOCA ships mft tied to the kernel-mft-dkms it built; cuda-rhel9
+        # ships mft on a different cadence (sometimes newer). Letting
+        # cuda-rhel9 offer mft causes 'dnf check-update' to flag a
+        # stale-package upgrade in verify_package_updates and risks an
+        # accidental upgrade that breaks compat with the DOCA-built
+        # kernel-mft-dkms. mft must track DOCA, not CUDA. Same pattern as
+        # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
+        # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
+        # the (removed) global DOCA pin in install_doca.sh.
+        dnf config-manager --save \
+            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=mft* kernel-mft*" >/dev/null
+
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi
 
-    echo 'export PATH=$PATH:/usr/local/cuda/bin' | sudo tee /etc/profile.d/cuda.sh > /dev/null
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | sudo tee -a /etc/profile.d/cuda.sh > /dev/null
+    echo 'export PATH="${PATH:+$PATH:}/usr/local/cuda/bin"' | tee /etc/profile.d/cuda.sh > /dev/null
+    echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/local/cuda/lib64"' | tee -a /etc/profile.d/cuda.sh > /dev/null
 
     # Ensure proper permissions
-    sudo chmod 644 /etc/profile.d/cuda.sh
+    chmod 644 /etc/profile.d/cuda.sh
 
     cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
     write_component_version "CUDA" ${cuda_version}
 
-    # Download CUDA samples
-    TARBALL="v${CUDA_SAMPLES_VERSION}.tar.gz"
-    CUDA_SAMPLES_DOWNLOAD_URL=https://github.com/NVIDIA/cuda-samples/archive/refs/tags/${TARBALL}
-    download_and_verify ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
-    tar -xvf ${TARBALL}
-    pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
-    mkdir build && cd build
-    cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
-    make -j $(nproc)
-    mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples # Use the same version as the CUDA toolkit as thats where samples is being moved to
-    popd
+    $COMPONENT_DIR/install_cuda_samples.sh
 
 fi
 
@@ -164,5 +180,5 @@ fi
 $COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files
-rm -rf *.run *tar.gz *.rpm
+rm -rf *.run *.tar.gz *.rpm
 rm -rf -- */

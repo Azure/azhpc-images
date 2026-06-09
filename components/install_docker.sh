@@ -26,6 +26,11 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y docker-buildx
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+    # NOTE: on el8 the MS repo is marked with `module_hotfixes=1` by the
+    # distro setup script ([distros/almalinux8.10/install_utils.sh] and
+    # [distros/rocky8.10/install_utils.sh]). That bypasses dnf modular
+    # filtering for moby-runc (which `Provides: runc`, a name claimed by
+    # the AppStream `container-tools` module) without disabling the module.
     yum install -y moby-engine
     yum install -y moby-cli
     yum install -y moby-buildx

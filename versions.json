@@ -67,7 +67,8 @@
         "ubuntu26.04": {
             "x86_64": {
                 "version": "3.4.0",
-                "url": "https://linux.mellanox.com/public/repo/doca/3.4.0/ubuntu26.04/x86_64/"
+                "sha256": "60789bbbfc9b283a87a64589a0d4bd5d08d1b746494c24ce05e10bbd694de6bb",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.4.0/host/doca-host_3.4.0-085000-26.04-ubuntu2604_amd64.deb"
             }
         },
         "almalinux8.10": {

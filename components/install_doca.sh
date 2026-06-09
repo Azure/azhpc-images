@@ -73,16 +73,8 @@ EOF
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get update
-    if [[ "${DISTRIBUTION}" == "ubuntu26.04" ]]; then
-        apt-get install -y ca-certificates curl gnupg
-        install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL "${DOCA_URL%/}/doca_keyring.gpg" -o /etc/apt/keyrings/doca-keyring.gpg
-        chmod 0644 /etc/apt/keyrings/doca-keyring.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/doca-keyring.gpg] ${DOCA_URL} ./" > /etc/apt/sources.list.d/doca.list
-    else
-        download_and_verify $DOCA_URL $DOCA_SHA256
-        dpkg -i $DOCA_FILE
-    fi
+    download_and_verify "$DOCA_URL" "$DOCA_SHA256"
+    dpkg -i "$DOCA_FILE"
 
     apt-get update
     apt-get upgrade -y

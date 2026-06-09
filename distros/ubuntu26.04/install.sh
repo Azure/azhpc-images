@@ -139,6 +139,8 @@ if [[ "$SKU" != "GB200" ]]; then
     $COMPONENT_DIR/install_health_checks.sh "$GPU"
 fi 
 
+$COMPONENT_DIR/write_kernel_os_version.sh
+
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

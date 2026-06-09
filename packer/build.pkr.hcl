@@ -115,8 +115,11 @@ build {
     name           = "List all installed packages prior to HPC component installation"
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
-      "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
+      "sudo mkdir -p /opt/azurehpc",
+      "if command -v dnf &> /dev/null; then sudo bash -c 'dnf list installed > /opt/azurehpc/installed-packages-pre-hpc.txt'; fi",
+      "if command -v dpkg-query &> /dev/null; then sudo bash -c 'dpkg-query -l > /opt/azurehpc/installed-packages-pre-hpc.txt'; fi",
+      "sudo chmod 644 /opt/azurehpc/installed-packages-pre-hpc.txt",
+      "echo \"Wrote /opt/azurehpc/installed-packages-pre-hpc.txt ($(wc -l < /opt/azurehpc/installed-packages-pre-hpc.txt) lines)\"",
     ]
   }
 
@@ -223,8 +226,11 @@ build {
     name           = "List all installed packages after HPC component installation"
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
-      "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
+      "sudo mkdir -p /opt/azurehpc",
+      "if command -v dnf &> /dev/null; then sudo bash -c 'dnf list installed > /opt/azurehpc/installed-packages-post-hpc.txt'; fi",
+      "if command -v dpkg-query &> /dev/null; then sudo bash -c 'dpkg-query -l > /opt/azurehpc/installed-packages-post-hpc.txt'; fi",
+      "sudo chmod 644 /opt/azurehpc/installed-packages-post-hpc.txt",
+      "echo \"Wrote /opt/azurehpc/installed-packages-post-hpc.txt ($(wc -l < /opt/azurehpc/installed-packages-post-hpc.txt) lines)\"",
     ]
   }
 
@@ -265,6 +271,20 @@ build {
     generated   = true
     source      = "/opt/azurehpc/component_versions.txt"
     destination = "/tmp/image_manifests/component-versions.json"
+  }
+
+  provisioner "file" {
+    direction   = "download"
+    generated   = true
+    source      = "/opt/azurehpc/installed-packages-pre-hpc.txt"
+    destination = "/tmp/image_manifests/installed-packages-pre-hpc.txt"
+  }
+
+  provisioner "file" {
+    direction   = "download"
+    generated   = true
+    source      = "/opt/azurehpc/installed-packages-post-hpc.txt"
+    destination = "/tmp/image_manifests/installed-packages-post-hpc.txt"
   }
   
   provisioner "shell" {

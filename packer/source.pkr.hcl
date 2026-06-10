@@ -9,7 +9,13 @@ packer {
   
   required_plugins {
     azure = {
-      version = "~> 2.6.0"
+      # Pinned to 2.6.1 to investigate a ~100x stdout/log throughput
+      # regression on 1ES-hosted-pool-scrub1 first seen on 2026-06-09.
+      # packer-plugin-azure v2.6.2 was released 2026-06-08 (Go 1.25.11 +
+      # packer-plugin-sdk refresh) and the previous `~> 2.6.0` constraint
+      # let `packer init` auto-upgrade to it. Revert to `~> 2.6.0` once
+      # the regression is confirmed fixed upstream.
+      version = "2.6.1"
       source  = "github.com/hashicorp/azure"
     }
   }

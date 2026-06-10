@@ -181,4 +181,7 @@ $COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files
 rm -rf *.run *.tar.gz *.rpm
-rm -rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- */
+)

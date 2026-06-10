@@ -87,8 +87,11 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh

@@ -287,5 +287,5 @@ ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_D
 rm -rf *.tbz *.tar.gz *offline.sh
 (
     shopt -s dotglob nullglob
-    rm -rf -- */
+    rm -rf -- */ || true
 )

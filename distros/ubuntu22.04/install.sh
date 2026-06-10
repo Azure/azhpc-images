@@ -84,7 +84,7 @@ rm -rf /var/intel/
 (
     shopt -s dotglob nullglob
     rm -rf -- /var/cache/* || true
-    rm -Rf -- */
+    rm -Rf -- */ || true
 )
 
 # optimizations

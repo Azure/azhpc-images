@@ -54,5 +54,5 @@ $COMPONENT_DIR/configure_nvidia_persistence.sh
 rm -rf *.run *.tar.gz *.rpm
 (
 	shopt -s dotglob nullglob
-	rm -rf -- */
+	rm -rf -- */ || true
 )

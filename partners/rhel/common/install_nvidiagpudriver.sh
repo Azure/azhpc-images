@@ -57,5 +57,5 @@ $RHEL_COMMON_DIR/install_nvidia_fabric_manager.sh
 rm -rf *.run *tar.gz *.rpm
 (
 	shopt -s dotglob nullglob
-	rm -rf -- */
+	rm -rf -- */ || true
 )

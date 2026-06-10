@@ -177,5 +177,5 @@ ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES
 rm -rf *.tbz *.tar.gz *offline.sh
 (
 	shopt -s dotglob nullglob
-	rm -rf -- */
+	rm -rf -- */ || true
 )

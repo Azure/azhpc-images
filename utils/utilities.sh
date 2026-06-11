@@ -144,8 +144,7 @@ function sku_uses_ucx {
 #     sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf
 # pattern, which silently corrupted the last line of dnf.conf (e.g.
 # 'skip_if_unavailable=False') on distros/configurations where the
-# 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7 with
-# LUSTRE_BUILD_FROM_SOURCE=true). A broken pin lets subsequent
+# 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7). A broken pin lets subsequent
 # 'yum update -y' upgrade pinned packages -- most critically
 # nvidia-fabricmanager, which must match the NVIDIA driver version exactly.
 #

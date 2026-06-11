@@ -512,26 +512,30 @@ write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
 
 # ---- Lustre ----
 # Prefer package-manager metadata to round-trip with install_lustre_client.sh:
-#   Ubuntu source build: dpkg ${Version} of lustre-client-utils
-#   Ubuntu repo:         amlfs-lustre-client-* ${Version}
-#   RHEL:                amlfs-lustre-client-* / lustre-client*
+#   Ubuntu repo:      suffix from amlfs-lustre-client[-dkms]-<version>
+#   RHEL repo:        suffix from (lustre-client-dkms|amlfs-lustre-client)-<version>
+#   Legacy/source:    package-manager ${Version} / lfs fallback
 # `lfs --version` only returns the build's internal version (no Debian
 # revision); last-resort fallback only.
 echo "[Lustre]"
 LUSTRE_VERSION=""
 if command -v dpkg-query &>/dev/null; then
-    # Build-from-source path installs lustre-client-utils.
-    LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
-        | head -1 | cut -d'~' -f1 || true)
-    # Repo path installs amlfs-lustre-client-<kernel-suffix>.
+    LUSTRE_VERSION=$(dpkg-query -W -f='${Package}\n' 'amlfs-lustre-client-*' 2>/dev/null \
+        | sed -nE 's/^amlfs-lustre-client-(dkms-)?(.+)$/\2/p' | sort -V | tail -1 || true)
+    # Legacy source-build path installed lustre-client-utils.
     if [[ -z "${LUSTRE_VERSION}" ]]; then
-        LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' 'amlfs-lustre-client-*' 2>/dev/null \
+        LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
             | head -1 | cut -d'~' -f1 || true)
     fi
 fi
 if [[ -z "${LUSTRE_VERSION}" ]] && command -v rpm &>/dev/null; then
-    LUSTRE_VERSION=$(rpm -qa 'amlfs-lustre-client-*' 'lustre-client*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
-        | head -1 || true)
+    LUSTRE_VERSION=$(rpm -qa 'lustre-client-dkms-*' 'amlfs-lustre-client-*' --qf '%{NAME}\n' 2>/dev/null \
+        | sed -nE 's/^(lustre-client-dkms|amlfs-lustre-client)-(.+)$/\2/p' \
+        | sort -V | tail -1 || true)
+fi
+if [[ -z "${LUSTRE_VERSION}" ]] && command -v rpm &>/dev/null; then
+    LUSTRE_VERSION=$(rpm -qa 'lustre-client*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
+        | grep -v '^1-1\.el' | head -1 || true)
 fi
 if [[ -z "${LUSTRE_VERSION}" ]] && command -v lfs &>/dev/null; then
     LUSTRE_VERSION=$(lfs --version 2>/dev/null | awk '{print $2}' || true)

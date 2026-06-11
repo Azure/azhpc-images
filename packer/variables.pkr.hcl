@@ -84,10 +84,10 @@ locals {
   )
 }
 
-variable "vm_size" {
+variable "target_vm_size" {
   type        = string
   description = "VM SKU to target for the image."
-  default     = env("GPU_SIZE_OPTION")
+  default     = env("TARGET_VM_SIZE")
 }
 
 variable "build_vm_size" {
@@ -106,6 +106,7 @@ locals {
     local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
     local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    local.target_vm_size == "ND144ISR_ETH_GB200_METAL_V6" ? "GB200F" :
     local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
@@ -494,16 +495,17 @@ variable "sig_replication_regions" {
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
   # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
-  first_party_sig_replication_regions = (
-    local.gpu_sku == "MI300X"
-      ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-      : local.gpu_sku == "NCv6"
-        ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
-        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-          ? ["southeastus5", "northeastus5" ,local.azure_location]
-            : local.gpu_sku == "GB200"
-            ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
-              : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+  _sig_replication_regions_map = {
+    "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
+    "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
+    "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
+    "GB200F"                 = ["southeastus5", "northeastus5"]
+  }
+  _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
+
+  first_party_sig_replication_regions = concat(
+    try(local._sig_replication_regions_map[local.gpu_sku], local._sig_replication_default),
+    [local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null
@@ -566,23 +568,27 @@ variable "azl3gb200_prebuilt_version" {
 }
 
 # =============================================================================
-# Target Image Variant Variables
+# Target Node Feature Variables
 # =============================================================================
 
-variable "target_image_variant" {
+variable "target_node_type" {
   type        = string
-  description = "Target image variant: regular, aks_host_image, or baremetal_image"
-  default     = env("TARGET_IMAGE_VARIANT")
+  description = "Target node type: regular, aks_host_image, or baremetal_image"
+  default     = env("TARGET_NODE_TYPE")
   validation {
-    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
-    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
+    condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", ""], var.target_node_type)
+    error_message = "Target_node_type must be one of: regular, aks_host_image, baremetal_image."
   }
 }
 locals {
-  target_image_variant = coalesce(var.target_image_variant, "regular")
-  aks_host_image = local.target_image_variant == "aks_host_image"
+  target_node_type = coalesce(var.target_node_type, "azure_vm_regular")
+  aks_host_image = local.target_node_type == "azure_vm_akshost"
   install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
   aks_test_flag = local.aks_host_image ? "-aks-host" : ""
+}
+
+locals {
+  nvidia_grace_arch = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
 }
 
 # =============================================================================

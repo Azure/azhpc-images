@@ -85,7 +85,8 @@ build {
       "GPU_SKU=${local.gpu_sku}",
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "NVIDIA_GRACE_ARCH=${local.nvidia_grace_arch}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"

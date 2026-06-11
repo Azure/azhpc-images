@@ -205,7 +205,7 @@ function set_vm_properties {
     fi
     # Append -baremetal suffix so the test matrix can have a separate entry
     # for baremetal nodes, distinct from Azure VM builds of the same distro.
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    if [[ "${NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
         export DISTRIBUTION="${DISTRIBUTION}-baremetal"
     fi
 }

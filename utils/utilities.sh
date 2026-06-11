@@ -4,7 +4,7 @@
 # @Args        : (1) #Component name
 # @RetVal       : json node value
 # Lookup hierarchy:
-#   1. component.distribution.architecture.<GPU_SKU>.<NODE_TYPE> (e.g., nvidia_gb200.baremetal)
+#   1. component.distribution.architecture.<GPU_SKU>.<TARGET_NODE_TYPE> (e.g., nvidia_gb200.baremetal)
 #   2. component.distribution.architecture.<GPU_SKU>.default
 #   3. component.distribution.architecture.<GPU_SKU> (legacy direct config, e.g., nvidia_v100)
 #   4. component.distribution.architecture
@@ -21,7 +21,7 @@ get_component_config(){
 
     if [[ -n "${GPU:-}" && -n "${SKU:-}" ]]; then
         sku_key=$(normalize_component_config_key "${GPU}_${SKU}")
-        node_type_key=$(normalize_component_config_key "${NODE_TYPE:-azure-vm}")
+        node_type_key=$(normalize_component_config_key "${TARGET_NODE_TYPE:-azure_vm_regular}")
 
         config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${sku_key}"'"."'"${node_type_key}"'"' <<< "${COMPONENT_VERSIONS}")
 

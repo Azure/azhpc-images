@@ -153,7 +153,7 @@ Restart=on-failure
 RestartSec=5
 EOF
 
-if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" ]]; then
     echo -e "\n# Load IPoIB\nIPOIB_LOAD=no" | sudo tee -a /etc/infiniband/openib.conf
 fi
 

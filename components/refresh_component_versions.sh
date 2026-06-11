@@ -513,7 +513,7 @@ write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
 # ---- Lustre ----
 # Prefer package-manager metadata to round-trip with install_lustre_client.sh:
 #   Ubuntu source build: dpkg ${Version} of lustre-client-utils
-#   Ubuntu repo:         amlfs-lustre-client-* ${Version}
+#   Ubuntu repo:         version-suffixed amlfs-lustre-client-dkms-* ${Version}
 #   RHEL:                amlfs-lustre-client-* / lustre-client*
 # `lfs --version` only returns the build's internal version (no Debian
 # revision); last-resort fallback only.
@@ -523,7 +523,7 @@ if command -v dpkg-query &>/dev/null; then
     # Build-from-source path installs lustre-client-utils.
     LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
         | head -1 | cut -d'~' -f1 || true)
-    # Repo path installs amlfs-lustre-client-<kernel-suffix>.
+    # Repo path installs version-suffixed amlfs-lustre-client-dkms-* packages.
     if [[ -z "${LUSTRE_VERSION}" ]]; then
         LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' 'amlfs-lustre-client-*' 2>/dev/null \
             | head -1 | cut -d'~' -f1 || true)

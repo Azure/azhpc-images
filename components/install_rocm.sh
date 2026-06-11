@@ -11,15 +11,15 @@ rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
 DEBPACKAGE=$(basename ${rocm_url})
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-   if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-      # ROCm 6.4 depends on mivisionx-dev which depends on libopencv-dev which depends on libopenmpi3t64 which depends on libucx0, which is a Ubuntu upstream UCX that
-      # is older than and conflicts with the ucx package installed by doca-ofed and has unknown IB support status.
-      # We install this marker package to indicate to the package manager that ucx provides libucx0 so that ROCm can be installed.
-      # TODO: make sure a UCX that actually has proper IB, GDR and ROCm support is being used
-      # See https://askubuntu.com/a/218294/595565
-      apt install -y equivs
-      ucx_version=$(dpkg -s ucx | grep Version | awk '{print $2}')
-      cat <<EOF > /tmp/ucx-provides-libucx0
+    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+        # ROCm 6.4 depends on mivisionx-dev which depends on libopencv-dev which depends on libopenmpi3t64 which depends on libucx0, which is a Ubuntu upstream UCX that
+        # is older than and conflicts with the ucx package installed by doca-ofed and has unknown IB support status.
+        # We install this marker package to indicate to the package manager that ucx provides libucx0 so that ROCm can be installed.
+        # TODO: make sure a UCX that actually has proper IB, GDR and ROCm support is being used
+        # See https://askubuntu.com/a/218294/595565
+        apt install -y equivs
+        ucx_version=$(dpkg -s ucx | grep Version | awk '{print $2}')
+        cat <<EOF > /tmp/ucx-provides-libucx0
 Section: misc
 Priority: optional
 Homepage: https://github.com/Azure/azhpc-images
@@ -32,55 +32,58 @@ Version: ${ucx_version}
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
 Description: marker package in Azure HPC Image to work around ROCm dependency issue
 EOF
-      equivs-build /tmp/ucx-provides-libucx0
-      dpkg -i ucx-provides-libucx0_${ucx_version}_all.deb
-      rm -f ucx-provides-libucx0_${ucx_version}_all.deb
-      rm -f /tmp/ucx-provides-libucx0
-   fi
-   download_and_verify ${rocm_url} ${rocm_sha256}
-   apt install -y ./${DEBPACKAGE}
-   amdgpu-install -y --usecase=graphics,rocm
-   apt install -y rocm-bandwidth-test
-   rm -f ./${DEBPACKAGE}
+        equivs-build /tmp/ucx-provides-libucx0
+        dpkg -i ucx-provides-libucx0_${ucx_version}_all.deb
+        rm -f ucx-provides-libucx0_${ucx_version}_all.deb
+        rm -f /tmp/ucx-provides-libucx0
+    fi
+    download_and_verify ${rocm_url} ${rocm_sha256}
+    apt install -y ./${DEBPACKAGE}
+    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+        apt update
+        apt install -y python3-setuptools python3-wheel
+        apt install -y amdgpu-dkms rocm
+        # ROCm bundles RCCL
+        write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
+    else
+        amdgpu-install -y --usecase=graphics,rocm
+    fi
+    apt install -y rocm-bandwidth-test
+    rm -f ./${DEBPACKAGE}
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-   tdnf install -y azurelinux-repos-amd
-   tdnf -y install kernel-drivers-gpu-$(uname -r)
-   tdnf -y install amdgpu amdgpu-firmware amdgpu-headers
+    tdnf install -y azurelinux-repos-amd
+    tdnf -y install kernel-drivers-gpu-$(uname -r)
+    tdnf -y install amdgpu amdgpu-firmware amdgpu-headers
 
-   # Add Azure Linux 3 ROCM repo file
-   cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
+    # Add Azure Linux 3 ROCM repo file
+    cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
 [amd_rocm]
 name="AMD ROCM packages repo for Azure Linux 3.0"
-baseurl=https://repo.radeon.com/.hidden/c5c79c1ea1d0aa6008ddbd29c3ea1523/rocm/azurelinux3/${rocm_version}/main/
+baseurl=https://repo.radeon.com/rocm/azurelinux3/${rocm_version}/main/
 enabled=1
 repo_gpgcheck=0
 gpgcheck=0
 sslverify=0
 EOF
 
-   tdnf repolist --refresh
-   tdnf install -y rocm-dev rocm-validation-suite rocm-bandwidth-test
-   tdnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validation-suite
-
-   #Add self to render and video groups so they can access gpus.
-   usermod -a -G render $(logname)
-   usermod -a -G video $(logname)
-
-   tdnf install -y rocm-bandwidth-test
+    tdnf repolist --refresh
+    tdnf install -y rocm-dev rocm-validation-suite rocm-bandwidth-test
+    tdnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validation-suite
+    tdnf install -y rocm-bandwidth-test
 fi
-write_component_version "ROCM" ${rocm_version}
 
 #Grant access to GPUs to all users via udev rules
 cat <<'EOF' > /etc/udev/rules.d/99-amdgpu-permissive.rules
 KERNEL=="kfd", MODE="0666"
 SUBSYSTEM=="drm", KERNEL=="renderD*", MODE="0666"
 EOF
-
 udevadm control --reload-rules && sudo udevadm trigger
 
+write_component_version "ROCM" ${rocm_version}
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-   echo blacklist amdgpu | tee -a /etc/modprobe.d/blacklist.conf
-   update-initramfs -c -k $(uname -r)
+    echo blacklist amdgpu | tee -a /etc/modprobe.d/blacklist.conf
+    update-initramfs -c -k $(uname -r)
 fi
 
 #1002:740c is Mi200

@@ -21,56 +21,24 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     DRL_URL=$(jq -r '.url' <<< $drl_metadata)
 
     ##########################################################################
-    # Install build dependencies, tracking newly installed packages
+    # Install build dependencies (kept after for debugging)
     ##########################################################################
-    NEWLY_INSTALLED_PKGS=()
-
-    pkg_is_installed() {
-        local pkg="$1"
-        if command -v dpkg-query &>/dev/null; then
-            dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed"
-        elif command -v rpm &>/dev/null; then
-            rpm -q "$pkg" &>/dev/null
-        fi
-    }
-
-    install_and_track() {
-        local manager="$1"
-        shift
-        local to_install=()
-        for pkg in "$@"; do
-            if pkg_is_installed "$pkg"; then
-                echo "Package '$pkg' is already installed, skipping"
-            else
-                to_install+=("$pkg")
-            fi
-        done
-        if [[ ${#to_install[@]} -gt 0 ]]; then
-            $manager install -y "${to_install[@]}"
-            NEWLY_INSTALLED_PKGS+=("${to_install[@]}")
-        fi
-    }
 
     if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-        install_and_track tdnf cmake cargo ninja-build build-essential
+        tdnf install -y cmake rust cargo ninja-build build-essential
     elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-        install_and_track apt-get cmake cargo ninja-build build-essential
-        install_and_track apt-get g++ pkg-config uuid-dev libssl-dev
+        apt-get install -y cmake rustc-1.82 cargo-1.82 ninja-build build-essential
+        apt-get install -y g++ pkg-config uuid-dev libssl-dev
+        export PATH="/usr/lib/rust-1.82/bin:$PATH"
     elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-        install_and_track yum cmake cargo ninja-build libuuid-devel gcc-toolset-12
+        yum install -y cmake rust cargo ninja-build libuuid-devel gcc-toolset-12
         if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
-            install_and_track yum openssl3-devel
+            yum install -y openssl3-devel
         else
-            install_and_track yum openssl-devel
+            yum install -y openssl-devel
         fi
         source /opt/rh/gcc-toolset-12/enable
     fi
-
-    export RUSTUP_HOME=/tmp/cargo-rust
-    export CARGO_HOME=/tmp/cargo-rust
-    export RUSTUP_INIT_SKIP_PATH_CHECK=yes
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    export PATH="$RUSTUP_HOME/bin:$PATH"
 
     ##########################################################################
     # Build and install dynolog
@@ -167,24 +135,6 @@ EOF
 
     systemctl daemon-reload
     systemctl enable dyno-relay-logger.service
-
-    ##########################################################################
-    # Remove build dependencies that were not originally installed
-    ##########################################################################
-    if [[ ${#NEWLY_INSTALLED_PKGS[@]} -gt 0 ]]; then
-        echo "Removing newly installed build dependencies: ${NEWLY_INSTALLED_PKGS[*]}"
-        if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-            tdnf remove -y "${NEWLY_INSTALLED_PKGS[@]}" || true
-        elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-            apt-get remove -y "${NEWLY_INSTALLED_PKGS[@]}" || true
-            apt-get autoremove -y || true
-        elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-            yum remove -y "${NEWLY_INSTALLED_PKGS[@]}" || true
-        fi
-    fi
-
-    # delete build tools
-    rm -rf $RUSTUP_HOME
 
     write_component_version "dynolog" ${DYNOLOG_VERSION}
     write_component_version "dyno_relay_logger" ${DRL_VERSION}

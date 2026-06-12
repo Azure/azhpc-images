@@ -7,7 +7,7 @@
 build {
   name    = "hpc_build"
   sources = ["source.azure-arm.hpc"]
-  
+
   provisioner "shell-local" {
     name           = "Tarball local public keys"
     inline_shebang = var.default_inline_shebang
@@ -24,7 +24,7 @@ build {
   provisioner "shell" {
     name           = "Install public keys into authorized_keys"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
       "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
       "[[ -n \"${var.public_key}\" ]] && echo \"${var.public_key}\" >> ~/.ssh/authorized_keys || true",
@@ -33,11 +33,33 @@ build {
     ]
   }
 
+  # Ubuntu 26.04 ships sudo-rs (Trifecta Tech Foundation's Rust rewrite) as
+  # the default for /usr/bin/sudo. sudo-rs deliberately does not implement
+  # bare `-E` / `--preserve-env` (upstream wontfix, sudo-rs#1299), and many
+  # of our provisioners and downstream scripts rely on `sudo -E` and on
+  # legacy sudoers semantics (env_keep, SETENV:). Both `sudo` (classic GNU)
+  # and `sudo-rs` are installed simultaneously on a stock 26.04 image: the
+  # `sudo` package ships /usr/bin/sudo.ws, sudo-rs ships /usr/bin/sudo-rs
+  # and a neutral-name copy at /usr/lib/cargo/bin/sudo, and /usr/bin/sudo
+  # itself is an update-alternatives symlink defaulting to sudo-rs. We flip
+  # the alternative back to classic GNU sudo.
+  provisioner "shell" {
+    name           = "(Ubuntu 26.04) Switch /usr/bin/sudo alternative to classic GNU sudo"
+    except         = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "sudo update-alternatives --display sudo || true",
+      "sudo update-alternatives --set sudo /usr/bin/sudo.ws",
+      "sudo --version | head -n1",
+      "sudo --version | grep -qiv 'sudo-rs'",
+    ]
+  }
+
   provisioner "shell-local" {
     name           = "(1P specific) add ip tags to public IP"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "set -o pipefail",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
@@ -48,7 +70,7 @@ build {
     name           = "(1P specific) download mdatp onboarding package"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
       "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -67,18 +89,110 @@ build {
     name           = "(1P specific) install mdatp with onboarding script"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
-      "set -o pipefail",
-      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
-      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
-      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    inline = [
+      <<-EOT
+        set -o pipefail
+
+        curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh -o /tmp/mde_installer.sh
+        chmod +x /tmp/mde_installer.sh
+
+        ubuntu_id=""
+        ubuntu_ver=""
+        if [[ -r /etc/os-release ]]; then
+          # shellcheck disable=SC1091
+          . /etc/os-release
+          ubuntu_id="$${ID:-}"
+          ubuntu_ver="$${VERSION_ID:-}"
+        fi
+
+        installer_args=(--install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod)
+
+        # Ubuntu 26.04 (resolute) workaround — strictly scoped to this provisioner.
+        #   - The PMC repo packages.microsoft.com/ubuntu/26.04/prod exists but does NOT
+        #     publish mdatp yet (only intune-portal / microsoft-identity-*). Meanwhile
+        #     mde_installer.sh's scale_version_id() falls back to 18.04 (bionic), which
+        #     is not a supported mix on 26.04, and its apt-key path fails (exit 127).
+        #   - We temporarily stage the 24.04 (noble) PMC repo with a dearmored key,
+        #     pin it to "mdatp only" via /etc/apt/preferences.d, then ALWAYS tear it
+        #     down (success or failure) so later provisioners and the final image see
+        #     a clean apt configuration.
+        #   - mde_installer.sh forbids combining --use-local-repo with --channel
+        #     (ERR_INVALID_ARGUMENTS, exit 2). When --channel is omitted alongside
+        #     --use-local-repo, install_on_debian falls into the `[ -z "$$CHANNEL" ]`
+        #     branch and runs a plain `apt -y install mdatp`, which is exactly what we
+        #     want — apt resolves mdatp from our pinned noble source (Pin-Priority 990).
+        if [[ "$${ubuntu_id}" == "ubuntu" && "$${ubuntu_ver}" == "26.04" ]]; then
+          echo "[mdatp] Ubuntu 26.04 detected; staging temporary noble PMC repo (mdatp-only pin)."
+
+          mdatp_keyring=/usr/share/keyrings/microsoft-prod-mdatp-noble.gpg
+          mdatp_sources=/etc/apt/sources.list.d/microsoft-prod-mdatp-noble.list
+          mdatp_prefs=/etc/apt/preferences.d/microsoft-prod-mdatp-noble.pref
+
+          cleanup_mdatp_repo() {
+            echo "[mdatp] Removing temporary noble PMC repo configuration."
+            sudo rm -f "$${mdatp_keyring}" "$${mdatp_sources}" "$${mdatp_prefs}"
+            # The mdatp .deb's own post-install drops a stale bionic (18.04) PMC
+            # sources file + key (mde_installer.sh's scale_version_id() maps any
+            # unknown Ubuntu to 18.04). Bionic's signing key is not in the noble /
+            # resolute keyring, so a later `apt-get update` fails with NO_PUBKEY
+            # EB3E94ADBE1229CF. Strip the known path plus any other file that
+            # references the bionic PMC repo. Use find -exec so missing files /
+            # empty globs don't trip pipefail.
+            sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+            sudo find /etc/apt/sources.list.d /etc/apt/sources.list \
+              -maxdepth 1 -type f \
+              \( -name '*.list' -o -name '*.sources' \) \
+              -exec grep -lE 'packages\.microsoft\.com/ubuntu/18\.04' {} + 2>/dev/null \
+              | xargs -r sudo rm -f || true
+            sudo apt-get update -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null 2>&1 || true
+            sudo apt-get update >/dev/null 2>&1 || true
+          }
+          trap cleanup_mdatp_repo EXIT
+
+          export DEBIAN_FRONTEND=noninteractive
+          sudo -E apt-get update
+          sudo -E apt-get install -y curl gnupg apt-transport-https ca-certificates
+
+          sudo install -m 0755 -d /usr/share/keyrings
+          curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
+            | sudo gpg --dearmor --yes -o "$${mdatp_keyring}"
+          sudo chmod 0644 "$${mdatp_keyring}"
+
+          arch="$(dpkg --print-architecture)"
+          echo "deb [arch=$${arch} signed-by=$${mdatp_keyring}] https://packages.microsoft.com/ubuntu/24.04/prod noble main" \
+            | sudo tee "$${mdatp_sources}" >/dev/null
+
+          # Hard pin: forbid noble PMC from supplying anything except mdatp itself,
+          # so an apt-get upgrade in a later step cannot pull noble versions of
+          # unrelated packages onto this 26.04 host.
+          printf '%s\n' \
+            'Package: *' \
+            'Pin: origin packages.microsoft.com' \
+            'Pin-Priority: -1' \
+            '' \
+            'Package: mdatp' \
+            'Pin: origin packages.microsoft.com' \
+            'Pin-Priority: 990' \
+            | sudo tee "$${mdatp_prefs}" >/dev/null
+
+          sudo -E apt-get update
+
+          # Drop `--channel prod` because it is rejected when paired with
+          # --use-local-repo. Prepend --use-local-repo for clarity.
+          installer_args=(--use-local-repo --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py)
+        fi
+
+        sudo bash /tmp/mde_installer.sh "$${installer_args[@]}"
+        sudo mdatp threat policy set --type potentially_unwanted_application --action off
+        rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py /tmp/mde_installer.sh
+      EOT
     ]
   }
-  
+
   provisioner "shell" {
-    name             = "Install prerequisites (LTS kernel, package updates)"
-    script           = "scripts/prerequisites.sh"
-    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    name            = "Install prerequisites (LTS kernel, package updates)"
+    script          = "scripts/prerequisites.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
@@ -86,7 +200,6 @@ build {
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
-      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
@@ -98,7 +211,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -106,7 +219,7 @@ build {
   provisioner "shell" {
     name           = "Clean up old kernels"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
     ]
   }
@@ -114,7 +227,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages prior to HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -124,10 +237,10 @@ build {
     name           = "download and extract Azure Linux prebuilts for GB200"
     except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
-        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
-        "mkdir -p ${path.root}/../prebuilt",
-        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
+    inline = [
+      "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "mkdir -p ${path.root}/../prebuilt",
+      "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }
 
@@ -135,7 +248,7 @@ build {
     name           = "(1P specific) download and extract GB200 prebuilts"
     except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -C ${path.root}/..",
     ]
@@ -144,13 +257,13 @@ build {
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p /home/${var.ssh_username}/azhpc-images"
     ]
   }
 
   provisioner "file" {
-    source      = "${path.root}/../" 
+    source      = "${path.root}/../"
     destination = "/home/${var.ssh_username}/azhpc-images"
   }
 
@@ -161,7 +274,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -171,10 +284,11 @@ build {
     except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
-    "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
-    "REFRESH_MODE=${local.refresh_mode}",
+      "KERNEL_VERSION=${local.kernel_version}",
+      "DEBIAN_FRONTEND=noninteractive",
+      "REFRESH_MODE=${local.refresh_mode}",
     ]
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }
@@ -186,7 +300,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "5m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -195,7 +309,7 @@ build {
     name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
     except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
@@ -214,7 +328,7 @@ build {
     name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
     except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
   }
@@ -222,7 +336,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages after HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -231,7 +345,7 @@ build {
   provisioner "shell-local" {
     name           = "create local directory for manifests"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p /tmp/image_manifests"
     ]
   }
@@ -239,7 +353,7 @@ build {
   provisioner "shell" {
     name           = "Display all image manifests in /opt/azurehpc for debugging purposes"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "cat /opt/azurehpc/trivy-report-rootfs.json",
       "cat /opt/azurehpc/trivy-cyclonedx-rootfs.json",
       "cat /opt/azurehpc/component_versions.txt"
@@ -266,14 +380,14 @@ build {
     source      = "/opt/azurehpc/component_versions.txt"
     destination = "/tmp/image_manifests/component-versions.json"
   }
-  
+
   provisioner "shell" {
     name              = "Reboot"
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "15m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -282,7 +396,7 @@ build {
     name           = "Run tests (post-reboot)"
     except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
     ]
   }
@@ -291,7 +405,7 @@ build {
     name            = "Run health checks"
     except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",
       "cat /opt/azurehpc/test/azurehpc-health-checks/health.log | grep --ignore-case 'Health checks completed with exit code: 0.'",
     ]
@@ -301,7 +415,7 @@ build {
   # Deprovision: Prepare VM for image capture
   # --------------------------------------------------------------------------
   provisioner "shell" {
-    name           = "Clear history and deprovision"
+    name = "Clear history and deprovision"
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     environment_vars = [
@@ -309,7 +423,7 @@ build {
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
-    ] : [
+      ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history.sh"
     ]
@@ -324,7 +438,7 @@ build {
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
-    ] : [
+      ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history_epilog.sh"
     ]
@@ -338,7 +452,7 @@ build {
       "[[ \"${local.retain_vm_always}\" == true && \"${local.skip_create_artifacts}\" == true ]] && exit 1 || true"
     ]
   }
-  
+
   error-cleanup-provisioner "shell-local" {
     inline_shebang = var.default_inline_shebang
     inline = [
@@ -370,7 +484,7 @@ build {
     strip_path = true
     custom_data = {
       managed_image_shared_image_gallery_id = local.create_image ? "/subscriptions/${var.sig_subscription_id != "" ? var.sig_subscription_id : build.SubscriptionID}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${local.image_version}" : "",
-      vhd_blob_name = local.create_vhd ? "${local.image_name}.vhd" : ""
+      vhd_blob_name                         = local.create_vhd ? "${local.image_name}.vhd" : ""
     }
   }
 }

@@ -42,6 +42,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     else
         # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
         # then upgrade all other pre-installed components.
+        # Note: KERNEL_VERSION is set by Packer (see packer/variables.pkr.hcl
+        # default_kernel_versions table); the :-6.8 below is just a fallback
+        # for direct install.sh invocations.
         if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
             apt-mark hold linux-azure-nvidia
         else

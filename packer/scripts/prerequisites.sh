@@ -110,18 +110,18 @@ install_ubuntu_gb200_kernel() {
 
     if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
         sudo apt-get install linux-azure-nvidia -y  
-        # Hold kernel version unless building Lustre from source or refreshing image in-place
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+        # Hold kernel version unless refreshing image in-place.
+        if [[ "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia
         fi
     elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
         sudo apt-get install linux-azure-nvidia-6.17 -y  
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+        if [[ "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia-6.17
         fi
     else #kernel 6.8
         sudo apt-get install linux-azure-nvidia-6.8 -y
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+        if [[ "${REFRESH_MODE,,}" != "true" ]]; then
             sudo apt-mark hold linux-azure-nvidia-6.8
         fi
     fi
@@ -150,8 +150,8 @@ install_ubuntu_gb200_kernel() {
     done
     
     # Configure GRUB for GB200
-    # Set GRUB saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+    # Set GRUB saved default unless refreshing image in-place.
+    if [[ "${REFRESH_MODE,,}" != "true" ]]; then
         sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     fi
 
@@ -209,8 +209,8 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
 
-    # Configure GRUB for saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+    # Configure GRUB for saved default unless refreshing image in-place.
+    if [[ "${REFRESH_MODE,,}" != "true" ]]; then
         sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
     fi
     
@@ -251,9 +251,8 @@ install_ubuntu_lts_kernel() {
             apt autoremove -y
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+            # Hold kernel and set GRUB default unless refreshing image in-place.
+            if [[ "${REFRESH_MODE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-${kernel_ver}
                 local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
                 grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
@@ -261,6 +260,30 @@ install_ubuntu_lts_kernel() {
             fi
             ;;
             
+        26.04)
+            apt update
+
+            # Ubuntu 26.04 (Resolute Raccoon) ships linux-azure-7.0 (kernel 7.0.0-*-azure)
+            # as the versioned Azure meta-package. Allow KERNEL_VERSION to override.
+            local kernel_ver="${KERNEL_VERSION:-7.0}"
+            echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 26.04"
+
+            apt install -y linux-azure-${kernel_ver}
+            apt-mark hold linux-azure-${kernel_ver}
+            # linux-modules-extra-azure-${kernel_ver} is not published for 7.0 in resolute;
+            # contents were folded into linux-modules-azure-${kernel_ver}. Install only if present.
+            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                apt install -y linux-modules-extra-azure-${kernel_ver}
+            else
+                echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+            fi
+
+            apt autoremove -y
+            apt upgrade -y
+
+            update-grub
+            ;;
+
         22.04)
             apt update
             apt install -y linux-azure-lts-22.04
@@ -274,9 +297,8 @@ install_ubuntu_lts_kernel() {
             
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
+            # Hold kernel and set GRUB default unless refreshing image in-place.
+            if [[ "${REFRESH_MODE,,}" != "true" ]]; then
                 apt-mark hold linux-azure-lts-22.04
                 local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
                 grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"

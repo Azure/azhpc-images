@@ -7,7 +7,7 @@
 build {
   name    = "hpc_build"
   sources = ["source.azure-arm.hpc"]
-  
+
   provisioner "shell-local" {
     name           = "Tarball local public keys"
     inline_shebang = var.default_inline_shebang
@@ -24,7 +24,7 @@ build {
   provisioner "shell" {
     name           = "Install public keys into authorized_keys"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
       "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
       "[[ -n \"${var.public_key}\" ]] && echo \"${var.public_key}\" >> ~/.ssh/authorized_keys || true",
@@ -59,7 +59,7 @@ build {
     name           = "(1P specific) add ip tags to public IP"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "set -o pipefail",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
@@ -70,7 +70,7 @@ build {
     name           = "(1P specific) download mdatp onboarding package"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
       "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -89,7 +89,7 @@ build {
     name           = "(1P specific) install mdatp with onboarding script"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       <<-EOT
         set -o pipefail
 
@@ -188,11 +188,11 @@ build {
       EOT
     ]
   }
-  
+
   provisioner "shell" {
-    name             = "Install prerequisites (LTS kernel, package updates)"
-    script           = "scripts/prerequisites.sh"
-    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    name            = "Install prerequisites (LTS kernel, package updates)"
+    script          = "scripts/prerequisites.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
@@ -200,7 +200,6 @@ build {
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
-      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
@@ -212,7 +211,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -220,7 +219,7 @@ build {
   provisioner "shell" {
     name           = "Clean up old kernels"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
     ]
   }
@@ -228,7 +227,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages prior to HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -238,10 +237,10 @@ build {
     name           = "download and extract Azure Linux prebuilts for GB200"
     except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
-        "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
-        "mkdir -p ${path.root}/../prebuilt",
-        "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
+    inline = [
+      "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "mkdir -p ${path.root}/../prebuilt",
+      "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
     ]
   }
 
@@ -249,7 +248,7 @@ build {
     name           = "(1P specific) download and extract GB200 prebuilts"
     except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -C ${path.root}/..",
     ]
@@ -258,13 +257,13 @@ build {
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p /home/${var.ssh_username}/azhpc-images"
     ]
   }
 
   provisioner "file" {
-    source      = "${path.root}/../" 
+    source      = "${path.root}/../"
     destination = "/home/${var.ssh_username}/azhpc-images"
   }
 
@@ -275,7 +274,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -287,10 +286,9 @@ build {
     environment_vars = [
       "KERNEL_VERSION=${local.kernel_version}",
       "DEBIAN_FRONTEND=noninteractive",
-      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
     ]
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }
@@ -302,7 +300,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "5m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -311,7 +309,7 @@ build {
     name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
     except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
@@ -330,7 +328,7 @@ build {
     name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
     except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
   }
@@ -338,7 +336,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages after HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -347,7 +345,7 @@ build {
   provisioner "shell-local" {
     name           = "create local directory for manifests"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p /tmp/image_manifests"
     ]
   }
@@ -355,7 +353,7 @@ build {
   provisioner "shell" {
     name           = "Display all image manifests in /opt/azurehpc for debugging purposes"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "cat /opt/azurehpc/trivy-report-rootfs.json",
       "cat /opt/azurehpc/trivy-cyclonedx-rootfs.json",
       "cat /opt/azurehpc/component_versions.txt"
@@ -382,14 +380,14 @@ build {
     source      = "/opt/azurehpc/component_versions.txt"
     destination = "/tmp/image_manifests/component-versions.json"
   }
-  
+
   provisioner "shell" {
     name              = "Reboot"
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "15m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -398,7 +396,7 @@ build {
     name           = "Run tests (post-reboot)"
     except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
     ]
   }
@@ -407,7 +405,7 @@ build {
     name            = "Run health checks"
     except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",
       "cat /opt/azurehpc/test/azurehpc-health-checks/health.log | grep --ignore-case 'Health checks completed with exit code: 0.'",
     ]
@@ -417,7 +415,7 @@ build {
   # Deprovision: Prepare VM for image capture
   # --------------------------------------------------------------------------
   provisioner "shell" {
-    name           = "Clear history and deprovision"
+    name = "Clear history and deprovision"
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     environment_vars = [
@@ -425,7 +423,7 @@ build {
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
-    ] : [
+      ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history.sh"
     ]
@@ -440,7 +438,7 @@ build {
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
-    ] : [
+      ] : [
       "cd /home/${var.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history_epilog.sh"
     ]
@@ -454,7 +452,7 @@ build {
       "[[ \"${local.retain_vm_always}\" == true && \"${local.skip_create_artifacts}\" == true ]] && exit 1 || true"
     ]
   }
-  
+
   error-cleanup-provisioner "shell-local" {
     inline_shebang = var.default_inline_shebang
     inline = [
@@ -486,7 +484,7 @@ build {
     strip_path = true
     custom_data = {
       managed_image_shared_image_gallery_id = local.create_image ? "/subscriptions/${var.sig_subscription_id != "" ? var.sig_subscription_id : build.SubscriptionID}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${local.image_version}" : "",
-      vhd_blob_name = local.create_vhd ? "${local.image_name}.vhd" : ""
+      vhd_blob_name                         = local.create_vhd ? "${local.image_name}.vhd" : ""
     }
   }
 }

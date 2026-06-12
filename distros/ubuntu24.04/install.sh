@@ -18,17 +18,14 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 source ../../utils/set_properties.sh
+source ${UTILS_DIR}/utilities.sh
 
 ./install_utils.sh
 
 if [ "$SKU" != "GB200" ]; then
     # update cmake
     $COMPONENT_DIR/install_cmake.sh
-
 fi
-
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
 
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
 if sku_has_infiniband; then
@@ -98,6 +95,9 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rccl.sh
 fi
 
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
+
 if [ "$ARCHITECTURE" == "x86_64" ]; then
 
     # install AMD libs
@@ -113,8 +113,12 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
-rm -rf /var/intel/ /var/cache/*
-rm -Rf -- */
+rm -rf /var/intel/
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
@@ -139,7 +143,8 @@ if [[ "$SKU" != "GB200" ]]; then
         $COMPONENT_DIR/install_health_checks.sh "$GPU"
     fi
 fi 
-
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

@@ -3,7 +3,7 @@ set -ex
 
 export TOP_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 export COMPONENT_DIR=$TOP_DIR/components
-export TEST_DIR=$TOP_DIR/tests
+export AZHPC_IMAGES_TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 
@@ -44,7 +44,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
         # then upgrade all other pre-installed components.
         if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
-            apt-mark hold linux-nvidia-64k-hwe-24.04
+            apt-mark hold linux-azure-nvidia
         else
             apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
         fi
@@ -74,3 +74,5 @@ fi
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/versions.json)
+
+source ${UTILS_DIR}/utilities.sh

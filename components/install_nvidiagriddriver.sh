@@ -40,8 +40,8 @@ dpkg -i ./cuda-keyring_1.1-1_all.deb
 apt-get update
 apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
 
-echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee /etc/profile.d/cuda.sh > /dev/null
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile.d/cuda.sh > /dev/null
+echo 'export PATH="${PATH:+$PATH:}/usr/local/cuda/bin"' | tee /etc/profile.d/cuda.sh > /dev/null
+echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/local/cuda/lib64"' | tee -a /etc/profile.d/cuda.sh > /dev/null
 chmod 644 /etc/profile.d/cuda.sh
 
 cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
@@ -52,4 +52,7 @@ $COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files
 rm -rf *.run *.tar.gz *.rpm
-rm -rf -- */
+(
+	shopt -s dotglob nullglob
+	rm -rf -- */ || true
+)

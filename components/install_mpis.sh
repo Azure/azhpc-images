@@ -57,7 +57,7 @@ cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
-    sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "ucx*"
 fi
 
 # Install MVAPICH
@@ -78,10 +78,17 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     # configure: error: The Fortran compiler gfortran will not compile files that call
     # the same routine with arguments of different types.
     mvapich_transport_args=""
+    # MVAPICH_TRANSPORT_LIB_PATH captures the lib dir of the transport (UCX or libfabric)
+    # that MVAPICH is linked against. It is surfaced via the modulefile so the dynamic
+    # linker finds the matching libucs/libuct/libucp (or libfabric) at runtime instead of
+    # the system DOCA-OFED copy from /etc/ld.so.cache, which has a different ABI when
+    # HPC-X is pinned to an older release (e.g. AMD GPU images on HPC-X 2.18).
     if sku_uses_ucx; then
         mvapich_transport_args="--with-ucx=${UCX_PATH}"
+        MVAPICH_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
     else
         mvapich_transport_args="--with-device=ch4:ofi --with-libfabric=${LIBFABRIC_PATH}"
+        MVAPICH_TRANSPORT_LIB_PATH="${LIBFABRIC_PATH}/lib"
     fi
     ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes ${mvapich_transport_args} && make -j$(nproc) && make install
     popd
@@ -104,11 +111,15 @@ if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
 else
     PMIX_FLAG="--with-pmix=${PMIX_PATH}"
 fi
+# OMPI_TRANSPORT_LIB_PATH: see MVAPICH_TRANSPORT_LIB_PATH above. Same rationale —
+# pin runtime UCX/libfabric to the install Open MPI was linked against.
 if sku_uses_ucx; then
     ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+    OMPI_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
 else
     # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
     ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --without-ucx --with-ofi=${LIBFABRIC_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default
+    OMPI_TRANSPORT_LIB_PATH="${LIBFABRIC_PATH}/lib"
 fi
 make -j$(nproc) 
 make install
@@ -117,7 +128,7 @@ write_component_version "OMPI" ${OMPI_VERSION}
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
-    sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
+    dnf_pin_packages "openmpi" "perftest"
 fi
 
 if [[ "$ARCHITECTURE" != "aarch64" ]]; then
@@ -200,7 +211,7 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
 #
 conflict        mpi
 prepend-path    PATH            /opt/mvapich-${MVAPICH_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/mvapich-${MVAPICH_VERSION}/lib
+prepend-path    LD_LIBRARY_PATH /opt/mvapich-${MVAPICH_VERSION}/lib:${MVAPICH_TRANSPORT_LIB_PATH}
 prepend-path    MANPATH         /opt/mvapich-${MVAPICH_VERSION}/share/man
 setenv          MPI_BIN         /opt/mvapich-${MVAPICH_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/mvapich-${MVAPICH_VERSION}/include
@@ -230,7 +241,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #
 conflict        mpi
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib
+prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_BIN         /opt/openmpi-${OMPI_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include
@@ -274,4 +285,7 @@ ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
-rm -rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- */ || true
+)

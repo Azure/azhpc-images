@@ -55,4 +55,7 @@ $RHEL_COMMON_DIR/install_nvidia_fabric_manager.sh
 
 # cleanup downloaded files
 rm -rf *.run *tar.gz *.rpm
-rm -rf -- */
+(
+	shopt -s dotglob nullglob
+	rm -rf -- */ || true
+)

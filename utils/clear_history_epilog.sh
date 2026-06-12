@@ -78,7 +78,10 @@ if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
 
     rm -f /etc/ssh/ssh_host_*
     rm -f ~/.ssh/authorized_keys
-    rm -rf /root/*
+    (
+        shopt -s dotglob nullglob
+        rm -rf -- /root/*
+    )
 
     # Disable root account
     usermod root -p '!!'
@@ -96,7 +99,10 @@ fi
 
 if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
     # Clear the sudoers.d folder - last user information
-    rm -rf /etc/sudoers.d/*
+    (
+        shopt -s dotglob nullglob
+        rm -rf -- /etc/sudoers.d/*
+    )
 fi
 
 # Delete /1 folder

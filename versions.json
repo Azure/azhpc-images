@@ -971,19 +971,14 @@
         }
     },
     "lustre": {
-        "common": {
-            "version": "2.15.6-39-g3e00a10"
-        },
         "almalinux8.10": {
             "x86_64": {
-                "version": "2.15.6-39-g3e00a10",
-                "build_from_source_version": "2.15.7"
+                "version": "2.15.8_35_gdf4872c"
             }
         },
         "almalinux9.8": {
             "x86_64": {
-                "version": "2.15.7_33_g79ddf99",
-                "build_from_source_version": "2.15.7"
+                "version": "2.15.8_35_gdf4872c"
             }
         },
         "ubuntu22.04": {
@@ -993,22 +988,20 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.16.1-22-g584eedc"
+                "version": "2.17.0-19-gbb5310f"
             },
             "x86_64": {
-                "version": "2.16.1-22-g584eedc"
+                "version": "2.17.0-19-gbb5310f"
             }
         },
         "rocky8.10": {
             "x86_64": {
-                "version": "2.15.6-39-g3e00a10",
-                "build_from_source_version": "2.15.7"
+                "version": "2.15.8_35_gdf4872c"
             }
         },
         "rocky9.8": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99",
-                "build_from_source_version": "2.15.7"
+                "version": "2.15.8_35_gdf4872c"
             }
         }
     },

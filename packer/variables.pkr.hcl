@@ -539,21 +539,9 @@ locals {
   azl_base_image_type = coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS")
 }
 
-variable "azl_prebuilt_version" {
-  type        = string
-  description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL_PREBUILT_VERSION")
-}
-
 # =============================================================================
 # GB200 Specific Variables
 # =============================================================================
-
-variable "gb200_internal_bits_version" {
-  type        = string
-  description = "Version for Ubuntu 24.04 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("U24GB200_INTERNALBITS_VERSION")
-}
 
 variable "gb200_partuuid" {
   type        = string
@@ -561,10 +549,20 @@ variable "gb200_partuuid" {
   default     = env("PARTUUID")
 }
 
-variable "azl3gb200_prebuilt_version" {
+# =============================================================================
+# Internal Bits Variables
+# =============================================================================
+
+variable "internal_bits_container_name" {
   type        = string
-  description = "Version for AzureLinux 3.0 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("AZL3GB200_PREBUILT_VERSION")
+  description = "Container name for internal bits (e.g., u24-gb200-internal)"
+  default     = env("INTERNAL_BITS_CONTAINER_NAME")
+}
+
+variable "internal_bits_blob_name" {
+  type        = string
+  description = "Blob name for internal bits (e.g., u24_gb200_internal_0.0.1)"
+  default     = env("INTERNAL_BITS_BLOB_NAME")
 }
 
 # =============================================================================

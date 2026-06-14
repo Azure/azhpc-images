@@ -93,6 +93,7 @@ source "azure-arm" "hpc" {
   os_type         = "Linux"
   vm_size         = local.build_vm_size
   os_disk_size_gb = 64
+  specialized     = local.target_node_type == "baremetal_1p" ? true : false
   
   # SSH Configuration
   communicator           = "ssh"

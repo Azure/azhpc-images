@@ -97,7 +97,7 @@ variable "build_vm_size" {
 }
 
 locals {
-  target_vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
+  target_vm_size = coalesce(var.target_vm_size, "Standard_ND96asr_v4")
   build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
@@ -181,8 +181,8 @@ variable "skip_validation" {
   default     = null
 }
 locals {
-  # Skip validation if build_vm_size is set and different from vm_size (usually meaning using a general-purpose SKU for the build VM)
-  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.vm_size)) || var.skip_hpc)
+  # Skip validation if build_vm_size is set and different from target_vm_size (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
+  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.target_vm_size)) || var.skip_hpc)
 }
 
 variable "public_key" {

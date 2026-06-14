@@ -142,17 +142,49 @@ build {
     ]
   }
 
+  provisioner "shell-local" {
+    name           = "(Baremetal 1P) Write credentials to temp file"
+    except         = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    environment_vars = [
+      "ADO_ACCESS_TOKEN=${var.ado_access_token}",
+      "BAREMETAL_1P_LOGIN_USER=${var.baremetal_1p_login_user}",
+      "BAREMETAL_1P_LOGIN_PASSWD=${var.baremetal_1p_login_passwd}",
+    ]
+    inline = [
+      "install -m 600 /dev/null /tmp/creds.env",
+      "printf 'ADO_ACCESS_TOKEN=%s\\nBAREMETAL_1P_LOGIN_USER=%s\\nBAREMETAL_1P_LOGIN_PASSWD=%s\\n' \"$ADO_ACCESS_TOKEN\" \"$BAREMETAL_1P_LOGIN_USER\" \"$BAREMETAL_1P_LOGIN_PASSWD\" > /tmp/creds.env",
+    ]
+  }
+
+  provisioner "file" {
+    name        = "(Baremetal 1P) Upload credentials"
+    except      = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
+    source      = "/tmp/creds.env"
+    destination = "/tmp/creds.env"
+    generated   = true
+  }
+
+  provisioner "shell-local" {
+    name           = "(Baremetal 1P) Clean up local credentials"
+    except         = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "shred -u /tmp/creds.env 2>/dev/null || rm -f /tmp/creds.env",
+    ]
+  }
+
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "mkdir -p /home/${var.ssh_username}/azhpc-images"
+      "mkdir -p /home/${local.ssh_username}/azhpc-images"
     ]
   }
 
   provisioner "file" {
     source      = "${path.root}/../" 
-    destination = "/home/${var.ssh_username}/azhpc-images"
+    destination = "/home/${local.ssh_username}/azhpc-images"
   }
 
   provisioner "shell" {
@@ -176,7 +208,8 @@ build {
     "REFRESH_MODE=${local.refresh_mode}",
     ]
     inline          = [
-      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
+      "[[ -f /tmp/creds.env ]] && source /tmp/creds.env || true",
+      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }
 
@@ -197,7 +230,7 @@ build {
     except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
-      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+      "cd /home/${local.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
 
@@ -216,7 +249,7 @@ build {
     except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
-      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
+      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
   }
 
@@ -311,7 +344,7 @@ build {
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
     ] : [
-      "cd /home/${var.ssh_username}/azhpc-images/utils",
+      "cd /home/${local.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history.sh"
     ]
   }
@@ -326,7 +359,7 @@ build {
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
     ] : [
-      "cd /home/${var.ssh_username}/azhpc-images/utils",
+      "cd /home/${local.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history_epilog.sh"
     ]
   }
@@ -352,7 +385,7 @@ build {
           --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" \
           --output tsv 2>/dev/null)
         if [[ -n "$PUBLIC_IP" ]]; then
-          echo "##[section]VM retained — SSH with: ssh ${var.ssh_username}@$PUBLIC_IP"
+          echo "##[section]VM retained — SSH with: ssh ${local.ssh_username}@$PUBLIC_IP"
         else
           echo "##[warning]Could not determine public IP for VMs in ${local.azure_resource_group}"
         fi

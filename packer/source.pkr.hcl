@@ -96,7 +96,7 @@ source "azure-arm" "hpc" {
   
   # SSH Configuration
   communicator           = "ssh"
-  ssh_username           = var.ssh_username
+  ssh_username           = local.ssh_username
   ssh_timeout            = "10m"
 
   polling_duration_timeout = "2h"

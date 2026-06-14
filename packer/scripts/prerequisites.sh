@@ -156,7 +156,7 @@ install_ubuntu_grace_kernel() {
     fi
 
     # Add GB200-specific kernel parameters
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_*" ]]; then
         sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     else
         echo "FW dma fix"

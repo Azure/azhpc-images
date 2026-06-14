@@ -127,7 +127,10 @@ locals {
 variable "ssh_username" {
   type        = string
   description = "SSH username for the build VM"
-  default     = "hpcuser"
+  default     = null
+}
+locals {
+  ssh_username = coalesce(var.ssh_username, local.target_node_type == "baremetal_1p" ? "azhpcuser" : "hpcuser")
 }
 
 variable "azure_resource_group" {
@@ -574,7 +577,7 @@ variable "target_node_type" {
   description = "Target node type: regular, aks_host_image, or baremetal_image"
   default     = env("TARGET_NODE_TYPE")
   validation {
-    condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", ""], var.target_node_type)
+    condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", "baremetal_3p", ""], var.target_node_type)
     error_message = "Target_node_type must be one of: regular, aks_host_image, baremetal_image."
   }
 }
@@ -587,6 +590,40 @@ locals {
 
 locals {
   nvidia_grace_arch = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
+}
+
+# =============================================================================
+# Credentials Variables
+# =============================================================================
+
+variable "ado_access_token" {
+  type        = string
+  description = "Access token for ADO Internal Repos"
+  default     = env("ADO_ACCESS_TOKEN")
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_user" {
+  type        = string
+  description = "First secret for baremetal_1p provisioning"
+  default     = env("BAREMETAL_1P_LOGIN_USER")
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_passwd" {
+  type        = string
+  description = "Second secret for baremetal_1p provisioning"
+  default     = env("BAREMETAL_1P_LOGIN_PASSWD")
+  sensitive   = true
+}
+
+locals {
+  _baremetal_1p_creds_valid = local.target_node_type != "baremetal_1p" || (
+    var.ado_access_token != null && var.ado_access_token != "" &&
+    var.baremetal_1p_login_user != null && var.baremetal_1p_login_user != "" &&
+    var.baremetal_1p_login_passwd != null && var.baremetal_1p_login_passwd != ""
+  )
+  _baremetal_1p_creds_check = local._baremetal_1p_creds_valid ? true : file("ERROR: Baremetal 1P build requires ADO_ACCESS_TOKEN, BAREMETAL_1P_LOGIN_USER, and BAREMETAL_1P_LOGIN_PASSWD environment variables")
 }
 
 # =============================================================================

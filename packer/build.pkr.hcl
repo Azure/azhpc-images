@@ -134,7 +134,7 @@ build {
 
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && (local.gpu_sku == "GB200" || local.gpu_sku == "GB200F")) ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200" ) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "az storage blob download -f /tmp/${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",

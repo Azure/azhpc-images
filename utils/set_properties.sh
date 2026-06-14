@@ -41,7 +41,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [[ "${TARGET_NODE_TYPE}" == "baremetal_3p" ]]; then
         # Baremetal: skip apt upgrade — the offline ISO installer cannot reach
         # online package mirrors; the base image is already validated.
-        echo "[set_properties.sh] Skipping apt update/upgrade on baremetal node"
+        echo "[set_properties.sh] Skipping apt update/upgrade on baremetal 3P node"
     else
         # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
         # then upgrade all other pre-installed components.

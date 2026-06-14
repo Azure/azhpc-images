@@ -105,8 +105,7 @@ locals {
   gpu_sku = (
     local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
-    local.target_vm_size == "ND144ISR_ETH_GB200_METAL_V6" ? "GB200F" :
+    contains(["Standard_ND128isr_NDR_GB200_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
     local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
@@ -589,7 +588,7 @@ locals {
 }
 
 locals {
-  nvidia_grace_arch = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
+  nvidia_grace_arch = startswith(local.gpu_sku, "GB") || startswith(local., "VR")
 }
 
 # =============================================================================
@@ -730,8 +729,9 @@ locals {
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
-    local.gpu_sku == "V100"  ? "V100-" :
-    local.gpu_sku == "GB200" ? "GB200-" :
+    local. == "V100"  ? "V100-" :
+    local.gpu_sku == "GB200" && startswith(local.target_node_type, "azure_vm_") ? "GB200-" :
+    local.gpu_sku == "GB200" && local.target_node_type == "baremetal_1p" ? "GB200F-" ::
     local.gpu_sku == "NCv6"  ? "NCv6-" :
     ""
   )

@@ -217,7 +217,7 @@ function verify_nccl_installation {
         standard_nd40rs_v2 | standard_nd96*v4 | standard_nc*ads_a100_v4) mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=tcp \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
@@ -228,7 +228,7 @@ function verify_nccl_installation {
         standard_nc80adis_h100_v5) mpirun -np 2 \
                 --allow-run-as-root \
                 --map-by ppr:2:node \
-                -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+                -x LD_LIBRARY_PATH \
                 -mca coll_hcoll_enable 0 \
                 -x UCX_TLS=tcp \
                 -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
@@ -244,7 +244,7 @@ function verify_nccl_installation {
         mpirun -np 4 \
             --allow-run-as-root \
             --map-by ppr:4:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=rc \
             -x UCX_IB_GID_INDEX=0 \

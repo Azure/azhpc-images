@@ -68,6 +68,11 @@ if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
     UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
 fi
 
+cat > /etc/ld.so.conf.d/hpcx-ucx.conf <<EOF
+${UCX_PATH}/lib
+EOF
+ldconfig
+
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
     dnf_pin_packages "ucx*"

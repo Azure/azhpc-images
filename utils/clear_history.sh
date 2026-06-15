@@ -135,7 +135,10 @@ if command -v journalctl >/dev/null 2>&1; then
     journalctl --vacuum-time=1s --vacuum-size=1M 2>/dev/null || true
 fi
 # Remove journald persistent logs
-rm -rf /var/log/journal/* 2>/dev/null || true
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/log/journal/* 2>/dev/null || true
+)
 # Delete sensitive log files
 rm -rf /var/log/audit/audit.log /var/log/secure /var/log/messages /var/log/auth.log /var/log/syslog
 # Delete AzurePolicyforLinux related files
@@ -150,13 +153,19 @@ find /var/log -type f \( -name "*.log" -o -name "*.log.*" -o -name "*.gz" -o -re
 
 rm -rf /var/lib/systemd/random-seed 
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+)
 rm -rf /var/lib/hyperv/.kvp_pool_0
 rm -f /etc/*-
 rm -rf /tmp/ssh-* /tmp/yum* /tmp/tmp* /tmp/*.log* /tmp/*tenant* /tmp/*.gz
 rm -rf /tmp/nvidia* /tmp/MLNX* /tmp/ofed.conf /tmp/dkms* /tmp/*mlnx*
 cloud-init clean --logs
-rm -rf /var/lib/cloud/instances/* || true
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/lib/cloud/instances/* || true
+)
 rm -rf /run/cloud-init
 rm -rf /usr/tmp/dnf*
 # rm -rf /etc/sudoers.d/*

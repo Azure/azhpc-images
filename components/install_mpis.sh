@@ -285,4 +285,7 @@ ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES
 ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
-rm -rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- */ || true
+)

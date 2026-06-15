@@ -187,6 +187,13 @@ build {
     destination = "/home/${local.ssh_username}/azhpc-images"
   }
 
+  provisioner "file" {
+    name        = "(Baremetal 1P) Upload baremetal overlay files"
+    except      = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
+    source      = "${path.root}/../../baremetal/"
+    destination = "/home/${local.ssh_username}/azhpc-images"
+  }
+
   provisioner "shell" {
     name              = "Reboot"
     except            = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []

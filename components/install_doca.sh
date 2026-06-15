@@ -46,7 +46,7 @@ PIN
     # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
     # already-installed Canonical Open MPI is removed when the marker is installed.
     # We deliberately do not touch `libopenmpi3` at all: on AMD/ROCm builds,
-    # `libopenmpi3t64` is already installed (indirect dep of mivisionx-dev) and
+    # `libopenmpi3t64` is installed later as an indirect dep of mivisionx-dev and
     # provides it. Same pattern as ucx-provides-libucx0 in install_rocm.sh.
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')

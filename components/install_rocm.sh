@@ -15,7 +15,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # ROCm 6.4 depends on mivisionx-dev which depends on libopencv-dev which depends on libopenmpi3t64 which depends on libucx0, which is a Ubuntu upstream UCX that
         # is older than and conflicts with the ucx package installed by doca-ofed and has unknown IB support status.
         # We install this marker package to indicate to the package manager that ucx provides libucx0 so that ROCm can be installed.
-        # TODO: make sure a UCX that actually has proper IB, GDR and ROCm support is being used
+        # install_mpis.sh later rebuilds HPC-X UCX with ROCm support and uses that UCX for MPI builds.
         # See https://askubuntu.com/a/218294/595565
         apt install -y equivs
         ucx_version=$(dpkg -s ucx | grep Version | awk '{print $2}')

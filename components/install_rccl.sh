@@ -62,8 +62,8 @@ echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 # Build rccl-tests from the modern home in ROCm/rocm-systems using its CMake
 # build system. This supersedes the legacy ROCmSoftwarePlatform/rccl-tests
 # Makefile flow and handles hipify automatically for all distros.
-source /opt/hpcx*/hpcx-init.sh
-hpcx_load
+source /etc/profile.d/modules.sh
+module load mpi/hpcx
 
 if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
     # RCCL ships via ROCm distro packages and lives in /opt/rocm
@@ -101,6 +101,7 @@ popd  # build
 popd  # projects/rccl-tests
 popd  # rocm-systems
 rm -rf rocm-systems
+module unload mpi/hpcx
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y libpci-dev

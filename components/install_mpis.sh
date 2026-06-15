@@ -40,20 +40,33 @@ UCX_PATH=${HPCX_PATH}/ucx
 LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
+HPCX_REBUILD_UCX_ARGS=()
+if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
+    if [[ ! -d /opt/rocm ]]; then
+        echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
+        exit 1
+    fi
+    HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
+fi
+
 # rebuild HPCX with PMIx
 # Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
 # conflicts with the Mellanox OpenMPI package on Nebius nodes.
 # Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
 if [[ $DISTRIBUTION == "azurelinux3.0" || "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 elif ! sku_uses_ucx; then
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+
+if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
+    UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+fi
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
@@ -152,15 +165,12 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# On IB SKUs, mpi/hpcx points to NVIDIA's original pre-built binary while
-# mpi/hpcx-pmix points to our local rebuild (with PMIx added).
-# On non-UCX SKUs (e.g. NCv6), the original binary is broken and only the rebuild (built
-# --without-ucx --with-ofi) works, so both modules point to it.
-if sku_uses_ucx; then
-    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
-    HPCX_NON_UCX_EXTRAS=""
-else
-    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+# mpi/hpcx is the public HPC-X entrypoint. Always route it through our rebuilt
+# HPC-X so customers and validation use the same stack we rebuilt above (PMIx,
+# non-UCX OFI, and ROCm-enabled UCX where applicable).
+HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+HPCX_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
     # On non-UCX SKUs:
     # - Force PML cm (MTL-based) instead of ob1 (BTL-based). ob1 auto-selects BTL openib
     #   which initializes against rdma-core but can't move data on MANA-only hardware, causing hangs.

@@ -40,16 +40,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # online package mirrors; the base image is already validated.
         echo "[set_properties.sh] Skipping apt update/upgrade on baremetal node"
     else
-        # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
-        # then upgrade all other pre-installed components.
-        # Note: KERNEL_VERSION is set by Packer (see packer/variables.pkr.hcl
-        # default_kernel_versions table); the :-6.8 below is just a fallback
-        # for direct install.sh invocations.
-        if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
-            apt-mark hold linux-azure-nvidia
-        else
-            apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
-        fi
+        # Azure VM: upgrade pre-installed components.
         apt update
         apt upgrade -y
     fi

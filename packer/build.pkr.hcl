@@ -90,102 +90,29 @@ build {
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline = [
-      <<-EOT
+      <<-EOF
         set -o pipefail
 
         curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh -o /tmp/mde_installer.sh
         chmod +x /tmp/mde_installer.sh
 
-        ubuntu_id=""
-        ubuntu_ver=""
+        installer_channel=prod
         if [[ -r /etc/os-release ]]; then
           # shellcheck disable=SC1091
           . /etc/os-release
-          ubuntu_id="$${ID:-}"
-          ubuntu_ver="$${VERSION_ID:-}"
+          if [[ "$${ID:-}" == "ubuntu" && "$${VERSION_ID:-}" == "26.04" ]]; then
+            echo "[mdatp] Ubuntu 26.04 detected; patching mde_installer.sh and using insiders-fast channel."
+            sed -i 's#\^(20\.04|22\.04|24\.04)\$#^(20.04|22.04|24.04|26.04)$#' /tmp/mde_installer.sh
+            sed -i 's#if { \[ "$DISTRO" = "ubuntu" \] && \[ "$VERSION" = "24.04" \]; }#if { [ "$DISTRO" = "ubuntu" ] \&\& [[ "$VERSION" =~ ^(24.04|26.04)$ ]]; }#' /tmp/mde_installer.sh
+            sed -i 's#\[\[ $VERSION != "24\.04" \]\]; then#[[ $VERSION != "24.04" ]] \&\& [[ $VERSION != "26.04" ]]; then#' /tmp/mde_installer.sh
+            installer_channel=insiders-fast
+          fi
         fi
 
-        installer_args=(--install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod)
-
-        # Ubuntu 26.04 (resolute) workaround — strictly scoped to this provisioner.
-        #   - The PMC repo packages.microsoft.com/ubuntu/26.04/prod exists but does NOT
-        #     publish mdatp yet (only intune-portal / microsoft-identity-*). Meanwhile
-        #     mde_installer.sh's scale_version_id() falls back to 18.04 (bionic), which
-        #     is not a supported mix on 26.04, and its apt-key path fails (exit 127).
-        #   - We temporarily stage the 24.04 (noble) PMC repo with a dearmored key,
-        #     pin it to "mdatp only" via /etc/apt/preferences.d, then ALWAYS tear it
-        #     down (success or failure) so later provisioners and the final image see
-        #     a clean apt configuration.
-        #   - mde_installer.sh forbids combining --use-local-repo with --channel
-        #     (ERR_INVALID_ARGUMENTS, exit 2). When --channel is omitted alongside
-        #     --use-local-repo, install_on_debian falls into the `[ -z "$$CHANNEL" ]`
-        #     branch and runs a plain `apt -y install mdatp`, which is exactly what we
-        #     want — apt resolves mdatp from our pinned noble source (Pin-Priority 990).
-        if [[ "$${ubuntu_id}" == "ubuntu" && "$${ubuntu_ver}" == "26.04" ]]; then
-          echo "[mdatp] Ubuntu 26.04 detected; staging temporary noble PMC repo (mdatp-only pin)."
-
-          mdatp_keyring=/usr/share/keyrings/microsoft-prod-mdatp-noble.gpg
-          mdatp_sources=/etc/apt/sources.list.d/microsoft-prod-mdatp-noble.list
-          mdatp_prefs=/etc/apt/preferences.d/microsoft-prod-mdatp-noble.pref
-
-          cleanup_mdatp_repo() {
-            echo "[mdatp] Removing temporary noble PMC repo configuration."
-            sudo rm -f "$${mdatp_keyring}" "$${mdatp_sources}" "$${mdatp_prefs}"
-            # The mdatp .deb's own post-install drops a stale bionic (18.04) PMC
-            # sources file + key (mde_installer.sh's scale_version_id() maps any
-            # unknown Ubuntu to 18.04). Bionic's signing key is not in the noble /
-            # resolute keyring, so a later `apt-get update` fails with NO_PUBKEY
-            # EB3E94ADBE1229CF. Strip the known path plus any other file that
-            # references the bionic PMC repo. Use find -exec so missing files /
-            # empty globs don't trip pipefail.
-            sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
-            sudo find /etc/apt/sources.list.d /etc/apt/sources.list \
-              -maxdepth 1 -type f \
-              \( -name '*.list' -o -name '*.sources' \) \
-              -exec grep -lE 'packages\.microsoft\.com/ubuntu/18\.04' {} + 2>/dev/null \
-              | xargs -r sudo rm -f || true
-            sudo apt-get update -o Dir::Etc::sourceparts=- -o APT::Get::List-Cleanup=0 >/dev/null 2>&1 || true
-            sudo apt-get update >/dev/null 2>&1 || true
-          }
-          trap cleanup_mdatp_repo EXIT
-
-          export DEBIAN_FRONTEND=noninteractive
-          sudo -E apt-get update
-          sudo -E apt-get install -y curl gnupg apt-transport-https ca-certificates
-
-          sudo install -m 0755 -d /usr/share/keyrings
-          curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
-            | sudo gpg --dearmor --yes -o "$${mdatp_keyring}"
-          sudo chmod 0644 "$${mdatp_keyring}"
-
-          arch="$(dpkg --print-architecture)"
-          echo "deb [arch=$${arch} signed-by=$${mdatp_keyring}] https://packages.microsoft.com/ubuntu/24.04/prod noble main" \
-            | sudo tee "$${mdatp_sources}" >/dev/null
-
-          # Hard pin: forbid noble PMC from supplying anything except mdatp itself,
-          # so an apt-get upgrade in a later step cannot pull noble versions of
-          # unrelated packages onto this 26.04 host.
-          printf '%s\n' \
-            'Package: *' \
-            'Pin: origin packages.microsoft.com' \
-            'Pin-Priority: -1' \
-            '' \
-            'Package: mdatp' \
-            'Pin: origin packages.microsoft.com' \
-            'Pin-Priority: 990' \
-            | sudo tee "$${mdatp_prefs}" >/dev/null
-
-          sudo -E apt-get update
-
-          # Drop `--channel prod` because it is rejected when paired with
-          # --use-local-repo. Prepend --use-local-repo for clarity.
-          installer_args=(--use-local-repo --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py)
-        fi
-
-        sudo bash /tmp/mde_installer.sh "$${installer_args[@]}"
+        sudo bash /tmp/mde_installer.sh --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel "$${installer_channel}"
         sudo mdatp threat policy set --type potentially_unwanted_application --action off
         rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py /tmp/mde_installer.sh
-      EOT
+      EOF
     ]
   }
 
@@ -283,11 +210,6 @@ build {
     name            = "Install HPC components"
     except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    environment_vars = [
-      "KERNEL_VERSION=${local.kernel_version}",
-      "DEBIAN_FRONTEND=noninteractive",
-      "REFRESH_MODE=${local.refresh_mode}",
-    ]
     inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]

@@ -45,9 +45,6 @@ PIN
     # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
     # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
     # already-installed Canonical Open MPI is removed when the marker is installed.
-    # We deliberately do not touch `libopenmpi3` at all: on AMD/ROCm builds,
-    # `libopenmpi3t64` is installed later as an indirect dep of mivisionx-dev and
-    # provides it. Same pattern as ucx-provides-libucx0 in install_rocm.sh.
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$openmpi_version" ]]; then
@@ -79,6 +76,41 @@ EOF
         dpkg -i /tmp/hpcx-provides-openmpi_*_all.deb
     )
     rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
+
+    # Install a marker package telling apt that HPC-X provides UCX. This blocks
+    # doca-ofed from installing the DOCA-bundled `ucx` package and blocks Ubuntu
+    # from installing `libucx0`, while still satisfying later ROCm dependencies
+    # that arrive via:
+    #   mivisionx-dev -> libopencv-dev -> libopenmpi3t64 -> libucx0 (>= 1.15.0)
+    # HPC-X is installed later by install_mpis.sh; on AMD builds, install_mpis.sh
+    # rebuilds HPC-X UCX with ROCm support and uses that UCX for MPI builds.
+    ucx_version=$(apt-cache show ucx 2>/dev/null | awk '/^Version:/ {print $2; exit}')
+    if [[ -z "$ucx_version" ]]; then
+        echo "ERROR: could not read ucx version from DOCA repo" >&2
+        exit 1
+    fi
+    cat > /tmp/hpcx-provides-ucx <<EOF
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: hpcx-provides-ucx
+Provides: ucx (= ${ucx_version}), libucx0
+Version: ${ucx_version}
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package to indicate that HPC-X provides UCX
+ HPC-X (installed by install_mpis.sh into /opt) provides UCX at runtime,
+ so the DOCA-bundled ucx package and Ubuntu's libucx0 package are redundant.
+ On AMD builds, install_mpis.sh rebuilds HPC-X UCX with ROCm support before
+ ROCm components use it.
+EOF
+    (
+        cd /tmp
+        equivs-build /tmp/hpcx-provides-ucx
+        dpkg -i /tmp/hpcx-provides-ucx_*_all.deb
+    )
+    rm -f /tmp/hpcx-provides-ucx_*_all.deb /tmp/hpcx-provides-ucx
 
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

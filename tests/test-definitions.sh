@@ -73,7 +73,7 @@ function verify_ib_device_status {
     lspci | grep "Infiniband controller\|Network controller"
     check_exit_code "IB device is listed" "IB device not found"
 
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
         # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
         ibstatus | grep "LinkUp"
         check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
@@ -355,23 +355,13 @@ function verify_dnf_conf {
 function verify_package_updates {
     case ${ID} in
         ubuntu)
-            if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
+            # TODO: re-enable upgrade count check after pinning
+            # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+            # [[ "$num_upgradable" -eq 0 ]]
+            if [[ "${VERSION_ID}" != "22.04" ]]; then
                 sudo apt -s upgrade 2> /dev/null
-                # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-                # [[ "$num_upgradable" -eq 0 ]];;
-                # TODO: re-enable check after pinning
-                true
-            else
-                case ${VERSION_ID} in
-                    22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
-                    *)
-                        sudo apt -s upgrade 2> /dev/null
-                        # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-                        # [[ "$num_upgradable" -eq 0 ]];;
-                        # TODO: re-enable check after pinning
-                        true;;
-                esac
             fi
+            true
             ;;   
         azurelinux) true;;
         *)
@@ -434,7 +424,7 @@ function verify_ib_modules_and_devices {
     # Check if all key IB modules are inserted.
     # ib_ipoib is not loaded on baremetal nodes (IPoIB is not used).
     local ib_modules
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
         ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
     else
         ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
@@ -445,7 +435,7 @@ function verify_ib_modules_and_devices {
     done
 
     # Check if ib devices are listed
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
         # On baremetal GB200/GB300, IPoIB is not used
         ! (ip addr | grep ib)
         check_exit_code "IPoIB not present as expected" "IPoIB unexpectedly present!"

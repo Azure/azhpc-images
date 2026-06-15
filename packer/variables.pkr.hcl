@@ -582,9 +582,7 @@ variable "target_node_type" {
 }
 locals {
   target_node_type = coalesce(var.target_node_type, "azure_vm_regular")
-  aks_host_image = local.target_node_type == "azure_vm_akshost"
   install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
 }
 
 locals {

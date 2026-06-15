@@ -83,10 +83,10 @@ build {
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "NVIDIA_GRACE_ARCH=${local.nvidia_grace_arch}",      
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "TARGET_NODE_TYPE=${local.target_node_type}",
-      "NVIDIA_GRACE_ARCH=${local.nvidia_grace_arch}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
@@ -316,8 +316,11 @@ build {
     name           = "Run tests (post-reboot)"
     except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
+    environment_vars = [
+      "TARGET_NODE_TYPE=${local.target_node_type}"
+    ]
     inline         = [
-      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
+      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform}"
     ]
   }
 

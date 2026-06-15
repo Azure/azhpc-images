@@ -45,6 +45,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     else
         # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
         # then upgrade all other pre-installed components.
+        # Kept for legacy image build workflow
         if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
             apt-mark hold linux-azure-nvidia
         else

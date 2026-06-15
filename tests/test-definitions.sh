@@ -129,8 +129,7 @@ function verify_mvapich2_installation {
         # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
         mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
     else
-        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
-        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
+        mpiexec -np 2 -ppn 2 ${mvapich_omb_path}/osu_latency
     fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
@@ -139,12 +138,8 @@ function verify_mvapich2_installation {
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
 
-    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
-    local fi_provider="mlx"
-    if ! has_infiniband; then fi_provider="tcp"; fi
-    
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }

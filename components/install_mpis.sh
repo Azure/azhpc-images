@@ -196,11 +196,13 @@ EOF
 
 # MVAPICH
 # On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
-# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks).
+# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks)
+# and disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes).
 MVAPICH_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
     read -r -d '' MVAPICH_NON_UCX_EXTRAS << 'EXTRAS' || true
 setenv          FI_PROVIDER tcp
+setenv          MPIR_CVAR_CH4_CMA_ENABLE 0
 EXTRAS
 fi
 if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
@@ -253,6 +255,11 @@ EOF
 
 #IntelMPI-v2021
 if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+    IMPI_FI_PROVIDER="mlx"
+    if ! sku_has_infiniband; then
+        IMPI_FI_PROVIDER="tcp"
+    fi
+
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
@@ -265,6 +272,7 @@ setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/inclu
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
 setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share/man
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
+setenv          FI_PROVIDER     ${IMPI_FI_PROVIDER}
 EOF
 
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021

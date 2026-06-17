@@ -212,7 +212,6 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
-    "KERNEL_VERSION=${local.kernel_version}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     ]

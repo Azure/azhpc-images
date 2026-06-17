@@ -19,9 +19,6 @@ fi
 
 source ../../utils/set_properties.sh
 
-# modify distribution for AKS Host Image
-export DISTRIBUTION=${DISTRIBUTION}-aks
-
 ./install_utils_aks.sh
 
 # install DOCA OFED

@@ -573,11 +573,11 @@ variable "internal_bits_blob_name" {
 
 variable "target_node_type" {
   type        = string
-  description = "Target node type: regular, aks_host_image, or baremetal_image"
+  description = "Target node type: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p"
   default     = env("TARGET_NODE_TYPE")
   validation {
     condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", "baremetal_3p", ""], var.target_node_type)
-    error_message = "Target_node_type must be one of: regular, aks_host_image, baremetal_image."
+    error_message = "Target_node_type must be one of: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p."
   }
 }
 locals {

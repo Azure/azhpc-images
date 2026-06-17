@@ -8,8 +8,8 @@ GDRCOPY_VERSION=$(jq -r '.version' <<< $gdrcopy_metadata)
 GDRCOPY_COMMIT=$(jq -r '.commit' <<< $gdrcopy_metadata)
 GDRCOPY_DISTRIBUTION=$(jq -r '.distribution' <<< $gdrcopy_metadata)
 
-if [[ "$DISTRIBUTION" == *-aks ]]; then 
-    if [[ "$DISTRIBUTION" == ubuntu2*-aks ]]; then
+if [[ "$TARGET_NODE_TYPE" == "azure_vm_akshost" ]]; then 
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # Install gdrcopy
         apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config dkms
 

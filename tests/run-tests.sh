@@ -166,9 +166,27 @@ function set_test_matrix {
     # SKU_FAMILY is already derived by set_vm_properties; default to "common".
     local sku="${SKU_FAMILY:-common}"
     local node_type="${TARGET_NODE_TYPE:-azure_vm_regular}"
-    # Look up: distribution -> sku -> node_type (with azure_vm_regular as default fallback)
+    # Look up: distribution -> sku.
+    # If sku exists: node_type -> direct components matrix -> empty.
+    # If sku does not exist: fallback to common.
     export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" --arg n "$node_type" \
-        '(.[$d] // empty) | (.[$s] // empty) | (if type == "object" and has("components") then . elif type == "object" then (.[$n] // .["azure_vm_regular"] // empty) else empty end)' <<< "$test_matrix_file")
+        '
+        (.[$d] // empty)
+        | if type == "object" then
+            if has($s) then
+                .[$s]
+                | if type == "object" then
+                    if has($n) then .[$n]
+                    elif has("components") then .
+                    else empty
+                    end
+                  else empty
+                  end
+              else (.["common"] // empty)
+              end
+          else empty
+          end
+        ' <<< "$test_matrix_file")
 
     if [[ -z "$TEST_MATRIX" ]]; then
         echo "*****No test matrix found for distribution=$DISTRIBUTION sku=$sku node_type=$node_type!*****"

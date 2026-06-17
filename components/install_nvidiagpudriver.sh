@@ -125,7 +125,7 @@ if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
     echo "options nvidia NVreg_GrdmaPciTopoCheckOverride=1" >> /etc/modprobe.d/nvidia.conf
 fi
 
-if [[ "$DISTRIBUTION" != *-aks ]]; then
+if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
     # Install CUDA toolkit
     CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
     CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)

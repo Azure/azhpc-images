@@ -141,7 +141,7 @@ function sku_network_mode {
     elif _is_mrc_network; then
         echo "mrc"
     else
-        echo "ib"
+        echo "standard_ib"
     fi
 }
 

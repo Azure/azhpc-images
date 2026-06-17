@@ -17,7 +17,9 @@ NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 # Install NCCL
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y build-essential devscripts debhelper fakeroot
-    apt install -y zlib1g-dev libibverbs-dev  
+    # Comment the installation of libibverbs-dev to avoid conflicts on builds for bare metal 1P nodes
+    # For VM it has been installed via the install_utils.sh or install_doca.sh
+    apt install -y zlib1g-dev # libibverbs-dev 
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rpm-build rpmdevtools autoconf automake git libtool
 else
@@ -63,7 +65,7 @@ fi
 popd
 
 # Install the nccl rdma sharp plugin. Skip for non-IB SKUs (no DOCA-OFED, no SHARP, no GPUDirect RDMA)
-if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
+if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
     mkdir -p /usr/local/nccl-rdma-sharp-plugins
     git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins

@@ -171,7 +171,7 @@ fi
 
 $COMPONENT_DIR/install_gdrcopy.sh
 
-if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+if [[ "${HAS_NVLINK_SWITCH_TRAY:-false}" != "true" ]]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else

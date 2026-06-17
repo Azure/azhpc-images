@@ -94,7 +94,7 @@ configure_gb200_partuuid() {
 # @Brief        : Install NVIDIA Grace-aware kernel for Ubuntu 24.04
 # @RetVal       : 0 on success
 ####
-install_ubuntu_grace_kernel() {
+install_ubuntu_nvidia_kernel() {
     echo "##[section]Installing NVIDIA Grace-aware kernel for Ubuntu 24.04"
     
     export NEEDRESTART_MODE=a
@@ -175,7 +175,7 @@ EOF
     
     update-grub
     
-    echo "NVIDIA Grace-aware kernel installation complete"
+    echo "NVIDIA kernel installation complete"
 }
 
 ####
@@ -208,8 +208,8 @@ install_ubuntu_lts_kernel() {
     local gpu_sku="${GPU_SKU}"
     
     # GB200 uses a special nvidia kernel, not LTS
-    if [[ "${NVIDIA_GRACE_ARCH}" == "true" ]]; then
-        install_ubuntu_grace_kernel
+    if [[ "${HAS_NVLINK_SWITCH_TRAY}" == "true" ]]; then
+        install_ubuntu_nvidia_kernel
         return $?
     fi
     

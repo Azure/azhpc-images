@@ -84,7 +84,7 @@ build {
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "TARGET_NODE_TYPE=${local.target_node_type}",
-      "NVIDIA_GRACE_ARCH=${local.nvidia_grace_arch}",      
+      "HAS_NVLINK_SWITCH_TRAY=${local.has_nvlink_switch_tray}",
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
@@ -180,6 +180,7 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
+    "HAS_NVLINK_SWITCH_TRAY=${local.has_nvlink_switch_tray}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     "ADO_ACCESS_TOKEN=${coalesce(var.ado_access_token, "")}",

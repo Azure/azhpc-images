@@ -730,6 +730,8 @@ locals {
     local. == "V100"  ? "V100-" :
     local.gpu_sku == "GB200" && startswith(local.target_node_type, "azure_vm_") ? "GB200-" :
     local.gpu_sku == "GB200" && local.target_node_type == "baremetal_1p" ? "GB200F-" ::
+    local.gpu_sku == "VR200" && startswith(local.target_node_type, "azure_vm_") ? "VR200-" ::
+    local.gpu_sku == "VR200" && local.target_node_type == "baremetal_1p" ? "VR200F-" ::
     local.gpu_sku == "NCv6"  ? "NCv6-" :
     ""
   )

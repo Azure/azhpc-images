@@ -7,8 +7,10 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
-export GPU=$1
+export GPU=$([[ $1 == "VR200" ]] && echo "GB200" || echo "$1")
 export SKU=$2
+
+
 
 if [[ "$#" -gt 0 ]]; then
    if [[ "$GPU" != "NVIDIA" && "$GPU" != "AMD" ]]; then

@@ -142,38 +142,6 @@ build {
     ]
   }
 
-  provisioner "shell-local" {
-    name           = "(Baremetal 1P) Write credentials to temp file"
-    except         = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    environment_vars = [
-      "ADO_ACCESS_TOKEN=${var.ado_access_token}",
-      "BAREMETAL_1P_LOGIN_USER=${var.baremetal_1p_login_user}",
-      "BAREMETAL_1P_LOGIN_PASSWD=${var.baremetal_1p_login_passwd}",
-    ]
-    inline = [
-      "install -m 600 /dev/null /tmp/creds.env",
-      "printf 'ADO_ACCESS_TOKEN=%s\\nBAREMETAL_1P_LOGIN_USER=%s\\nBAREMETAL_1P_LOGIN_PASSWD=%s\\n' \"$ADO_ACCESS_TOKEN\" \"$BAREMETAL_1P_LOGIN_USER\" \"$BAREMETAL_1P_LOGIN_PASSWD\" > /tmp/creds.env",
-    ]
-  }
-
-  provisioner "file" {
-    name        = "(Baremetal 1P) Upload credentials"
-    except      = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
-    source      = "/tmp/creds.env"
-    destination = "/tmp/creds.env"
-    generated   = true
-  }
-
-  provisioner "shell-local" {
-    name           = "(Baremetal 1P) Clean up local credentials"
-    except         = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline         = [
-      "shred -u /tmp/creds.env 2>/dev/null || rm -f /tmp/creds.env",
-    ]
-  }
-
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
@@ -214,9 +182,11 @@ build {
     "TARGET_NODE_TYPE=${local.target_node_type}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
+    "ADO_ACCESS_TOKEN=${coalesce(var.ado_access_token, "")}",
+    "BAREMETAL_1P_LOGIN_USER=${coalesce(var.baremetal_1p_login_user, "")}",
+    "BAREMETAL_1P_LOGIN_PASSWD=${coalesce(var.baremetal_1p_login_passwd, "")}",
     ]
     inline          = [
-      "[[ -f /tmp/creds.env ]] && source /tmp/creds.env || true",
       "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]
   }

@@ -3,7 +3,7 @@ set -ex
 
 export TOP_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 export COMPONENT_DIR=$TOP_DIR/components
-export TEST_DIR=$TOP_DIR/tests
+export AZHPC_IMAGES_TEST_DIR=$TOP_DIR/tests
 export UTILS_DIR=$TOP_DIR/utils
 export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 
@@ -40,13 +40,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # online package mirrors; the base image is already validated.
         echo "[set_properties.sh] Skipping apt update/upgrade on baremetal node"
     else
-        # Azure VM: pin the kernel package to prevent unintended kernel upgrades,
-        # then upgrade all other pre-installed components.
-        if [[ "${SKU_FAMILY}" == "gb-family" ]]; then
-            apt-mark hold linux-azure-nvidia
-        else
-            apt-mark hold linux-azure-${KERNEL_VERSION:-6.8}
-        fi
+        # Azure VM: upgrade pre-installed components.
         apt update
         apt upgrade -y
     fi

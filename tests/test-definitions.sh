@@ -51,6 +51,15 @@ function uses_ucx {
     ! _is_ncv6_sku
 }
 
+# Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
+# Used to gate Fabric Manager checks and bring-up, since cuInit() returns
+# CUDA_ERROR_SYSTEM_NOT_READY on these SKUs until FM finishes NVLink fabric
+# setup. GB200/GB300 use NVLink5 / a separate IMEX flow and are not included.
+function sku_has_nvswitch {
+    local nvswitch_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
+    [[ "${VMSIZE}" =~ ^($nvswitch_sizes)$ ]]
+}
+
 # verify OFED installation
 function verify_ofed_installation {
     # verify OFED installation
@@ -306,6 +315,43 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+# Validate /etc/dnf/dnf.conf is well-formed. Build-time only (call sites
+# should gate on validation_mode).
+#
+# Motivation: the legacy `sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf` pattern
+# (see utils/utilities.sh::dnf_pin_packages) appended package globs onto
+# the last line of dnf.conf (e.g. `skip_if_unavailable=False`), which dnf
+# treats as an `Invalid configuration value` *warning* and silently
+# disables the pin -- letting `yum update` upgrade nvidia-fabricmanager
+# out of sync with the driver. This check fails the build if dnf can't
+# parse its own config.
+function verify_dnf_conf {
+    # Only RHEL-family + azurelinux use /etc/dnf/dnf.conf; Ubuntu uses apt.
+    case "${ID}" in
+        almalinux|rocky|rhel|azurelinux) ;;
+        *) return 0 ;;
+    esac
+
+    local conf=/etc/dnf/dnf.conf
+    check_exists "${conf}"
+
+    # dnf must accept the config without `Invalid configuration value`
+    # warnings. Use `-C` so we don't refresh metadata; we only care
+    # whether dnf can parse the config file.
+    local dnf_out
+    dnf_out=$(sudo dnf -C --quiet repolist 2>&1 || true)
+    if grep -qi 'invalid configuration value' <<< "${dnf_out}"; then
+        echo "*** verify_dnf_conf: Error - dnf rejects ${conf}:" >&2
+        grep -i 'invalid configuration' <<< "${dnf_out}" >&2
+        echo "--- ${conf} ---" >&2
+        cat "${conf}" >&2
+        exit_on_error
+        return 0
+    fi
+
+    echo "[OK] : ${conf} parses cleanly"
+}
+
 function verify_package_updates {
     case ${ID} in
         ubuntu)
@@ -459,7 +505,8 @@ function verify_dcgm_installation {
 
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5|standard_nc.*_rtxpro6000bse_v6"
+    # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
@@ -469,8 +516,7 @@ function verify_sku_customization_service {
 
 function verify_nvidia_fabricmanager_service {
     # Check if the NVIDIA Fabricmanager service is active
-    local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
-    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
+    if sku_has_nvswitch
     then
         systemctl is-active --quiet nvidia-fabricmanager
         check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
@@ -573,6 +619,17 @@ function verify_nvidia_imex_service {
     # Check if nvidia caps imex channel exists
     ls -al /dev/nvidia-caps-imex-channels/channel0
     check_exit_code "NVIDIA Caps Imex channel exists" "NVIDIA Caps Imex channel does not exist!"
+}
+
+function verify_nvidia_persistenced_service {
+    # nvidia-persistenced attaches to /dev/nvidia* at startup; only meaningful
+    # to verify on a VM that actually has an NVIDIA GPU attached.
+    if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi -L >/dev/null 2>&1; then
+        echo "[SKIP] : no NVIDIA GPU detected; skipping nvidia-persistenced service check"
+        return
+    fi
+    systemctl is-active --quiet nvidia-persistenced.service
+    check_exit_code "NVIDIA persistence daemon is active" "NVIDIA persistence daemon is inactive/dead!"
 }
 
 function verify_mpifileutils_installation {

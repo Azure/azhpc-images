@@ -30,7 +30,7 @@ wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
-make -j src.build
+make -j$(nproc) src.build
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     make pkg.debian.build
     pushd build/pkg/deb/
@@ -51,14 +51,14 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
     fi
 
-    sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "libnccl*"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     make pkg.redhat.build
     rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
-    sed -i "$ s/$/ libnccl*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "libnccl*"
 fi
 popd
 

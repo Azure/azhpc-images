@@ -100,15 +100,20 @@ install_ubuntu_gb200_kernel() {
     export NEEDRESTART_MODE=a
     
     apt-get update
+
+    # In-place refresh: ensure DKMS builds OFED modules in dependency order
+    # (iser/isert/srp need mlnx-ofed-kernel built first, but DKMS autoinstall
+    # processes modules alphabetically and would otherwise fail).
+    if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
+        configure_ofed_dkms_build_depends
+    fi
+
     if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
-        apt-get install linux-azure-nvidia -y  
-        apt-mark hold linux-azure-nvidia
+        sudo apt-get install linux-azure-nvidia -y  
     elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
-        apt-get install linux-azure-nvidia-6.17 -y  
-        apt-mark hold linux-azure-nvidia-6.17
+        sudo apt-get install linux-azure-nvidia-6.17 -y  
     else #kernel 6.8
-        apt-get install linux-azure-nvidia-6.8 -y
-        apt-mark hold linux-azure-nvidia-6.8                
+        sudo apt-get install linux-azure-nvidia-6.8 -y
     fi
     
     # Purge non-nvidia kernels
@@ -134,7 +139,6 @@ install_ubuntu_gb200_kernel() {
         done
     done
     
-    # Configure GRUB for GB200
     # Add GB200-specific kernel parameters
     sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 numa_balancing=disable net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     
@@ -144,6 +148,26 @@ install_ubuntu_gb200_kernel() {
     update-grub
     
     echo "GB200 NVIDIA kernel installation complete"
+}
+
+####
+# @Brief        : Add OFED DKMS dependency overrides under /etc/dkms
+# @Param        : None
+# @RetVal       : 0 on success
+####
+configure_ofed_dkms_build_depends() {
+    [[ -d /var/lib/dkms/mlnx-ofed-kernel ]] || return 0
+    mkdir -p /etc/dkms
+
+    cat > /etc/dkms/iser.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
+EOF
+    cat > /etc/dkms/isert.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
+EOF
+    cat > /etc/dkms/srp.conf <<'EOF'
+BUILD_DEPENDS="mlnx-ofed-kernel"
+EOF
 }
 
 ####
@@ -168,10 +192,7 @@ install_ubuntu_lts_kernel() {
     sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf || true
     
     export NEEDRESTART_MODE=a
-    
-    # Configure GRUB for saved default
-    sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    
+
     case "${version}" in
         24.04)
             apt update
@@ -187,10 +208,12 @@ install_ubuntu_lts_kernel() {
                     purge_patterns+=" \"linux-image-${minor}*\" \"linux-azure-${minor}*\" \"linux-cloud-tools-${minor}*\" \"linux-headers-${minor}*\" \"linux-modules-${minor}*\" \"linux-tools-${minor}*\""
                 fi
             done
+            if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
+                configure_ofed_dkms_build_depends
+            fi
 
             # Install the versioned kernel meta-package
             apt install -y linux-azure-${kernel_ver}
-            apt-mark hold linux-azure-${kernel_ver}
 
             # Install modules-extra if available for this kernel version
             if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
@@ -207,17 +230,11 @@ install_ubuntu_lts_kernel() {
             apt autoremove -y
             apt upgrade -y
 
-            # Set default kernel
-            local kernel_version
-            kernel_version=$(dpkg -l | awk '/linux-image-[0-9].*-azure/ {print $2}' | sed 's/linux-image-//g' | sort -V | tail -n1)
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}"
-            update-grub
             ;;
             
         22.04)
             apt update
             apt install -y linux-azure-lts-22.04
-            apt-mark hold linux-azure-lts-22.04
             
             # Purge non-LTS kernels
             apt-get purge -y \
@@ -227,11 +244,7 @@ install_ubuntu_lts_kernel() {
                 "linux-modules-6.*" "linux-tools-6.*"
             
             apt upgrade -y
-            
-            # Set default kernel
-            local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-            grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-            update-grub
+
             ;;
             
         *)
@@ -264,7 +277,7 @@ update_rhel_packages() {
     if [[ "${os_family}" == "azurelinux"* ]]; then
         sed -i 's/^enabled.*=.*1/enabled=0/' /etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf 2>/dev/null || true
     fi
-    
+
     dnf update -y --refresh
     dnf install -y git
     

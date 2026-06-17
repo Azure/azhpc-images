@@ -15,7 +15,7 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
     hpcx_metadata=$(get_component_config "hpcx_amd")
-elif ! sku_has_infiniband; then
+elif [[ "$(sku_network_mode)" == "no_rdma" ]]; then
     # Non-IB SKUs skip DOCA-OFED. Use inbox HPC-X (UCX linked against kernel-native rdma-core)
     hpcx_metadata=$(get_component_config "hpcx_inbox")
 else

@@ -30,7 +30,7 @@ if [ "$SKU" != "GB200" ]; then
 fi
 
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
-if sku_has_infiniband; then
+if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
     $COMPONENT_DIR/install_doca.sh
 else
     # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)

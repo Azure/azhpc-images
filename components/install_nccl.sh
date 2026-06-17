@@ -30,7 +30,7 @@ wget ${NCCL_DOWNLOAD_URL}
 tar -xvf ${TARBALL}
 
 pushd nccl-${NCCL_VERSION}
-make -j$(nproc) src.build
+make -j $(( $(nproc) - 1 )) src.build
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     make pkg.debian.build
     pushd build/pkg/deb/
@@ -63,7 +63,7 @@ fi
 popd
 
 # Install the nccl rdma sharp plugin. Skip for non-IB SKUs (no DOCA-OFED, no SHARP, no GPUDirect RDMA)
-if sku_has_infiniband; then
+if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
     mkdir -p /usr/local/nccl-rdma-sharp-plugins
     git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins

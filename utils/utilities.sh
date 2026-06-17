@@ -124,15 +124,31 @@ function _is_ncv6_sku {
     esac
 }
 
-# Whether the current SKU has InfiniBand hardware.
-# Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
-function sku_has_infiniband {
-    ! _is_ncv6_sku
+# Private helper that matches current MRC scope.
+# MRC currently applies to baremetal_1p regardless of SKU.
+function _is_mrc_network {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]
+}
+
+# Return current network mode for this build target.
+# Values:
+#   - no_rdma: no RDMA-capable fabric (e.g. NCv6)
+#   - mrc : MRC network mode (currently baremetal_1p)
+#   - ib  : regular InfiniBand-capable path
+function sku_network_mode {
+    if _is_ncv6_sku; then
+        echo "no_rdma"
+    elif _is_mrc_network; then
+        echo "mrc"
+    else
+        echo "ib"
+    fi
 }
 
 # Whether this SKU uses UCX as its MPI transport layer.
+# Backward-compatible: only "no_rdma" (NCv6) disables UCX.
 function sku_uses_ucx {
-    ! _is_ncv6_sku
+    ! [[ "$(sku_network_mode)" == "no_rdma" ]]
 }
 
 ############################################################################

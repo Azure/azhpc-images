@@ -184,7 +184,7 @@ build {
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     "ADO_ACCESS_TOKEN=${coalesce(var.ado_access_token, "")}",
-    "BAREMETAL_1P_LOGIN_USER=${coalesce(var.baremetal_1p_login_user, "")}",
+    "BAREMETAL_1P_LOGIN_USER=${coalesce(local.baremetal_1p_login_user, "")}",
     "BAREMETAL_1P_LOGIN_PASSWD=${coalesce(var.baremetal_1p_login_passwd, "")}",
     ]
     inline          = [
@@ -321,7 +321,7 @@ build {
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     environment_vars = [
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+      "TARGET_NODE_TYPE=${local.target_node_type}"
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
@@ -336,7 +336,7 @@ build {
     skip_clean     = true
     inline_shebang = "/bin/bash -e"
     environment_vars = [
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+      "TARGET_NODE_TYPE=${local.target_node_type}"
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"

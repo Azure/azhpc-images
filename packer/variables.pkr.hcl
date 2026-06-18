@@ -603,7 +603,7 @@ variable "ado_access_token" {
 variable "baremetal_1p_login_user" {
   type        = string
   description = "First secret for baremetal_1p provisioning"
-  default     = env("BAREMETAL_1P_LOGIN_USER")
+  default     = null
   sensitive   = true
 }
 
@@ -615,12 +615,13 @@ variable "baremetal_1p_login_passwd" {
 }
 
 locals {
+  baremetal_1p_login_user = coalesce(var.baremetal_1p_login_user, local.ssh_username)
   _baremetal_1p_creds_valid = local.target_node_type != "baremetal_1p" || (
     var.ado_access_token != null && var.ado_access_token != "" &&
-    var.baremetal_1p_login_user != null && var.baremetal_1p_login_user != "" &&
+    local.baremetal_1p_login_user != null && local.baremetal_1p_login_user != "" &&
     var.baremetal_1p_login_passwd != null && var.baremetal_1p_login_passwd != ""
   )
-  _baremetal_1p_creds_check = local._baremetal_1p_creds_valid ? true : file("ERROR: Baremetal 1P build requires ADO_ACCESS_TOKEN, BAREMETAL_1P_LOGIN_USER, and BAREMETAL_1P_LOGIN_PASSWD environment variables")
+  _baremetal_1p_creds_check = local._baremetal_1p_creds_valid ? true : file("ERROR: Baremetal 1P build requires ADO_ACCESS_TOKEN and BAREMETAL_1P_LOGIN_PASSWD environment variables")
 }
 
 # =============================================================================

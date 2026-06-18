@@ -38,8 +38,7 @@ write_component_version "HPCX" $HPCX_VERSION
 ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
-# exclude ucx from updates
-sed -i "$ s/$/ ucx*/" /etc/dnf/dnf.conf
+dnf versionlock add "ucx*"
 
 # Install MVAPICH2
 mvapich2_metadata=$(get_component_config "mvapich2")
@@ -74,8 +73,7 @@ make install
 cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
-# exclude openmpi, perftest from updates
-sed -i "$ s/$/ openmpi perftest/" /etc/dnf/dnf.conf
+dnf versionlock add openmpi perftest
 
 # Install Intel MPI
 impi_metadata=$(get_component_config "impi")

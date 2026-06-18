@@ -25,18 +25,14 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
     fi
 
-    # Disable the NVIDIA CUDA repo during driver install — all driver
+    # Disable the NVIDIA CUDA repo during driver install -- all driver
     # packages come from PMC and the CUDA repo has an identically-named
     # 'cuda' meta-package that would conflict.
-    # Do not use this before bugfixed tdnf lands (https://github.com/vmware/tdnf/pull/553/commits/a418054b02c4cac787184f973dac4d6790344ef3)
-    # or before switching to dnf
-    # tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
-    tdnf install -y --disablerepo=cuda-azl3-x86_64 --disablerepo=cuda-azl3-sbsa $AL3_GPU_DRIVER_PACKAGES
-    NVIDIA_DRIVER_VERSION=$(tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    dnf install -y --disablerepo='cuda-azl3*' $AL3_GPU_DRIVER_PACKAGES
+    NVIDIA_DRIVER_VERSION=$(dnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
-    # Temp disable NVIDIA driver updates
-    mkdir -p /etc/tdnf/locks.d
-    echo cuda >> /etc/tdnf/locks.d/nvidia.conf
+    # Keep later dnf operations from moving the PMC-installed driver family.
+    dnf versionlock add "${AL3_GPU_DRIVER_PACKAGES}"
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # APT-based NVIDIA driver installation for Ubuntu
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
@@ -110,7 +106,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # NVIDIA APT repo already configured during driver installation
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
-        tdnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
+        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
@@ -159,7 +155,7 @@ else
     # Install NVIDIA IMEX
     nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)
     IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
-    tdnf install -y nvidia-imex-${IMEX_VERSION}
+    dnf install -y nvidia-imex-${IMEX_VERSION}
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf

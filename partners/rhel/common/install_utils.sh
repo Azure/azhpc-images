@@ -4,15 +4,17 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Python 3.8
-yum install -y python3.8
+dnf install -y python3.8
 ln -fs /usr/bin/python3.8 /usr/bin/python3
 
 # Install EPEL repository
-yum install -y epel-release
+dnf install -y epel-release
+
+dnf install -y dnf-plugins-core
 
 # Install pre-reqs and development tools
-yum groupinstall -y "Development Tools"
-yum install -y numactl \
+dnf groupinstall -y "Development Tools"
+dnf install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
@@ -49,21 +51,17 @@ yum install -y numactl \
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm
-yum install -y environment-modules-5.0.1-1.el9.x86_64.rpm
+dnf install -y environment-modules-5.0.1-1.el9.x86_64.rpm
 rm -f environment-modules-5.0.1-1.el9.x86_64.rpm
 
 ## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
-yum install -y kernel-abi-stablelists
+dnf install -y kernel-abi-stablelists
 
 ## Disable kernel updates
-echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
-
-# Disable dependencies on kernel core
-sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
-sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
+dnf versionlock add "kernel*" "kmod*" "shim*" "grub2*"
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
-yum install -y pssh dkms subunit subunit-devel
+dnf install -y pssh dkms subunit subunit-devel
 
 # copy kvp client file
 $COMMON_DIR/copy_kvp_client.sh

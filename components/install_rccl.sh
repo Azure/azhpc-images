@@ -5,7 +5,7 @@ source ${UTILS_DIR}/utilities.sh
 
 # On Ubuntu 24.04 and Azure Linux 3, RCCL comes from ROCm packages; build from source on other distros
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rccl rccl-devel rccl-unittests
+    dnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
 elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
     rccl_metadata=$(get_component_config "rccl")

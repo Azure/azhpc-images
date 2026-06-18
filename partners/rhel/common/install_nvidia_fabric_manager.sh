@@ -14,6 +14,6 @@ NVIDIA_FABRIC_MNGR_PKG=http://developer.download.nvidia.com/compute/cuda/repos/$
 FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
 
 download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
-yum install -y ./${FILENAME}
-sed -i "$ s/$/ nvidia-fabric-manager/" /etc/dnf/dnf.conf
+dnf install -y ./${FILENAME}
+dnf versionlock add nvidia-fabric-manager
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

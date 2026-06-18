@@ -25,17 +25,17 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     ##########################################################################
 
     if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-        tdnf install -y cmake rust cargo ninja-build build-essential
+        dnf install -y cmake rust cargo ninja-build build-essential
     elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y cmake rustc-1.82 cargo-1.82 ninja-build build-essential
         apt-get install -y g++ pkg-config uuid-dev libssl-dev
         export PATH="/usr/lib/rust-1.82/bin:$PATH"
     elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-        yum install -y cmake rust cargo ninja-build libuuid-devel gcc-toolset-12
+        dnf install -y cmake rust cargo ninja-build libuuid-devel gcc-toolset-12
         if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
-            yum install -y openssl3-devel
+            dnf install -y openssl3-devel
         else
-            yum install -y openssl-devel
+            dnf install -y openssl-devel
         fi
         source /opt/rh/gcc-toolset-12/enable
     fi

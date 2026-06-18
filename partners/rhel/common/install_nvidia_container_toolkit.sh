@@ -7,13 +7,13 @@ set -ex
 curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
   sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-yum-config-manager --enable nvidia-container-toolkit-experimental
+dnf config-manager --set-enabled nvidia-container-toolkit-experimental
 
-yum clean expire-cache
-yum install -y nvidia-container-toolkit
+dnf clean expire-cache
+dnf install -y nvidia-container-toolkit
 
 # Mark the installed packages on hold to disable updates
-sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
+dnf versionlock add "*nvidia-container*"
 
 # Configure NVIDIA Container Toolkit
 nvidia-ctk runtime configure --runtime=docker
@@ -26,5 +26,5 @@ sed -i 's/runtime = "runc"/runtime = "nvidia-container-runtime"/g' /etc/containe
 
 # Clean repos
 rm -rf /etc/yum.repos.d/nvidia-*
-rm -rf /var/cache/yum/x86_64/8/nvidia-*
-rm -rf /var/cache/yum/x86_64/8/libnvidia-container/
+rm -rf /var/cache/dnf/*/nvidia-*
+rm -rf /var/cache/dnf/*/libnvidia-container/

@@ -56,8 +56,7 @@ fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    # exclude ucx from updates
-    dnf_pin_packages "ucx*"
+    dnf versionlock add "ucx*"
 fi
 
 # Install MVAPICH
@@ -127,8 +126,7 @@ cd ..
 write_component_version "OMPI" ${OMPI_VERSION}
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    # exclude openmpi, perftest from updates
-    dnf_pin_packages "openmpi" "perftest"
+    dnf versionlock add openmpi perftest
 fi
 
 if [[ "$ARCHITECTURE" != "aarch64" ]]; then

@@ -75,6 +75,8 @@ sudo alternatives --set python3 /usr/bin/python3.9
 # Install EPEL repository
 dnf install -y epel-release
 
+dnf install -y dnf-plugins-core
+
 # Enable CRB (CodeReady Builder) repository for Rocky 9
 # Required for CycleCloud Slurm installer compatibility (Rocky 8 uses 'powertools', Rocky 9 uses 'crb')
 dnf config-manager --set-enabled crb

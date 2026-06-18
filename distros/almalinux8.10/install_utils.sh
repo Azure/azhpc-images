@@ -19,35 +19,35 @@ sed -i '/^\[/a module_hotfixes=1' ./microsoft-prod.repo
 # Copy the generated list to the sources.list.d directory
 cp ./microsoft-prod.repo /etc/yum.repos.d/
 
-yum repolist
+dnf repolist
 
 # Install Kernel dependencies
 KERNEL=( $(rpm -q kernel | sed 's/kernel\-//g') )
 
-yum install -y https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
+dnf install -y https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-devel-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-headers-${KERNEL}.rpm \
     https://repo.almalinux.org/almalinux/8.10/BaseOS/x86_64/os/Packages/kernel-modules-extra-${KERNEL}.rpm
 
 # Install wget as AlmaLinux 8.10 does not have it by default
-sudo yum install -y wget
+sudo dnf install -y wget
 
 # Install net-tools as AlmaLinux 8.10 does not have ifconfig by default
-sudo yum install -y net-tools
+sudo dnf install -y net-tools
 
-sudo yum install -y python3.12
+sudo dnf install -y python3.12
 alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 20
 alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 10
 alternatives --set python3 /usr/bin/python3.6
 
 # Install EPEL repository
-yum install -y epel-release
+dnf install -y epel-release
 
 dnf -y install dnf-plugins-core
 dnf config-manager --set-enabled powertools
 
 # Install pre-reqs and development tools
-yum groupinstall -y "Development Tools"
-yum install -y numactl \
+dnf groupinstall -y "Development Tools"
+dnf install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
@@ -86,14 +86,14 @@ yum install -y numactl \
 
 # Install environment-modules 5.0.1
 wget https://repo.almalinux.org/vault/9.1/BaseOS/x86_64/os/Packages/environment-modules-5.0.1-1.el9.x86_64.rpm
-yum install -y environment-modules-5.0.1-1.el9.x86_64.rpm
+dnf install -y environment-modules-5.0.1-1.el9.x86_64.rpm
 rm -f environment-modules-5.0.1-1.el9.x86_64.rpm
 
 ## Install kernel-abi-stablelists (needed by DOCA)
-yum install -y kernel-abi-stablelists
+dnf install -y kernel-abi-stablelists
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
-yum install -y pssh dkms subunit subunit-devel
+dnf install -y pssh dkms subunit subunit-devel
 
 # Install azure-vm-utils from source (no upstream package available for AL8)
 git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils

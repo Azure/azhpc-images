@@ -419,7 +419,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
 
-    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/tdnf); no /opt path.
+    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/dnf); no /opt path.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
     if command -v dpkg-query &>/dev/null; then

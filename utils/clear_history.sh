@@ -83,12 +83,6 @@ then
     yum history sync
 fi
 
-if [[ $distro == *"AzureLinux"* ]]
-then
-    # Sync yum and rpmdb after installing rpm's outside yum
-    tdnf history sync
-fi
-
 if [[ $distro == *"Ubuntu"* ]]
 then
     # Remove Defender
@@ -107,8 +101,8 @@ then
 
 elif [[ $distro == *"AzureLinux"* ]]
 then
-    if tdnf list installed | grep -qw mdatp; then
-        tdnf remove -y mdatp
+    if dnf list installed | grep -qw mdatp; then
+        dnf remove -y mdatp
     fi
 else
     if yum list installed | grep -qw mdatp; then
@@ -195,9 +189,9 @@ then
     apt-get clean
 elif [[ $distro == *"AzureLinux"* ]]
 then
-    tdnf clean all
+    dnf clean all
 else
-    yum clean all
+    dnf clean all
 fi
 
 # Remove the volatile journald override so VMs booted from this image use default Storage=auto

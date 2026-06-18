@@ -19,6 +19,20 @@ set -euo pipefail
 # =============================================================================
 
 ####
+# @Brief        : Configure apt/dpkg lock timeout to reduce lock contention failures
+# @Param        : None
+# @RetVal       : 0 on success
+####
+configure_apt_lock_timeout() {
+    if [[ "${OS_FAMILY}" != "ubuntu" ]]; then
+        return 0
+    fi
+
+    echo "##[section]Configuring apt dpkg lock timeout"
+    printf 'DPkg::Lock::Timeout "300";\n' > /etc/apt/apt.conf.d/99dpkg-lock-timeout
+}
+
+####
 # @Brief        : Wait for apt lock to be released and cloud-init to complete
 # @Param        : None
 # @RetVal       : 0 on success
@@ -271,13 +285,6 @@ update_rhel_packages() {
     
     echo "##[section]Updating packages for ${os_family}"
     
-    # Workaround for tdnf repo_gpgcheck bug (https://github.com/vmware/tdnf/issues/471)
-    # tdnf-plugin-repogpgcheck fails when GPG keys aren't in the root keyring,
-    # causing repo sync failures. Disable the plugin entirely until the bug is fixed.
-    if [[ "${os_family}" == "azurelinux"* ]]; then
-        sed -i 's/^enabled.*=.*1/enabled=0/' /etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf 2>/dev/null || true
-    fi
-
     dnf update -y --refresh
     dnf install -y git
     
@@ -291,6 +298,34 @@ update_rhel_packages() {
     echo "Package update complete"
 }
 
+####
+# @Brief        : Enable DNF versionlock for later install scripts
+# @Param        : None
+# @RetVal       : 0 on success
+####
+configure_dnf_versionlock() {
+    if ! command -v dnf &> /dev/null; then
+        return 0
+    fi
+
+    echo "##[section]Configuring dnf versionlock"
+
+    local plugin_dir=/etc/dnf/plugins
+    local locklist=${plugin_dir}/versionlock.list
+    local conf=${plugin_dir}/versionlock.conf
+
+    mkdir -p "${plugin_dir}"
+    touch "${locklist}"
+    cat > "${conf}" <<EOF
+[main]
+enabled = 1
+locklist = ${locklist}
+EOF
+
+    dnf install -y 'dnf-command(versionlock)' || dnf install -y dnf-plugins-core
+    dnf versionlock list >/dev/null
+}
+
 # =============================================================================
 # Main execution
 # =============================================================================
@@ -301,6 +336,8 @@ echo "OS: ${OS_FAMILY:-unknown} ${DISTRO_VERSION:-unknown}"
 echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
 echo "Target Image Variant: ${TARGET_IMAGE_VARIANT:-regular}"
 echo "=========================================="
+
+configure_apt_lock_timeout
 
 # Configure GB200 PARTUUID if specified
 configure_gb200_partuuid "${GB200_PARTUUID:-None}"
@@ -317,6 +354,7 @@ case "${OS_FAMILY}" in
         ;;
     *)
         update_rhel_packages "${OS_FAMILY}"
+        configure_dnf_versionlock
         ;;
 esac
 

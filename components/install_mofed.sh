@@ -5,7 +5,7 @@ source ${UTILS_DIR}/utilities.sh
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Packages for MOFED
-    tdnf install -y iptables-devel \
+    dnf install -y iptables-devel \
         libdb-devel \
         libmnl-devel \
         libgudev \
@@ -21,7 +21,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         autoconf
     
     if [ "$ARCHITECTURE" = "aarch64" ]; then
-        tdnf install -y mlnx-ofa_kernel \
+        dnf install -y mlnx-ofa_kernel \
                     mlnx-ofa_kernel-hwe-modules \
                     mlnx-ofa_kernel-hwe-devel \
                     mlnx-ofa_kernel-source \
@@ -35,7 +35,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     xpmem \
                     xpmem-hwe-modules
     else
-        tdnf install -y mlnx-ofa_kernel \
+        dnf install -y mlnx-ofa_kernel \
                     mlnx-ofa_kernel-modules \
                     mlnx-ofa_kernel-devel \
                     mlnx-ofa_kernel-source \
@@ -51,7 +51,7 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     fi     
 
 
-    tdnf install -y libibumad \
+    dnf install -y libibumad \
                     infiniband-diags \
                     libibverbs \
                     libibverbs-utils \
@@ -87,13 +87,13 @@ fi
 
 # Extract mofed version from mlnx-ofa_kernel-devel package
 if [ "$ARCHITECTURE" = "aarch64" ]; then
-    MOFED_VERSION=$(sudo tdnf list installed | grep mlnx-ofa_kernel-hwe-devel | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    MOFED_VERSION=$(sudo dnf list installed | grep mlnx-ofa_kernel-hwe-devel | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 else
-    MOFED_VERSION=$(sudo tdnf list installed | grep mlnx-ofa_kernel-devel | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    MOFED_VERSION=$(sudo dnf list installed | grep mlnx-ofa_kernel-devel | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 fi
 SOURCE_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
 
-# MOFED_VERSION refers to the RPM package version used in tdnf install.
+# MOFED_VERSION refers to the RPM package version used in dnf install.
 #   - Example: "24.10-20"
 #   - Breakdown:
 #       * 24.10  -> OFED major version series
@@ -105,7 +105,7 @@ SOURCE_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' |
 echo "INSTALLED MOFED!! Release Version: ${MOFED_VERSION}, Source Version: ${SOURCE_VERSION}"
 
 # Sanity check consumes the source package version printed by ofed_info. 
-# Therefore, though we use release version in versions.json for tdnf install, we need to write the SOURCE_VERSION to the component version file.
+# Therefore, though we use release version in versions.json for dnf install, we need to write the SOURCE_VERSION to the component version file.
 write_component_version "OFED" $SOURCE_VERSION
 
 # Create systemd drop-in configuration for openibd.service

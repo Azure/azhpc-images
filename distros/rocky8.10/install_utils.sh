@@ -48,6 +48,8 @@ rm -f kernel-devel-${KERNEL}.rpm kernel-headers-${KERNEL}.rpm kernel-modules-ext
 # Install EPEL repository
 dnf install -y epel-release
 
+dnf install -y dnf-plugins-core
+
 # Install pre-reqs and development tools
 dnf groupinstall -y "Development Tools"
 dnf install -y numactl \

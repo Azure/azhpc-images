@@ -93,9 +93,9 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
     if [ "$1" = "V100" ]; then
-        tdnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
+        dnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
     else
-        tdnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
+        dnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
     fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.

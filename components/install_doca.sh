@@ -107,7 +107,7 @@ else
     # split out a brand-new RDMA-core stack with a separate libhns
     # provider and ABI-bumped libibverbs/perftest (IBVERBS_1.15 / HNS_1.0
     # symbols) incompatible with DOCA's libibverbs-2510.0.11-1.el9.
-    # Without this exclude, install_pmix.sh's 'yum update -y' aborts with:
+    # Without this exclude, install_pmix.sh's 'dnf update -y' aborts with:
     #   cannot install both libibverbs-61.0-2.el9 from baseos and
     #   libibverbs-2510.0.11-1.el9 from @System
     # DOCA's 'doca' (userland) repo provides the only rdma-core stack

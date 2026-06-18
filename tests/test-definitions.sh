@@ -319,10 +319,10 @@ function verify_rccl_installation {
 # should gate on validation_mode).
 #
 # Motivation: the legacy `sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf` pattern
-# (see utils/utilities.sh::dnf_pin_packages) appended package globs onto
+# appended package globs onto
 # the last line of dnf.conf (e.g. `skip_if_unavailable=False`), which dnf
 # treats as an `Invalid configuration value` *warning* and silently
-# disables the pin -- letting `yum update` upgrade nvidia-fabricmanager
+# disables the pin -- letting `dnf update` upgrade nvidia-fabricmanager
 # out of sync with the driver. This check fails the build if dnf can't
 # parse its own config.
 function verify_dnf_conf {
@@ -477,7 +477,7 @@ function verify_pssh_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep pssh;;
         almalinux|rocky|rhel) dnf list installed | grep pssh;;
-        azurelinux) sudo tdnf list installed | grep pssh;;
+        azurelinux) sudo dnf list installed | grep pssh;;
         * ) ;;
     esac
     check_exit_code "PSSH Installed" "PSSH not installed!"
@@ -493,7 +493,7 @@ function verify_dcgm_installation {
     case ${ID} in
         ubuntu) dpkg -l | grep datacenter-gpu-manager;;
         almalinux|rocky|rhel) dnf list installed | grep datacenter-gpu-manager;;
-        azurelinux) sudo tdnf list installed | grep datacenter-gpu-manager;;
+        azurelinux) sudo dnf list installed | grep datacenter-gpu-manager;;
         * ) ;;
     esac
     check_exit_code "DCGM Installed" "DCGM not installed!"

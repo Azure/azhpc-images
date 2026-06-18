@@ -586,7 +586,7 @@ locals {
 }
 
 locals {
-  nvidia_grace_arch = startswith(local.gpu_sku, "GB") || startswith(local., "VR")
+  has_nvlink_switch_tray = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
 }
 
 # =============================================================================
@@ -727,7 +727,7 @@ locals {
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
-    local. == "V100"  ? "V100-" :
+    local.gpu_sku == "V100"  ? "V100-" :
     local.gpu_sku == "GB200" && startswith(local.target_node_type, "azure_vm_") ? "GB200-" :
     local.gpu_sku == "GB200" && local.target_node_type == "baremetal_1p" ? "GB200F-" ::
     local.gpu_sku == "VR200" && startswith(local.target_node_type, "azure_vm_") ? "VR200-" ::

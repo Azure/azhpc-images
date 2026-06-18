@@ -232,6 +232,30 @@ install_ubuntu_lts_kernel() {
 
             ;;
             
+        26.04)
+            apt update
+
+            # Ubuntu 26.04 (Resolute Raccoon) ships linux-azure-7.0 (kernel 7.0.0-*-azure)
+            # as the versioned Azure meta-package. Allow KERNEL_VERSION to override.
+            local kernel_ver="${KERNEL_VERSION:-7.0}"
+            echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 26.04"
+
+            apt install -y linux-azure-${kernel_ver}
+            apt-mark hold linux-azure-${kernel_ver}
+            # linux-modules-extra-azure-${kernel_ver} is not published for 7.0 in resolute;
+            # contents were folded into linux-modules-azure-${kernel_ver}. Install only if present.
+            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                apt install -y linux-modules-extra-azure-${kernel_ver}
+            else
+                echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+            fi
+
+            apt autoremove -y
+            apt upgrade -y
+
+            update-grub
+            ;;
+
         22.04)
             apt update
             apt install -y linux-azure-lts-22.04

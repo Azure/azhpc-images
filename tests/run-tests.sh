@@ -87,7 +87,11 @@ function verify_common_components {
     verify_ompi_installation;
     verify_pssh_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
-        verify_mvapich2_installation;
+        # MVAPICH is intentionally not built on Ubuntu 26.04 (libfabric +
+        # MVAPICH 4.1 don't compile on resolute's gcc 15; see install_mpis.sh).
+        if [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]; then
+            verify_mvapich2_installation;
+        fi
         verify_mkl_installation;
         verify_hpcdiag_installation;
         verify_aznfs_installation;

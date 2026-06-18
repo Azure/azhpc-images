@@ -33,6 +33,28 @@ build {
     ]
   }
 
+  # Ubuntu 26.04 ships sudo-rs (Trifecta Tech Foundation's Rust rewrite) as
+  # the default for /usr/bin/sudo. sudo-rs deliberately does not implement
+  # bare `-E` / `--preserve-env` (upstream wontfix, sudo-rs#1299), and many
+  # of our provisioners and downstream scripts rely on `sudo -E` and on
+  # legacy sudoers semantics (env_keep, SETENV:). Both `sudo` (classic GNU)
+  # and `sudo-rs` are installed simultaneously on a stock 26.04 image: the
+  # `sudo` package ships /usr/bin/sudo.ws, sudo-rs ships /usr/bin/sudo-rs
+  # and a neutral-name copy at /usr/lib/cargo/bin/sudo, and /usr/bin/sudo
+  # itself is an update-alternatives symlink defaulting to sudo-rs. We flip
+  # the alternative back to classic GNU sudo.
+  provisioner "shell" {
+    name           = "(Ubuntu 26.04) Switch /usr/bin/sudo alternative to classic GNU sudo"
+    except         = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "sudo update-alternatives --display sudo || true",
+      "sudo update-alternatives --set sudo /usr/bin/sudo.ws",
+      "sudo --version | head -n1",
+      "sudo --version | grep -qiv 'sudo-rs'",
+    ]
+  }
+
   provisioner "shell-local" {
     name           = "(1P specific) add ip tags to public IP"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
@@ -68,10 +90,29 @@ build {
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline = [
-      "set -o pipefail",
-      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
-      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
-      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+      <<-EOF
+        set -o pipefail
+
+        curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh -o /tmp/mde_installer.sh
+        chmod +x /tmp/mde_installer.sh
+
+        installer_channel=prod
+        if [[ -r /etc/os-release ]]; then
+          # shellcheck disable=SC1091
+          . /etc/os-release
+          if [[ "$${ID:-}" == "ubuntu" && "$${VERSION_ID:-}" == "26.04" ]]; then
+            echo "[mdatp] Ubuntu 26.04 detected; patching mde_installer.sh and using insiders-fast channel."
+            sed -i 's#\^(20\.04|22\.04|24\.04)\$#^(20.04|22.04|24.04|26.04)$#' /tmp/mde_installer.sh
+            sed -i 's#if { \[ "$DISTRO" = "ubuntu" \] && \[ "$VERSION" = "24.04" \]; }#if { [ "$DISTRO" = "ubuntu" ] \&\& [[ "$VERSION" =~ ^(24.04|26.04)$ ]]; }#' /tmp/mde_installer.sh
+            sed -i 's#\[\[ $VERSION != "24\.04" \]\]; then#[[ $VERSION != "24.04" ]] \&\& [[ $VERSION != "26.04" ]]; then#' /tmp/mde_installer.sh
+            installer_channel=insiders-fast
+          fi
+        fi
+
+        sudo bash /tmp/mde_installer.sh --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel "$${installer_channel}"
+        sudo mdatp threat policy set --type potentially_unwanted_application --action off
+        rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py /tmp/mde_installer.sh
+      EOF
     ]
   }
 
@@ -169,9 +210,6 @@ build {
     name            = "Install HPC components"
     except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    environment_vars = [
-      "REFRESH_MODE=${local.refresh_mode}",
-    ]
     inline = [
       "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
     ]

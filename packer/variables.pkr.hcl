@@ -58,6 +58,7 @@ locals {
     "ubuntu" = {
       "22.04" = "5.15"
       "24.04" = "6.8"
+      "26.04" = "7.0"
     }
     "alma" = {
       "8.10" = "4.18"
@@ -621,7 +622,8 @@ locals {
       "Marketplace-Non-FIPS" = {
         "ubuntu" = {
           "22.04" = ["Canonical", "0001-com-ubuntu-server-jammy", "22_04-lts-gen2"],
-          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server"]
+          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server"],
+          "26.04" = ["Canonical", "ubuntu-26_04-lts", "server"]
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
@@ -693,7 +695,8 @@ locals {
     "Marketplace-Non-FIPS" = {
       "ubuntu" = {
         "22.04" = "UbuntuHPC-22.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "26.04" = "UbuntuHPC-26.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",

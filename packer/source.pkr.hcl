@@ -58,6 +58,7 @@ source "azure-arm" "hpc" {
       image_version        = local.image_version
       replication_regions  = local.sig_replication_regions
       storage_account_type = var.storage_account_type
+      specialized     = local.target_node_type == "baremetal_1p" ? true : false
     }
   }
   
@@ -95,7 +96,6 @@ source "azure-arm" "hpc" {
   os_type         = "Linux"
   vm_size         = local.build_vm_size
   os_disk_size_gb = 64
-  specialized     = local.target_node_type == "baremetal_1p" ? true : false
   
   # SSH Configuration
   communicator           = "ssh"

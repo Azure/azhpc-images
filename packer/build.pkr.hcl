@@ -126,6 +126,7 @@ build {
     except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
+        "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
         "az storage blob download -f ./${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",
         "mkdir -p ${path.root}/../prebuilt",
         "tar -xvf ./${var.internal_bits_blob_name} -C ${path.root}/.."
@@ -137,6 +138,7 @@ build {
     except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200" ) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
+      "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
       "az storage blob download -f /tmp/${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/${var.internal_bits_blob_name} -C ${path.root}/..",
     ]
@@ -183,12 +185,9 @@ build {
     "HAS_NVLINK_SWITCH_TRAY=${local.has_nvlink_switch_tray}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
-    "ADO_ACCESS_TOKEN=${coalesce(var.ado_access_token, "")}",
-    "BAREMETAL_1P_LOGIN_USER=${coalesce(local.baremetal_1p_login_user, "")}",
-    "BAREMETAL_1P_LOGIN_PASSWD=${coalesce(var.baremetal_1p_login_passwd, "")}",
     ]
     inline          = [
-      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
+      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; if [[ \"${local.target_node_type}\" == \"baremetal_1p\" ]]; then bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku} \"${var.ado_access_token}\" \"${local.baremetal_1p_login_user}\" \"${var.baremetal_1p_login_passwd}\"; else bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}; fi",
     ]
   }
 

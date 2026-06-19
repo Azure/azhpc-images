@@ -45,9 +45,10 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     ##########################################################################
     # Build and install dynolog
     ##########################################################################
-    git clone --recurse-submodules -j8 --branch v${DYNOLOG_VERSION}  $DYNOLOG_URL /tmp/dynolog
+    git clone --no-checkout ${DYNOLOG_URL} /tmp/dynolog
     pushd /tmp/dynolog
     git checkout ${DYNOLOG_COMMIT}
+    git submodule update --init --recursive -j8
     ./scripts/build.sh -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     mv build/dynolog/src/dynolog $DYNOLOG_INSTALL_DIR
     mv build/release/dyno $DYNOLOG_INSTALL_DIR
@@ -90,9 +91,10 @@ EOF
     ##########################################################################
     # Build and install dyno-relay-logger
     ##########################################################################
-    git clone --recurse-submodules -j8 --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
+    git clone --no-checkout ${DRL_URL} /tmp/dyno-relay-logger
     pushd /tmp/dyno-relay-logger
     git checkout ${DRL_COMMIT}
+    git submodule update --init --recursive -j8
     mkdir build && cd build
     if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
         # workaround for openssl 3.0 on almalinux/rocky 8.10 - dyno-relay-logger cmake fails to find openssl 3.0 without these variables set

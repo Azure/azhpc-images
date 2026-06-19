@@ -7,17 +7,25 @@ source ${UTILS_DIR}/utilities.sh
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
-# Setup microsoft packages repository for moby
-# Download the repository configuration package
-curl https://packages.microsoft.com/config/rhel/8/prod.repo > ./microsoft-prod.repo
+# Setup Microsoft package repositories. Rocky uses the native Rocky repo, while
+# Moby packages currently come from the RHEL repo under a distinct repo ID.
+curl https://packages.microsoft.com/config/rocky/8/prod.repo > ./microsoft-prod.repo
+sed -i '/^\[/a priority=10' ./microsoft-prod.repo
+sed -i '/^\[/a module_hotfixes=1' ./microsoft-prod.repo
+curl https://packages.microsoft.com/config/rhel/8/prod.repo > ./microsoft-rhel-prod.repo
+sed -i 's/^\[packages-microsoft-com-prod\]/[packages-microsoft-com-rhel-prod]/' ./microsoft-rhel-prod.repo
+sed -i 's/^name=Microsoft Production/name=Microsoft RHEL Production/' ./microsoft-rhel-prod.repo
+sed -i '/^\[/a priority=20' ./microsoft-rhel-prod.repo
 # Microsoft's moby-runc rpm declares `Provides: runc`, and `runc` is a
 # `container-tools` module artifact in AppStream. dnf modular filtering
 # would therefore hide every moby-runc-*.el8 rpm and break moby-engine
-# install. Mark the MS repo as a hot-fix source to bypass modular
+# install. Mark the RHEL MS repo as a hot-fix source to bypass modular
 # filtering for its rpms only, without disturbing container-tools.
-sed -i '/^\[/a module_hotfixes=1' ./microsoft-prod.repo
+sed -i '/^\[/a module_hotfixes=1' ./microsoft-rhel-prod.repo
 # Copy the generated list to the sources.list.d directory
+grep -lE '^\[(packages-microsoft-com-prod|packages-microsoft-com-rhel-prod)\]' /etc/yum.repos.d/*.repo 2>/dev/null | xargs -r sudo rm -f
 sudo cp ./microsoft-prod.repo /etc/yum.repos.d/
+sudo cp ./microsoft-rhel-prod.repo /etc/yum.repos.d/
 
 dnf repolist
 

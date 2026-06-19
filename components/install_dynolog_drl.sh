@@ -14,10 +14,12 @@ if [[ "$GPU" == "NVIDIA" ]]; then
 
     dynolog_metadata=$(get_component_config "dynolog")
     DYNOLOG_VERSION=$(jq -r '.version' <<< $dynolog_metadata)
+    DYNOLOG_COMMIT=$(jq -r '.commit' <<< $dynolog_metadata)
     DYNOLOG_URL=$(jq -r '.url' <<< $dynolog_metadata)
 
     drl_metadata=$(get_component_config "dyno_relay_logger")
     DRL_VERSION=$(jq -r '.version' <<< $drl_metadata)
+    DRL_COMMIT=$(jq -r '.commit' <<< $drl_metadata)
     DRL_URL=$(jq -r '.url' <<< $drl_metadata)
 
     ##########################################################################
@@ -45,6 +47,7 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     ##########################################################################
     git clone --recurse-submodules -j8 --branch v${DYNOLOG_VERSION}  $DYNOLOG_URL /tmp/dynolog
     pushd /tmp/dynolog
+    git checkout ${DYNOLOG_COMMIT}
     ./scripts/build.sh -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     mv build/dynolog/src/dynolog $DYNOLOG_INSTALL_DIR
     mv build/release/dyno $DYNOLOG_INSTALL_DIR
@@ -76,7 +79,6 @@ Restart=always
 RestartSec=60s
 User=root
 Group=root
-WorkingDirectory=/tmp
 
 [Install]
 WantedBy=multi-user.target
@@ -90,6 +92,7 @@ EOF
     ##########################################################################
     git clone --recurse-submodules -j8 --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
     pushd /tmp/dyno-relay-logger
+    git checkout ${DRL_COMMIT}
     mkdir build && cd build
     if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
         # workaround for openssl 3.0 on almalinux/rocky 8.10 - dyno-relay-logger cmake fails to find openssl 3.0 without these variables set
@@ -127,7 +130,6 @@ Restart=always
 RestartSec=60s
 User=root
 Group=root
-WorkingDirectory=/tmp
 
 [Install]
 WantedBy=multi-user.target

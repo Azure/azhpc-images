@@ -7,7 +7,9 @@ source ${UTILS_DIR}/utilities.sh
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
-elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
+# TODO: go back to bundled RCCL once we move back to ROCm 7.0, which will have a new enough RCCL that doesn't require manual building
+# elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
+else
     rccl_metadata=$(get_component_config "rccl")
     rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
@@ -65,7 +67,9 @@ echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 source /opt/hpcx*/hpcx-init.sh
 hpcx_load
 
-if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
+# TODO: uncomment if we switch back to ROCm 7
+# if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # RCCL ships via ROCm distro packages and lives in /opt/rocm
     RCCL_PREFIX="/opt/rocm"
 else

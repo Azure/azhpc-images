@@ -7,6 +7,32 @@ source ${UTILS_DIR}/utilities.sh
 nvidia_metadata=$(get_component_config "nvidia")
 cuda_metadata=$(get_component_config "cuda")
 
+function sanitize_nvidia_mig_mode {
+    if ! command -v nvidia-smi >/dev/null 2>&1; then
+        echo "nvidia-smi not found; skipping MIG sanitization"
+        return 0
+    fi
+
+    local mig_query_output
+    mig_query_output=$(nvidia-smi --query-gpu=index,mig.mode.current --format=csv,noheader,nounits 2>/dev/null || true)
+    if [[ -z "${mig_query_output}" ]]; then
+        echo "No NVIDIA GPUs detected; skipping MIG sanitization"
+        return 0
+    fi
+
+    local mig_enabled_gpus
+    mig_enabled_gpus=$(awk -F, '$2 ~ /Enabled/ { gsub(/^[ \t]+|[ \t]+$/, "", $1); print $1 }' <<< "${mig_query_output}" | paste -sd, -)
+    if [[ -z "${mig_enabled_gpus}" ]]; then
+        echo "No GPUs have MIG mode enabled"
+        return 0
+    fi
+
+    echo "Disabling MIG mode on GPU(s): ${mig_enabled_gpus}"
+    systemctl stop nvidia-fabricmanager.service nvidia-persistenced.service 2>/dev/null || true
+    nvidia-smi -i "${mig_enabled_gpus}" -mig 0
+    nvidia-smi --query-gpu=index,name,mig.mode.current,mig.mode.pending --format=csv,noheader
+}
+
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     if [ "$SKU" = "V100" ]; then
         # V100 requires proprietary kernel modules
@@ -92,6 +118,7 @@ else
     # openibd ExecStartPost drop-in installed by setup_sku_customizations.sh.
 fi
 write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
+sanitize_nvidia_mig_mode
 
 touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
@@ -120,8 +147,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
         # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
         # the (removed) global DOCA pin in install_doca.sh.
-
-        # There is a obsoletion of CUDA 13 cccl against cuda-cccl in CUDA 12 we'd like to avoid
+        # There is also an obsoletion of CUDA 13 cccl against cuda-cccl in CUDA 12 we'd like to avoid.
         cuda_excludes="mft* kernel-mft*"
         if [[ "${CUDA_DRIVER_VERSION}" == 12.* ]]; then
             cuda_excludes="${cuda_excludes} cccl-*"

@@ -120,6 +120,8 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
         # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
         # the (removed) global DOCA pin in install_doca.sh.
+
+        # There is a obsoletion of CUDA 13 cccl against cuda-cccl in CUDA 12 we'd like to avoid
         cuda_excludes="mft* kernel-mft*"
         if [[ "${CUDA_DRIVER_VERSION}" == 12.* ]]; then
             cuda_excludes="${cuda_excludes} cccl-*"

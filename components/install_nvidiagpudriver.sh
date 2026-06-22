@@ -42,8 +42,13 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
     CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        CUDA_ARCHITECTURE="sbsa"
+    else
+        CUDA_ARCHITECTURE="x86_64"
+    fi
     # Add NVIDIA CUDA APT repo (provides both driver and toolkit packages)
-    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
+    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/${CUDA_ARCHITECTURE}/cuda-keyring_1.1-1_all.deb
     dpkg -i ./cuda-keyring_1.1-1_all.deb
     apt-get update
 

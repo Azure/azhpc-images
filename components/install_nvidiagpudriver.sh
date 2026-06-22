@@ -47,10 +47,11 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i ./cuda-keyring_1.1-1_all.deb
     apt-get update
 
-    # On 1P Baremetal builds the local NVIDIA repo and cuda repo contain the nvidia driver packages: prefer NVIDIA local repo over other sources
+    # MRC image uses local NVIDIA repo for nvidia driver packages
+    # The local NVIDIA repo and cuda repo downloaded from online contain the nvidia driver packages: prefer NVIDIA local repo over other sources
     # Nvidia driver packages should be installed from the local NVIDIA repo
     # Cuda toolkit packages should be installed from the downloaded CUDA repo
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
+    if _is_mrc_network; then
         NVIDIA_GPU_DRIVER_REPO_FILE=$(jq -r '.driver.repo_file' <<< $nvidia_metadata)
         dpkg -i $TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE
         NVIDIA_GPU_DRIVER_REPO_DIR=$(echo $NVIDIA_GPU_DRIVER_REPO_FILE | awk -F'_' '{print $1}')

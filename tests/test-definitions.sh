@@ -33,22 +33,44 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
-# Private helper that matches NCv6 VM sizes.
+# Private helper that matches NCv6.
 function _is_ncv6_sku {
-    local ncv6_sizes="standard_nc.*_rtxpro6000bse_v6"
-    [[ "${VMSIZE}" =~ ^($ncv6_sizes)$ ]]
+    case "$SKU" in
+        NCv6) return 0 ;;
+        *)    return 1 ;;
+    esac
 }
 
-function has_infiniband {
-    ! _is_ncv6_sku
-}
-
+# Whether the current SKU has NVLink.
 function has_nvlink {
     ! _is_ncv6_sku
 }
 
-function uses_ucx {
-    ! _is_ncv6_sku
+# Private helper that matches current MRC scope.
+# MRC currently applies to baremetal_1p regardless of SKU.
+function _is_mrc_network {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]
+}
+
+# Return current network mode for this build target.
+# Values:
+#   - no_rdma: no RDMA-capable fabric (e.g. NCv6)
+#   - mrc : MRC network mode (currently baremetal_1p)
+#   - ib  : regular InfiniBand-capable path
+function sku_network_mode {
+    if _is_ncv6_sku; then
+        echo "no_rdma"
+    elif _is_mrc_network; then
+        echo "mrc"
+    else
+        echo "standard_ib"
+    fi
+}
+
+# Whether this SKU uses UCX as its MPI transport layer.
+# Backward-compatible: only "no_rdma" (NCv6) disables UCX.
+function sku_uses_ucx {
+    ! [[ "$(sku_network_mode)" == "no_rdma" ]]
 }
 
 # Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
@@ -73,7 +95,7 @@ function verify_ib_device_status {
     lspci | grep "Infiniband controller\|Network controller"
     check_exit_code "IB device is listed" "IB device not found"
 
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
         # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
         ibstatus | grep "LinkUp"
         check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
@@ -102,7 +124,7 @@ function verify_hpcx_installation {
 
     # UCX SKUs: use UCX RC transport. Non-UCX SKUs: no args needed (built with libfabric, auto-selects OFI).
     local mpi_args=""
-    if uses_ucx; then
+    if sku_uses_ucx; then
         mpi_args="-x UCX_TLS=rc"
     fi
     
@@ -125,7 +147,7 @@ function verify_mvapich2_installation {
 
     module load mpi/mvapich
     local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    if uses_ucx; then
+    if sku_uses_ucx; then
         # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
         mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
     else
@@ -141,7 +163,7 @@ function verify_impi_2021_installation {
 
     # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
     local fi_provider="mlx"
-    if ! has_infiniband; then fi_provider="tcp"; fi
+    if [[ "$(sku_network_mode)" == "standard_ib" ]]; then fi_provider="tcp"; fi
     
     module load mpi/impi-2021
     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
@@ -161,7 +183,8 @@ function verify_nvidia_driver_installation {
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted on SKUs with IB
-    if has_infiniband; then
+    # Any of the MRC bring up doesn't require nvidia_peermem
+    if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
         lsmod | grep nvidia_peermem
         check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
     fi
@@ -424,7 +447,7 @@ function verify_ib_modules_and_devices {
     # Check if all key IB modules are inserted.
     # ib_ipoib is not loaded on baremetal nodes (IPoIB is not used).
     local ib_modules
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
         ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
     else
         ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
@@ -435,7 +458,7 @@ function verify_ib_modules_and_devices {
     done
 
     # Check if ib devices are listed
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_* ]]; then
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
         # On baremetal GB200/GB300, IPoIB is not used
         ! (ip addr | grep ib)
         check_exit_code "IPoIB not present as expected" "IPoIB unexpectedly present!"

@@ -61,13 +61,14 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         dpkg -i $TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE
         NVIDIA_GPU_DRIVER_REPO_DIR=$(echo $NVIDIA_GPU_DRIVER_REPO_FILE | awk -F'_' '{print $1}')
         cp /var/$NVIDIA_GPU_DRIVER_REPO_DIR/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
-        apt update
-
+        
+        # Set preference BEFORE apt update so priority rules are applied during metadata refresh
         cat <<EOF > /etc/apt/preferences.d/00-nvidia-prefer
 Package: *
 Pin: origin ""
 Pin-Priority: 1001
 EOF
+        apt update
     fi
     # Pin the driver version and install via APT packages
     apt install nvidia-driver-pinning-${NVIDIA_DRIVER_VERSION} -y

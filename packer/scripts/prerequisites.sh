@@ -60,6 +60,7 @@ configure_gb200_partuuid() {
     local partuuid="${1:-None}"
     local target_variant="${TARGET_NODE_TYPE:-azure_vm_regular}"
 
+    # Skip PARTUUID configuration for VR200, which is inconsistent with legacy image build now but both are placeholder
     if [[ "${GPU_SKU,,}" != "GB200" || "${partuuid}" == "None" || -z "${partuuid}" ]]; then
         echo "##[section]Skipping PARTUUID configuration (not GB200 or PARTUUID not specified)"
         return 0
@@ -208,7 +209,7 @@ install_ubuntu_lts_kernel() {
     local gpu_sku="${GPU_SKU}"
     
     # GB200 uses a special nvidia kernel, not LTS
-    if [[ "${HAS_NVLINK_SWITCH_TRAY}" == "true" ]]; then
+    if [[ "${NVLINK_RACKSCALE}" == "true" ]]; then
         install_ubuntu_nvidia_kernel
         return $?
     fi

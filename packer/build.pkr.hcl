@@ -84,7 +84,7 @@ build {
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "TARGET_NODE_TYPE=${local.target_node_type}",
-      "HAS_NVLINK_SWITCH_TRAY=${local.has_nvlink_switch_tray}",
+      "NVLINK_RACKSCALE=${local.NVLINK_RACKSCALE}",
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
@@ -121,9 +121,10 @@ build {
     ]
   }
 
+// Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "download and extract Azure Linux prebuilts for GB200"
-    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.nvlink_rackscale) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
         "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
@@ -133,9 +134,10 @@ build {
     ]
   }
 
+// Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200" ) ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.nvlink_rackscale ) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
@@ -182,7 +184,7 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
-    "HAS_NVLINK_SWITCH_TRAY=${local.has_nvlink_switch_tray}",
+    "NVLINK_RACKSCALE=${local.NVLINK_RACKSCALE}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     ]
@@ -304,7 +306,7 @@ build {
 
   provisioner "shell" {
     name            = "Run health checks"
-    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
+    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "VR200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",

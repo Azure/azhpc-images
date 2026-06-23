@@ -586,7 +586,7 @@ locals {
 }
 
 locals {
-  has_nvlink_switch_tray = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
+  nvlink_rackscale = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
 }
 
 # =============================================================================

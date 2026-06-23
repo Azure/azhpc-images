@@ -25,7 +25,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     if tdnf list installed azsec-monitor >/dev/null 2>&1; then tdnf remove -y azsec-monitor; fi
 fi
 
-if [[ "${HAS_NVLINK_SWITCH_TRAY:-false}" != "true" ]]; then
+if [[ "${NVLINK_RACKSCALE:-false}" != "true" ]]; then
     echo "net.core.rmem_max = 2147483647" >> /etc/sysctl.conf
     echo "net.core.wmem_max = 2147483647" >> /etc/sysctl.conf
     echo "net.ipv4.tcp_rmem = 4096 67108864 1073741824" >> /etc/sysctl.conf

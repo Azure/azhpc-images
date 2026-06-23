@@ -8,8 +8,8 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 
 # Placeholder for VR200 SKU, uses GB200 temporarily for installation purposes
-export GPU=$([[ $1 == "VR200" ]] && echo "GB200" || echo "$1")
-export SKU=$2
+export GPU=$1
+export SKU=$([[ $2 == "VR200" ]] && echo "GB200" || echo "$2")
 
 
 

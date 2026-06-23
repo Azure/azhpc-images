@@ -101,11 +101,13 @@ locals {
   build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
+# Placeholder for VR SKU Name
 locals {
   gpu_sku = (
     local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
     contains(["Standard_ND128isr_NDR_GB200_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
+    contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
     local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )

@@ -84,5 +84,6 @@ network:
             dhcp4: true
     version: 2
 EOF
-    netplan apply
+        netplan apply
+    fi
 fi

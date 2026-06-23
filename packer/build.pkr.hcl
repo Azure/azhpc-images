@@ -84,7 +84,7 @@ build {
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
       "TARGET_NODE_TYPE=${local.target_node_type}",
-      "NVLINK_RACKSCALE=${local.NVLINK_RACKSCALE}",
+      "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
       "KERNEL_VERSION=${local.kernel_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
@@ -184,7 +184,7 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
-    "NVLINK_RACKSCALE=${local.NVLINK_RACKSCALE}",
+    "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
     "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     ]

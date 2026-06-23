@@ -43,7 +43,7 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     ##########################################################################
     # Build and install dynolog
     ##########################################################################
-    git clone --recurse-submodules -j8 --branch v${DYNOLOG_VERSION}  $DYNOLOG_URL /tmp/dynolog
+    git clone --recurse-submodules --branch v${DYNOLOG_VERSION}  $DYNOLOG_URL /tmp/dynolog
     pushd /tmp/dynolog
     ./scripts/build.sh -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     mv build/dynolog/src/dynolog $DYNOLOG_INSTALL_DIR
@@ -88,7 +88,7 @@ EOF
     ##########################################################################
     # Build and install dyno-relay-logger
     ##########################################################################
-    git clone --recurse-submodules -j8 --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
+    git clone --recurse-submodules --branch v${DRL_VERSION} $DRL_URL /tmp/dyno-relay-logger
     pushd /tmp/dyno-relay-logger
     mkdir build && cd build
     if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then

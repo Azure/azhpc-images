@@ -54,6 +54,20 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
+                "nvidia_gb200": {
+                    "baremetal": {
+                        "version": "3.2.2",
+                        "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
+                        "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
+                    }
+                },
+                "nvidia_gb300": {
+                    "baremetal": {
+                        "version": "3.2.2",
+                        "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
+                        "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
+                    }
+                },
                 "version": "3.2.2",
                 "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
@@ -384,11 +398,11 @@
                 "nvidia_gb200": {
                     "baremetal": {
                         "driver": {
-                            "version": "580.126.20",
+                            "version": "580.159.04",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.126.20-1"
+                            "version": "580.159.04-1"
                         }
                     }
                 },
@@ -1151,13 +1165,15 @@
     "dynolog": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dynolog.git"
+            "url": "https://github.com/jasontmsft/dynolog.git",
+            "commit": "1f61fd5e6d7499e7bd7531830cbe1f81b43ff815"
         }
     },
     "dyno_relay_logger": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dyno-relay-logger.git"
+            "url": "https://github.com/jasontmsft/dyno-relay-logger.git",
+            "commit": "97ef384edacde60cde30f76f4c1b683087c3b24c"
         }
     },
     "nvidia_grid": {

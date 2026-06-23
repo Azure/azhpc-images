@@ -13,9 +13,9 @@
     },
     "cmake": {
         "common": {
-            "version": "4.3.1",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
-            "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
+            "version": "4.3.3",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
+            "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
         },
         "ubuntu24.04": {
             "aarch64": {
@@ -391,7 +391,7 @@
         "ubuntu24.04": {
             "x86_64": {
                 "driver": {
-                    "version": "580.126.20"
+                    "version": "580.167.08"
                 }
             },
             "aarch64": {
@@ -745,8 +745,8 @@
                 "distribution": "Ubuntu24_04"
             },
             "x86_64": {
-                "version": "2.5.2-1",
-                "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
                 "distribution": "Ubuntu24_04"
             }
         },
@@ -883,7 +883,7 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "1:4.5.2-1"
+                "version": "1:4.5.3-1"
             },
             "aarch64": {
                 "nvidia_gb200": {

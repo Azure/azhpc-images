@@ -1165,13 +1165,15 @@
     "dynolog": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dynolog.git"
+            "url": "https://github.com/jasontmsft/dynolog.git",
+            "commit": "1f61fd5e6d7499e7bd7531830cbe1f81b43ff815"
         }
     },
     "dyno_relay_logger": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dyno-relay-logger.git"
+            "url": "https://github.com/jasontmsft/dyno-relay-logger.git",
+            "commit": "97ef384edacde60cde30f76f4c1b683087c3b24c"
         }
     },
     "nvidia_grid": {

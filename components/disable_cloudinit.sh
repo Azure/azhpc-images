@@ -57,7 +57,27 @@ EOF
     fi
 else
     echo network: {config: disabled} | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
-    bash -c "cat > /etc/netplan/50-cloud-init.yaml" <<'EOF'
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
+        bash -c "cat > /etc/netplan/net.yaml" <<'EOF'
+network:
+  ethernets:
+    mana-nics:
+      dhcp4: true
+      match:
+        driver: mana
+        name: e*
+    eth0:
+      dhcp4: true
+EOF
+
+        chmod 600 /etc/netplan/net.yaml
+        # Delete the default cloud-init network config
+        if [ -f /etc/netplan/50-cloud-init.yaml ]; then
+            rm /etc/netplan/50-cloud-init.yaml
+        fi
+        touch /etc/cloud/cloud-init.disabled
+    else
+        bash -c "cat > /etc/netplan/50-cloud-init.yaml" <<'EOF'
 network:
     ethernets:
         eth0:

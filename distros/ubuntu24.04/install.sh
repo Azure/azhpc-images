@@ -48,9 +48,6 @@ $COMPONENT_DIR/install_pmix.sh
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
 
-# install mpifileutils
-$COMPONENT_DIR/install_mpifileutils.sh
-
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
 
@@ -97,6 +94,9 @@ fi
 
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
+
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
 
 if [ "$ARCHITECTURE" == "x86_64" ]; then
 

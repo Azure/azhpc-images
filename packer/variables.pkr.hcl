@@ -159,7 +159,7 @@ locals {
 
 variable "enable_first_party_specifics" {
   type        = bool
-  description = "Whether to enable first-party-specific operations, such as certain Azure tags, MDE installation, etc."
+  description = "Whether to enable first-party-specific operations, such as certain Azure tags and internal artifacts."
   default     = false
 }
 

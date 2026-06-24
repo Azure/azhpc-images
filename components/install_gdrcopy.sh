@@ -27,23 +27,23 @@ else
         kernel_version=$(uname -r | sed 's/\-/./g')
         kernel_version=${kernel_version%.*}
 
-        # tdnf will automatically pick the correct nvidia driver version for
+        # dnf will automatically pick the correct nvidia driver version for
         # gdrcopy kmod package
 
         if [ "$ARCHITECTURE" = "aarch64" ]; then
             # Install gdrcopy kmod and devel packages from PMC
-            tdnf -y install gdrcopy \
+            dnf -y install gdrcopy \
                             gdrcopy-hwe-kmod \
                             gdrcopy-devel \
                             gdrcopy-service
-            GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.aarch64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+            GDRCOPY_VERSION=$(sudo dnf list installed | grep -i gdrcopy.aarch64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
         else
             # Install gdrcopy kmod and devel packages from PMC
-            tdnf install -y gdrcopy \
+            dnf install -y gdrcopy \
                             gdrcopy-kmod \
                             gdrcopy-devel \
                             gdrcopy-service
-            GDRCOPY_VERSION=$(sudo tdnf list installed | grep -i gdrcopy.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+            GDRCOPY_VERSION=$(sudo dnf list installed | grep -i gdrcopy.x86_64 | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
         fi
 
     else
@@ -76,7 +76,7 @@ else
             rpm -Uvh gdrcopy-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
             rpm -Uvh gdrcopy-devel-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.noarch.rpm
             rpm -Uvh gdrcopy-kmod-$(uname -r)-nvidia-${NVIDIA_DRIVER_VERSION}-${GDRCOPY_VERSION}.${GDRCOPY_DISTRIBUTION}.x86_64.rpm
-            dnf_pin_packages "gdrcopy*"
+            dnf versionlock add "gdrcopy*"
         fi
         popd
     fi

@@ -19,10 +19,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y build-essential devscripts debhelper fakeroot
     apt install -y zlib1g-dev libibverbs-dev  
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rpm-build rpmdevtools autoconf automake git libtool
+    dnf install -y rpm-build rpmdevtools autoconf automake git libtool
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    yum install -y rpm-build rpmdevtools
+    dnf install -y rpm-build rpmdevtools
 fi
 
 pushd /tmp
@@ -42,23 +42,23 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     make pkg.redhat.build
     if [ "$ARCHITECTURE" = "aarch64" ]; then
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
     else
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
     fi
 
-    dnf_pin_packages "libnccl*"
+    dnf versionlock add "libnccl*"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     make pkg.redhat.build
     rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
     rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
-    dnf_pin_packages "libnccl*"
+    dnf versionlock add "libnccl*"
 fi
 popd
 

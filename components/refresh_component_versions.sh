@@ -371,7 +371,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     # dpkg's Version field only has the upstream '2.5.2' (the '-1' lives
     # in the .deb filename), so dpkg-query would downgrade the manifest.
     # GDRCopy is pinned on every target distro (apt-mark hold on Ubuntu,
-    # dnf.conf exclude on RHEL, no auto-upgrade on AzureLinux), so it
+    # dnf versionlock on RPM-family distros), so it
     # can't drift here. Best-effort soft-preserve keeps the precise
     # install-time value (with '-<rev>' suffix) intact.
     echo "[GDRCopy]"
@@ -419,7 +419,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
 
-    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/tdnf); no /opt path.
+    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/dnf); no /opt path.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
     if command -v dpkg-query &>/dev/null; then

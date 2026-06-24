@@ -51,9 +51,9 @@ EOF
     apt install -y rocm-bandwidth-test
     rm -f ./${DEBPACKAGE}
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y azurelinux-repos-amd
-    tdnf -y install kernel-drivers-gpu-$(uname -r)
-    tdnf -y install amdgpu amdgpu-firmware amdgpu-headers
+    dnf install -y azurelinux-repos-amd
+    dnf -y install kernel-drivers-gpu-$(uname -r)
+    dnf -y install amdgpu amdgpu-firmware amdgpu-headers
 
     # Add Azure Linux 3 ROCM repo file
     cat <<EOF >> /etc/yum.repos.d/amd_rocm.repo
@@ -66,10 +66,10 @@ gpgcheck=0
 sslverify=0
 EOF
 
-    tdnf repolist --refresh
-    tdnf install -y rocm-dev rocm-validation-suite rocm-bandwidth-test
-    tdnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validation-suite
-    tdnf install -y rocm-bandwidth-test
+    dnf repolist --refresh
+    dnf install -y rocm-dev rocm-validation-suite rocm-bandwidth-test
+    dnf install -y rocm-smi-lib rocm-core rocm-device-libs rocm-llvm rocm-validation-suite
+    dnf install -y rocm-bandwidth-test
 fi
 
 #Grant access to GPUs to all users via udev rules

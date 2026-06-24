@@ -1,6 +1,7 @@
 [packages-microsoft-com-prod]
+priority=10
 name=Microsoft Production
-baseurl=https://packages.microsoft.com/rhel/8/prod/
+baseurl=https://packages.microsoft.com/rocky/8/prod/
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1

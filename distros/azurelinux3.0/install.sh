@@ -62,7 +62,7 @@ fi
 
 if [ "$GPU" = "AMD" ]; then
     # Set up docker
-    tdnf install -y moby-engine moby-cli
+    dnf install -y moby-engine moby-cli
     systemctl enable docker
     systemctl restart docker
 

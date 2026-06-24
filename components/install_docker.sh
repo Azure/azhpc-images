@@ -17,9 +17,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y moby-buildx
     fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y moby-engine
-    tdnf install -y moby-cli
-    tdnf install -y docker-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y docker-buildx
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     # NOTE: on el8 the MS repo is marked with `module_hotfixes=1` by the
@@ -27,9 +27,9 @@ else
     # [distros/rocky8.10/install_utils.sh]). That bypasses dnf modular
     # filtering for moby-runc (which `Provides: runc`, a name claimed by
     # the AppStream `container-tools` module) without disabling the module.
-    yum install -y moby-engine
-    yum install -y moby-cli
-    yum install -y moby-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y moby-buildx
 fi
 
 $COMPONENT_DIR/install_nvidia_container_toolkit.sh

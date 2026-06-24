@@ -14,6 +14,6 @@ RHEL_LUSTRE_VERSION=${LUSTRE_VERSION//-/_}
 source $RHEL_COMMON_DIR/setup_lustre_repo.sh "$1"
 
 dnf install -y --disableexcludes=main --refresh amlfs-lustre-client-${RHEL_LUSTRE_VERSION}-$(uname -r | sed -e "s/\.$(uname -p)$//" | sed -re 's/[-_]/\./g')-1
-sed -i "$ s/$/ amlfs*/" /etc/dnf/dnf.conf
+dnf versionlock add "amlfs*"
 
 write_component_version "LUSTRE" ${LUSTRE_VERSION}

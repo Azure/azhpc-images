@@ -3,8 +3,8 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 # Install Moby Engine + CLI
-yum install -y moby-engine
-yum install -y moby-cli
+dnf install -y moby-engine
+dnf install -y moby-cli
 
 $RHEL_COMMON_DIR/install_nvidia_container_toolkit.sh
 

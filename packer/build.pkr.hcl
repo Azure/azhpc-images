@@ -44,37 +44,6 @@ build {
     ]
   }
 
-  provisioner "shell-local" {
-    name           = "(1P specific) download mdatp onboarding package"
-    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline = [
-      "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
-      "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
-      "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    ]
-  }
-
-  provisioner "file" {
-    name        = "(1P specific) upload mdatp onboarding package"
-    except      = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    source      = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    destination = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    generated   = true
-  }
-
-  provisioner "shell" {
-    name           = "(1P specific) install mdatp with onboarding script"
-    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline = [
-      "set -o pipefail",
-      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
-      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
-      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    ]
-  }
-
   provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
     script          = "scripts/prerequisites.sh"

@@ -7,6 +7,32 @@ source ${UTILS_DIR}/utilities.sh
 nvidia_metadata=$(get_component_config "nvidia")
 cuda_metadata=$(get_component_config "cuda")
 
+function sanitize_nvidia_mig_mode {
+    if ! command -v nvidia-smi >/dev/null 2>&1; then
+        echo "nvidia-smi not found; skipping MIG sanitization"
+        return 0
+    fi
+
+    local mig_query_output
+    mig_query_output=$(nvidia-smi --query-gpu=index,mig.mode.current --format=csv,noheader,nounits 2>/dev/null || true)
+    if [[ -z "${mig_query_output}" ]]; then
+        echo "No NVIDIA GPUs detected; skipping MIG sanitization"
+        return 0
+    fi
+
+    local mig_enabled_gpus
+    mig_enabled_gpus=$(awk -F, '$2 ~ /Enabled/ { gsub(/^[ \t]+|[ \t]+$/, "", $1); print $1 }' <<< "${mig_query_output}" | paste -sd, -)
+    if [[ -z "${mig_enabled_gpus}" ]]; then
+        echo "No GPUs have MIG mode enabled"
+        return 0
+    fi
+
+    echo "Disabling MIG mode on GPU(s): ${mig_enabled_gpus}"
+    systemctl stop nvidia-fabricmanager.service nvidia-persistenced.service 2>/dev/null || true
+    nvidia-smi -i "${mig_enabled_gpus}" -mig 0
+    nvidia-smi --query-gpu=index,name,mig.mode.current,mig.mode.pending --format=csv,noheader
+}
+
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     if [ "$SKU" = "V100" ]; then
         # V100 requires proprietary kernel modules
@@ -25,18 +51,14 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
     fi
 
-    # Disable the NVIDIA CUDA repo during driver install — all driver
+    # Disable the NVIDIA CUDA repo during driver install -- all driver
     # packages come from PMC and the CUDA repo has an identically-named
     # 'cuda' meta-package that would conflict.
-    # Do not use this before bugfixed tdnf lands (https://github.com/vmware/tdnf/pull/553/commits/a418054b02c4cac787184f973dac4d6790344ef3)
-    # or before switching to dnf
-    # tdnf install -y --disablerepo=cuda-azl3* $AL3_GPU_DRIVER_PACKAGES
-    tdnf install -y --disablerepo=cuda-azl3-x86_64 --disablerepo=cuda-azl3-sbsa $AL3_GPU_DRIVER_PACKAGES
-    NVIDIA_DRIVER_VERSION=$(tdnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
+    dnf install -y --disablerepo='cuda-azl3*' $AL3_GPU_DRIVER_PACKAGES
+    NVIDIA_DRIVER_VERSION=$(dnf list installed | grep "^${AL3_GPU_DRIVER_PACKAGES}\." | sed 's/.*\s\+\([0-9.]\+-[0-9]\+\)_.*/\1/')
 
-    # Temp disable NVIDIA driver updates
-    mkdir -p /etc/tdnf/locks.d
-    echo cuda >> /etc/tdnf/locks.d/nvidia.conf
+    # Keep later dnf operations from moving the PMC-installed driver family.
+    dnf versionlock add "${AL3_GPU_DRIVER_PACKAGES}"
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # APT-based NVIDIA driver installation for Ubuntu
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
@@ -96,6 +118,7 @@ else
     # openibd ExecStartPost drop-in installed by setup_sku_customizations.sh.
 fi
 write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
+sanitize_nvidia_mig_mode
 
 touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
@@ -110,7 +133,7 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # NVIDIA APT repo already configured during driver installation
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
-        tdnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
+        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
@@ -124,8 +147,14 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
         # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
         # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
         # the (removed) global DOCA pin in install_doca.sh.
+        # There is also an obsoletion of CUDA 13 cccl against cuda-cccl in CUDA 12 we'd like to avoid.
+        cuda_excludes="mft* kernel-mft*"
+        if [[ "${CUDA_DRIVER_VERSION}" == 12.* ]]; then
+            cuda_excludes="${cuda_excludes} cccl-*"
+        fi
+
         dnf config-manager --save \
-            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=mft* kernel-mft*" >/dev/null
+            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=${cuda_excludes}" >/dev/null
 
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
@@ -159,7 +188,7 @@ else
     # Install NVIDIA IMEX
     nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)
     IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
-    tdnf install -y nvidia-imex-${IMEX_VERSION}
+    dnf install -y nvidia-imex-${IMEX_VERSION}
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf

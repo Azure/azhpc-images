@@ -17,9 +17,9 @@ NVLOOM_DOWNLOAD_URL=$(jq -r '.url' <<< $nvloom_metadata)
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Download dependencies
-    tdnf install -y build-essential
-    tdnf install -y boost-devel boost-program-options
-    tdnf install -y cmake
+    dnf install -y build-essential
+    dnf install -y boost-devel boost-program-options
+    dnf install -y cmake
 
     git clone $NVLOOM_DOWNLOAD_URL --branch v$NVLOOM_VERSION
     pushd nvloom

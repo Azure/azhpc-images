@@ -3,12 +3,85 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+rccl_metadata=$(get_component_config "rccl")
+
+install_rccl_rdma_sharp_plugin_dependencies() {
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        apt install -y autoconf automake libtool libibverbs-dev
+    elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+        tdnf install -y autoconf automake libtool rdma-core-devel
+    else
+        yum install -y autoconf automake libtool rdma-core-devel
+    fi
+}
+
+install_rccl_rdma_sharp_plugin() {
+    rccl_rdma_sharp_commit=$(jq -r '.rdmasharpplugins.commit // empty' <<< $rccl_metadata)
+    if [[ -z "$rccl_rdma_sharp_commit" ]]; then
+        echo "RCCL RDMA SHARP plugin commit is not configured in versions.json."
+        exit 1
+    fi
+
+    install_rccl_rdma_sharp_plugin_dependencies
+
+    source /etc/profile.d/modules.sh
+    module load mpi/hpcx
+
+    local plugin_prefix=/usr/local/rccl-rdma-sharp-plugins
+    local sharp_dir="${HPCX_SHARP_DIR:-}"
+    if [[ -z "$sharp_dir" && -n "${HPCX:-}" && -d "${HPCX}/sharp" ]]; then
+        sharp_dir=${HPCX}/sharp
+    fi
+    if [[ -z "$sharp_dir" && -d /opt/mellanox/sharp ]]; then
+        sharp_dir=/opt/mellanox/sharp
+    fi
+    if [[ -z "$sharp_dir" ]]; then
+        echo "SHARP was not found in HPCX_SHARP_DIR or /opt/mellanox/sharp; cannot build RCCL RDMA SHARP plugin."
+        exit 1
+    fi
+
+    pushd /tmp
+    git clone https://github.com/ROCm/rccl-rdma-sharp-plugins.git
+    pushd rccl-rdma-sharp-plugins
+    git checkout ${rccl_rdma_sharp_commit}
+    ./autogen.sh
+
+    configure_args=(
+        --prefix=${plugin_prefix}
+        --with-hip=/opt/rocm
+        --with-verbs=/usr
+        --with-sharp=${sharp_dir}
+    )
+    local ucx_dir="${HPCX_UCX_DIR:-}"
+    if [[ -z "$ucx_dir" && -n "${HPCX:-}" && -d "${HPCX}/ucx/hpcx-rebuild" ]]; then
+        ucx_dir=${HPCX}/ucx/hpcx-rebuild
+    elif [[ -z "$ucx_dir" && -n "${HPCX:-}" && -d "${HPCX}/ucx" ]]; then
+        ucx_dir=${HPCX}/ucx
+    fi
+    if [[ -n "$ucx_dir" ]]; then
+        configure_args+=(--with-ucx=${ucx_dir})
+    fi
+
+    ./configure "${configure_args[@]}"
+    make -j$(nproc)
+    make install
+    cat > /etc/ld.so.conf.d/rccl-rdma-sharp-plugins.conf <<EOF
+${plugin_prefix}/lib
+EOF
+    ldconfig
+    popd
+    popd
+
+    rm -rf /tmp/rccl-rdma-sharp-plugins
+    write_component_version "RCCL-RDMA_SHARP_PLUGIN" ${rccl_rdma_sharp_commit}
+    module unload mpi/hpcx
+}
+
 # On Ubuntu 24.04 and Azure Linux 3, RCCL comes from ROCm packages; build from source on other distros
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
 elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
-    rccl_metadata=$(get_component_config "rccl")
     rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
     rccl_version=$(jq -r '.version' <<< $rccl_metadata)
@@ -58,6 +131,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 fi
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
+
+if sku_has_infiniband; then
+    install_rccl_rdma_sharp_plugin
+fi
 
 # Build rccl-tests from the modern home in ROCm/rocm-systems using its CMake
 # build system. This supersedes the legacy ROCmSoftwarePlatform/rccl-tests

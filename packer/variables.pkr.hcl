@@ -80,13 +80,13 @@ locals {
 }
 
 variable "use_ubuntu_proposed_suite" {
-  type        = bool
+  type        = string
   description = "Use Proposed Suite for Kernel Installation"
   default     = env("USE_UBUNTU_PROPOSED_SUITE")
 }
 
 variable "use_ubuntu_ppa_repo" {
-  type        = bool
+  type        = string
   description = "Use Kernel in Personal Package Archive (PPA) Repo"
   default     = env("USE_UBUNTU_PPA_REPO")
 }
@@ -94,15 +94,21 @@ variable "use_ubuntu_ppa_repo" {
 variable "ubuntu_ppa_repo_name" {
   type        = string
   description = "Personal Package Archive Repo Name (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
-  default     = coalesce(env("UBUNTU_PPA_REPO_NAME"), "None")
+  default     = env("UBUNTU_PPA_REPO_NAME")
 }
 
 variable "ubuntu_ppa_kernel_patch_version" {
   type        = string
   description = "Personal Package Archive Kernel Version (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
-  default     = coalesce(env("UBUNTU_PPA_KERNEL_PATCH_VERSION"), "None")
+  default     = env("UBUNTU_PPA_KERNEL_PATCH_VERSION")
 }
 
+locals {
+  use_ubuntu_proposed_suite         = try(convert(lower(var.use_ubuntu_proposed_suite), bool), false)
+  use_ubuntu_ppa_repo               = try(convert(lower(var.use_ubuntu_ppa_repo), bool), false)
+  ubuntu_ppa_repo_name              = coalesce(var.ubuntu_ppa_repo_name, "None")
+  ubuntu_ppa_kernel_patch_version   = coalesce(var.ubuntu_ppa_kernel_patch_version, "None")
+}
 
 variable "vm_size" {
   type        = string
@@ -612,7 +618,7 @@ locals {
 # =============================================================================
 
 locals {
-  numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
+  numeric_timestamp                 = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
 
   # Image naming components
   distro_version_safe = replace(local.distro_version, ".", "-")

@@ -79,6 +79,31 @@ locals {
   )
 }
 
+variable "use_ubuntu_proposed_suite" {
+  type        = bool
+  description = "Use Proposed Suite for Kernel Installation"
+  default     = env("USE_UBUNTU_PROPOSED_SUITE")
+}
+
+variable "use_ubuntu_ppa_repo" {
+  type        = bool
+  description = "Use Kernel in Personal Package Archive (PPA) Repo"
+  default     = env("USE_UBUNTU_PPA_REPO")
+}
+
+variable "ubuntu_ppa_repo_name" {
+  type        = string
+  description = "Personal Package Archive Repo Name (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = coalesce(env("UBUNTU_PPA_REPO_NAME"), "None")
+}
+
+variable "ubuntu_ppa_kernel_patch_version" {
+  type        = string
+  description = "Personal Package Archive Kernel Version (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = coalesce(env("UBUNTU_PPA_KERNEL_PATCH_VERSION"), "None")
+}
+
+
 variable "vm_size" {
   type        = string
   description = "VM SKU to target for the image."

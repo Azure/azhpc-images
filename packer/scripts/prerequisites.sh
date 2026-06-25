@@ -107,15 +107,31 @@ install_ubuntu_gb200_kernel() {
     if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
         configure_ofed_dkms_build_depends
     fi
+    local ubuntu_codename="noble"
+    kernel_ver="${KERNEL_VERSION:-6.8}"
+    if [ "$USE_UBUNTU_PPA_REPO" == "True" ]; then
+        echo "##[section] PPA kernel repo is enabled, installing PPA kernel version: $UBUNTU_PPA_KERNEL_PATCH_VERSION"
+        sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
+        sudo apt-get -y update
+        sudo apt-get install -y linux-azure-nvidia-"$kernel_ver"=$UBUNTU_PPA_KERNEL_PATCH_VERSION
+    elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+        if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+            echo "##[section]Enabling Ubuntu proposed suite"
+            enable_ubuntu_proposed_suite "${ubuntu_codename}"
+        fi
 
-    if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
-        sudo apt-get install linux-azure-nvidia -y  
-    elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
-        sudo apt-get install linux-azure-nvidia-6.17 -y  
-    else #kernel 6.8
-        sudo apt-get install linux-azure-nvidia-6.8 -y
+        # Install the versioned kernel meta-package
+        apt install -y linux-azure-nvidia-${kernel_ver}
+
+        # Revert the temporary proposed-suite change after kernel package installation.
+        if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+            echo "##[section]Disabling Ubuntu proposed suite"
+            disable_ubuntu_proposed_suite "${ubuntu_codename}"
+        fi
+    else
+        sudo apt-get install linux-azure-nvidia-"$kernel_ver" -y
     fi
-    
+
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
 
@@ -171,6 +187,32 @@ EOF
 }
 
 ####
+# @Brief        : Enable Ubuntu proposed suite for the current codename
+# @Param        : codename - Ubuntu codename (noble, jammy, ...)
+# @RetVal       : 0 on success
+####
+enable_ubuntu_proposed_suite() {
+    local codename=$1
+    local sources_file=/etc/apt/sources.list.d/ubuntu.sources
+
+    sudo sed -i "s/${codename}-backports/${codename}-backports ${codename}-proposed/" "${sources_file}"
+    sudo apt-get -y update
+}
+
+####
+# @Brief        : Disable Ubuntu proposed suite for the current codename
+# @Param        : codename - Ubuntu codename (noble, jammy, ...)
+# @RetVal       : 0 on success
+####
+disable_ubuntu_proposed_suite() {
+    local codename=$1
+    local sources_file=/etc/apt/sources.list.d/ubuntu.sources
+
+    sudo sed -i "s/ ${codename}-proposed//" "${sources_file}"
+    sudo apt-get -y update
+}
+
+####
 # @Brief        : Install LTS kernel for Ubuntu (non-GB200)
 # @Param        : OS version (e.g., 24.04, 22.04)
 # @RetVal       : 0 on success
@@ -212,6 +254,14 @@ install_ubuntu_lts_kernel() {
                 configure_ofed_dkms_build_depends
             fi
 
+            local ubuntu_codename="noble"
+
+            # Temporarily enable noble-proposed to refresh package metadata from proposed.
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                echo "##[section]Enabling Ubuntu proposed suite"
+                enable_ubuntu_proposed_suite "${ubuntu_codename}"
+            fi
+
             # Install the versioned kernel meta-package
             apt install -y linux-azure-${kernel_ver}
 
@@ -220,6 +270,12 @@ install_ubuntu_lts_kernel() {
                 apt install -y linux-modules-extra-azure-${kernel_ver}
             fi
 
+            # Revert the temporary proposed-suite change after kernel package installation.
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                echo "##[section]Disabling Ubuntu proposed suite"
+                disable_ubuntu_proposed_suite "${ubuntu_codename}"
+            fi
+            
             # Purge non-target kernels
             eval apt-get purge -y linux-azure linux-image-azure $purge_patterns || true
             # Also purge the LTS meta-package if we're not using it
@@ -234,8 +290,19 @@ install_ubuntu_lts_kernel() {
             
         22.04)
             apt update
+            local ubuntu_codename="jammy"
+            # Temporarily enable noble-proposed to refresh package metadata from proposed.
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                echo "##[section]Enabling Ubuntu proposed suite"
+                enable_ubuntu_proposed_suite "${ubuntu_codename}"
+            fi            
             apt install -y linux-azure-lts-22.04
-            
+
+            # Revert the temporary proposed-suite change after kernel package installation.
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                echo "##[section]Disabling Ubuntu proposed suite"
+                disable_ubuntu_proposed_suite "${ubuntu_codename}"
+            fi        
             # Purge non-LTS kernels
             apt-get purge -y \
                 linux-azure linux-image-azure \

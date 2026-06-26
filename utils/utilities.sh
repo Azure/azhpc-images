@@ -127,17 +127,17 @@ check_dkms_status() {
     command -v dkms >/dev/null 2>&1 || return 0
 
     local kernel_version=$(uname -r)
-    local module status found failed
+    local module status found current_installed
     local log_file
 
     for module in "$@"; do
         found=0
-        failed=0
+        current_installed=0
         while IFS= read -r status; do
             found=1
             echo "${status}"
-            if ! grep -q "${kernel_version}.*: installed" <<< "${status}"; then
-                failed=1
+            if grep -q "${kernel_version}.*: installed" <<< "${status}"; then
+                current_installed=1
             fi
         done < <(dkms status -m "${module}" 2>/dev/null || true)
 
@@ -145,7 +145,7 @@ check_dkms_status() {
             echo "ERROR: DKMS module ${module} has no status entry" >&2
             exit 1
         fi
-        if [[ ${failed} -ne 0 ]]; then
+        if [[ ${current_installed} -ne 1 ]]; then
             echo "ERROR: DKMS module ${module} is not installed for ${kernel_version}" >&2
             for log_file in /var/lib/dkms/${module}/*/build/make.log; do
                 [[ -f "${log_file}" ]] || continue

@@ -14,7 +14,7 @@ download_and_verify $DOCA_URL $DOCA_SHA256
 configure_mlnx_ofa_kernel_dkms_dpll_patch() {
     local kernel_header=/usr/src/kernels/$(uname -r)/include/linux/dpll.h
     local dkms_conf=/etc/dkms/mlnx-ofa_kernel.conf
-    local patch_file=${azhpc_dir}/components/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
+    local patch_file=${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
     local patch_dir=/etc/dkms/mlnx-ofa_kernel/patches
 
     # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback

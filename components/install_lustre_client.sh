@@ -7,6 +7,64 @@ source ${UTILS_DIR}/utilities.sh
 lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
+configure_lustre_dkms_no_o2ib() {
+    local config_file=$1
+
+    mkdir -p "$(dirname "${config_file}")"
+    cat > "${config_file}" <<'EOF'
+# Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
+LUSTRE_DKMS_CONFIGURE_EXTRA="--with-o2ib=no"
+EOF
+}
+
+configure_lustre_dkms_no_o2ib_with_tr_workaround() {
+    local config_file=$1
+
+    mkdir -p "$(dirname "${config_file}")"
+    cat > "${config_file}" <<'EOF'
+# Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
+# TODO: Drop the tr() workaround after AMLFS publishes Lustre DKMS with LU-19792.
+OPTS=$(printf '%s\n' "${OPTS:-}" | sed -E 's#(^|[[:space:]])--with-o2ib=[^[:space:]]+##g')
+LUSTRE_DKMS_CONFIGURE_EXTRA="--with-o2ib=no"
+tr() {
+    if [[ $# -eq 2 && "$1" == " " && ( "$2" == "\\n" || "$2" == "\\\\n" ) ]]; then
+        command tr ' ' '\n'
+    else
+        command tr "$@"
+    fi
+}
+EOF
+}
+
+configure_legacy_lustre_dkms_no_o2ib() {
+    local module=lustre-client-modules
+    local module_version=$1
+    local dkms_conf=/etc/dkms/${module}-${module_version}.conf
+
+    mkdir -p /etc/dkms
+    cat > "${dkms_conf}" <<'EOF'
+# Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
+# Ubuntu 22.04's published AMLFS Lustre DKMS package has a static dkms.conf with
+# ko2iblnd in the expected module list, so override both configure and artifacts.
+MAKE="sh autogen.sh && ./configure --with-linux=$kernel_source_dir --with-linux-obj=$kernel_source_dir --disable-server --disable-quilt --disable-dependency-tracking --disable-doc --disable-utils --disable-iokit --disable-snmp --disable-tests --enable-quota --with-kmp-moddir=updates --with-o2ib=no --enable-gss && make"
+BUILT_MODULE_NAME[11]="ksocklnd"
+BUILT_MODULE_LOCATION[11]="lnet/klnds/socklnd"
+DEST_MODULE_LOCATION[11]="/updates/kernel/net/lustre"
+BUILT_MODULE_NAME[12]="libcfs"
+BUILT_MODULE_LOCATION[12]="libcfs/libcfs"
+DEST_MODULE_LOCATION[12]="/updates/kernel/net/lustre"
+BUILT_MODULE_NAME[13]="lnet"
+BUILT_MODULE_LOCATION[13]="lnet/lnet"
+DEST_MODULE_LOCATION[13]="/updates/kernel/net/lustre"
+BUILT_MODULE_NAME[14]="lnet_selftest"
+BUILT_MODULE_LOCATION[14]="lnet/selftest"
+DEST_MODULE_LOCATION[14]="/updates/kernel/net/lustre"
+BUILT_MODULE_NAME[15]="ptlrpc_gss"
+BUILT_MODULE_LOCATION[15]="lustre/ptlrpc/gss"
+DEST_MODULE_LOCATION[15]="/updates/kernel/fs/lustre"
+EOF
+}
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
@@ -23,6 +81,11 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get update
 
     LUSTRE_PACKAGE="amlfs-lustre-client-dkms-${LUSTRE_VERSION}"
+    if [[ $UBUNTU_VERSION == 22.04 ]]; then
+        configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
+    else
+        configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre
+    fi
     apt-get install -y "${LUSTRE_PACKAGE}"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
@@ -43,6 +106,7 @@ else
         "lustre-client-dkms-${LUSTRE_VERSION_UNDERSCORE}"
         "lustre-client-${LUSTRE_VERSION_UNDERSCORE}-devel"
     )
+    configure_lustre_dkms_no_o2ib /etc/sysconfig/lustre
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}
 fi

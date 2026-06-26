@@ -11,6 +11,24 @@ DOCA_FILE=$(basename ${DOCA_URL})
 
 download_and_verify $DOCA_URL $DOCA_SHA256
 
+configure_mlnx_ofa_kernel_dkms_dpll_patch() {
+    local kernel_header=/usr/src/kernels/$(uname -r)/include/linux/dpll.h
+    local dkms_conf=/etc/dkms/mlnx-ofa_kernel.conf
+    local patch_file=${azhpc_dir}/components/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
+    local patch_dir=/etc/dkms/mlnx-ofa_kernel/patches
+
+    # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback
+    # signature, while DOCA 3.2.x / MLNX OFED 25.10 still ships the older one.
+    [[ -f "${kernel_header}" ]] || return 0
+    grep -q 'struct dpll_ffo_param \*ffo,' "${kernel_header}" || return 0
+
+    mkdir -p "${patch_dir}"
+    cp "${patch_file}" "${patch_dir}/dpll-ffo-param.patch"
+    cat > "${dkms_conf}" <<'EOF'
+PATCH[0]="dpll-ffo-param.patch"
+EOF
+}
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
 
@@ -93,6 +111,7 @@ else
     # Backup
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
+    configure_mlnx_ofa_kernel_dkms_dpll_patch
     dnf -y install doca-ofed
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf

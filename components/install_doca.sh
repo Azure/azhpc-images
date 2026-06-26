@@ -112,6 +112,37 @@ EOF
     )
     rm -f /tmp/hpcx-provides-ucx_*_all.deb /tmp/hpcx-provides-ucx
 
+    # Install a marker package telling apt that HPC-X provides SHARP. This blocks
+    # doca-ofed from installing the DOCA-bundled `sharp` package, whose libtool
+    # archives hard-code DOCA UCX paths under /usr/lib. NCCL/RCCL SHARP plugins
+    # are built later against HPC-X's matching SHARP and UCX trees.
+    sharp_version=$(apt-cache show sharp 2>/dev/null | awk '/^Version:/ {print $2; exit}')
+    if [[ -z "$sharp_version" ]]; then
+        echo "ERROR: could not read sharp version from DOCA repo" >&2
+        exit 1
+    fi
+    cat > /tmp/hpcx-provides-sharp <<EOF
+Section: misc
+Priority: optional
+Homepage: https://github.com/Azure/azhpc-images
+Standards-Version: 3.9.2
+
+Package: hpcx-provides-sharp
+Provides: sharp (= ${sharp_version})
+Version: ${sharp_version}
+Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
+Description: marker package to indicate that HPC-X provides SHARP
+ HPC-X (installed by install_mpis.sh into /opt) provides SHARP at runtime,
+ so the DOCA-bundled sharp package is redundant and can inject stale libtool
+ dependencies on DOCA UCX paths under /usr/lib.
+EOF
+    (
+        cd /tmp
+        equivs-build /tmp/hpcx-provides-sharp
+        dpkg -i /tmp/hpcx-provides-sharp_*_all.deb
+    )
+    rm -f /tmp/hpcx-provides-sharp_*_all.deb /tmp/hpcx-provides-sharp
+
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE

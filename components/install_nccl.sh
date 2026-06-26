@@ -64,6 +64,18 @@ popd
 
 # Install the nccl rdma sharp plugin. Skip for non-IB SKUs (no DOCA-OFED, no SHARP, no GPUDirect RDMA)
 if sku_has_infiniband; then
+    source /etc/profile.d/modules.sh
+    module load mpi/hpcx
+
+    if [[ -z "${HPCX_SHARP_DIR:-}" || ! -d "${HPCX_SHARP_DIR}" ]]; then
+        echo "HPC-X module did not provide a valid HPCX_SHARP_DIR; cannot build NCCL RDMA SHARP plugin."
+        exit 1
+    fi
+    if [[ -z "${HPCX_UCX_DIR:-}" || ! -d "${HPCX_UCX_DIR}" ]]; then
+        echo "HPC-X module did not provide a valid HPCX_UCX_DIR; cannot build NCCL RDMA SHARP plugin."
+        exit 1
+    fi
+
     mkdir -p /usr/local/nccl-rdma-sharp-plugins
     git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins
@@ -88,6 +100,7 @@ EOF
     ldconfig
     popd
     write_component_version "NCCL-RDMA_SHARP_PLUGIN" ${NCCL_RDMA_SHARP_COMMIT}
+    module unload mpi/hpcx
 fi
 
 # Build the nccl tests

@@ -28,15 +28,12 @@ install_rccl_rdma_sharp_plugin() {
     module load mpi/hpcx
 
     local plugin_prefix=/usr/local/rccl-rdma-sharp-plugins
-    local sharp_dir="${HPCX_SHARP_DIR:-}"
-    if [[ -z "$sharp_dir" && -n "${HPCX:-}" && -d "${HPCX}/sharp" ]]; then
-        sharp_dir=${HPCX}/sharp
+    if [[ -z "${HPCX_SHARP_DIR:-}" || ! -d "${HPCX_SHARP_DIR}" ]]; then
+        echo "HPC-X module did not provide a valid HPCX_SHARP_DIR; cannot build RCCL RDMA SHARP plugin."
+        exit 1
     fi
-    if [[ -z "$sharp_dir" && -d /opt/mellanox/sharp ]]; then
-        sharp_dir=/opt/mellanox/sharp
-    fi
-    if [[ -z "$sharp_dir" ]]; then
-        echo "SHARP was not found in HPCX_SHARP_DIR or /opt/mellanox/sharp; cannot build RCCL RDMA SHARP plugin."
+    if [[ -z "${HPCX_UCX_DIR:-}" || ! -d "${HPCX_UCX_DIR}" ]]; then
+        echo "HPC-X module did not provide a valid HPCX_UCX_DIR; cannot build RCCL RDMA SHARP plugin."
         exit 1
     fi
 
@@ -50,17 +47,7 @@ install_rccl_rdma_sharp_plugin() {
         --prefix=${plugin_prefix}
         --with-hip=/opt/rocm
         --with-verbs=/usr
-        --with-sharp=${sharp_dir}
     )
-    local ucx_dir="${HPCX_UCX_DIR:-}"
-    if [[ -z "$ucx_dir" && -n "${HPCX:-}" && -d "${HPCX}/ucx/hpcx-rebuild" ]]; then
-        ucx_dir=${HPCX}/ucx/hpcx-rebuild
-    elif [[ -z "$ucx_dir" && -n "${HPCX:-}" && -d "${HPCX}/ucx" ]]; then
-        ucx_dir=${HPCX}/ucx
-    fi
-    if [[ -n "$ucx_dir" ]]; then
-        configure_args+=(--with-ucx=${ucx_dir})
-    fi
 
     ./configure "${configure_args[@]}"
     make -j$(nproc)

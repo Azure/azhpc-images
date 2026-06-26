@@ -99,6 +99,7 @@ EOF
     rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
 
     apt-get -y install doca-ofed
+    check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
@@ -113,6 +114,7 @@ else
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
     configure_mlnx_ofa_kernel_dkms_dpll_patch
     dnf -y install doca-ofed
+    check_dkms_status mlnx-ofa_kernel iser isert srp
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 

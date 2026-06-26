@@ -87,6 +87,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre
     fi
     apt-get install -y "${LUSTRE_PACKAGE}"
+    check_dkms_status lustre-client-modules
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     LUSTRE_VERSION_UNDERSCORE=${LUSTRE_VERSION//-/_}
@@ -108,6 +109,7 @@ else
     )
     configure_lustre_dkms_no_o2ib /etc/sysconfig/lustre
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
+    check_dkms_status lustre-client
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}
 fi
 

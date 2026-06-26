@@ -29,8 +29,7 @@ module load mpi/hpcx > /dev/null
 lock_clocks="sudo nvidia-smi -lgc 1400"
 catch_error "$lock_clocks" "$error_smi"
 
-mpi_text="mpirun -np 8 --bind-to numa --map-by ppr:8:node -x LD_LIBRARY_PATH="
-mpi_text+="/usr/local/nccl-rdma-sharp-plugins/lib:\$LD_LIBRARY_PATH"
+mpi_text="mpirun -np 8 --bind-to numa --map-by ppr:8:node -x LD_LIBRARY_PATH"
 mpi_text+=" -mca coll_hcoll_enable 0 -x NCCL_IB_PCI_RELAXED_ORDERING=1"
 
 exec_text="/opt/nccl-tests/build/all_reduce_perf -c 1 -b4G -f2 -g1 -e 4G"

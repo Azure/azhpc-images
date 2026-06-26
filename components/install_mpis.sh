@@ -31,29 +31,68 @@ HPCX_FOLDER=$(basename $HPCX_DOWNLOAD_URL .tbz)
 download_and_verify ${HPCX_DOWNLOAD_URL} ${HPCX_SHA256}
 tar -xvf ${TARBALL}
 
-sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/hcoll/lib/pkgconfig/hcoll.pc
-sed -i "s/\/build-result\//\/opt\//" ${HPCX_FOLDER}/ucx/lib/pkgconfig/*.pc
 mv ${HPCX_FOLDER} ${INSTALL_PREFIX}
 HPCX_PATH=${INSTALL_PREFIX}/${HPCX_FOLDER}
+# Fix relocated HPC-X .la/.pc metadata before rebuilds consume the bundled UCX, HCOLL, and SHARP trees.
+HPCX_DIR=${HPCX_PATH} ${HPCX_PATH}/utils/hpcx_fix_ladir.sh
 HCOLL_PATH=${HPCX_PATH}/hcoll
+SHARP_PATH=${HPCX_PATH}/sharp
 UCX_PATH=${HPCX_PATH}/ucx
 LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
+
+HPCX_REBUILD_UCX_ARGS=()
+if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
+    if [[ ! -d /opt/rocm ]]; then
+        echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
+        exit 1
+    fi
+    HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
+fi
 
 # rebuild HPCX with PMIx
 # Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
 # conflicts with the Mellanox OpenMPI package on Nebius nodes.
 # Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
 if [[ $DISTRIBUTION == "azurelinux3.0" || "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 elif ! sku_uses_ucx; then
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+
+if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
+    UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+fi
+# hpcx_rebuild.sh installs fresh Open MPI and, on AMD, UCX metadata under this tree; fix those generated .la/.pc files too.
+HPCX_DIR=${HPCX_PATH} ${HPCX_PATH}/utils/hpcx_fix_ladir.sh
+
+cat > /etc/ld.so.conf.d/hpcx-sharp.conf <<EOF
+${SHARP_PATH}/lib
+EOF
+cat > /etc/ld.so.conf.d/hpcx-ucx.conf <<EOF
+${UCX_PATH}/lib
+EOF
+ldconfig
+
+# Make HPC-X component metadata visible to pkg-config even when mpi/hpcx is not loaded.
+# The HPC-X module still prepends these paths to PKG_CONFIG_PATH, but /usr/local
+# pkgconfig symlinks let module-free builds resolve the same HCOLL, SHARP, and UCX.
+HPCX_SYSTEM_PKGCONFIG_DIRS=(/usr/local/lib/pkgconfig)
+if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    HPCX_SYSTEM_PKGCONFIG_DIRS+=(/usr/local/lib64/pkgconfig)
+fi
+for pkgconfig_dir in "${HPCX_SYSTEM_PKGCONFIG_DIRS[@]}"; do
+    mkdir -p "${pkgconfig_dir}"
+    for pc_file in ${HCOLL_PATH}/lib/pkgconfig/*.pc ${SHARP_PATH}/lib/pkgconfig/*.pc ${UCX_PATH}/lib/pkgconfig/*.pc; do
+        [[ -f "${pc_file}" ]] || continue
+        ln -sf "${pc_file}" "${pkgconfig_dir}/$(basename "${pc_file}")"
+    done
+done
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude ucx from updates
@@ -152,15 +191,12 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# On IB SKUs, mpi/hpcx points to NVIDIA's original pre-built binary while
-# mpi/hpcx-pmix points to our local rebuild (with PMIx added).
-# On non-UCX SKUs (e.g. NCv6), the original binary is broken and only the rebuild (built
-# --without-ucx --with-ofi) works, so both modules point to it.
-if sku_uses_ucx; then
-    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
-    HPCX_NON_UCX_EXTRAS=""
-else
-    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+# mpi/hpcx is the public HPC-X entrypoint. Always route it through our rebuilt
+# HPC-X so customers and validation use the same stack we rebuilt above (PMIx,
+# non-UCX OFI, and ROCm-enabled UCX where applicable).
+HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+HPCX_NON_UCX_EXTRAS=""
+if ! sku_uses_ucx; then
     # On non-UCX SKUs:
     # - Force PML cm (MTL-based) instead of ob1 (BTL-based). ob1 auto-selects BTL openib
     #   which initializes against rdma-core but can't move data on MANA-only hardware, causing hangs.
@@ -196,11 +232,13 @@ EOF
 
 # MVAPICH
 # On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
-# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks).
+# the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks)
+# and disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes).
 MVAPICH_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
     read -r -d '' MVAPICH_NON_UCX_EXTRAS << 'EXTRAS' || true
 setenv          FI_PROVIDER tcp
+setenv          MPIR_CVAR_CH4_CMA_ENABLE 0
 EXTRAS
 fi
 if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
@@ -253,6 +291,11 @@ EOF
 
 #IntelMPI-v2021
 if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+    IMPI_FI_PROVIDER="mlx"
+    if ! sku_has_infiniband; then
+        IMPI_FI_PROVIDER="tcp"
+    fi
+
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version}
 #%Module 1.0
 #
@@ -265,6 +308,7 @@ setenv          MPI_INCLUDE     /opt/intel/oneapi/mpi/${impi_2021_version}/inclu
 setenv          MPI_LIB         /opt/intel/oneapi/mpi/${impi_2021_version}/lib
 setenv          MPI_MAN         /opt/intel/oneapi/mpi/${impi_2021_version}/share/man
 setenv          MPI_HOME        /opt/intel/oneapi/mpi/${impi_2021_version}
+setenv          FI_PROVIDER     ${IMPI_FI_PROVIDER}
 EOF
 
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES_DIRECTORY}/impi-2021

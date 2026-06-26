@@ -3,6 +3,11 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+INSTALL_NVIDIA_CONTAINER_TOOLKIT=false
+if [[ "${GPU:-NVIDIA}" == "NVIDIA" ]]; then
+    INSTALL_NVIDIA_CONTAINER_TOOLKIT=true
+fi
+
 # Install Moby Engine and CLI
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [[ "$ARCHITECTURE" == "aarch64" && "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
@@ -32,24 +37,28 @@ else
     yum install -y moby-buildx
 fi
 
-$COMPONENT_DIR/install_nvidia_container_toolkit.sh
+if [[ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" == true ]]; then
+    $COMPONENT_DIR/install_nvidia_container_toolkit.sh
+fi
 
 # enable and restart the docker daemon to complete the installation
 systemctl enable docker
 systemctl restart docker
 
-# restart containerd service and wait for socket to be ready
-systemctl restart containerd
-for i in $(seq 1 30); do
-    if [ -S /run/containerd/containerd.sock ]; then
-        break
-    fi
-    echo "Waiting for containerd socket... ($i/30)"
-    sleep 1
-done
+if [[ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" == true ]]; then
+    # restart containerd service and wait for socket to be ready
+    systemctl restart containerd
+    for i in $(seq 1 30); do
+        if [ -S /run/containerd/containerd.sock ]; then
+            break
+        fi
+        echo "Waiting for containerd socket... ($i/30)"
+        sleep 1
+    done
 
-# status of containerd snapshotter plugins
-ctr plugin ls
+    # status of containerd snapshotter plugins
+    ctr plugin ls
+fi
 
 # Write the docker version to components file
 docker_version=$(docker --version | awk -F' ' '{print $3}')

@@ -23,8 +23,9 @@ PIN
 
     apt-get update
 
-    # Install a single equivs marker package telling apt that HPC-X provides Open MPI,
-    # blocking two separate attempts to install an upstream Open MPI .deb:
+    # Install a single equivs marker package telling apt that HPC-X provides the
+    # MPI-adjacent libraries that DOCA would otherwise install from its OFED repo.
+    # This blocks two separate attempts to install an upstream Open MPI .deb:
     #
     #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
     #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
@@ -45,103 +46,52 @@ PIN
     # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
     # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
     # already-installed Canonical Open MPI is removed when the marker is installed.
+    # The same marker also provides DOCA's strict `ucx` and `sharp` dependencies so
+    # apt does not install the DOCA-bundled copies. HPC-X is installed later by
+    # install_mpis.sh; on AMD builds, install_mpis.sh rebuilds HPC-X UCX with ROCm
+    # support before ROCm components use it.
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$openmpi_version" ]]; then
         echo "ERROR: could not read openmpi version from DOCA repo" >&2
         exit 1
     fi
-    cat > /tmp/hpcx-provides-openmpi <<EOF
-Section: misc
-Priority: optional
-Homepage: https://github.com/Azure/azhpc-images
-Standards-Version: 3.9.2
-
-Package: hpcx-provides-openmpi
-Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common
-Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
-Version: ${openmpi_version}
-Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package to indicate that HPC-X provides Open MPI
- HPC-X (installed by install_mpis.sh into /opt) provides Open MPI at runtime,
- so both the DOCA-bundled openmpi .deb and Canonical's upstream openmpi
- packages are redundant. The DOCA openmpi additionally collides with
- /etc/pmix-mca-params.conf from the separately-installed pmix package, and
- Canonical's openmpi on Jammy depends on a vulnerable PMIx with fixes behind
- the Ubuntu Pro paywall.
-EOF
-    (
-        cd /tmp
-        equivs-build /tmp/hpcx-provides-openmpi
-        dpkg -i /tmp/hpcx-provides-openmpi_*_all.deb
-    )
-    rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
-
-    # Install a marker package telling apt that HPC-X provides UCX. This blocks
-    # doca-ofed from installing the DOCA-bundled `ucx` package and blocks Ubuntu
-    # from installing `libucx0`, while still satisfying later ROCm dependencies
-    # that arrive via:
-    #   mivisionx-dev -> libopencv-dev -> libopenmpi3t64 -> libucx0 (>= 1.15.0)
-    # HPC-X is installed later by install_mpis.sh; on AMD builds, install_mpis.sh
-    # rebuilds HPC-X UCX with ROCm support and uses that UCX for MPI builds.
     ucx_version=$(apt-cache show ucx 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$ucx_version" ]]; then
         echo "ERROR: could not read ucx version from DOCA repo" >&2
         exit 1
     fi
-    cat > /tmp/hpcx-provides-ucx <<EOF
-Section: misc
-Priority: optional
-Homepage: https://github.com/Azure/azhpc-images
-Standards-Version: 3.9.2
-
-Package: hpcx-provides-ucx
-Provides: ucx (= ${ucx_version}), libucx0
-Version: ${ucx_version}
-Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package to indicate that HPC-X provides UCX
- HPC-X (installed by install_mpis.sh into /opt) provides UCX at runtime,
- so the DOCA-bundled ucx package and Ubuntu's libucx0 package are redundant.
- On AMD builds, install_mpis.sh rebuilds HPC-X UCX with ROCm support before
- ROCm components use it.
-EOF
-    (
-        cd /tmp
-        equivs-build /tmp/hpcx-provides-ucx
-        dpkg -i /tmp/hpcx-provides-ucx_*_all.deb
-    )
-    rm -f /tmp/hpcx-provides-ucx_*_all.deb /tmp/hpcx-provides-ucx
-
-    # Install a marker package telling apt that HPC-X provides SHARP. This blocks
-    # doca-ofed from installing the DOCA-bundled `sharp` package, whose libtool
-    # archives hard-code DOCA UCX paths under /usr/lib. NCCL/RCCL SHARP plugins
-    # are built later against HPC-X's matching SHARP and UCX trees.
     sharp_version=$(apt-cache show sharp 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$sharp_version" ]]; then
         echo "ERROR: could not read sharp version from DOCA repo" >&2
         exit 1
     fi
-    cat > /tmp/hpcx-provides-sharp <<EOF
+    cat > /tmp/hpcx-provides-doca-ofed-deps <<EOF
 Section: misc
 Priority: optional
 Homepage: https://github.com/Azure/azhpc-images
 Standards-Version: 3.9.2
 
-Package: hpcx-provides-sharp
-Provides: sharp (= ${sharp_version})
-Version: ${sharp_version}
+Package: hpcx-provides-doca-ofed-deps
+Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common, ucx (= ${ucx_version}), libucx0, sharp (= ${sharp_version})
+Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
+Version: ${DOCA_VERSION}
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package to indicate that HPC-X provides SHARP
- HPC-X (installed by install_mpis.sh into /opt) provides SHARP at runtime,
- so the DOCA-bundled sharp package is redundant and can inject stale libtool
- dependencies on DOCA UCX paths under /usr/lib.
+Description: marker package to indicate that HPC-X provides DOCA OFED dependencies
+ HPC-X (installed by install_mpis.sh into /opt) provides Open MPI, UCX, and
+ SHARP at runtime, so the DOCA-bundled openmpi, ucx, and sharp packages are
+ redundant. The DOCA openmpi collides with /etc/pmix-mca-params.conf from the
+ separately-installed pmix package, Canonical's Open MPI can pull unsuitable
+ PMIx dependencies, and DOCA SHARP can inject stale libtool dependencies on
+ DOCA UCX paths under /usr/lib. The libucx0 virtual provide also satisfies
+ later Ubuntu/ROCm dependency chains that require libucx0.
 EOF
     (
         cd /tmp
-        equivs-build /tmp/hpcx-provides-sharp
-        dpkg -i /tmp/hpcx-provides-sharp_*_all.deb
+        equivs-build /tmp/hpcx-provides-doca-ofed-deps
+        dpkg -i /tmp/hpcx-provides-doca-ofed-deps_*_all.deb
     )
-    rm -f /tmp/hpcx-provides-sharp_*_all.deb /tmp/hpcx-provides-sharp
+    rm -f /tmp/hpcx-provides-doca-ofed-deps_*_all.deb /tmp/hpcx-provides-doca-ofed-deps
 
     apt-get -y install doca-ofed
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

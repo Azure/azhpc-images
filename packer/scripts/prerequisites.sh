@@ -187,28 +187,67 @@ EOF
 }
 
 ####
-# @Brief        : Enable Ubuntu proposed suite for the current codename
+# @Brief        : Enable Ubuntu proposed suite for the current codename (old list format)
 # @Param        : codename - Ubuntu codename (noble, jammy, ...)
 # @RetVal       : 0 on success
 ####
 enable_ubuntu_proposed_suite() {
     local codename=$1
-    local sources_file=/etc/apt/sources.list.d/ubuntu.sources
-
-    sudo sed -i "s/${codename}-backports/${codename}-backports ${codename}-proposed/" "${sources_file}"
+    local deb822_file=/etc/apt/sources.list.d/ubuntu.sources
+    
+    # Check if Deb822 format exists
+    if [[ -f "${deb822_file}" ]]; then
+        echo "##[section]Enabling ${codename}-proposed in Deb822 format"
+        
+        # Add ${codename}-proposed to all Suites lines containing ${codename}
+        # (handles both main and security repositories)
+        sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"
+        
+        # Avoid duplicates: remove if already present
+        sudo sed -i "s/ ${codename}-proposed ${codename}-proposed/ ${codename}-proposed/g" "${deb822_file}"
+    else
+        echo "##[section]Enabling ${codename}-proposed in old list format"
+        
+        # Detect current mirror URL from existing sources
+        local mirror=$(grep "^deb http" /etc/apt/sources.list 2>/dev/null | grep " ${codename} " | head -1 | awk '{print $2}')
+        
+        if [[ -z "${mirror}" ]]; then
+            echo "##[warning]Could not detect mirror for ${codename}, skipping proposed suite"
+            return 0
+        fi
+        
+        # Add proposed suite via separate file
+        sudo tee /etc/apt/sources.list.d/${codename}-proposed.list > /dev/null <<EOF
+deb ${mirror} ${codename}-proposed main restricted universe multiverse
+EOF
+    fi
+    
     sudo apt-get -y update
 }
 
 ####
 # @Brief        : Disable Ubuntu proposed suite for the current codename
+# @Desc         : Auto-detects Deb822 vs old list format and applies accordingly
 # @Param        : codename - Ubuntu codename (noble, jammy, ...)
 # @RetVal       : 0 on success
 ####
 disable_ubuntu_proposed_suite() {
     local codename=$1
-    local sources_file=/etc/apt/sources.list.d/ubuntu.sources
-
-    sudo sed -i "s/ ${codename}-proposed//" "${sources_file}"
+    local deb822_file=/etc/apt/sources.list.d/ubuntu.sources
+    
+    # Check if Deb822 format exists
+    if [[ -f "${deb822_file}" ]]; then
+        echo "##[section]Disabling ${codename}-proposed in Deb822 format"
+        
+        # Remove ${codename}-proposed from all Suites lines
+        sudo sed -i "s/ ${codename}-proposed//g" "${deb822_file}"
+    else
+        echo "##[section]Disabling ${codename}-proposed in old list format"
+        
+        # Remove proposed suite file
+        sudo rm -f /etc/apt/sources.list.d/${codename}-proposed.list
+    fi
+    
     sudo apt-get -y update
 }
 

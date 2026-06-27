@@ -112,7 +112,6 @@ install_ubuntu_gb200_kernel() {
     if [ "$USE_UBUNTU_PPA_REPO" == "True" ]; then
         echo "##[section] PPA kernel repo is enabled, installing PPA kernel version: $UBUNTU_PPA_KERNEL_PATCH_VERSION"
         sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
-        configure_ppa_low_priority
         install_from_ppa_repo "linux-azure-nvidia-${kernel_ver}" "$UBUNTU_PPA_KERNEL_PATCH_VERSION" "$UBUNTU_PPA_REPO_NAME"
     elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
         install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
@@ -222,7 +221,7 @@ EOF
     # Keep proposed enabled but low priority unless explicitly targeted via -t
     sudo tee "${pref_file}" > /dev/null <<EOF
 Package: *
-Pin: release n=${codename}-proposed
+Pin: release a=${codename}-proposed
 Pin-Priority: 100
 EOF
     
@@ -244,24 +243,12 @@ install_from_ppa_repo() {
     local ppa_repo_name=$3
     local ppa_ref="${ppa_repo_name#ppa:}"
     local ppa_origin="LP-PPA-${ppa_ref//\//-}"
-    local pin_file=/etc/apt/preferences.d/98-kernel-from-ppa.pref
 
     echo "##[section]Installing ${package_name}=${package_version} from ${ppa_repo_name} (origin: ${ppa_origin})"
-    echo "##[section]Creating temporary high-priority pin for the kernel packages: ${pin_file}"
-    sudo tee "${pin_file}" > /dev/null <<EOF
-Package: ${package_name}
-Pin: release o=${ppa_origin}
-Pin-Priority: 1001
-EOF
-
-    if ! sudo apt-get install -y "${package_name}=${package_version}"; then
-        echo "##[warning]Failed to install ${package_name}=${package_version} from ${ppa_origin}; removing temporary pin"
-        sudo rm -f "${pin_file}"
-        return 1
-    fi
+    sudo apt-get install -y "${package_name}=${package_version}"
 
     echo "##[section]Installed ${package_name}=${package_version} from ${ppa_origin}, removing temporary pin"
-    sudo rm -f "${pin_file}"
+    configure_ppa_low_priority "$ppa_repo_name"
 }
 
 ####
@@ -270,12 +257,16 @@ EOF
 # @RetVal       : 0 on success
 ####
 configure_ppa_low_priority() {
+    local ppa_repo_name=$1
+    local ppa_ref="${ppa_repo_name#ppa:}"
+    local ppa_origin="LP-PPA-${ppa_ref//\//-}"
+
     local pref_file=/etc/apt/preferences.d/99-ubuntu-ppa-low-priority.pref
 
     echo "##[section]Configuring default low priority for Launchpad PPA packages: ${pref_file}"
     sudo tee "${pref_file}" > /dev/null <<EOF
 Package: *
-Pin: origin "ppa.launchpad.net"
+Pin: release o=${ppa_origin}
 Pin-Priority: 100
 EOF
 
@@ -297,6 +288,7 @@ install_from_proposed_suite() {
     local packages=("$@")
 
     configure_ubuntu_proposed_suite "${codename}"
+    echo "##[section]Installing from ${codename}-proposed: ${packages[*]}"
     apt-get install -y -t "${codename}-proposed" "${packages[@]}"
 }
 

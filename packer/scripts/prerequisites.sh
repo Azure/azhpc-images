@@ -112,8 +112,8 @@ install_ubuntu_gb200_kernel() {
     if [ "$USE_UBUNTU_PPA_REPO" == "True" ]; then
         echo "##[section] PPA kernel repo is enabled, installing PPA kernel version: $UBUNTU_PPA_KERNEL_PATCH_VERSION"
         sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
-        sudo apt-get -y update
-        sudo apt-get install -y linux-azure-nvidia-"$kernel_ver"=$UBUNTU_PPA_KERNEL_PATCH_VERSION
+        configure_ppa_low_priority
+        install_from_ppa_repo "linux-azure-nvidia-${kernel_ver}" "$UBUNTU_PPA_KERNEL_PATCH_VERSION" "$UBUNTU_PPA_REPO_NAME"
     elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
         install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
     else
@@ -175,33 +175,38 @@ EOF
 }
 
 ####
-# @Brief        : Enable or disable Ubuntu proposed suite for the current codename
-# @Desc         : Auto-detects Deb822 (.sources) vs old list format and applies accordingly
-# @Param        : action   - "enable" or "disable"
+# @Brief        : Ensure Ubuntu proposed suite exists and keep it at low priority
+# @Desc         : Keeps proposed available but pinned low; explicit installs use -t <codename>-proposed
 # @Param        : codename - Ubuntu codename (noble, jammy, ...)
 # @RetVal       : 0 on success
 ####
 configure_ubuntu_proposed_suite() {
-    local action=$1
-    local codename=$2
+    local codename=$1
+    local pref_file=/etc/apt/preferences.d/99-ubuntu-proposed-low-priority.pref
+    local has_proposed=false
     
     # Find any Deb822 .sources file that contains this codename
     local deb822_file
     deb822_file=$(grep -rl "Suites:.*${codename}" /etc/apt/sources.list.d/*.sources 2>/dev/null | head -1)
     
     if [[ -n "${deb822_file}" ]]; then
-        if [[ "${action}" == "enable" ]]; then
-            echo "##[section]Enabling ${codename}-proposed in Deb822 format (${deb822_file})"
+        if grep -q "^Suites:.*${codename}-proposed" "${deb822_file}"; then
+            has_proposed=true
+        fi
+
+        if [[ "${has_proposed}" != "true" ]]; then
+            echo "##[section]Adding ${codename}-proposed in Deb822 format (${deb822_file})"
             sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"
             # Avoid duplicates
             sudo sed -i "s/ ${codename}-proposed ${codename}-proposed/ ${codename}-proposed/g" "${deb822_file}"
-        else
-            echo "##[section]Disabling ${codename}-proposed in Deb822 format (${deb822_file})"
-            sudo sed -i "s/ ${codename}-proposed//g" "${deb822_file}"
         fi
     else
-        if [[ "${action}" == "enable" ]]; then
-            echo "##[section]Enabling ${codename}-proposed in old list format"
+        if [[ -f "/etc/apt/sources.list.d/${codename}-proposed.list" ]]; then
+            has_proposed=true
+        fi
+
+        if [[ "${has_proposed}" != "true" ]]; then
+            echo "##[section]Adding ${codename}-proposed in old list format"
             local mirror
             mirror=$(grep "^deb http" /etc/apt/sources.list 2>/dev/null | grep " ${codename} " | head -1 | awk '{print $2}')
             if [[ -z "${mirror}" ]]; then
@@ -211,19 +216,76 @@ configure_ubuntu_proposed_suite() {
             sudo tee /etc/apt/sources.list.d/${codename}-proposed.list > /dev/null <<EOF
 deb ${mirror} ${codename}-proposed main restricted universe multiverse
 EOF
-        else
-            echo "##[section]Disabling ${codename}-proposed in old list format"
-            sudo rm -f /etc/apt/sources.list.d/${codename}-proposed.list
         fi
     fi
+
+    # Keep proposed enabled but low priority unless explicitly targeted via -t
+    sudo tee "${pref_file}" > /dev/null <<EOF
+Package: *
+Pin: release n=${codename}-proposed
+Pin-Priority: 100
+EOF
     
     sudo apt-get -y update
 }
 
 ####
+# @Brief        : Install a package version explicitly from a Launchpad PPA
+# @Desc         : Creates a temporary package pin to the PPA origin, installs the exact
+#                 version, then removes the temporary pin file.
+# @Param        : package_name    - Package name
+# @Param        : package_version - Package version string
+# @Param        : ppa_repo_name   - PPA repo in format ppa:<owner>/<name>
+# @RetVal       : 0 on success
+####
+install_from_ppa_repo() {
+    local package_name=$1
+    local package_version=$2
+    local ppa_repo_name=$3
+    local ppa_ref="${ppa_repo_name#ppa:}"
+    local ppa_origin="LP-PPA-${ppa_ref//\//-}"
+    local pin_file=/etc/apt/preferences.d/98-kernel-from-ppa.pref
+
+    echo "##[section]Installing ${package_name}=${package_version} from ${ppa_repo_name} (origin: ${ppa_origin})"
+    echo "##[section]Creating temporary high-priority pin: ${pin_file}"
+    sudo tee "${pin_file}" > /dev/null <<EOF
+Package: ${package_name}
+Pin: release o=${ppa_origin}
+Pin-Priority: 1001
+EOF
+
+    if ! sudo apt-get install -y "${package_name}=${package_version}"; then
+        echo "##[warning]Failed to install ${package_name}=${package_version} from ${ppa_origin}; removing temporary pin"
+        sudo rm -f "${pin_file}"
+        return 1
+    fi
+
+    echo "##[section]Installed ${package_name}=${package_version} from ${ppa_origin}, removing temporary pin"
+    sudo rm -f "${pin_file}"
+}
+
+####
+# @Brief        : Keep Launchpad PPA at low priority
+# @Desc         : Prevents accidental package upgrades from PPA unless explicitly requested
+# @RetVal       : 0 on success
+####
+configure_ppa_low_priority() {
+    local pref_file=/etc/apt/preferences.d/99-ubuntu-ppa-low-priority.pref
+
+    echo "##[section]Configuring default low priority for Launchpad PPA packages: ${pref_file}"
+    sudo tee "${pref_file}" > /dev/null <<EOF
+Package: *
+Pin: origin "ppa.launchpad.net"
+Pin-Priority: 100
+EOF
+
+    sudo apt-get -y update
+}
+
+####
 # @Brief        : Install packages from Ubuntu proposed suite
-# @Desc         : Enables proposed, installs with "-t <codename>-proposed" for correct priority,
-#                 then disables proposed. Without "-t", proposed packages may not be selected
+# @Desc         : Ensures proposed exists and is low-priority by default,
+#                 then installs with "-t <codename>-proposed" for explicit source selection.
 #                 due to APT's default lower priority for proposed.
 # @Param        : codename  - Ubuntu codename (noble, jammy, ...)
 # @Param        : ...       - Package names to install
@@ -234,9 +296,8 @@ install_from_proposed_suite() {
     shift
     local packages=("$@")
 
-    configure_ubuntu_proposed_suite "enable" "${codename}"
+    configure_ubuntu_proposed_suite "${codename}"
     apt-get install -y -t "${codename}-proposed" "${packages[@]}"
-    configure_ubuntu_proposed_suite "disable" "${codename}"
 }
 
 ####

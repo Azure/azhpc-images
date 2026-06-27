@@ -115,19 +115,7 @@ install_ubuntu_gb200_kernel() {
         sudo apt-get -y update
         sudo apt-get install -y linux-azure-nvidia-"$kernel_ver"=$UBUNTU_PPA_KERNEL_PATCH_VERSION
     elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-        if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-            echo "##[section]Enabling Ubuntu proposed suite"
-            enable_ubuntu_proposed_suite "${ubuntu_codename}"
-        fi
-
-        # Install the versioned kernel meta-package
-        apt install -y linux-azure-nvidia-${kernel_ver}
-
-        # Revert the temporary proposed-suite change after kernel package installation.
-        if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-            echo "##[section]Disabling Ubuntu proposed suite"
-            disable_ubuntu_proposed_suite "${ubuntu_codename}"
-        fi
+        install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
     else
         sudo apt-get install linux-azure-nvidia-"$kernel_ver" -y
     fi
@@ -187,68 +175,68 @@ EOF
 }
 
 ####
-# @Brief        : Enable Ubuntu proposed suite for the current codename (old list format)
+# @Brief        : Enable or disable Ubuntu proposed suite for the current codename
+# @Desc         : Auto-detects Deb822 (.sources) vs old list format and applies accordingly
+# @Param        : action   - "enable" or "disable"
 # @Param        : codename - Ubuntu codename (noble, jammy, ...)
 # @RetVal       : 0 on success
 ####
-enable_ubuntu_proposed_suite() {
-    local codename=$1
-    local deb822_file=/etc/apt/sources.list.d/ubuntu.sources
+configure_ubuntu_proposed_suite() {
+    local action=$1
+    local codename=$2
     
-    # Check if Deb822 format exists
-    if [[ -f "${deb822_file}" ]]; then
-        echo "##[section]Enabling ${codename}-proposed in Deb822 format"
-        
-        # Add ${codename}-proposed to all Suites lines containing ${codename}
-        # (handles both main and security repositories)
-        sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"
-        
-        # Avoid duplicates: remove if already present
-        sudo sed -i "s/ ${codename}-proposed ${codename}-proposed/ ${codename}-proposed/g" "${deb822_file}"
-    else
-        echo "##[section]Enabling ${codename}-proposed in old list format"
-        
-        # Detect current mirror URL from existing sources
-        local mirror=$(grep "^deb http" /etc/apt/sources.list 2>/dev/null | grep " ${codename} " | head -1 | awk '{print $2}')
-        
-        if [[ -z "${mirror}" ]]; then
-            echo "##[warning]Could not detect mirror for ${codename}, skipping proposed suite"
-            return 0
+    # Find any Deb822 .sources file that contains this codename
+    local deb822_file
+    deb822_file=$(grep -rl "Suites:.*${codename}" /etc/apt/sources.list.d/*.sources 2>/dev/null | head -1)
+    
+    if [[ -n "${deb822_file}" ]]; then
+        if [[ "${action}" == "enable" ]]; then
+            echo "##[section]Enabling ${codename}-proposed in Deb822 format (${deb822_file})"
+            sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"
+            # Avoid duplicates
+            sudo sed -i "s/ ${codename}-proposed ${codename}-proposed/ ${codename}-proposed/g" "${deb822_file}"
+        else
+            echo "##[section]Disabling ${codename}-proposed in Deb822 format (${deb822_file})"
+            sudo sed -i "s/ ${codename}-proposed//g" "${deb822_file}"
         fi
-        
-        # Add proposed suite via separate file
-        sudo tee /etc/apt/sources.list.d/${codename}-proposed.list > /dev/null <<EOF
+    else
+        if [[ "${action}" == "enable" ]]; then
+            echo "##[section]Enabling ${codename}-proposed in old list format"
+            local mirror
+            mirror=$(grep "^deb http" /etc/apt/sources.list 2>/dev/null | grep " ${codename} " | head -1 | awk '{print $2}')
+            if [[ -z "${mirror}" ]]; then
+                echo "##[warning]Could not detect mirror for ${codename}, skipping proposed suite"
+                return 0
+            fi
+            sudo tee /etc/apt/sources.list.d/${codename}-proposed.list > /dev/null <<EOF
 deb ${mirror} ${codename}-proposed main restricted universe multiverse
 EOF
+        else
+            echo "##[section]Disabling ${codename}-proposed in old list format"
+            sudo rm -f /etc/apt/sources.list.d/${codename}-proposed.list
+        fi
     fi
     
     sudo apt-get -y update
 }
 
 ####
-# @Brief        : Disable Ubuntu proposed suite for the current codename
-# @Desc         : Auto-detects Deb822 vs old list format and applies accordingly
-# @Param        : codename - Ubuntu codename (noble, jammy, ...)
+# @Brief        : Install packages from Ubuntu proposed suite
+# @Desc         : Enables proposed, installs with "-t <codename>-proposed" for correct priority,
+#                 then disables proposed. Without "-t", proposed packages may not be selected
+#                 due to APT's default lower priority for proposed.
+# @Param        : codename  - Ubuntu codename (noble, jammy, ...)
+# @Param        : ...       - Package names to install
 # @RetVal       : 0 on success
 ####
-disable_ubuntu_proposed_suite() {
+install_from_proposed_suite() {
     local codename=$1
-    local deb822_file=/etc/apt/sources.list.d/ubuntu.sources
-    
-    # Check if Deb822 format exists
-    if [[ -f "${deb822_file}" ]]; then
-        echo "##[section]Disabling ${codename}-proposed in Deb822 format"
-        
-        # Remove ${codename}-proposed from all Suites lines
-        sudo sed -i "s/ ${codename}-proposed//g" "${deb822_file}"
-    else
-        echo "##[section]Disabling ${codename}-proposed in old list format"
-        
-        # Remove proposed suite file
-        sudo rm -f /etc/apt/sources.list.d/${codename}-proposed.list
-    fi
-    
-    sudo apt-get -y update
+    shift
+    local packages=("$@")
+
+    configure_ubuntu_proposed_suite "enable" "${codename}"
+    apt-get install -y -t "${codename}-proposed" "${packages[@]}"
+    configure_ubuntu_proposed_suite "disable" "${codename}"
 }
 
 ####
@@ -295,24 +283,18 @@ install_ubuntu_lts_kernel() {
 
             local ubuntu_codename="noble"
 
-            # Temporarily enable noble-proposed to refresh package metadata from proposed.
-            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-                echo "##[section]Enabling Ubuntu proposed suite"
-                enable_ubuntu_proposed_suite "${ubuntu_codename}"
-            fi
-
             # Install the versioned kernel meta-package
-            apt install -y linux-azure-${kernel_ver}
-
-            # Install modules-extra if available for this kernel version
-            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
-                apt install -y linux-modules-extra-azure-${kernel_ver}
-            fi
-
-            # Revert the temporary proposed-suite change after kernel package installation.
             if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-                echo "##[section]Disabling Ubuntu proposed suite"
-                disable_ubuntu_proposed_suite "${ubuntu_codename}"
+                local pkgs=("linux-azure-${kernel_ver}")
+                if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                    pkgs+=("linux-modules-extra-azure-${kernel_ver}")
+                fi
+                install_from_proposed_suite "${ubuntu_codename}" "${pkgs[@]}"
+            else
+                apt install -y linux-azure-${kernel_ver}
+                if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                    apt install -y linux-modules-extra-azure-${kernel_ver}
+                fi
             fi
             
             # Purge non-target kernels
@@ -330,17 +312,10 @@ install_ubuntu_lts_kernel() {
         22.04)
             apt update
             local ubuntu_codename="jammy"
-            # Temporarily enable noble-proposed to refresh package metadata from proposed.
             if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-                echo "##[section]Enabling Ubuntu proposed suite"
-                enable_ubuntu_proposed_suite "${ubuntu_codename}"
-            fi            
-            apt install -y linux-azure-lts-22.04
-
-            # Revert the temporary proposed-suite change after kernel package installation.
-            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
-                echo "##[section]Disabling Ubuntu proposed suite"
-                disable_ubuntu_proposed_suite "${ubuntu_codename}"
+                install_from_proposed_suite "${ubuntu_codename}" linux-azure-lts-22.04
+            else
+                apt install -y linux-azure-lts-22.04
             fi        
             # Purge non-LTS kernels
             apt-get purge -y \

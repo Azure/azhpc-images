@@ -114,6 +114,8 @@ install_ubuntu_gb200_kernel() {
         sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
         sudo apt-get -y update
         sudo apt-get install -y linux-azure-nvidia-"$kernel_ver"=$UBUNTU_PPA_KERNEL_PATCH_VERSION
+        sudo add-apt-repository --remove -y "$UBUNTU_PPA_REPO_NAME"
+        sudo apt-get -y update
     elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
         install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
     else

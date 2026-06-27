@@ -217,7 +217,8 @@ deb ${mirror} ${codename}-proposed main restricted universe multiverse
 EOF
         fi
     fi
-
+    
+    echo "##[section]Ensuring ${codename}-proposed is low priority (pin file: ${pref_file})"
     # Keep proposed enabled but low priority unless explicitly targeted via -t
     sudo tee "${pref_file}" > /dev/null <<EOF
 Package: *
@@ -246,7 +247,7 @@ install_from_ppa_repo() {
     local pin_file=/etc/apt/preferences.d/98-kernel-from-ppa.pref
 
     echo "##[section]Installing ${package_name}=${package_version} from ${ppa_repo_name} (origin: ${ppa_origin})"
-    echo "##[section]Creating temporary high-priority pin: ${pin_file}"
+    echo "##[section]Creating temporary high-priority pin for the kernel packages: ${pin_file}"
     sudo tee "${pin_file}" > /dev/null <<EOF
 Package: ${package_name}
 Pin: release o=${ppa_origin}

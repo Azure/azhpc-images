@@ -80,7 +80,11 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     #cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
     apt-get update
 
+    LUSTRE_CLIENT_PACKAGE="lustre-client-${LUSTRE_VERSION}"
     LUSTRE_PACKAGE="amlfs-lustre-client-dkms-${LUSTRE_VERSION}"
+    # Install the userspace package first because it owns /etc/sysconfig/dkms-lustre.
+    # Pre-creating that conffile makes noninteractive dpkg stop at a prompt.
+    apt-get install -y "${LUSTRE_CLIENT_PACKAGE}"
     if [[ $UBUNTU_VERSION == 22.04 ]]; then
         configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
     else

@@ -13,7 +13,28 @@ configure_lustre_dkms_no_o2ib() {
     mkdir -p "$(dirname "${config_file}")"
     cat > "${config_file}" <<'EOF'
 # Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
-LUSTRE_DKMS_CONFIGURE_EXTRA="--with-o2ib=no"
+# EL DKMS captures stdout from sourcing this file into DKMS_CONFIG_OPTS.
+echo --with-o2ib=no
+EOF
+}
+
+configure_lustre_dkms_lu20071_patch() {
+    local module=lustre-client
+    local module_version=$1
+    local kernel_header=/lib/modules/$(uname -r)/build/include/linux/timer.h
+    local dkms_conf=/etc/dkms/${module}-${module_version}.conf
+    local patch_file=${COMPONENT_DIR}/patches/lustre-client-lu-20071-timer-container-of.patch
+    local patch_dir=/etc/dkms/${module}/patches
+
+    # RHEL 9.8 kernels 5.14.0-687+ dropped from_timer(); LU-20071 rewires
+    # Lustre's cfs_from_timer wrapper to timer_container_of.
+    [[ -f "${kernel_header}" ]] || return 0
+    grep -q 'from_timer' "${kernel_header}" && return 0
+
+    mkdir -p "${patch_dir}"
+    cp "${patch_file}" "${patch_dir}/lu-20071-timer-container-of.patch"
+    cat > "${dkms_conf}" <<'EOF'
+PATCH[0]="lu-20071-timer-container-of.patch"
 EOF
 }
 
@@ -112,6 +133,7 @@ else
         "lustre-client-${LUSTRE_VERSION_UNDERSCORE}-devel"
     )
     configure_lustre_dkms_no_o2ib /etc/sysconfig/lustre
+    configure_lustre_dkms_lu20071_patch "${LUSTRE_VERSION_UNDERSCORE}"
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     check_dkms_status lustre-client
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}

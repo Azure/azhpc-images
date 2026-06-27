@@ -18,6 +18,39 @@ echo --with-o2ib=no
 EOF
 }
 
+install_cuda_dkms_3_4_1_for_jammy_amd() {
+    local dkms_url=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/dkms_3.4.1-1ubuntu1_all.deb
+    local dkms_sha256=16ce508e74cbe8426fe19c1c56de5ea6e9f3dbe05d85ba5cbf5a8a271d34c2be
+    local dkms_deb=$(basename "${dkms_url}")
+    local current_version
+
+    [[ "${DISTRIBUTION}" == "ubuntu22.04" && "${GPU:-}" == "AMD" ]] || return 0
+
+    current_version=$(dkms --version 2>/dev/null | sed -n 's/^dkms-\(.*\)$/\1/p' || true)
+    if [[ -n "${current_version}" ]] && dpkg --compare-versions "${current_version}" ge 3.4.1; then
+        return 0
+    fi
+
+    rm -f "./${dkms_deb}"
+    download_and_verify "${dkms_url}" "${dkms_sha256}"
+    apt-get install -y "./${dkms_deb}"
+    rm -f "./${dkms_deb}"
+}
+
+configure_lustre_dkms_skip_artifact() {
+    local module=$1
+    local module_version=$2
+    local slot=$3
+    local description=$4
+    local dkms_conf=/etc/dkms/${module}-${module_version}.conf
+
+    mkdir -p "$(dirname "${dkms_conf}")"
+    cat >> "${dkms_conf}" <<EOF
+# ${description}
+BUILD_EXCLUSIVE_KERNEL[${slot}]="^$"
+EOF
+}
+
 configure_lustre_dkms_lu20071_patch() {
     local module=lustre-client
     local module_version=$1
@@ -33,7 +66,8 @@ configure_lustre_dkms_lu20071_patch() {
 
     mkdir -p "${patch_dir}"
     cp "${patch_file}" "${patch_dir}/lu-20071-timer-container-of.patch"
-    cat > "${dkms_conf}" <<'EOF'
+    mkdir -p "$(dirname "${dkms_conf}")"
+    cat >> "${dkms_conf}" <<'EOF'
 PATCH[0]="lu-20071-timer-container-of.patch"
 EOF
 }
@@ -66,24 +100,11 @@ configure_legacy_lustre_dkms_no_o2ib() {
     cat > "${dkms_conf}" <<'EOF'
 # Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
 # Ubuntu 22.04's published AMLFS Lustre DKMS package has a static dkms.conf with
-# ko2iblnd in the expected module list, so override both configure and artifacts.
+# ko2iblnd in record 11, so configure without o2ib and skip only that artifact.
 MAKE="sh autogen.sh && ./configure --with-linux=$kernel_source_dir --with-linux-obj=$kernel_source_dir --disable-server --disable-quilt --disable-dependency-tracking --disable-doc --disable-utils --disable-iokit --disable-snmp --disable-tests --enable-quota --with-kmp-moddir=updates --with-o2ib=no --enable-gss && make"
-BUILT_MODULE_NAME[11]="ksocklnd"
-BUILT_MODULE_LOCATION[11]="lnet/klnds/socklnd"
-DEST_MODULE_LOCATION[11]="/updates/kernel/net/lustre"
-BUILT_MODULE_NAME[12]="libcfs"
-BUILT_MODULE_LOCATION[12]="libcfs/libcfs"
-DEST_MODULE_LOCATION[12]="/updates/kernel/net/lustre"
-BUILT_MODULE_NAME[13]="lnet"
-BUILT_MODULE_LOCATION[13]="lnet/lnet"
-DEST_MODULE_LOCATION[13]="/updates/kernel/net/lustre"
-BUILT_MODULE_NAME[14]="lnet_selftest"
-BUILT_MODULE_LOCATION[14]="lnet/selftest"
-DEST_MODULE_LOCATION[14]="/updates/kernel/net/lustre"
-BUILT_MODULE_NAME[15]="ptlrpc_gss"
-BUILT_MODULE_LOCATION[15]="lustre/ptlrpc/gss"
-DEST_MODULE_LOCATION[15]="/updates/kernel/fs/lustre"
 EOF
+    configure_lustre_dkms_skip_artifact "${module}" "${module_version}" 11 \
+        "Ubuntu 22.04 ko2iblnd is record 11; --with-o2ib=no intentionally skips it."
 }
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
@@ -107,6 +128,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Pre-creating that conffile makes noninteractive dpkg stop at a prompt.
     apt-get install -y "${LUSTRE_CLIENT_PACKAGE}"
     if [[ $UBUNTU_VERSION == 22.04 ]]; then
+        install_cuda_dkms_3_4_1_for_jammy_amd
         configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
     else
         configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre
@@ -133,6 +155,8 @@ else
         "lustre-client-${LUSTRE_VERSION_UNDERSCORE}-devel"
     )
     configure_lustre_dkms_no_o2ib /etc/sysconfig/lustre
+    configure_lustre_dkms_skip_artifact lustre-client "${LUSTRE_VERSION_UNDERSCORE}" 3 \
+        "EL ko2iblnd is record 3; --with-o2ib=no intentionally skips it."
     configure_lustre_dkms_lu20071_patch "${LUSTRE_VERSION_UNDERSCORE}"
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     check_dkms_status lustre-client

@@ -187,13 +187,12 @@ configure_ubuntu_proposed_suite() {
     
     # Find any Deb822 .sources file that contains this codename
     local deb822_file
-    deb822_file=$(grep -rl "Suites:.*${codename}" /etc/apt/sources.list.d/*.sources 2>/dev/null | head -1)
+    deb822_file="/etc/apt/sources.list.d/ubuntu.sources"
     
-    if [[ -n "${deb822_file}" ]]; then
+    if [[ -f "${deb822_file}" ]]; then
         if grep -q "^Suites:.*${codename}-proposed" "${deb822_file}"; then
             has_proposed=true
         fi
-
         if [[ "${has_proposed}" != "true" ]]; then
             echo "##[section]Adding ${codename}-proposed in Deb822 format (${deb822_file})"
             sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"

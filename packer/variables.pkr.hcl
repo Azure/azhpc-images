@@ -108,6 +108,10 @@ locals {
   use_ubuntu_ppa_repo               = try(convert(lower(var.use_ubuntu_ppa_repo), bool), false)
   ubuntu_ppa_repo_name              = coalesce(var.ubuntu_ppa_repo_name, "None")
   ubuntu_ppa_kernel_patch_version   = coalesce(var.ubuntu_ppa_kernel_patch_version, "None")
+
+  # Validate: if use_ubuntu_ppa_repo is true, both PPA variables must be set (not "None")
+  _ppa_valid = !local.use_ubuntu_ppa_repo || (local.ubuntu_ppa_repo_name != "None" && local.ubuntu_ppa_kernel_patch_version != "None")
+  _ppa_check = local._ppa_valid ? true : file("ERROR: use_ubuntu_ppa_repo is true but ubuntu_ppa_repo_name and/or ubuntu_ppa_kernel_patch_version is not set")
 }
 
 variable "vm_size" {

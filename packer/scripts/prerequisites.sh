@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euox pipefail
 
 # =============================================================================
 # Prerequisites: LTS kernel, package updates, GB200 config

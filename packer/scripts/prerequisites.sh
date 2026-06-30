@@ -224,7 +224,7 @@ Package: *
 Pin: release a=${codename}-proposed
 Pin-Priority: 100
 EOF
-    
+    sudo chmod 644 "${pref_file}"
     sudo apt-get -y update
 }
 
@@ -269,7 +269,7 @@ Package: *
 Pin: release o=${ppa_origin}
 Pin-Priority: 100
 EOF
-
+    sudo chmod 644 "${pref_file}"
     sudo apt-get -y update
 }
 

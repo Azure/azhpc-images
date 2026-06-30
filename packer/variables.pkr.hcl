@@ -34,22 +34,17 @@ variable "os_version" {
   default     = env("OS_VERSION")
 }
 
-variable "lustre_build_from_source" {
-  type    = string
-  default = env("LUSTRE_BUILD_FROM_SOURCE")
-}
-
 locals {
   # derive os_version from os_family + distro_version if not explicitly set
-  os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
+  os_version       = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
-  os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
-  distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
+  os_family        = regex(local.os_version_regex, local.os_version)["os_family"]
+  distro_version   = regex(local.os_version_regex, local.os_version)["distro_version"]
   # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
   # share a single `9.x` folder since their install scripts are not minor-specific.
   # All other distros pin to the minor.
   _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
-  os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
+  os_script_folder_name            = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
 variable "kernel_version" {
@@ -157,8 +152,8 @@ locals {
 }
 
 locals {
-  temp_resource_group_name = local.externally_managed_resource_group ? null : local.azure_resource_group # create rg if not externally managed
-  location = local.externally_managed_resource_group ? null : local.azure_location # location is only needed if Packer is creating the RG
+  temp_resource_group_name  = local.externally_managed_resource_group ? null : local.azure_resource_group # create rg if not externally managed
+  location                  = local.externally_managed_resource_group ? null : local.azure_location       # location is only needed if Packer is creating the RG
   build_resource_group_name = local.externally_managed_resource_group ? local.azure_resource_group : null # use existing rg if externally managed
 }
 
@@ -254,7 +249,7 @@ variable "current_user" {
 }
 
 locals {
-  owner_alias   = try(coalesce(
+  owner_alias = try(coalesce(
     var.owner_alias,
     var.build_requestedforemail,
     var.build_requestedfor,
@@ -282,12 +277,12 @@ variable "extra_tags" {
 locals {
   first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
-    "SkipASMAzSecPack" = "true"
+    "SkipASMAzSecPack"          = "true"
     },
-    (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? {"TipNode.SessionId" = local.tip_session_id} : {}
+    (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? { "TipNode.SessionId" = local.tip_session_id } : {}
   ) : {}
-  owner_tag = (local.owner_alias != null && local.owner_alias != "") ? {"Owner" = local.owner_alias} : {}
-  buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? {"BuildId" = var.build_buildid} : {}
+  owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
+  buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(
     local.first_party_tags,
     local.owner_tag,
@@ -338,7 +333,7 @@ locals {
 
   # Parse the SIG image ID into components for the shared_image_gallery source block
   # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/galleries/{gallery}/images/{image}/versions/{version}
-  _refresh_id_parts = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
+  _refresh_id_parts          = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
   refresh_sig_subscription   = local.refresh_mode ? local._refresh_id_parts[2] : ""
   refresh_sig_resource_group = local.refresh_mode ? local._refresh_id_parts[4] : ""
   refresh_sig_gallery_name   = local.refresh_mode ? local._refresh_id_parts[8] : ""
@@ -436,7 +431,7 @@ locals {
 }
 
 locals {
-  create_image = try(convert(lower(var.create_image), bool), false)
+  create_image          = try(convert(lower(var.create_image), bool), false)
   skip_create_artifacts = !local.create_vhd && !local.create_image
 }
 
@@ -496,21 +491,21 @@ locals {
   # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
   first_party_sig_replication_regions = (
     local.gpu_sku == "MI300X"
-      ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-      : local.gpu_sku == "NCv6"
-        ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
-        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-          ? ["southeastus5", "northeastus5" ,local.azure_location]
-            : local.gpu_sku == "GB200"
-            ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
-              : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+    ? ["westus", "francecentral", "eastus2euap", local.azure_location]
+    : local.gpu_sku == "NCv6"
+    ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
+    : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
+    ? ["southeastus5", "northeastus5", local.azure_location]
+    : local.gpu_sku == "GB200"
+    ? ["centraluseuap", "eastus2euap", "northeurope", "westeurope", local.azure_location]
+    : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null
-      ? var.sig_replication_regions
-      : var.enable_first_party_specifics
-        ? distinct(local.first_party_sig_replication_regions)
-        : null
+    ? var.sig_replication_regions
+    : var.enable_first_party_specifics
+    ? distinct(local.first_party_sig_replication_regions)
+    : null
   )
 }
 
@@ -580,9 +575,9 @@ variable "target_image_variant" {
 }
 locals {
   target_image_variant = coalesce(var.target_image_variant, "regular")
-  aks_host_image = local.target_image_variant == "aks_host_image"
-  install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
+  aks_host_image       = local.target_image_variant == "aks_host_image"
+  install_script_name  = local.aks_host_image ? "install_aks.sh" : "install.sh"
+  aks_test_flag        = local.aks_host_image ? "-aks-host" : ""
 }
 
 # =============================================================================
@@ -593,10 +588,10 @@ locals {
 
 locals {
   numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
-  
+
   # Image naming components
   distro_version_safe = replace(local.distro_version, ".", "-")
-  
+
   # Azure Linux base image type suffix (only for azurelinux)
   azl_type_suffix = local.os_family == "azurelinux" ? (
     local.azl_base_image_type == "Marketplace" ? "-mkt-fips" :
@@ -605,7 +600,7 @@ locals {
     local.azl_base_image_type == "1P-Non-FIPS" ? "-1p" :
     ""
   ) : ""
-  
+
   architecture = (startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")) ? "aarch64" : "x86_64"
   short_uuid   = substr(replace(lower(uuidv4()), "-", ""), 0, 6)
 
@@ -630,7 +625,7 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.8" = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
@@ -676,12 +671,12 @@ locals {
   has_plan_info = contains(keys(local.builtin_marketplace_plan_info), local.os_family) && !local.use_direct_shared_gallery_base_image && length(local.custom_base_image_detail) == 0
 
   use_direct_shared_gallery_base_image = local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
-  custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
-  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])
-  image_publisher = local.marketplace_base_image_detail[0]
-  image_offer = local.marketplace_base_image_detail[1]
-  image_sku = local.marketplace_base_image_detail[2]
-  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version]) : null
+  custom_base_image_detail             = compact([var.image_publisher, var.image_offer, var.image_sku])
+  marketplace_base_image_detail        = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])
+  image_publisher                      = local.marketplace_base_image_detail[0]
+  image_offer                          = local.marketplace_base_image_detail[1]
+  image_sku                            = local.marketplace_base_image_detail[2]
+  direct_shared_gallery_image_id       = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version]) : null
 
   # Distribution string for azhpc-images scripts
   distribution = "${local.os_family}${local.distro_version}"
@@ -689,9 +684,9 @@ locals {
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
-    local.gpu_sku == "V100"  ? "V100-" :
+    local.gpu_sku == "V100" ? "V100-" :
     local.gpu_sku == "GB200" ? "GB200-" :
-    local.gpu_sku == "NCv6"  ? "NCv6-" :
+    local.gpu_sku == "NCv6" ? "NCv6-" :
     ""
   )
   internal_sig_image_definition_details = {
@@ -701,29 +696,29 @@ locals {
         "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "alma" = {
-        "8.10"  = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "9.8"   = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+        "3.0" = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
       }
     },
     "Marketplace-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+        "3.0" = "AzureLinuxHPC-3.0-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
       }
     },
     "1P-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-1P-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+        "3.0" = "AzureLinuxHPC-3.0-1P-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
       }
     },
     "1P-Non-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-1P-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+        "3.0" = "AzureLinuxHPC-3.0-1P-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
       }
     }
   }
   internal_sig_image_definition = (local.skip_create_artifacts || local.is_experimental_image) ? (local.architecture == "x86_64" ? "Experimental" : "Experimental-arm64") : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
-  sig_image_name = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
+  sig_image_name                = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
 }

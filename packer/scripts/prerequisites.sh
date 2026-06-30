@@ -110,20 +110,10 @@ install_ubuntu_gb200_kernel() {
 
     if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
         sudo apt-get install linux-azure-nvidia -y  
-        # Hold kernel version unless building Lustre from source or refreshing image in-place
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia
-        fi
     elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
         sudo apt-get install linux-azure-nvidia-6.17 -y  
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia-6.17
-        fi
     else #kernel 6.8
         sudo apt-get install linux-azure-nvidia-6.8 -y
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia-6.8
-        fi
     fi
     
     # Purge non-nvidia kernels
@@ -149,14 +139,8 @@ install_ubuntu_gb200_kernel() {
         done
     done
     
-    # Configure GRUB for GB200
-    # Set GRUB saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    fi
-
     # Add GB200-specific kernel parameters
-    sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
+    sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 numa_balancing=disable net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     
     # Blacklist nouveau driver
     echo 'blacklist nouveau' >> /etc/modprobe.d/blacklist.conf
@@ -209,11 +193,6 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
 
-    # Configure GRUB for saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    fi
-    
     case "${version}" in
         24.04)
             apt update
@@ -251,14 +230,6 @@ install_ubuntu_lts_kernel() {
             apt autoremove -y
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-                apt-mark hold linux-azure-${kernel_ver}
-                local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
-                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-                update-grub
-            fi
             ;;
             
         22.04)
@@ -274,14 +245,6 @@ install_ubuntu_lts_kernel() {
             
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-                apt-mark hold linux-azure-lts-22.04
-                local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-                update-grub
-            fi
             ;;
             
         *)

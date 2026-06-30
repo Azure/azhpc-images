@@ -1,0 +1,22 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dpll.c b/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
+--- a/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/dpll.c
+@@ -331,7 +331,8 @@
+ #ifdef HAVE_DPLL_PIN_OPS_HAS_FFO_GET
+ static int mlx5_dpll_ffo_get(const struct dpll_pin *pin, void *pin_priv,
+ 			     const struct dpll_device *dpll, void *dpll_priv,
+-			     s64 *ffo, struct netlink_ext_ack *extack)
++			     struct dpll_ffo_param *ffo,
++			     struct netlink_ext_ack *extack)
+ {
+ 	struct mlx5_dpll_synce_status synce_status;
+ 	struct mlx5_dpll *mdpll = pin_priv;
+@@ -340,6 +341,7 @@
+ 	err = mlx5_dpll_synce_status_get(mdpll->mdev, &synce_status);
+ 	if (err)
+ 		return err;
+-	return mlx5_dpll_pin_ffo_get(&synce_status, ffo);
++	ffo->type = DPLL_FFO_PIN_DEVICE;
++	return mlx5_dpll_pin_ffo_get(&synce_status, &ffo->ffo);
+ }
+ #endif

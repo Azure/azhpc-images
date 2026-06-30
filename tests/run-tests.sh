@@ -24,6 +24,25 @@
 #   -v           Validation pipeline mode - skip build-time only checks
 #
 # ------------------------------------------------------------------------------
+function set_sku_family_hook {
+    return 1
+}
+
+function pre_test_suite_hook {
+    if [[ "$gpu_platform" == "NVIDIA" ]]; then
+        ensure_nvidia_fabricmanager_active || exit 1
+    fi
+    return 0
+}
+
+function verify_network_components_hook {
+    return 1
+}
+
+function should_verify_ompi_installation {
+    return 0
+}
+
 function test_service {
     local service=$1
     
@@ -74,17 +93,24 @@ function verify_common_components {
         verify_package_updates;
     fi
 
-    if has_infiniband; then
-        verify_ofed_installation;
-        verify_ib_device_status;
-        verify_ib_modules_and_devices;
+    if ! verify_network_components_hook; then
+        if [[ "$(sku_network_mode)" != "standard_ib" ]]; then
+            verify_ofed_installation;
+            verify_ib_device_status;
+            verify_ib_modules_and_devices;
+        fi
     fi
 
     if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "azure_vm_akshost" ]]; then return; fi
+
     verify_gcc_installation;
     verify_azcopy_installation;
     verify_hpcx_installation;
-    verify_ompi_installation;
+
+    if should_verify_ompi_installation; then
+        verify_ompi_installation;
+    fi
+
     verify_pssh_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
         verify_mvapich2_installation;
@@ -206,10 +232,12 @@ function set_vm_properties {
     # set_properties.sh). This ensures SKU_FAMILY is always available to test
     # functions like verify_common_components regardless of caller environment.
     if [[ -z "${SKU_FAMILY:-}" ]]; then
-        case "${VMSIZE}" in
-            standard_nd128is*_gb[2-3]00_v6) export SKU_FAMILY="gb-family" ;;
-            standard_nc*_rtxpro6000bse_v6)  export SKU_FAMILY="ncv6" ;;
-        esac
+        if ! set_sku_family_hook; then
+            case "${VMSIZE}" in
+                standard_nd128is*_gb[2-3]00_v6) export SKU_FAMILY="gb-family" ;;
+                standard_nc*_rtxpro6000bse_v6)  export SKU_FAMILY="ncv6" ;;
+            esac
+        fi
     fi
     # DISTRIBUTION is kept as pure OS identity (e.g. ubuntu24.04), no node-type suffixes.
     export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
@@ -273,6 +301,9 @@ done
 HPC_ENV="${HPC_ENV:-/opt/azurehpc}"
 # Set test definitions
 . $HPC_ENV/test/test-definitions.sh
+if [[ -f "$HPC_ENV/test/test-overrides.sh" ]]; then
+    . $HPC_ENV/test/test-overrides.sh
+fi
 # Set module files directory
 . /etc/os-release
 set_module_files_path
@@ -280,9 +311,8 @@ set_module_files_path
 set_component_versions
 # Set current SKU and distro
 set_vm_properties
-if [[ "$gpu_platform" == "NVIDIA" ]]; then
-    ensure_nvidia_fabricmanager_active
-fi
+# Pre test suite hook for any SKU-specific pre-test setup (e.g. start nvidia-fabricmanager on NVSwitch SKUs)
+pre_test_suite_hook
 # Set test matrix
 set_test_matrix $gpu_platform
 # Initiate test suite

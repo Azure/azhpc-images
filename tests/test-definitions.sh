@@ -73,6 +73,10 @@ function sku_uses_ucx {
     ! [[ "$(sku_network_mode)" == "no_rdma" ]]
 }
 
+function sku_uses_ipoib {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" && "$(sku_network_mode)" == "standard_ib" ]]
+}
+
 # Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
 # Used to gate Fabric Manager checks and bring-up, since cuInit() returns
 # CUDA_ERROR_SYSTEM_NOT_READY on these SKUs until FM finishes NVLink fabric

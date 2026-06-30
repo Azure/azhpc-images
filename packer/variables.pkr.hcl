@@ -503,7 +503,7 @@ locals {
     "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
     "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
-    "GB200F"                 = ["southeastus5", "northeastus5"]
+    "GB200F"                 = ["southeastus5", "northeastus5", "centralus"]
   }
   _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
 

@@ -59,7 +59,7 @@ apt-get -y install numactl \
                    azcopy
 
 # Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
-if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" ]]; then
+if sku_uses_ipoib; then
     echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 fi
 echo ib_umad | sudo tee /etc/modules-load.d/ib_umad.conf

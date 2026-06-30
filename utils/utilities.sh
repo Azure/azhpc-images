@@ -151,6 +151,12 @@ function sku_uses_ucx {
     ! [[ "$(sku_network_mode)" == "no_rdma" ]]
 }
 
+# Whether this SKU enables ipoib (InfiniBand over IPoIB) for MPI transport.
+function sku_uses_ipoib {
+    # Current Baremetal_3p nodes are equipped with IB cards but IPoIB is not required by customer.
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" && "$(sku_network_mode)" == "standard_ib" ]]
+}
+
 ############################################################################
 # @Brief    : Idempotently pin packages so 'dnf'/'yum update' won't upgrade
 #             them. Maintains a single 'exclude=PKG1 PKG2 ...' line in

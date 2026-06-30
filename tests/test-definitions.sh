@@ -95,18 +95,14 @@ function verify_ib_device_status {
     lspci | grep "Infiniband controller\|Network controller"
     check_exit_code "IB device is listed" "IB device not found"
 
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
-        # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
-        ibstatus | grep "LinkUp"
-        check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
+    ibstatus | grep "LinkUp"
+    check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
 
+    if ! sku_uses_ipoib; then
+        # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
         ! ifconfig | grep "ib[[:digit:]]:\|ibP"
         check_exit_code "IB Links are Down" "IB Links are Brought Up unexpectedly"
     else
-        # Azure HPC VMs: IB device should be up and configured
-        ibstatus | grep "LinkUp"
-        check_exit_code "IB device state: LinkUp" "IB link not up"
-
         ifconfig | grep "ib[[:digit:]]:\|ibP"
         check_exit_code "IB device is configured" "IB device not configured"
     fi
@@ -447,7 +443,7 @@ function verify_ib_modules_and_devices {
     # Check if all key IB modules are inserted.
     # ib_ipoib is not loaded on baremetal nodes (IPoIB is not used).
     local ib_modules
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
+    if ! sku_uses_ipoib; then
         ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
     else
         ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
@@ -458,8 +454,7 @@ function verify_ib_modules_and_devices {
     done
 
     # Check if ib devices are listed
-    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == baremetal_3p ]]; then
-        # On baremetal GB200/GB300, IPoIB is not used
+    if ! sku_uses_ipoib; then
         ! (ip addr | grep ib)
         check_exit_code "IPoIB not present as expected" "IPoIB unexpectedly present!"
     else

@@ -182,6 +182,9 @@ if [[ "${NVLINK_RACKSCALE:-false}" != "true" ]]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else
+    # Apply nvprofiling settings
+    echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
+
     # Enable CDMM mode
     echo 'options nvidia NVreg_CoherentGPUMemoryMode=driver' | tee /etc/modprobe.d/nvidia-openrm.conf
     

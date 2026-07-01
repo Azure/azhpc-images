@@ -163,7 +163,8 @@ build {
     name           = "Clean up local internal bits"
     inline_shebang = var.default_inline_shebang
     inline         = [
-      "rm -rf ${path.root}/../internal_bits"
+      "if [[ -e ${path.root}/../internal_bits ]]; then chmod -R u+rwX ${path.root}/../internal_bits && rm -rf ${path.root}/../internal_bits; fi",
+      "if [[ -e ${path.root}/../prebuilt ]]; then chmod -R u+rwX ${path.root}/../prebuilt && rm -rf ${path.root}/../prebuilt; fi"
     ]
   }
 

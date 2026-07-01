@@ -46,7 +46,9 @@
             },
             "aarch64": {
                 "azure_vm_akshost":{
-                    "version": "3.1.0-091513-25.07-ubuntu2404"
+                    "version": "3.1.0-091513-25.07-ubuntu2404",
+                    "file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
+                    "source": "private"
                 },
                 "version": "3.2.2",
                 "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",

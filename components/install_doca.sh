@@ -5,11 +5,17 @@ source ${UTILS_DIR}/utilities.sh
 
 doca_metadata=$(get_component_config "doca")
 DOCA_VERSION=$(jq -r '.version' <<< $doca_metadata)
-DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
-DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
-DOCA_FILE=$(basename ${DOCA_URL})
+DOCA_SOURCE=$(jq -r '.source' <<< $doca_metadata)
 
-download_and_verify $DOCA_URL $DOCA_SHA256
+if [[ "$DOCA_SOURCE" == "private" ]]; then
+    DOCA_FILE=$(jq -r '.file' <<< $doca_metadata)
+    DOCA_FILE="$TOP_DIR/internal_bits/$DOCA_FILE"
+else
+    DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
+    DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
+    download_and_verify $DOCA_URL $DOCA_SHA256
+    DOCA_FILE=$(basename ${DOCA_URL})
+fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE

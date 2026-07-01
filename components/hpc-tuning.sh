@@ -106,6 +106,3 @@ ATTR{read_ahead_kb}="15380"
 EOM
 
 udevadm control --reload
-
-# Azure Linux Agent
-$COMPONENT_DIR/install_waagent.sh

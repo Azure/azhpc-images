@@ -125,6 +125,9 @@ rm -rf /var/intel/
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
 
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
+
 # install persistent rdma naming
 $COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
 

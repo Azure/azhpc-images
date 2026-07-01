@@ -143,9 +143,6 @@ build {
       "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
       "az storage blob download -f /tmp/${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",
       "tar -xvf /tmp/${var.internal_bits_blob_name} -C ${path.root}/..",
-      "echo 'shell-local user:'; id; echo 'internal_bits permissions before chmod:'; if [[ -e ${path.root}/../internal_bits ]]; then find ${path.root}/../internal_bits -maxdepth 2 -printf '%M %u:%g %p\\n' | head -200; else echo '${path.root}/../internal_bits does not exist'; fi",
-      "chmod -R u+rwX ${path.root}/../internal_bits",
-      "echo 'internal_bits permissions after chmod:'; if [[ -e ${path.root}/../internal_bits ]]; then find ${path.root}/../internal_bits -maxdepth 2 -printf '%M %u:%g %p\\n' | head -200; else echo '${path.root}/../internal_bits does not exist'; fi"
     ]
   }
 
@@ -160,6 +157,14 @@ build {
   provisioner "file" {
     source      = "${path.root}/../" 
     destination = "/home/${local.ssh_username}/azhpc-images"
+  }
+
+  provisioner "shell-local" {
+    name           = "Clean up local internal bits"
+    inline_shebang = var.default_inline_shebang
+    inline         = [
+      "rm -rf ${path.root}/../internal_bits"
+    ]
   }
 
   provisioner "file" {

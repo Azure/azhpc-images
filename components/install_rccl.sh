@@ -78,24 +78,13 @@ mkdir -p $DEST_TEST_DIR
 
 # Sparse-clone only the rccl-tests subproject of rocm-systems to keep the
 # clone small.
-git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
+# TODO: revert to ROCm/rocm-systems once the ctaPolicy guard fix is merged
+# upstream (github.com/normanvuong/rocm-systems branch
+# users/normanvuong/rocm_ctapolicy_guard).
+git clone --depth=1 --filter=blob:none --sparse --branch users/normanvuong/rocm_ctapolicy_guard https://github.com/normanvuong/rocm-systems.git
 pushd ./rocm-systems
 git sparse-checkout set projects/rccl-tests
 pushd projects/rccl-tests
-
-if grep -q 'ctaPolicy != NCCL_CTA_POLICY_ZERO' src/common.cu; then
-    awk '
-        /ctaPolicy != NCCL_CTA_POLICY_ZERO/ && !guarding && prev !~ /#if[[:space:]]+NCCL_VERSION_CODE/ {
-            print "#if NCCL_VERSION_CODE >= NCCL_VERSION(2,27,0)"
-            guarding = 1
-        }
-        guarding && /if \(!fromSymk\)/ {
-            print "#endif"
-            guarding = 0
-        }
-        { print; prev = $0 }
-    ' src/common.cu > src/common.cu.guarded && mv src/common.cu.guarded src/common.cu
-fi
 
 mkdir build
 pushd build

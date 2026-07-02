@@ -78,7 +78,6 @@ configure_lustre_dkms_no_o2ib_with_tr_workaround() {
     mkdir -p "$(dirname "${config_file}")"
     cat > "${config_file}" <<'EOF'
 # Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
-OPTS=$(printf '%s\n' "${OPTS:-}" | sed -E 's#(^|[[:space:]])--with-o2ib=[^[:space:]]+##g')
 LUSTRE_DKMS_CONFIGURE_EXTRA="--with-o2ib=no"
 EOF
 }

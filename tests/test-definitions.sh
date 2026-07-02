@@ -549,8 +549,12 @@ function verify_azure_persistent_rdma_naming_service {
 
 function verify_nvbandwidth_setup {
     # Verify nvbandwidth setup
+    # Nvbandwith is compiled in mulitple node, so we need to load mpi/hpcx module to run it
+    # See https://github.com/NVIDIA/nvbandwidth#multinode-benchmarks
+    module load mpi/hpcx
     /opt/nvidia/nvbandwidth/nvbandwidth
     check_exit_code "NV Bandwidth Installed!" "Issue with NV Bandwidth installation!"
+    module unload mpi/hpcx
 }
 
 function verify_nvloom_setup {

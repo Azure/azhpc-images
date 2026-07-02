@@ -78,16 +78,8 @@ configure_lustre_dkms_no_o2ib_with_tr_workaround() {
     mkdir -p "$(dirname "${config_file}")"
     cat > "${config_file}" <<'EOF'
 # Azure clients do not have IB line of sight to Lustre servers, so use TCP LNet.
-# TODO: Drop the tr() workaround after AMLFS publishes Lustre DKMS with LU-19792.
 OPTS=$(printf '%s\n' "${OPTS:-}" | sed -E 's#(^|[[:space:]])--with-o2ib=[^[:space:]]+##g')
 LUSTRE_DKMS_CONFIGURE_EXTRA="--with-o2ib=no"
-tr() {
-    if [[ $# -eq 2 && "$1" == " " && ( "$2" == "\\n" || "$2" == "\\\\n" ) ]]; then
-        command tr ' ' '\n'
-    else
-        command tr "$@"
-    fi
-}
 EOF
 }
 

@@ -68,7 +68,6 @@ sudo rm -f /opt/azurehpc/test/azurehpc-health-checks/health.log
 # Uninstall the OMS Agent
 wget -qO- https://raw.githubusercontent.com/microsoft/OMS-Agent-for-Linux/master/installer/scripts/uninstall.sh | sudo bash
 
-rm -f ~/.ssh/authorized_keys
 
 # Switch to the root user
 sudo -s <<EOF

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh

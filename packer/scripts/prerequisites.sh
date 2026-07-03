@@ -61,7 +61,7 @@ configure_gb200_partuuid() {
     local target_variant="${TARGET_NODE_TYPE:-azure_vm_regular}"
 
     # Skip PARTUUID configuration for VR200, which is inconsistent with legacy image build now but both are placeholder
-    if [[ "${GPU_SKU,,}" != "GB200" || "${partuuid}" == "None" || -z "${partuuid}" ]]; then
+    if [[ "${GPU_SKU}" != "GB200" || "${partuuid}" == "None" || -z "${partuuid}" ]]; then
         echo "##[section]Skipping PARTUUID configuration (not GB200 or PARTUUID not specified)"
         return 0
     fi

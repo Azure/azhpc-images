@@ -35,10 +35,8 @@ function ver {
 
 # Private helper that matches NCv6.
 function _is_ncv6_sku {
-    case "$SKU" in
-        NCv6) return 0 ;;
-        *)    return 1 ;;
-    esac
+    local ncv6_sizes="standard_nc.*_rtxpro6000bse_v6"
+    [[ "${VMSIZE}" =~ ^($ncv6_sizes)$ ]]
 }
 
 # Whether the current SKU has NVLink.
@@ -163,7 +161,7 @@ function verify_impi_2021_installation {
 
     # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
     local fi_provider="mlx"
-    if [[ "$(sku_network_mode)" == "standard_ib" ]]; then fi_provider="tcp"; fi
+    if [[ "$(sku_network_mode)" == "no_rdma" ]]; then fi_provider="tcp"; fi
     
     module load mpi/impi-2021
     mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
@@ -518,7 +516,7 @@ function verify_dcgm_installation {
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
     # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nc.*_rtxpro6000bse_v6"
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nd128is*_gb[2-3]00_v6|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations

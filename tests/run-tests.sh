@@ -94,7 +94,7 @@ function verify_common_components {
     fi
 
     if ! verify_network_components_hook; then
-        if [[ "$(sku_network_mode)" != "standard_ib" ]]; then
+        if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
             verify_ofed_installation;
             verify_ib_device_status;
             verify_ib_modules_and_devices;

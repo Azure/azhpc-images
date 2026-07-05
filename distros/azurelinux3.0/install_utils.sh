@@ -88,17 +88,6 @@ tdnf install -y numactl \
     dos2unix \
     azcopy
 
-# Disable kernel updates
-echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
-# Since tdnf is the default package manager and
-# because /etc/tdnf/tdnf.conf does not recongnize
-# exclude option adding a kernel package lock file
-# https://github.com/vmware/tdnf/wiki/Configuration-Options#package-locks
-mkdir -p /etc/tdnf/locks.d
-echo kernel > /etc/tdnf/locks.d/kernel.conf # wild cards don't seem  to work
-echo kernel-headers >> /etc/tdnf/locks.d/kernel.conf
-echo kmod >> /etc/tdnf/locks.d/kernel.conf
-
 # Enable kernel log messages to file as per HPC requirement.
 sed -i 's/^\#kern\.\*.*/kern\.\*                                \-\/var\/log\/kern.log/' /etc/rsyslog.conf
 # Add kern.log from rsyslog to logrotate

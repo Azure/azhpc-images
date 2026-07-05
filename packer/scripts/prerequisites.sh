@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euox pipefail
 
 # =============================================================================
 # Prerequisites: LTS kernel, package updates, GB200 config
@@ -108,25 +108,18 @@ install_ubuntu_nvidia_kernel() {
     if [[ -d /var/lib/dkms/mlnx-ofed-kernel ]]; then
         configure_ofed_dkms_build_depends
     fi
-
-    if [[ "${KERNEL_VERSION}" == "6.14" ]]; then
-        sudo apt-get install linux-azure-nvidia -y  
-        # Hold kernel version unless building Lustre from source or refreshing image in-place
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia
-        fi
-    elif [[ "${KERNEL_VERSION}" == "6.17" ]]; then
-        sudo apt-get install linux-azure-nvidia-6.17 -y  
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia-6.17
-        fi
-    else #kernel 6.8
-        sudo apt-get install linux-azure-nvidia-6.8 -y
-        if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-            sudo apt-mark hold linux-azure-nvidia-6.8
-        fi
+    local ubuntu_codename="noble"
+    kernel_ver="${KERNEL_VERSION:-6.8}"
+    if [ "$USE_UBUNTU_PPA_REPO" == "True" ]; then
+        echo "##[section] PPA kernel repo is enabled, installing PPA kernel version: $UBUNTU_PPA_KERNEL_PATCH_VERSION"
+        sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
+        install_from_ppa_repo "linux-azure-nvidia-${kernel_ver}" "$UBUNTU_PPA_KERNEL_PATCH_VERSION" "$UBUNTU_PPA_REPO_NAME"
+    elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+        install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
+    else
+        sudo apt-get install linux-azure-nvidia-"$kernel_ver" -y
     fi
-    
+
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
 
@@ -149,12 +142,6 @@ install_ubuntu_nvidia_kernel() {
             [[ $f == *${target_kernel}* ]] || rm -f "$f"
         done
     done
-    
-    # Configure GRUB 
-    # Set GRUB saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    fi
 
     # Add GB200-specific kernel parameters
     if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != baremetal_* ]]; then
@@ -200,6 +187,125 @@ EOF
 }
 
 ####
+# @Brief        : Ensure Ubuntu proposed suite exists and keep it at low priority
+# @Desc         : Keeps proposed available but pinned low; explicit installs use -t <codename>-proposed
+# @Param        : codename - Ubuntu codename (noble, jammy, ...)
+# @RetVal       : 0 on success
+####
+configure_ubuntu_proposed_suite() {
+    local codename=$1
+    local pref_file=/etc/apt/preferences.d/99-ubuntu-proposed-low-priority.pref
+    local has_proposed=false
+    
+    # Find any Deb822 .sources file that contains this codename
+    local deb822_file
+    deb822_file="/etc/apt/sources.list.d/ubuntu.sources"
+    
+    if [[ -f "${deb822_file}" ]]; then
+        if grep -q "^Suites:.*${codename}-proposed" "${deb822_file}"; then
+            has_proposed=true
+        fi
+        if [[ "${has_proposed}" != "true" ]]; then
+            echo "##[section]Adding ${codename}-proposed in Deb822 format (${deb822_file})"
+            sudo sed -i "/^Suites:.*${codename}[^-]/ s/$/ ${codename}-proposed/" "${deb822_file}"
+            # Avoid duplicates
+            sudo sed -i "s/ ${codename}-proposed ${codename}-proposed/ ${codename}-proposed/g" "${deb822_file}"
+        fi
+    else
+        if [[ -f "/etc/apt/sources.list.d/${codename}-proposed.list" ]]; then
+            has_proposed=true
+        fi
+
+        if [[ "${has_proposed}" != "true" ]]; then
+            echo "##[section]Adding ${codename}-proposed in old list format"
+            local mirror
+            mirror=$(grep "^deb http" /etc/apt/sources.list 2>/dev/null | grep " ${codename} " | head -1 | awk '{print $2}')
+            if [[ -z "${mirror}" ]]; then
+                echo "##[warning]Could not detect mirror for ${codename}, skipping proposed suite"
+                return 0
+            fi
+            sudo tee /etc/apt/sources.list.d/${codename}-proposed.list > /dev/null <<EOF
+deb ${mirror} ${codename}-proposed main restricted universe multiverse
+EOF
+        fi
+    fi
+    
+    echo "##[section]Ensuring ${codename}-proposed is low priority (pin file: ${pref_file})"
+    # Keep proposed enabled but low priority unless explicitly targeted via -t
+    sudo tee "${pref_file}" > /dev/null <<EOF
+Package: *
+Pin: release a=${codename}-proposed
+Pin-Priority: 100
+EOF
+    sudo chmod 644 "${pref_file}"
+    sudo apt-get -y update
+}
+
+####
+# @Brief        : Install a package version explicitly from a Launchpad PPA
+# @Desc         : Creates a temporary package pin to the PPA origin, installs the exact
+#                 version, then removes the temporary pin file.
+# @Param        : package_name    - Package name
+# @Param        : package_version - Package version string
+# @Param        : ppa_repo_name   - PPA repo in format ppa:<owner>/<name>
+# @RetVal       : 0 on success
+####
+install_from_ppa_repo() {
+    local package_name=$1
+    local package_version=$2
+    local ppa_repo_name=$3
+    local ppa_ref="${ppa_repo_name#ppa:}"
+    local ppa_origin="LP-PPA-${ppa_ref//\//-}"
+
+    echo "##[section]Installing ${package_name}=${package_version} from ${ppa_repo_name} (origin: ${ppa_origin})"
+    sudo apt-get install -y "${package_name}=${package_version}"
+
+    echo "##[section]Installed ${package_name}=${package_version} from ${ppa_origin}, removing temporary pin"
+    configure_ppa_low_priority "$ppa_repo_name"
+}
+
+####
+# @Brief        : Keep Launchpad PPA at low priority
+# @Desc         : Prevents accidental package upgrades from PPA unless explicitly requested
+# @RetVal       : 0 on success
+####
+configure_ppa_low_priority() {
+    local ppa_repo_name=$1
+    local ppa_ref="${ppa_repo_name#ppa:}"
+    local ppa_origin="LP-PPA-${ppa_ref//\//-}"
+
+    local pref_file=/etc/apt/preferences.d/99-ubuntu-ppa-low-priority.pref
+
+    echo "##[section]Configuring default low priority for Launchpad PPA packages: ${pref_file}"
+    sudo tee "${pref_file}" > /dev/null <<EOF
+Package: *
+Pin: release o=${ppa_origin}
+Pin-Priority: 100
+EOF
+    sudo chmod 644 "${pref_file}"
+    sudo apt-get -y update
+}
+
+####
+# @Brief        : Install packages from Ubuntu proposed suite
+# @Desc         : Ensures proposed exists and is low-priority by default,
+#                 then installs with "-t <codename>-proposed" for explicit source selection.
+#                 due to APT's default lower priority for proposed.
+# @Param        : codename  - Ubuntu codename (noble, jammy, ...)
+# @Param        : ...       - Package names to install
+# @RetVal       : 0 on success
+####
+install_from_proposed_suite() {
+    local codename=$1
+    shift
+    local packages=("$@")
+
+    configure_ubuntu_proposed_suite "${codename}"
+    echo "##[section]Installing from ${codename}-proposed: ${packages[*]}"
+    apt-get install -y -t "${codename}-proposed" "${packages[@]}"
+}
+
+####
 # @Brief        : Install LTS kernel for Ubuntu (non-GB200)
 # @Param        : OS version (e.g., 24.04, 22.04)
 # @RetVal       : 0 on success
@@ -222,11 +328,6 @@ install_ubuntu_lts_kernel() {
     
     export NEEDRESTART_MODE=a
 
-    # Configure GRUB for saved default unless building Lustre from source or refreshing image in-place
-    if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-        sed -i 's/GRUB_DEFAULT=0/GRUB_DEFAULT=saved\nGRUB_SAVEDEFAULT=true/' /etc/default/grub
-    fi
-    
     case "${version}" in
         24.04)
             apt update
@@ -246,14 +347,22 @@ install_ubuntu_lts_kernel() {
                 configure_ofed_dkms_build_depends
             fi
 
+            local ubuntu_codename="noble"
+
             # Install the versioned kernel meta-package
-            apt install -y linux-azure-${kernel_ver}
-
-            # Install modules-extra if available for this kernel version
-            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
-                apt install -y linux-modules-extra-azure-${kernel_ver}
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                local pkgs=("linux-azure-${kernel_ver}")
+                if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                    pkgs+=("linux-modules-extra-azure-${kernel_ver}")
+                fi
+                install_from_proposed_suite "${ubuntu_codename}" "${pkgs[@]}"
+            else
+                apt install -y linux-azure-${kernel_ver}
+                if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                    apt install -y linux-modules-extra-azure-${kernel_ver}
+                fi
             fi
-
+            
             # Purge non-target kernels
             eval apt-get purge -y linux-azure linux-image-azure $purge_patterns || true
             # Also purge the LTS meta-package if we're not using it
@@ -264,20 +373,16 @@ install_ubuntu_lts_kernel() {
             apt autoremove -y
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-                apt-mark hold linux-azure-${kernel_ver}
-                local kernel_version=$(dpkg-query -l | grep linux-image-azure-lts-24.04 | awk '{print $3}' | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+)\..*/\1/')
-                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-                update-grub
-            fi
             ;;
             
         22.04)
             apt update
-            apt install -y linux-azure-lts-22.04
-            
+            local ubuntu_codename="jammy"
+            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+                install_from_proposed_suite "${ubuntu_codename}" linux-azure-lts-22.04
+            else
+                apt install -y linux-azure-lts-22.04
+            fi        
             # Purge non-LTS kernels
             apt-get purge -y \
                 linux-azure linux-image-azure \
@@ -287,14 +392,6 @@ install_ubuntu_lts_kernel() {
             
             apt upgrade -y
 
-            # TODO: remove kernel hold and GRUB stickyness once Lustre DKMS is fully supported by AMLFS team
-            # Hold kernel and set GRUB default unless building Lustre from source or refreshing image in-place
-            if [[ "${LUSTRE_BUILD_FROM_SOURCE,,}" != "true" && "${REFRESH_MODE,,}" != "true" ]]; then
-                apt-mark hold linux-azure-lts-22.04
-                local kernel_version=$(dpkg-query -l | grep linux-azure-lts-22.04 | awk '{print $3}' | awk -F. 'OFS="." {print $1,$2,$3,$4}' | sed 's/\(.*\)\./\1-/')
-                grub-set-default "Advanced options for Ubuntu>Ubuntu, with Linux ${kernel_version}-azure"
-                update-grub
-            fi
             ;;
             
         *)

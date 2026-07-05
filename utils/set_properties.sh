@@ -33,6 +33,7 @@ export TARGET_NODE_TYPE="${TARGET_NODE_TYPE:-azure_vm_regular}"
 if [[ -z "${SKU_FAMILY:-}" ]]; then
     case "${SKU:-}" in
         GB200|GB300) export SKU_FAMILY="gb-family" ;;
+        A100|H100|H200) export SKU_FAMILY="A100plus" ;;
         *)           export SKU_FAMILY="${SKU:-}" ;;
     esac
 fi
@@ -43,6 +44,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # online package mirrors; the base image is already validated.
         echo "[set_properties.sh] Skipping apt update/upgrade on baremetal 3P node"
     else
+        # Azure VM: upgrade pre-installed components.
         apt update
         apt upgrade -y
     fi

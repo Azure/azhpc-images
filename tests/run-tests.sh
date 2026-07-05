@@ -75,8 +75,7 @@ function test_component {
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
-        # only best-effort install since Lustre isn't always available
-        # check_lustre) verify_lustre_installation;;
+        check_lustre) verify_lustre_installation;;
         check_nvlink) verify_nvlink_setup;;
         check_nvbandwidth) verify_nvbandwidth_setup;;
         check_nvloom) verify_nvloom_setup;;
@@ -192,24 +191,22 @@ function set_test_matrix {
     # SKU_FAMILY is already derived by set_vm_properties; default to "common".
     local sku="${SKU_FAMILY:-common}"
     local node_type="${TARGET_NODE_TYPE:-azure_vm_regular}"
-    # Look up: distribution -> sku.
-    # If sku exists: node_type -> direct components matrix -> empty.
-    # If sku does not exist: fallback to common.
+    # Look up order: distribution -> node_type -> sku/common.
     export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" --arg n "$node_type" \
         '
         (.[$d] // empty)
         | if type == "object" then
-            if has($s) then
-                .[$s]
+            if has($n) then
+                .[$n]
                 | if type == "object" then
-                    if has($n) then .[$n]
-                    elif has("components") then .
+                    if has($s) then .[$s]
+                    elif has("common") then .["common"]
                     else empty
                     end
                   else empty
                   end
-              else (.["common"] // empty)
-              end
+            else empty
+            end
           else empty
           end
         ' <<< "$test_matrix_file")

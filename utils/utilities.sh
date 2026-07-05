@@ -116,6 +116,47 @@ verify_checksum() {
     fi
 }
 
+############################################################################
+# @Brief    : Fail if any matching DKMS module did not build/install for the
+#             running kernel. Some vendor packages mask DKMS build failures in
+#             their package scripts, so check immediately after installation.
+#
+# @Args     : DKMS module names to check (e.g. "mlnx-ofa_kernel").
+############################################################################
+check_dkms_status() {
+    command -v dkms >/dev/null 2>&1 || return 0
+
+    local kernel_version=$(uname -r)
+    local module status found current_installed
+    local log_file
+
+    for module in "$@"; do
+        found=0
+        current_installed=0
+        while IFS= read -r status; do
+            found=1
+            echo "${status}"
+            if grep -q "${kernel_version}.*: installed" <<< "${status}"; then
+                current_installed=1
+            fi
+        done < <(dkms status -m "${module}" 2>/dev/null || true)
+
+        if [[ ${found} -eq 0 ]]; then
+            echo "ERROR: DKMS module ${module} has no status entry" >&2
+            exit 1
+        fi
+        if [[ ${current_installed} -ne 1 ]]; then
+            echo "ERROR: DKMS module ${module} is not installed for ${kernel_version}" >&2
+            for log_file in /var/lib/dkms/${module}/*/build/make.log; do
+                [[ -f "${log_file}" ]] || continue
+                echo "--- ${log_file} ---" >&2
+                tail -n 80 "${log_file}" >&2 || true
+            done
+            exit 1
+        fi
+    done
+}
+
 # Private helper that matches NCv6.
 function _is_ncv6_sku {
     case "$SKU" in
@@ -166,8 +207,7 @@ function sku_uses_ipoib {
 #     sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf
 # pattern, which silently corrupted the last line of dnf.conf (e.g.
 # 'skip_if_unavailable=False') on distros/configurations where the
-# 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7 with
-# LUSTRE_BUILD_FROM_SOURCE=true). A broken pin lets subsequent
+# 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7). A broken pin lets subsequent
 # 'yum update -y' upgrade pinned packages -- most critically
 # nvidia-fabricmanager, which must match the NVIDIA driver version exactly.
 #

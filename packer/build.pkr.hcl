@@ -7,7 +7,7 @@
 build {
   name    = "hpc_build"
   sources = ["source.azure-arm.hpc"]
-  
+
   provisioner "shell-local" {
     name           = "Tarball local public keys"
     inline_shebang = var.default_inline_shebang
@@ -24,7 +24,7 @@ build {
   provisioner "shell" {
     name           = "Install public keys into authorized_keys"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p ~/.ssh && chmod 700 ~/.ssh",
       "tar -xf /tmp/packer_pubkeys.tar -C /tmp 2>/dev/null && cat /tmp/*.pub >> ~/.ssh/authorized_keys || true",
       "[[ -n \"${var.public_key}\" ]] && echo \"${var.public_key}\" >> ~/.ssh/authorized_keys || true",
@@ -37,7 +37,7 @@ build {
     name           = "(1P specific) add ip tags to public IP"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "set -o pipefail",
       "public_ip_name=$(az network public-ip list -g ${local.azure_resource_group} --query '[0].name' -o tsv)",
       "az network public-ip update -g ${local.azure_resource_group} -n $public_ip_name --ip-tags FirstPartyUsage=/Unprivileged",
@@ -48,7 +48,7 @@ build {
     name           = "(1P specific) download mdatp onboarding package"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
       "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
       "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
@@ -67,18 +67,18 @@ build {
     name           = "(1P specific) install mdatp with onboarding script"
     except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "set -o pipefail",
       "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
       "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
       "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
     ]
   }
-  
+
   provisioner "shell" {
-    name             = "Install prerequisites (LTS kernel, package updates)"
-    script           = "scripts/prerequisites.sh"
-    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    name            = "Install prerequisites (LTS kernel, package updates)"
+    script          = "scripts/prerequisites.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
@@ -86,8 +86,11 @@ build {
       "TARGET_NODE_TYPE=${local.target_node_type}",
       "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
       "KERNEL_VERSION=${local.kernel_version}",
+      "USE_UBUNTU_PROPOSED_SUITE=${var.use_ubuntu_proposed_suite}",
+      "USE_UBUNTU_PPA_REPO=${var.use_ubuntu_ppa_repo}",
+      "UBUNTU_PPA_REPO_NAME=${var.ubuntu_ppa_repo_name}",
+      "UBUNTU_PPA_KERNEL_PATCH_VERSION=${var.ubuntu_ppa_kernel_patch_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
@@ -99,7 +102,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -107,7 +110,7 @@ build {
   provisioner "shell" {
     name           = "Clean up old kernels"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf remove -y --oldinstallonly || true; fi",
     ]
   }
@@ -115,7 +118,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages prior to HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -182,7 +185,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "2m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -194,7 +197,6 @@ build {
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
     "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
-    "LUSTRE_BUILD_FROM_SOURCE=${var.lustre_build_from_source}",
     "REFRESH_MODE=${local.refresh_mode}",
     ]
     inline          = [
@@ -209,7 +211,7 @@ build {
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "5m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -245,7 +247,7 @@ build {
   provisioner "shell" {
     name           = "List all installed packages after HPC component installation"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "if command -v dnf &> /dev/null; then sudo dnf list installed; fi",
       "if command -v dpkg-query &> /dev/null; then dpkg-query -l; fi",
     ]
@@ -254,7 +256,7 @@ build {
   provisioner "shell-local" {
     name           = "create local directory for manifests"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "mkdir -p /tmp/image_manifests"
     ]
   }
@@ -262,7 +264,7 @@ build {
   provisioner "shell" {
     name           = "Display all image manifests in /opt/azurehpc for debugging purposes"
     inline_shebang = var.default_inline_shebang
-    inline         = [
+    inline = [
       "cat /opt/azurehpc/trivy-report-rootfs.json",
       "cat /opt/azurehpc/trivy-cyclonedx-rootfs.json",
       "cat /opt/azurehpc/component_versions.txt"
@@ -289,14 +291,14 @@ build {
     source      = "/opt/azurehpc/component_versions.txt"
     destination = "/tmp/image_manifests/component-versions.json"
   }
-  
+
   provisioner "shell" {
     name              = "Reboot"
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
     pause_after       = "15m"
-    inline            = [
+    inline = [
       "(sleep 5; sudo shutdown -r now) &"
     ]
   }
@@ -317,7 +319,7 @@ build {
     name            = "Run health checks"
     except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "VR200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    inline          = [
+    inline = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",
       "cat /opt/azurehpc/test/azurehpc-health-checks/health.log | grep --ignore-case 'Health checks completed with exit code: 0.'",
     ]
@@ -327,7 +329,7 @@ build {
   # Deprovision: Prepare VM for image capture
   # --------------------------------------------------------------------------
   provisioner "shell" {
-    name           = "Clear history and deprovision"
+    name = "Clear history and deprovision"
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     environment_vars = [
@@ -364,7 +366,7 @@ build {
       "[[ \"${local.retain_vm_always}\" == true && \"${local.skip_create_artifacts}\" == true ]] && exit 1 || true"
     ]
   }
-  
+
   error-cleanup-provisioner "shell-local" {
     inline_shebang = var.default_inline_shebang
     inline = [
@@ -396,7 +398,7 @@ build {
     strip_path = true
     custom_data = {
       managed_image_shared_image_gallery_id = local.create_image ? "/subscriptions/${var.sig_subscription_id != "" ? var.sig_subscription_id : build.SubscriptionID}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${local.image_version}" : "",
-      vhd_blob_name = local.create_vhd ? "${local.image_name}.vhd" : ""
+      vhd_blob_name                         = local.create_vhd ? "${local.image_name}.vhd" : ""
     }
   }
 }

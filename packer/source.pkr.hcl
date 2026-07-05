@@ -6,7 +6,7 @@
 
 packer {
   required_version = ">= 1.14.0"
-  
+
   required_plugins {
     azure = {
       # Pinned to 2.6.1 as 2.6.2 has a regression on log
@@ -41,12 +41,12 @@ source "azure-arm" "hpc" {
       eviction_policy = "Deallocate"
     }
   }
-  
+
   # Output: Also create VHD in storage account (optional)
   resource_group_name    = local.create_vhd ? var.vhd_resource_group_name : null
   storage_account        = local.create_vhd ? var.vhd_storage_account : null
   capture_container_name = local.create_vhd ? var.vhd_container_name : null
-  
+
   # Output: Publish to Shared Image Gallery
   dynamic "shared_image_gallery_destination" {
     for_each = local.create_image ? [1] : []
@@ -61,7 +61,7 @@ source "azure-arm" "hpc" {
       specialized     = local.target_node_type == "baremetal_1p" ? true : false
     }
   }
-  
+
   # Base Marketplace image info (disabled in refresh mode — SIG image used instead)
   image_publisher = local.refresh_mode ? null : local.image_publisher
   image_offer     = local.refresh_mode ? null : local.image_offer
@@ -76,27 +76,27 @@ source "azure-arm" "hpc" {
       plan_publisher = plan_info.value.plan_publisher
     }
   }
-  
+
   # Base image from Shared Image Gallery (refresh mode or direct shared gallery)
   dynamic "shared_image_gallery" {
     for_each = local.refresh_mode ? [1] : (local.direct_shared_gallery_image_id != null && local.direct_shared_gallery_image_id != "") ? [1] : []
     content {
       # In refresh mode, use the specified previous HPC image version from SIG
       # Otherwise, use the direct shared gallery image (e.g. 1P Azure Linux images)
-      image_name       = local.refresh_mode ? local.refresh_sig_image_name : null
-      gallery_name     = local.refresh_mode ? local.refresh_sig_gallery_name : null
-      image_version    = local.refresh_mode ? local.refresh_sig_image_version : null
-      resource_group   = local.refresh_mode ? local.refresh_sig_resource_group : null
-      subscription     = local.refresh_mode ? local.refresh_sig_subscription : null
+      image_name                     = local.refresh_mode ? local.refresh_sig_image_name : null
+      gallery_name                   = local.refresh_mode ? local.refresh_sig_gallery_name : null
+      image_version                  = local.refresh_mode ? local.refresh_sig_image_version : null
+      resource_group                 = local.refresh_mode ? local.refresh_sig_resource_group : null
+      subscription                   = local.refresh_mode ? local.refresh_sig_subscription : null
       direct_shared_gallery_image_id = local.refresh_mode ? null : local.direct_shared_gallery_image_id
     }
   }
-  
+
   # VM Configuration
   os_type         = "Linux"
   vm_size         = local.build_vm_size
   os_disk_size_gb = 64
-  
+
   # SSH Configuration
   communicator           = "ssh"
   ssh_username           = local.ssh_username

@@ -61,8 +61,8 @@ configure_gb200_partuuid() {
     local target_variant="${TARGET_NODE_TYPE:-azure_vm_regular}"
 
     # Skip PARTUUID configuration for VR200, which is inconsistent with legacy image build now but both are placeholder
-    if [[ "${GPU_SKU}" != "GB200" || "${partuuid}" == "None" || -z "${partuuid}" ]]; then
-        echo "##[section]Skipping PARTUUID configuration (not GB200 or PARTUUID not specified)"
+    if [[ "${partuuid}" == "None" || -z "${partuuid}" ]]; then
+        echo "##[section]Skipping PARTUUID configuration (PARTUUID not specified)"
         return 0
     fi
     
@@ -448,9 +448,11 @@ echo "OS: ${OS_FAMILY:-unknown} ${DISTRO_VERSION:-unknown}"
 echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
 echo "Target Image Variant: ${TARGET_NODE_TYPE:-azure_vm_regular}"
 echo "=========================================="
-
-# Configure GB200 PARTUUID if specified
-configure_gb200_partuuid "${GB200_PARTUUID:-None}"
+ 
+if [[ "${GPU_SKU}" == "GB200" && "${DISTRO_VERSION}" == "24.04" ]]; then
+    # Configure GB200 PARTUUID if specified
+    configure_gb200_partuuid "${GB200_PARTUUID:-None}"
+fi
 
 # Wait for apt lock and cloud-init before any package operations (Ubuntu)
 if [[ "${OS_FAMILY}" == "ubuntu" ]]; then

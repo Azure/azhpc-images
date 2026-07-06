@@ -76,7 +76,7 @@ EOF
     if [ "$SKU" = "V100" ]; then
         # V100 requires proprietary kernel modules
         apt install cuda-drivers -y
-    elif [ "$SKU" = "GB200" ]; then
+    elif [[ "${NVLINK_RACKSCALE:-false}" == "true" ]]; then
         NVIDIA_GPU_DRIVER_MAJOR_VERSION=$(jq -r '.driver.major_version' <<< $nvidia_metadata)
         apt install nvidia-dkms-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-driver-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-modprobe -y
     else

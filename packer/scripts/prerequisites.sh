@@ -8,7 +8,8 @@ set -euox pipefail
 # It handles:
 #   - Kernel setup (LTS or GB200 nvidia kernel)
 #   - Base package updates
-#   - GB200-specific configurations (PARTUUID, GRUB args, nouveau blacklist)
+#   - NVLink rackscale configurations (GRUB args, nouveau blacklist)
+#   - GB200-specific configurations (PARTUUID)
 #
 # Environment variables:
 #   OS_FAMILY        - OS family (ubuntu, alma, azurelinux)
@@ -143,7 +144,7 @@ install_ubuntu_nvidia_kernel() {
         done
     done
 
-    # Add GB200-specific kernel parameters
+    # Add nvlink-rackscale-specific kernel parameters
     if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != baremetal_* ]]; then
         sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 net.ifnames=0"/' /etc/default/grub.d/50-cloudimg-settings.cfg
     else
@@ -306,7 +307,7 @@ install_from_proposed_suite() {
 }
 
 ####
-# @Brief        : Install LTS kernel for Ubuntu (non-GB200)
+# @Brief        : Install LTS kernel for Ubuntu
 # @Param        : OS version (e.g., 24.04, 22.04)
 # @RetVal       : 0 on success
 ####
@@ -314,7 +315,7 @@ install_ubuntu_lts_kernel() {
     local version=$1
     local gpu_sku="${GPU_SKU}"
     
-    # GB200 uses a special nvidia kernel, not LTS
+    # SKUs with rackscale NVLink use a special nvidia kernel, not LTS
     if [[ "${NVLINK_RACKSCALE}" == "true" ]]; then
         install_ubuntu_nvidia_kernel
         return $?

@@ -28,7 +28,7 @@ git clone --branch v${NVBANDWIDTH_VERSION} ${NVBANDWIDTH_DOWNLOAD_URL}
 
 # Install the nvbandwidth tool
 pushd nvbandwidth
-source /etc/profile
+source /etc/profile.d/modules.sh
 module load mpi/hpcx
 cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" -DMULTINODE=1 .
 make

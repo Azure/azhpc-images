@@ -71,12 +71,7 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
     pushd nccl-rdma-sharp-plugins
     git checkout ${NCCL_RDMA_SHARP_COMMIT}
 
-    # Run libtoolize
-    if [[ "$DISTRIBUTION" == "ubuntu22.04" && "$SKU" == "GB200" ]]; then
-        # To get around configure.ac:44: error: required file './ltmain.sh' not found
-        apt install libtool -y
-        libtoolize
-    elif [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
+    if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose
     fi
 

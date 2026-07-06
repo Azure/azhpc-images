@@ -40,7 +40,7 @@ get_component_config(){
         fi
     fi
     
-    # If no SKU-specific config found, try architecture level
+    # If no SKU-specific nor node-type-specific config found, try architecture level
     if [[ "$config" = "null" ]]; then
         config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"' <<< "${COMPONENT_VERSIONS}")
     fi

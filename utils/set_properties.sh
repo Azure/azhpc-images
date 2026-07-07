@@ -30,6 +30,7 @@ export NODE_TYPE="${NODE_TYPE:-azure-vm}"
 if [[ -z "${SKU_FAMILY:-}" ]]; then
     case "${SKU:-}" in
         GB200|GB300) export SKU_FAMILY="gb-family" ;;
+        A100|H100|H200) export SKU_FAMILY="A100plus" ;;
         *)           export SKU_FAMILY="${SKU:-}" ;;
     esac
 fi

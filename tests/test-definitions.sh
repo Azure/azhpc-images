@@ -450,16 +450,20 @@ function verify_ib_modules_and_devices {
     fi
 }
 
-# only best-effort install since Lustre isn't always available
-# function verify_lustre_installation {
-#     case ${ID} in
-#         ubuntu) dpkg -l | grep lustre-client;;
-#         almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
-#         azurelinux) true;;
-#         * ) ;;
-#     esac
-#     check_exit_code "Lustre Installed" "Lustre not installed!"
-# }
+function verify_lustre_installation {
+    # Verify both halves of a usable Lustre client: the userspace utilities and
+    # the kernel module for the running kernel (modinfo catches a silently-failed
+    # DKMS build, where the package installs but no module is built).
+    command -v lctl > /dev/null 2>&1
+    check_exit_code "Lustre userspace client (lctl) is present" "Lustre userspace client (lctl) not found!"
+
+    if modinfo lustre > /dev/null 2>&1; then
+        echo "[OK] : Lustre client kernel module (lustre.ko) is present"
+    else
+        echo "*** verify_lustre_installation: Error - no loadable Lustre client kernel module (lustre.ko) for running kernel $(uname -r); DKMS build likely failed (dkms status shows it 'added', not 'installed' for this kernel)" >&2
+        exit_on_error
+    fi
+}
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation

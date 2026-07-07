@@ -39,8 +39,11 @@ else
     echo -e "gpgcheck=1" >> ${REPO_PATH}
     echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
 
-    LUSTRE_PACKAGE="lustre-client-dkms-${LUSTRE_VERSION_UNDERSCORE}"
-    dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGE}"
+    LUSTRE_PACKAGES=(
+        "lustre-client-dkms-${LUSTRE_VERSION_UNDERSCORE}"
+        "lustre-client-${LUSTRE_VERSION_UNDERSCORE}-devel"
+    )
+    dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}
 fi
 

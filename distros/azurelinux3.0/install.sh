@@ -41,7 +41,7 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
+    if [ "$SKU" = "GB200" ]; then
         # Install nvshmem
         $COMPONENT_DIR/install_nvshmem.sh
 

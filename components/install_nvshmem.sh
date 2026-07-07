@@ -1,5 +1,5 @@
 #!/bin/bash
-# intended for only aarch64
+# installed for GB200 only, suitable for all skus with NVLINK
 set -ex
 
 source ${UTILS_DIR}/utilities.sh

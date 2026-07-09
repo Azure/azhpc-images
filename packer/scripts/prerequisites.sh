@@ -75,9 +75,12 @@ configure_gb200_partuuid() {
     echo "##[section]Configuring GB200 disk PARTUUID: ${partuuid}"
     
     # Get boot device info
-    local boot_device=$(df -h /boot/efi | awk 'NR==2 {print $1}')
-    local disk="${boot_device%p[0-9]*}"
-    local partition="${boot_device##*p}"
+    local boot_device
+    boot_device=$(findmnt -no SOURCE /boot/efi)
+    local disk
+    disk="/dev/$(lsblk -no PKNAME "${boot_device}")"
+    local partition
+    partition=$(lsblk -nrno PARTN "${boot_device}")
     
     echo "Boot device: ${boot_device}"
     echo "Disk: ${disk}, Partition: ${partition}"
@@ -86,7 +89,11 @@ configure_gb200_partuuid() {
     sgdisk --partition-guid="${partition}:${partuuid}" "${disk}"
     
     # Update EFI boot entry
-    efibootmgr -b 0001 -B || true
+    local old_boot_entries
+    old_boot_entries=$(efibootmgr -v | awk 'tolower($0) ~ /^boot[0-9a-f]{4}\*?[[:space:]]+ubuntu[[:space:]]/ && tolower($0) ~ /file\(\\efi\\ubuntu\\shimaa64\.efi\)/ {print substr($1, 5, 4)}')
+    for boot_entry in ${old_boot_entries}; do
+        efibootmgr -b "${boot_entry}" -B || true
+    done
     efibootmgr -c -d "${disk}" -p "${partition}" -L "Ubuntu" -l '\EFI\ubuntu\shimaa64.efi'
     
     echo "GB200 PARTUUID configuration complete"

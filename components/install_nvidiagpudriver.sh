@@ -178,7 +178,7 @@ fi
 
 $COMPONENT_DIR/install_gdrcopy.sh
 
-if [[ "${NVLINK_RACKSCALE,,}" == "true" ]]; then
+if [[ "${NVLINK_RACKSCALE,,}" != "true" ]]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else

@@ -55,7 +55,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == *"almalinux"* ]] || 
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
-if [[ "${NVLINK_RACKSCALE:-false}" == "true" ]]; then
+if [[ "${NVLINK_RACKSCALE,,}" == "true" ]]; then
     sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
     sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml 2>/dev/null || true
 fi

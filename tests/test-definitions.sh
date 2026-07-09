@@ -520,7 +520,7 @@ function verify_dcgm_installation {
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
     # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nd128is*_gb[2-3]00_v6|standard_nc.*_rtxpro6000bse_v6"
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nd128is.*_gb[2-3]00_v6|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations

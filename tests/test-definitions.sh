@@ -239,7 +239,9 @@ function verify_nccl_installation {
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         standard_nd40rs_v2 | standard_nd96*v4 | standard_nc*ads_a100_v4) mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
@@ -250,7 +252,9 @@ function verify_nccl_installation {
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         standard_nc80adis_h100_v5) mpirun -np 2 \
                 --allow-run-as-root \
                 --map-by ppr:2:node \
@@ -261,7 +265,9 @@ function verify_nccl_installation {
                 -x NCCL_SOCKET_IFNAME=eth0 \
                 -x NCCL_DEBUG=WARN \
                 -x NCCL_NET_GDR_LEVEL=5 \
-                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+                check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+                ;;
         standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) _is_gb_family=1;;
         *) ;;
     esac
@@ -279,6 +285,7 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     fi
 
     case ${VMSIZE} in
@@ -292,10 +299,11 @@ function verify_nccl_installation {
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         *) ;;
     esac
-    check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
 }

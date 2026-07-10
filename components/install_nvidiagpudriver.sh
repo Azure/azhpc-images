@@ -159,7 +159,17 @@ else
     # Install NVIDIA IMEX
     nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)
     IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
-    tdnf install -y nvidia-imex-${IMEX_VERSION}
+    # nvidia-imex hard-depends on the standalone nvidia-modprobe package, which
+    # ships /usr/bin/nvidia-modprobe and its man page. The cuda-open-hwe driver
+    # metapackage (installed above) already ships those identical files, and
+    # neither package declares a Conflicts/Obsoletes, so a plain
+    # 'tdnf install nvidia-imex' aborts with an rpm file-conflict. Download the
+    # imex package and its deps, then install with 'rpm -Uvh --replacefiles' so
+    # the identical (same-version) files are shared instead of conflicting.
+    IMEX_DL_DIR=$(mktemp -d)
+    tdnf install -y --downloadonly --downloaddir="$IMEX_DL_DIR" nvidia-imex-${IMEX_VERSION}
+    rpm -Uvh --replacefiles "$IMEX_DL_DIR"/*.rpm
+    rm -rf "$IMEX_DL_DIR"
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf

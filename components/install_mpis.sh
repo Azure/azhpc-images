@@ -15,7 +15,7 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
     hpcx_metadata=$(get_component_config "hpcx_amd")
-elif ! sku_has_infiniband; then
+elif [[ "$(sku_network_mode)" == "no_rdma" ]]; then
     # Non-IB SKUs skip DOCA-OFED. Use inbox HPC-X (UCX linked against kernel-native rdma-core)
     hpcx_metadata=$(get_component_config "hpcx_inbox")
 else
@@ -44,7 +44,7 @@ write_component_version "HPCX" $HPCX_VERSION
 # Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
 # conflicts with the Mellanox OpenMPI package on Nebius nodes.
 # Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
-if [[ $DISTRIBUTION == "azurelinux3.0" || "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 elif ! sku_uses_ucx; then
     PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
@@ -106,7 +106,7 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" ]]; then
     PMIX_FLAG="--with-pmix"
 else
     PMIX_FLAG="--with-pmix=${PMIX_PATH}"

@@ -169,7 +169,7 @@ if [ "$GPU" = "NVIDIA" ]; then
     fi
 fi
 
-if [[ $DISTRIBUTION == "azurelinux3.0" && "$ARCHITECTURE" == "aarch64" ]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" && "$SKU" == "GB200" ]]; then
     # Grub kernel cmdline options needed for Arm64 GB200 and above SKUs in HPC test images
     sudo sed -i 's/lockdown=integrity/lockdown=integrity efi_mmap_nr_slack_slots=256 numa_balancing=disable iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 nvme_core.io_timeout=240 panic=-1/' /etc/default/grub
     sudo sed -i 's/lockdown=integrity/lockdown=integrity efi_mmap_nr_slack_slots=256 numa_balancing=disable iommu.passthrough=1 irqchip.gicv3_nolpi=y arm_smmu_v3.disable_msipolling=1 init_on_alloc=0 nvme_core.io_timeout=240 panic=-1/' /boot/grub2/grub.cfg

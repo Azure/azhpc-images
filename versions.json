@@ -467,7 +467,7 @@
         "azurelinux3.0": {
             "aarch64": {
                 "imex": {
-                    "version": "580.105.08"
+                    "version": "580.159.04"
                 }
             }
         }

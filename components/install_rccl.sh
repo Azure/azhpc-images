@@ -119,7 +119,7 @@ fi
 echo "kernel.numa_balancing=0" | tee -a /etc/sysctl.conf
 echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 
-if sku_has_infiniband; then
+if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
     install_rccl_rdma_sharp_plugin
 fi
 

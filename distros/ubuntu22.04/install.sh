@@ -91,6 +91,9 @@ rm -rf /var/intel/
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
 
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
+
 # Install AZNFS Mount Helper
 $COMPONENT_DIR/install_aznfs.sh
 

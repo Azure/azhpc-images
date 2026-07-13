@@ -19,9 +19,6 @@ fi
 
 source ../../utils/set_properties.sh
 
-# modify distribution for AKS Host Image
-export DISTRIBUTION=${DISTRIBUTION}-aks
-
 ./install_utils_aks.sh
 
 # install DOCA OFED
@@ -30,13 +27,7 @@ $COMPONENT_DIR/install_doca.sh
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
 
-    if [ "$SKU" = "GB200" ]; then
-        # For GB200, pass SKU to install the correct driver
-        ./install_nvidiagpudriver_gb200.sh
-
-    else
-        $COMPONENT_DIR/install_nvidiagpudriver.sh
-    fi
+    $COMPONENT_DIR/install_nvidiagpudriver.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then

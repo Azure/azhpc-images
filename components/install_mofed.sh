@@ -28,8 +28,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     mft_kernel-hwe \
                     iser-hwe \
                     isert-hwe \
-                    knem \
-                    knem-hwe-modules \
                     mlnx-nfsrdma-hwe \
                     srp-hwe \
                     xpmem \
@@ -42,8 +40,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     mft_kernel \
                     iser \
                     isert \
-                    knem \
-                    knem-modules \
                     mlnx-nfsrdma \
                     srp \
                     xpmem \
@@ -79,7 +75,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
                     ucx-ib-mlx5 \
                     ucx-rdmacm \
                     ucx-static \
-                    ucx-knem \
                     ucx-xpmem \
                     libunwind \
                     libunwind-devel

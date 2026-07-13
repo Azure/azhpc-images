@@ -1029,7 +1029,10 @@
             "x86_64": {
                 "version": "2.20.5",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.4.tar.gz",
-                "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea"
+                "sha256": "12a04743ed89a74b4a08aa046b6a549d385e15d6866042fd41eac8f085f50eea",
+                "rdmasharpplugins": {
+                    "commit": "fa70b546d43a034ae93f0bb9c5486d285ff78710"
+                }
             }
         },
         "ubuntu24.04": {
@@ -1038,7 +1041,10 @@
                 "branch": "release/rocm-rel-6.4",
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
-                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
+                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065",
+                "rdmasharpplugins": {
+                    "commit": "fa70b546d43a034ae93f0bb9c5486d285ff78710"
+                }
             }
         },
         "azurelinux3.0": {
@@ -1047,14 +1053,20 @@
                 "branch": "release/rocm-rel-6.4",
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.4.tar.gz",
-                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065"
+                "sha256": "d16a82baae8e7f5abeea04dddd16165da74354ccaf854df0d225ab9aaca92065",
+                "rdmasharpplugins": {
+                    "commit": "fa70b546d43a034ae93f0bb9c5486d285ff78710"
+                }
             }
         },
         "rocky8.10": {
             "x86_64": {
                 "version": "2.20.5",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.2.2.tar.gz",
-                "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
+                "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e",
+                "rdmasharpplugins": {
+                    "commit": "fa70b546d43a034ae93f0bb9c5486d285ff78710"
+                }
             }
         },
         "rocky9.8": {
@@ -1063,7 +1075,10 @@
                 "branch": "release/rocm-rel-6.4",
                 "commit": "2f7ac66cd64c68d4af8bb4562ce193778a7e470e",
                 "url": "https://github.com/ROCm/rccl/archive/refs/tags/rocm-6.4.3.tar.gz",
-                "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a"
+                "sha256": "2ee8f7fcd438d1cc2ee37aff67b60f3e342ab23cf9578ebc52b8987090cc387a",
+                "rdmasharpplugins": {
+                    "commit": "fa70b546d43a034ae93f0bb9c5486d285ff78710"
+                }
             }
         }
     },

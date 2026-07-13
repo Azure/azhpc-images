@@ -11,32 +11,6 @@ rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
 DEBPACKAGE=$(basename ${rocm_url})
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-        # ROCm 6.4 depends on mivisionx-dev which depends on libopencv-dev which depends on libopenmpi3t64 which depends on libucx0, which is a Ubuntu upstream UCX that
-        # is older than and conflicts with the ucx package installed by doca-ofed and has unknown IB support status.
-        # We install this marker package to indicate to the package manager that ucx provides libucx0 so that ROCm can be installed.
-        # TODO: make sure a UCX that actually has proper IB, GDR and ROCm support is being used
-        # See https://askubuntu.com/a/218294/595565
-        apt install -y equivs
-        ucx_version=$(dpkg -s ucx | grep Version | awk '{print $2}')
-        cat <<EOF > /tmp/ucx-provides-libucx0
-Section: misc
-Priority: optional
-Homepage: https://github.com/Azure/azhpc-images
-Standards-Version: 3.9.2
-
-Package: ucx-provides-libucx0
-Depends: ucx
-Provides: libucx0 (= ${ucx_version})
-Version: ${ucx_version}
-Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-Description: marker package in Azure HPC Image to work around ROCm dependency issue
-EOF
-        equivs-build /tmp/ucx-provides-libucx0
-        dpkg -i ucx-provides-libucx0_${ucx_version}_all.deb
-        rm -f ucx-provides-libucx0_${ucx_version}_all.deb
-        rm -f /tmp/ucx-provides-libucx0
-    fi
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
     if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then

@@ -39,6 +39,10 @@ git checkout ${NCCL_RDMA_SHARP_COMMIT}
 ./configure --prefix=/usr/local/nccl-rdma-sharp-plugins --with-cuda=/usr/local/cuda
 make
 make install
+cat > /etc/ld.so.conf.d/nccl-rdma-sharp-plugins.conf <<EOF
+/usr/local/nccl-rdma-sharp-plugins/lib
+EOF
+ldconfig
 popd
 popd
 

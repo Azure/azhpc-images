@@ -68,11 +68,10 @@ sudo rm -f /opt/azurehpc/test/azurehpc-health-checks/health.log
 # Uninstall the OMS Agent
 wget -qO- https://raw.githubusercontent.com/microsoft/OMS-Agent-for-Linux/master/installer/scripts/uninstall.sh | sudo bash
 
-rm -f ~/.ssh/authorized_keys
 
 # Switch to the root user
 sudo -s <<EOF
-if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]]; then
     # Empty machine information
     cat /dev/null > /etc/machine-id
 
@@ -97,7 +96,7 @@ then
     sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
 fi
 
-if [[ "${TARGET_IMAGE_VARIANT:-regular}" != "baremetal_image" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]]; then
     # Clear the sudoers.d folder - last user information
     (
         shopt -s dotglob nullglob

@@ -58,6 +58,7 @@ source "azure-arm" "hpc" {
       image_version        = local.image_version
       replication_regions  = local.sig_replication_regions
       storage_account_type = var.storage_account_type
+      specialized     = local.target_node_type == "baremetal_1p" ? true : false
     }
   }
 
@@ -97,9 +98,9 @@ source "azure-arm" "hpc" {
   os_disk_size_gb = 64
 
   # SSH Configuration
-  communicator = "ssh"
-  ssh_username = var.ssh_username
-  ssh_timeout  = "10m"
+  communicator           = "ssh"
+  ssh_username           = local.ssh_username
+  ssh_timeout            = "10m"
 
   polling_duration_timeout = "2h"
 

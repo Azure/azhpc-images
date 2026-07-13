@@ -138,7 +138,7 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload
-    systemctl enable dyno-relay-logger.service
+    # systemctl enable dyno-relay-logger.service
 
     write_component_version "dynolog" ${DYNOLOG_VERSION}
     write_component_version "dyno_relay_logger" ${DRL_VERSION}

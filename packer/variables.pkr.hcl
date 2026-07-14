@@ -79,10 +79,45 @@ locals {
   )
 }
 
-variable "vm_size" {
+variable "use_ubuntu_proposed_suite" {
+  type        = string
+  description = "Use Proposed Suite for Kernel Installation"
+  default     = env("USE_UBUNTU_PROPOSED_SUITE")
+}
+
+variable "use_ubuntu_ppa_repo" {
+  type        = string
+  description = "Use Kernel in Personal Package Archive (PPA) Repo"
+  default     = env("USE_UBUNTU_PPA_REPO")
+}
+
+variable "ubuntu_ppa_repo_name" {
+  type        = string
+  description = "Personal Package Archive Repo Name (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = env("UBUNTU_PPA_REPO_NAME")
+}
+
+variable "ubuntu_ppa_kernel_patch_version" {
+  type        = string
+  description = "Personal Package Archive Kernel Version (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = env("UBUNTU_PPA_KERNEL_PATCH_VERSION")
+}
+
+locals {
+  use_ubuntu_proposed_suite         = try(convert(lower(var.use_ubuntu_proposed_suite), bool), false)
+  use_ubuntu_ppa_repo               = try(convert(lower(var.use_ubuntu_ppa_repo), bool), false)
+  ubuntu_ppa_repo_name              = coalesce(var.ubuntu_ppa_repo_name, "None")
+  ubuntu_ppa_kernel_patch_version   = coalesce(var.ubuntu_ppa_kernel_patch_version, "None")
+
+  # Validate: if use_ubuntu_ppa_repo is true, both PPA variables must be set (not "None")
+  _ppa_valid = !local.use_ubuntu_ppa_repo || (local.ubuntu_ppa_repo_name != "None" && local.ubuntu_ppa_kernel_patch_version != "None")
+  _ppa_check = local._ppa_valid ? true : file("ERROR: use_ubuntu_ppa_repo is true but ubuntu_ppa_repo_name and/or ubuntu_ppa_kernel_patch_version is not set")
+}
+
+variable "target_vm_size" {
   type        = string
   description = "VM SKU to target for the image."
-  default     = env("GPU_SIZE_OPTION")
+  default     = env("TARGET_VM_SIZE")
 }
 
 variable "build_vm_size" {
@@ -92,15 +127,17 @@ variable "build_vm_size" {
 }
 
 locals {
-  target_vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
+  target_vm_size = coalesce(var.target_vm_size, "Standard_ND96asr_v4")
   build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
+# Placeholder for VR SKU Name
 locals {
   gpu_sku = (
     local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
+    contains(["Standard_ND128isr_NDR_GB200_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
+    contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
     local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
@@ -121,7 +158,10 @@ locals {
 variable "ssh_username" {
   type        = string
   description = "SSH username for the build VM"
-  default     = "hpcuser"
+  default     = null
+}
+locals {
+  ssh_username = coalesce(var.ssh_username, local.target_node_type == "baremetal_1p" ? "azhpcuser" : "hpcuser")
 }
 
 variable "azure_resource_group" {
@@ -175,8 +215,8 @@ variable "skip_validation" {
   default     = null
 }
 locals {
-  # Skip validation if build_vm_size is set and different from vm_size (usually meaning using a general-purpose SKU for the build VM)
-  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.vm_size)) || var.skip_hpc)
+  # Skip validation if build_vm_size is set and different from target_vm_size (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
+  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.target_vm_size)) || var.skip_hpc)
 }
 
 variable "public_key" {
@@ -489,16 +529,17 @@ variable "sig_replication_regions" {
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
   # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
-  first_party_sig_replication_regions = (
-    local.gpu_sku == "MI300X"
-    ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-    : local.gpu_sku == "NCv6"
-    ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
-    : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-    ? ["southeastus5", "northeastus5", local.azure_location]
-    : local.gpu_sku == "GB200"
-    ? ["centraluseuap", "eastus2euap", "northeurope", "westeurope", local.azure_location]
-    : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+  _sig_replication_regions_map = {
+    "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
+    "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
+    "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
+    "GB200F"                 = ["southeastus5", "northeastus5", "centralus","westeurope", "eastus2euap"]
+  }
+  _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
+
+  first_party_sig_replication_regions = concat(
+    try(local._sig_replication_regions_map[local.gpu_sku], local._sig_replication_default),
+    [local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null
@@ -532,21 +573,9 @@ locals {
   azl_base_image_type = coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS")
 }
 
-variable "azl_prebuilt_version" {
-  type        = string
-  description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL_PREBUILT_VERSION")
-}
-
 # =============================================================================
 # GB200 Specific Variables
 # =============================================================================
-
-variable "gb200_internal_bits_version" {
-  type        = string
-  description = "Version for Ubuntu 24.04 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("U24GB200_INTERNALBITS_VERSION")
-}
 
 variable "gb200_partuuid" {
   type        = string
@@ -554,30 +583,95 @@ variable "gb200_partuuid" {
   default     = env("PARTUUID")
 }
 
-variable "azl3gb200_prebuilt_version" {
+# =============================================================================
+# Internal Bits Variables
+# =============================================================================
+
+variable "internal_bits_container_name" {
   type        = string
-  description = "Version for AzureLinux 3.0 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("AZL3GB200_PREBUILT_VERSION")
+  description = "Container name for internal bits (e.g., u24-gb200-internal)"
+  default     = env("INTERNAL_BITS_CONTAINER_NAME")
+}
+
+variable "internal_bits_blob_name" {
+  type        = string
+  description = "Blob name for internal bits (e.g., u24_gb200_internal_0.0.1)"
+  default     = env("INTERNAL_BITS_BLOB_NAME")
 }
 
 # =============================================================================
-# Target Image Variant Variables
+# Target Node Feature Variables
 # =============================================================================
 
-variable "target_image_variant" {
+variable "target_node_type" {
   type        = string
-  description = "Target image variant: regular, aks_host_image, or baremetal_image"
-  default     = env("TARGET_IMAGE_VARIANT")
+  description = "Target node type: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p"
+  default     = env("TARGET_NODE_TYPE")
   validation {
-    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
-    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
+    condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", "baremetal_3p", ""], var.target_node_type)
+    error_message = "Target_node_type must be one of: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p."
   }
 }
 locals {
-  target_image_variant = coalesce(var.target_image_variant, "regular")
-  aks_host_image       = local.target_image_variant == "aks_host_image"
-  install_script_name  = local.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag        = local.aks_host_image ? "-aks-host" : ""
+  target_node_type = coalesce(var.target_node_type, "azure_vm_regular")
+  install_script_name = local.target_node_type == "azure_vm_akshost" ? "install_aks.sh" : "install.sh"
+
+  # Keep target-node compatibility keyed by target VM size, not GPU SKU. Multiple
+  # VM sizes can map to the same GPU SKU but still represent different build targets.
+  target_vm_size_allowed_node_types = {
+    "Standard_ND40rs_v2"                  = ["azure_vm_regular"]
+    "Standard_ND96asr_v4"                 = ["azure_vm_regular"]
+    "Standard_ND96amsr_A100_v4"           = ["azure_vm_regular"]
+    "Standard_ND96isr_MI300X_v5"          = ["azure_vm_regular"]
+    "Standard_ND128isr_NDR_GB200_v6"      = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
+    "Standard_ND128isr_VR200_v6"          = ["azure_vm_regular"]
+    "Standard_NC128lds_xl_RTXPRO6000BSE_v6" = ["azure_vm_regular"]
+    "ND144ISR_ETH_GB200_METAL_V6"         = ["baremetal_1p"]
+    "ND144ISR_ETH_VR200_METAL_V6"         = ["baremetal_1p"]
+  }
+  target_vm_size_allowed_node_types_default = ["azure_vm_regular"]
+  target_vm_size_node_types = lookup(local.target_vm_size_allowed_node_types, local.target_vm_size, local.target_vm_size_allowed_node_types_default)
+  target_vm_size_node_type_valid = contains(local.target_vm_size_node_types, local.target_node_type)
+  _target_vm_size_node_type_check = local.target_vm_size_node_type_valid ? true : file("ERROR: Unsupported TARGET_VM_SIZE/TARGET_NODE_TYPE combination. Check target_vm_size_allowed_node_types in packer/variables.pkr.hcl.")
+}
+
+locals {
+  nvlink_rackscale = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
+}
+
+# =============================================================================
+# Credentials Variables
+# =============================================================================
+
+variable "ado_access_token" {
+  type        = string
+  description = "Access token for ADO Internal Repos"
+  default     = env("ADO_ACCESS_TOKEN")
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_user" {
+  type        = string
+  description = "First secret for baremetal_1p provisioning"
+  default     = null
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_passwd" {
+  type        = string
+  description = "Second secret for baremetal_1p provisioning"
+  default     = env("BAREMETAL_1P_LOGIN_PASSWD")
+  sensitive   = true
+}
+
+locals {
+  baremetal_1p_login_user = coalesce(var.baremetal_1p_login_user, local.ssh_username)
+  _baremetal_1p_creds_valid = local.target_node_type != "baremetal_1p" || (
+    var.ado_access_token != null && var.ado_access_token != "" &&
+    local.baremetal_1p_login_user != null && local.baremetal_1p_login_user != "" &&
+    var.baremetal_1p_login_passwd != null && var.baremetal_1p_login_passwd != ""
+  )
+  _baremetal_1p_creds_check = local._baremetal_1p_creds_valid ? true : file("ERROR: Baremetal 1P build requires ADO_ACCESS_TOKEN and BAREMETAL_1P_LOGIN_PASSWD environment variables")
 }
 
 # =============================================================================
@@ -587,7 +681,7 @@ locals {
 # =============================================================================
 
 locals {
-  numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
+  numeric_timestamp                 = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
 
   # Image naming components
   distro_version_safe = replace(local.distro_version, ".", "-")
@@ -684,9 +778,12 @@ locals {
   # These values are reserved for 1P internal SIG
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
-    local.gpu_sku == "V100" ? "V100-" :
-    local.gpu_sku == "GB200" ? "GB200-" :
-    local.gpu_sku == "NCv6" ? "NCv6-" :
+    local.gpu_sku == "V100"  ? "V100-" :
+    local.gpu_sku == "GB200" && startswith(local.target_node_type, "azure_vm_") ? "GB200-" :
+    local.gpu_sku == "GB200" && local.target_node_type == "baremetal_1p" ? "GB200F-" :
+    local.gpu_sku == "VR200" && startswith(local.target_node_type, "azure_vm_") ? "VR200-" :
+    local.gpu_sku == "VR200" && local.target_node_type == "baremetal_1p" ? "VR200F-" :
+    local.gpu_sku == "NCv6"  ? "NCv6-" :
     ""
   )
   internal_sig_image_definition_details = {

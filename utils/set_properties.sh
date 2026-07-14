@@ -14,13 +14,16 @@ else
 fi
 export ARCHITECTURE=$(uname -m)
 
-# NODE_TYPE identifies the deployment context:
-#   'azure-vm'  (default) — Azure Virtual Machine image build/test
-#   'baremetal'           — Bare-metal node (e.g. Nebius), no Azure IMDS,
+# TARGET_NODE_TYPE identifies the deployment context:
+#   'azure_vm_regular'  (default) — Azure Virtual Machine image build/test
+#   'azure_vm_akshost'            — Azure Virtual Machine image build/test for AKS Host OS image
+#   'baremetal_3p'        — 3P Bare-metal node (e.g. Nebius), no Azure IMDS,
 #                           IB not brought up, IPoIB not used.
-# Baremetal callers must set NODE_TYPE=baremetal in their environment
+#   'baremetal_1p'        — 1P Bare-metal node (e.g. Nebius), no Azure IMDS,
+#                           Azure Specialized Image.
+# Baremetal_3P callers must set TARGET_NODE_TYPE=baremetal_3p in their environment
 # before sourcing this script.
-export NODE_TYPE="${NODE_TYPE:-azure-vm}"
+export TARGET_NODE_TYPE="${TARGET_NODE_TYPE:-azure_vm_regular}"
 
 # Derive SKU_FAMILY from SKU so all downstream scripts use a single canonical
 # GPU-family identifier instead of repeated per-SKU string comparisons.
@@ -30,15 +33,16 @@ export NODE_TYPE="${NODE_TYPE:-azure-vm}"
 if [[ -z "${SKU_FAMILY:-}" ]]; then
     case "${SKU:-}" in
         GB200|GB300) export SKU_FAMILY="gb-family" ;;
+        A100|H100|H200) export SKU_FAMILY="A100plus" ;;
         *)           export SKU_FAMILY="${SKU:-}" ;;
     esac
 fi
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    if [[ "${NODE_TYPE}" == "baremetal" ]]; then
+    if [[ "${TARGET_NODE_TYPE}" == "baremetal_3p" ]]; then
         # Baremetal: skip apt upgrade — the offline ISO installer cannot reach
         # online package mirrors; the base image is already validated.
-        echo "[set_properties.sh] Skipping apt update/upgrade on baremetal node"
+        echo "[set_properties.sh] Skipping apt update/upgrade on baremetal 3P node"
     else
         # Azure VM: upgrade pre-installed components.
         apt update

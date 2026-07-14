@@ -5,11 +5,35 @@ source ${UTILS_DIR}/utilities.sh
 
 doca_metadata=$(get_component_config "doca")
 DOCA_VERSION=$(jq -r '.version' <<< $doca_metadata)
-DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
-DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
-DOCA_FILE=$(basename ${DOCA_URL})
+DOCA_SOURCE=$(jq -r '.source' <<< $doca_metadata)
 
-download_and_verify $DOCA_URL $DOCA_SHA256
+if [[ "$DOCA_SOURCE" == "private" ]]; then
+    DOCA_FILE=$(jq -r '.file' <<< $doca_metadata)
+    DOCA_FILE="$TOP_DIR/internal_bits/$DOCA_FILE"
+else
+    DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
+    DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
+    download_and_verify $DOCA_URL $DOCA_SHA256
+    DOCA_FILE=$(basename ${DOCA_URL})
+fi
+
+configure_mlnx_ofa_kernel_dkms_dpll_patch() {
+    local kernel_header=/usr/src/kernels/$(uname -r)/include/linux/dpll.h
+    local dkms_conf=/etc/dkms/mlnx-ofa_kernel.conf
+    local patch_file=${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
+    local patch_dir=/etc/dkms/mlnx-ofa_kernel/patches
+
+    # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback
+    # signature, while DOCA 3.2.x / MLNX OFED 25.10 still ships the older one.
+    [[ -f "${kernel_header}" ]] || return 0
+    grep -q 'struct dpll_ffo_param \*ffo,' "${kernel_header}" || return 0
+
+    mkdir -p "${patch_dir}"
+    cp "${patch_file}" "${patch_dir}/dpll-ffo-param.patch"
+    cat > "${dkms_conf}" <<'EOF'
+PATCH[0]="dpll-ffo-param.patch"
+EOF
+}
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     dpkg -i $DOCA_FILE
@@ -81,6 +105,7 @@ EOF
     rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
 
     apt-get -y install doca-ofed
+    check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     rpm -i $DOCA_FILE
     dnf clean all
@@ -93,7 +118,9 @@ else
     # Backup
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
+    configure_mlnx_ofa_kernel_dkms_dpll_patch
     dnf -y install doca-ofed
+    check_dkms_status mlnx-ofa_kernel iser isert srp
     # Restore exclusion
     mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
 
@@ -153,7 +180,7 @@ Restart=on-failure
 RestartSec=5
 EOF
 
-if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+if ! sku_uses_ipoib; then
     echo -e "\n# Load IPoIB\nIPOIB_LOAD=no" | sudo tee -a /etc/infiniband/openib.conf
 fi
 

@@ -4,9 +4,9 @@
 # @Args        : (1) #Component name
 # @RetVal       : json node value
 # Lookup hierarchy:
-#   1. component.distribution.architecture.<GPU_SKU>.<NODE_TYPE> (e.g., nvidia_gb200.baremetal)
-#   2. component.distribution.architecture.<GPU_SKU>.default
-#   3. component.distribution.architecture.<GPU_SKU> (legacy direct config, e.g., nvidia_v100)
+#   1. component.distribution.architecture.<TARGET_NODE_TYPE>.<GPU_SKU> (e.g., baremetal_3p.nvidia_gb200)
+#   2. component.distribution.architecture.<TARGET_NODE_TYPE>.default
+#   3. component.distribution.architecture.<TARGET_NODE_TYPE> (direct config, if not nested by GPU_SKU)
 #   4. component.distribution.architecture
 #   5. component.common
 ############################################################################
@@ -21,26 +21,26 @@ get_component_config(){
 
     if [[ -n "${GPU:-}" && -n "${SKU:-}" ]]; then
         sku_key=$(normalize_component_config_key "${GPU}_${SKU}")
-        node_type_key=$(normalize_component_config_key "${NODE_TYPE:-azure-vm}")
+        node_type_key=$(normalize_component_config_key "${TARGET_NODE_TYPE:-azure_vm_regular}")
 
-        config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${sku_key}"'"."'"${node_type_key}"'"' <<< "${COMPONENT_VERSIONS}")
+        config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${node_type_key}"'"."'"${sku_key}"'"' <<< "${COMPONENT_VERSIONS}")
 
         if [[ "$config" = "null" ]]; then
-            config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${sku_key}"'".default' <<< "${COMPONENT_VERSIONS}")
+            config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${node_type_key}"'".default' <<< "${COMPONENT_VERSIONS}")
         fi
 
         if [[ "$config" = "null" ]]; then
-            sku_config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${sku_key}"'"' <<< "${COMPONENT_VERSIONS}")
-            if [[ "$sku_config" != "null" ]]; then
-                has_nested_config=$(jq -r 'type == "object" and (has("default") or has("baremetal") or has("azure_vm"))' <<< "$sku_config")
-                if [[ "$has_nested_config" != "true" ]]; then
-                    config="$sku_config"
+            node_type_config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"."'"${node_type_key}"'"' <<< "${COMPONENT_VERSIONS}")
+            if [[ "$node_type_config" != "null" ]]; then
+                has_nested_sku_config=$(jq -r 'type == "object" and (has("default") or ([keys[] | (startswith("nvidia_") or startswith("amd_"))] | any))' <<< "$node_type_config")
+                if [[ "$has_nested_sku_config" != "true" ]]; then
+                    config="$node_type_config"
                 fi
             fi
         fi
     fi
     
-    # If no SKU-specific config found, try architecture level
+    # If no SKU-specific nor node-type-specific config found, try architecture level
     if [[ "$config" = "null" ]]; then
         config=$(jq -r '."'"${component}"'"."'"${DISTRIBUTION}"'"."'"${ARCHITECTURE}"'"' <<< "${COMPONENT_VERSIONS}")
     fi
@@ -116,6 +116,47 @@ verify_checksum() {
     fi
 }
 
+############################################################################
+# @Brief    : Fail if any matching DKMS module did not build/install for the
+#             running kernel. Some vendor packages mask DKMS build failures in
+#             their package scripts, so check immediately after installation.
+#
+# @Args     : DKMS module names to check (e.g. "mlnx-ofa_kernel").
+############################################################################
+check_dkms_status() {
+    command -v dkms >/dev/null 2>&1 || return 0
+
+    local kernel_version=$(uname -r)
+    local module status found current_installed
+    local log_file
+
+    for module in "$@"; do
+        found=0
+        current_installed=0
+        while IFS= read -r status; do
+            found=1
+            echo "${status}"
+            if grep -q "${kernel_version}.*: installed" <<< "${status}"; then
+                current_installed=1
+            fi
+        done < <(dkms status -m "${module}" 2>/dev/null || true)
+
+        if [[ ${found} -eq 0 ]]; then
+            echo "ERROR: DKMS module ${module} has no status entry" >&2
+            exit 1
+        fi
+        if [[ ${current_installed} -ne 1 ]]; then
+            echo "ERROR: DKMS module ${module} is not installed for ${kernel_version}" >&2
+            for log_file in /var/lib/dkms/${module}/*/build/make.log; do
+                [[ -f "${log_file}" ]] || continue
+                echo "--- ${log_file} ---" >&2
+                tail -n 80 "${log_file}" >&2 || true
+            done
+            exit 1
+        fi
+    done
+}
+
 # Private helper that matches NCv6.
 function _is_ncv6_sku {
     case "$SKU" in
@@ -124,15 +165,37 @@ function _is_ncv6_sku {
     esac
 }
 
-# Whether the current SKU has InfiniBand hardware.
-# Used to skip DOCA-OFED, nccl-rdma-sharp-plugins, and other IB-only components.
-function sku_has_infiniband {
-    ! _is_ncv6_sku
+# Private helper that matches current MRC scope.
+# MRC currently applies to baremetal_1p regardless of SKU.
+function _is_mrc_network {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]
+}
+
+# Return current network mode for this build target.
+# Values:
+#   - no_rdma: no RDMA-capable fabric (e.g. NCv6)
+#   - mrc : MRC network mode (currently baremetal_1p)
+#   - ib  : regular InfiniBand-capable path
+function sku_network_mode {
+    if _is_ncv6_sku; then
+        echo "no_rdma"
+    elif _is_mrc_network; then
+        echo "mrc"
+    else
+        echo "standard_ib"
+    fi
 }
 
 # Whether this SKU uses UCX as its MPI transport layer.
+# Backward-compatible: only "no_rdma" (NCv6) disables UCX.
 function sku_uses_ucx {
-    ! _is_ncv6_sku
+    ! [[ "$(sku_network_mode)" == "no_rdma" ]]
+}
+
+# Whether this SKU enables ipoib (InfiniBand over IPoIB) for MPI transport.
+function sku_uses_ipoib {
+    # Current Baremetal_3p nodes are equipped with IB cards but IPoIB is not required by customer.
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" && "$(sku_network_mode)" == "standard_ib" ]]
 }
 
 ############################################################################

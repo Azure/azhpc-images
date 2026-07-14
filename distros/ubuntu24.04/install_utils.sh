@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
@@ -59,7 +61,7 @@ apt-get -y install numactl \
                    azcopy
 
 # Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
-if [[ "${NODE_TYPE:-azure-vm}" != "baremetal" ]]; then
+if sku_uses_ipoib; then
     echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 fi
 echo ib_umad | sudo tee /etc/modules-load.d/ib_umad.conf

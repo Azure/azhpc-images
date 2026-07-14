@@ -24,6 +24,25 @@
 #   -v           Validation pipeline mode - skip build-time only checks
 #
 # ------------------------------------------------------------------------------
+function set_sku_family_hook {
+    return 1
+}
+
+function pre_test_suite_hook {
+    if [[ "$gpu_platform" == "NVIDIA" ]]; then
+        ensure_nvidia_fabricmanager_active || exit 1
+    fi
+    return 0
+}
+
+function verify_network_components_hook {
+    return 1
+}
+
+function should_verify_ompi_installation {
+    return 0
+}
+
 function test_service {
     local service=$1
     
@@ -56,8 +75,7 @@ function test_component {
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;
         check_dcgm) verify_dcgm_installation;;
-        # only best-effort install since Lustre isn't always available
-        # check_lustre) verify_lustre_installation;;
+        check_lustre) verify_lustre_installation;;
         check_nvlink) verify_nvlink_setup;;
         check_nvbandwidth) verify_nvbandwidth_setup;;
         check_nvloom) verify_nvloom_setup;;
@@ -74,17 +92,24 @@ function verify_common_components {
         verify_package_updates;
     fi
 
-    if has_infiniband; then
-        verify_ofed_installation;
-        verify_ib_device_status;
-        verify_ib_modules_and_devices;
+    if ! verify_network_components_hook; then
+        if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
+            verify_ofed_installation;
+            verify_ib_device_status;
+            verify_ib_modules_and_devices;
+        fi
     fi
 
-    if [[ "$DISTRIBUTION" == *-aks ]]; then return; fi
+    if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "azure_vm_akshost" ]]; then return; fi
+
     verify_gcc_installation;
     verify_azcopy_installation;
     verify_hpcx_installation;
-    verify_ompi_installation;
+
+    if should_verify_ompi_installation; then
+        verify_ompi_installation;
+    fi
+
     verify_pssh_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
         verify_mvapich2_installation;
@@ -163,27 +188,37 @@ function set_test_matrix {
     fi
     test_matrix_file=$(jq -r . $HPC_ENV/test/test-matrix_${gpu_platform}.json)
 
-    # Prefer SKU_FAMILY if set (forward-compatible); fall back to VMSIZE pattern.
-    if [[ -n "${SKU_FAMILY:-}" ]]; then
-        sku="$SKU_FAMILY"
-    else
-        case ${VMSIZE} in
-            standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) sku="gb-family";;
-            standard_nc*_rtxpro6000bse_v6) sku="ncv6";;
-            *) sku="common";;
-        esac
-    fi
-    export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" '(.[$d] // empty) | (.[$s] // empty)' <<< "$test_matrix_file")
+    # SKU_FAMILY is already derived by set_vm_properties; default to "common".
+    local sku="${SKU_FAMILY:-common}"
+    local node_type="${TARGET_NODE_TYPE:-azure_vm_regular}"
+    # Look up order: distribution -> node_type -> sku/common.
+    export TEST_MATRIX=$(jq -r --arg d "$DISTRIBUTION" --arg s "$sku" --arg n "$node_type" \
+        '
+        (.[$d] // empty)
+        | if type == "object" then
+            if has($n) then
+                .[$n]
+                | if type == "object" then
+                    if has($s) then .[$s]
+                    elif has("common") then .["common"]
+                    else empty
+                    end
+                  else empty
+                  end
+            else empty
+            end
+          else empty
+          end
+        ' <<< "$test_matrix_file")
 
     if [[ -z "$TEST_MATRIX" ]]; then
-        echo "*****No test matrix found for sku $sku and distribution $DISTRIBUTION!*****"
+        echo "*****No test matrix found for distribution=$DISTRIBUTION sku=$sku node_type=$node_type!*****"
         exit 1
     fi
 }
 
 function set_vm_properties {
-    aks_host=$1
-    # VMSIZE may be pre-set by the caller (e.g. from the environment on baremetal)
+    # VMSIZE may be pre-set by the caller (e.g. from the environment on baremetal_3p)
     # to avoid Azure IMDS dependency on non-Azure nodes. Otherwise, query IMDS.
     if [[ -z "${VMSIZE:-}" ]]; then
         local metadata_endpoint="http://169.254.169.254/metadata/instance?api-version=2019-06-04"
@@ -194,20 +229,15 @@ function set_vm_properties {
     # set_properties.sh). This ensures SKU_FAMILY is always available to test
     # functions like verify_common_components regardless of caller environment.
     if [[ -z "${SKU_FAMILY:-}" ]]; then
-        case "${VMSIZE}" in
-            standard_nd128is*_gb[2-3]00_v6) export SKU_FAMILY="gb-family" ;;
-        esac
+        if ! set_sku_family_hook; then
+            case "${VMSIZE}" in
+                standard_nd128is*_gb[2-3]00_v6) export SKU_FAMILY="gb-family" ;;
+                standard_nc*_rtxpro6000bse_v6)  export SKU_FAMILY="ncv6" ;;
+            esac
+        fi
     fi
-    if [ "$aks_host" != "-aks-host" ]; then
-        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
-    else
-        export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)-aks
-    fi
-    # Append -baremetal suffix so the test matrix can have a separate entry
-    # for baremetal nodes, distinct from Azure VM builds of the same distro.
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
-        export DISTRIBUTION="${DISTRIBUTION}-baremetal"
-    fi
+    # DISTRIBUTION is kept as pure OS identity (e.g. ubuntu24.04), no node-type suffixes.
+    export DISTRIBUTION=$(. /etc/os-release;echo $ID$VERSION_ID)
 }
 
 # Function to set component versions from JSON file
@@ -244,15 +274,11 @@ esac
 gpu_platform="${1:-NVIDIA}"
 shift 2>/dev/null || true
 
-aks_host_flag=""
 debug_flag=""
 validation_mode=""
 
-while getopts "adv" opt; do
+while getopts "dv" opt; do
     case $opt in
-        a)
-            aks_host_flag="-aks-host"
-            ;;
         d)
             debug_flag="-d"
             ;;
@@ -272,16 +298,18 @@ done
 HPC_ENV="${HPC_ENV:-/opt/azurehpc}"
 # Set test definitions
 . $HPC_ENV/test/test-definitions.sh
+if [[ -f "$HPC_ENV/test/test-overrides.sh" ]]; then
+    . $HPC_ENV/test/test-overrides.sh
+fi
 # Set module files directory
 . /etc/os-release
 set_module_files_path
 # Set component versions
 set_component_versions
 # Set current SKU and distro
-set_vm_properties $aks_host_flag
-if [[ "$gpu_platform" == "NVIDIA" ]]; then
-    ensure_nvidia_fabricmanager_active
-fi
+set_vm_properties
+# Pre test suite hook for any SKU-specific pre-test setup (e.g. start nvidia-fabricmanager on NVSwitch SKUs)
+pre_test_suite_hook
 # Set test matrix
 set_test_matrix $gpu_platform
 # Initiate test suite

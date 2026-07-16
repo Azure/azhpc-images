@@ -763,7 +763,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.29.7-1",
+            "version": "2.30.4-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -790,7 +790,7 @@
                         "commit": "v2.7.x"
                     }
                 },
-                "version": "2.30.4-1",
+                "version": "2.29.7-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }

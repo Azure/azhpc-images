@@ -40,9 +40,9 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "3.2.2",
-                "sha256": "16e5f6cf50ad2e96e1b39dfd29979d17f9883ecd4a4fa7f71b98050b4f1f0e08",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_amd64.deb"
+                "version": "3.2.3",
+                "sha256": "762a3dbc1c8c1e4b03867b022ccafcfafa95bffe461a58a5b6e38fc678263614",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host_3.2.3-019000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
                 "azure_vm_akshost":{
@@ -366,7 +366,7 @@
                     }
                 },
                 "driver": {
-                    "version": "580.167.08"
+                    "version": "580.173.02"
                 }
             },
             "aarch64": {
@@ -790,7 +790,7 @@
                         "commit": "v2.7.x"
                     }
                 },
-                "version": "2.29.7-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -826,7 +826,7 @@
                         "version": "1:4.5.2-1"
                     }
                 },
-                "version": "1:4.5.3-1"
+                "version": "1:4.6.0-1"
             },
             "aarch64": {
                 "baremetal_3p": {

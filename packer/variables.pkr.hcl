@@ -155,6 +155,16 @@ locals {
   use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
 }
 
+variable "accelerated_networking" {
+  type        = string
+  description = "Whether to enable accelerated networking for the build VM; false or unset lets Azure decide"
+  default     = env("ACCL_NW")
+}
+locals {
+  # use platform default (i.e. omit from underlying ARM template) if not explicitly set to true
+  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false) ? true : null
+}
+
 variable "ssh_username" {
   type        = string
   description = "SSH username for the build VM"
@@ -528,7 +538,7 @@ variable "sig_replication_regions" {
 }
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
-  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
+  # use the following pre-defined replication regions for internal workloads.
   _sig_replication_regions_map = {
     "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]

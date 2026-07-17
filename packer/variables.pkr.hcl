@@ -161,6 +161,7 @@ variable "accelerated_networking" {
   default     = env("ACCL_NW")
 }
 locals {
+  # use platform default (i.e. omit from underlying ARM template) if not explicitly set to true
   accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false) ? true : null
 }
 

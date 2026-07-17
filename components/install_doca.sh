@@ -106,10 +106,6 @@ EOF
 
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    rpm -i $DOCA_FILE
-    dnf clean all
-    dnf -y install doca-ofed
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE

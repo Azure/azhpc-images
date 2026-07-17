@@ -537,7 +537,7 @@ variable "sig_replication_regions" {
 }
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
-  # use the hpc-image-val release-candidate replication policy.
+  # use the following pre-defined replication regions for internal workloads.
   _sig_replication_regions_map = {
     "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]

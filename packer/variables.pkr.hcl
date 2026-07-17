@@ -155,6 +155,15 @@ locals {
   use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
 }
 
+variable "accelerated_networking" {
+  type        = string
+  description = "Whether to enable accelerated networking for the build VM"
+  default     = env("ACCL_NW")
+}
+locals {
+  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false)
+}
+
 variable "ssh_username" {
   type        = string
   description = "SSH username for the build VM"
@@ -528,7 +537,7 @@ variable "sig_replication_regions" {
 }
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
-  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
+  # use the hpc-image-val release-candidate replication policy.
   _sig_replication_regions_map = {
     "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]

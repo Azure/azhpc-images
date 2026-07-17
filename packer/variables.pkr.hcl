@@ -157,11 +157,11 @@ locals {
 
 variable "accelerated_networking" {
   type        = string
-  description = "Whether to enable accelerated networking for the build VM"
+  description = "Whether to enable accelerated networking for the build VM; false or unset lets Azure decide"
   default     = env("ACCL_NW")
 }
 locals {
-  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false)
+  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false) ? true : null
 }
 
 variable "ssh_username" {

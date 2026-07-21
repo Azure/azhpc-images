@@ -198,6 +198,7 @@ build {
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
     "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
+    "KERNEL_VERSION=${local.kernel_version}",
     "REFRESH_MODE=${local.refresh_mode}",
     ]
     inline          = [

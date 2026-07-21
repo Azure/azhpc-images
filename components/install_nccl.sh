@@ -42,16 +42,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-mark hold libnccl-dev
     popd
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    make pkg.redhat.build
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
-    else
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
-    fi
+    tdnf install -y "libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.azl3"
+    tdnf install -y "libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.azl3"
+    tdnf install -y "libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.azl3"    
 
     dnf_pin_packages "libnccl*"
 else

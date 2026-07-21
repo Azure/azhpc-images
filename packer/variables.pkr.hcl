@@ -629,15 +629,15 @@ locals {
   # Keep target-node compatibility keyed by target VM size, not GPU SKU. Multiple
   # VM sizes can map to the same GPU SKU but still represent different build targets.
   target_vm_size_allowed_node_types = {
-    "Standard_ND40rs_v2"                  = ["azure_vm_regular"]
-    "Standard_ND96asr_v4"                 = ["azure_vm_regular"]
-    "Standard_ND96amsr_A100_v4"           = ["azure_vm_regular"]
-    "Standard_ND96isr_MI300X_v5"          = ["azure_vm_regular"]
-    "Standard_ND128isr_NDR_GB200_v6"      = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
-    "Standard_ND128isr_VR200_v6"          = ["azure_vm_regular"]
+    "Standard_ND40rs_v2"                    = ["azure_vm_regular"]
+    "Standard_ND96asr_v4"                   = ["azure_vm_regular"]
+    "Standard_ND96amsr_A100_v4"             = ["azure_vm_regular"]
+    "Standard_ND96isr_MI300X_v5"            = ["azure_vm_regular"]
+    "Standard_ND128isr_NDR_GB200_v6"        = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
+    "Standard_ND128isr_VR200_v6"            = ["azure_vm_regular"]
     "Standard_NC144lds_xl_RTXPRO6000BSE_v6" = ["azure_vm_regular"]
-    "ND144ISR_ETH_GB200_METAL_V6"         = ["baremetal_1p"]
-    "ND144ISR_ETH_VR200_METAL_V6"         = ["baremetal_1p"]
+    "ND144ISR_ETH_GB200_METAL_V6"           = ["baremetal_1p"]
+    "ND144ISR_ETH_VR200_METAL_V6"           = ["baremetal_1p"]
   }
   target_vm_size_allowed_node_types_default = ["azure_vm_regular"]
   target_vm_size_node_types = lookup(local.target_vm_size_allowed_node_types, local.target_vm_size, local.target_vm_size_allowed_node_types_default)

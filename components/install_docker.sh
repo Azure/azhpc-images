@@ -9,7 +9,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Canonical's docker.io / docker-buildx on all architectures.
     if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
         apt-get install -y docker.io docker-buildx
-    elif [[ "$ARCHITECTURE" == "aarch64" && "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    elif [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
         # Baremetal aarch64: pin to a specific moby version from the baremetal package repo.
         moby_metadata=$(get_component_config "moby")
         MOBY_VERSION=$(jq -r '.version' <<< $moby_metadata)

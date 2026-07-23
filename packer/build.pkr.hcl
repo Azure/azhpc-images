@@ -124,9 +124,14 @@ build {
       "OS_FAMILY=${local.os_family}",
       "DISTRO_VERSION=${local.distro_version}",
       "GPU_SKU=${local.gpu_sku}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
       "KERNEL_VERSION=${local.kernel_version}",
+      "USE_UBUNTU_PROPOSED_SUITE=${var.use_ubuntu_proposed_suite}",
+      "USE_UBUNTU_PPA_REPO=${var.use_ubuntu_ppa_repo}",
+      "UBUNTU_PPA_REPO_NAME=${var.ubuntu_ppa_repo_name}",
+      "UBUNTU_PPA_KERNEL_PATCH_VERSION=${var.ubuntu_ppa_kernel_patch_version}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
     ]
@@ -160,24 +165,28 @@ build {
     ]
   }
 
+  // Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "download and extract Azure Linux prebuilts for GB200"
-    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.nvlink_rackscale) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline = [
-      "az storage blob download -f ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -c azurelinux-prebuilt -n azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
+      "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
+      "az storage blob download -f ./${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",
       "mkdir -p ${path.root}/../prebuilt",
-      "tar -xvf ./azlinux-hpc-image-prebuilt-aarch64-test-packages_${var.azl3gb200_prebuilt_version}.tar.gz -C ${path.root}/.."
+      "tar -xvf ./${var.internal_bits_blob_name} -C ${path.root}/.."
     ]
   }
 
+  // Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.gpu_sku == "GB200") ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.nvlink_rackscale) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline = [
-      "az storage blob download -f /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -c u24-gb200-internal -n u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz --account-name azhpcstoralt --auth-mode login",
-      "tar -xvf /tmp/u24_gb200_internal_${var.gb200_internal_bits_version}.tar.gz -C ${path.root}/..",
+      "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
+      "az storage blob download -f /tmp/${var.internal_bits_blob_name} -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login",
+      "tar -xvf /tmp/${var.internal_bits_blob_name} -C ${path.root}/..",
     ]
   }
 
@@ -185,13 +194,29 @@ build {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang
     inline = [
-      "mkdir -p /home/${var.ssh_username}/azhpc-images"
+      "mkdir -p /home/${local.ssh_username}/azhpc-images"
     ]
   }
 
   provisioner "file" {
     source      = "${path.root}/../"
-    destination = "/home/${var.ssh_username}/azhpc-images"
+    destination = "/home/${local.ssh_username}/azhpc-images"
+  }
+
+  provisioner "shell-local" {
+    name           = "Clean up local internal bits"
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "if [[ -e ${path.root}/../internal_bits ]]; then chmod -R u+rwX ${path.root}/../internal_bits && rm -rf ${path.root}/../internal_bits; fi",
+      "if [[ -e ${path.root}/../prebuilt ]]; then chmod -R u+rwX ${path.root}/../prebuilt && rm -rf ${path.root}/../prebuilt; fi"
+    ]
+  }
+
+  provisioner "file" {
+    name        = "(Baremetal 1P) Upload baremetal overlay files"
+    except      = (local.target_node_type == "baremetal_1p") ? [] : ["azure-arm.hpc"]
+    source      = "${path.root}/../../baremetal/"
+    destination = "/home/${local.ssh_username}/azhpc-images"
   }
 
   provisioner "shell" {
@@ -210,8 +235,13 @@ build {
     name            = "Install HPC components"
     except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
+      "REFRESH_MODE=${local.refresh_mode}",
+    ]
     inline = [
-      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}",
+      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; if [[ \"${local.target_node_type}\" == \"baremetal_1p\" ]]; then bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku} \"${var.ado_access_token}\" \"${local.baremetal_1p_login_user}\" \"${var.baremetal_1p_login_passwd}\"; else bash ${local.install_script_name} ${local.gpu_platform} ${local.gpu_sku}; fi",
     ]
   }
 
@@ -232,7 +262,7 @@ build {
     except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline = [
-      "cd /home/${var.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+      "cd /home/${local.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
     ]
   }
 
@@ -251,7 +281,7 @@ build {
     except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline = [
-      "cd /home/${var.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
+      "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",
     ]
   }
 
@@ -318,14 +348,17 @@ build {
     name           = "Run tests (post-reboot)"
     except         = (!local.skip_validation && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
+    environment_vars = [
+      "TARGET_NODE_TYPE=${local.target_node_type}"
+    ]
     inline = [
-      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform} ${local.aks_test_flag}"
+      "/opt/azurehpc/test/run-tests.sh ${local.gpu_platform}"
     ]
   }
 
   provisioner "shell" {
     name            = "Run health checks"
-    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
+    except          = (!local.skip_validation && !var.skip_hpc && local.gpu_sku != "GB200" && local.gpu_sku != "VR200" && local.gpu_sku != "NCv6") ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline = [
       "/opt/azurehpc/test/azurehpc-health-checks/run-health-checks.sh -o /opt/azurehpc/test/azurehpc-health-checks/health.log -v",
@@ -341,12 +374,12 @@ build {
     # skip_clean      = true  # TODO: uncomment once we migrate back epilog
     inline_shebang = "/bin/bash -e"
     environment_vars = [
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+      "TARGET_NODE_TYPE=${local.target_node_type}"
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping clear history and deprovision (skip_create_artifacts=true)'"
       ] : [
-      "cd /home/${var.ssh_username}/azhpc-images/utils",
+      "cd /home/${local.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history.sh"
     ]
   }
@@ -356,12 +389,12 @@ build {
     skip_clean     = true
     inline_shebang = "/bin/bash -e"
     environment_vars = [
-      "TARGET_IMAGE_VARIANT=${local.target_image_variant}"
+      "TARGET_NODE_TYPE=${local.target_node_type}"
     ]
     inline = local.skip_create_artifacts ? [
       "echo 'Skipping deprovision epilog (skip_create_artifacts=true)'"
       ] : [
-      "cd /home/${var.ssh_username}/azhpc-images/utils",
+      "cd /home/${local.ssh_username}/azhpc-images/utils",
       "sudo -E ./clear_history_epilog.sh"
     ]
   }
@@ -387,7 +420,7 @@ build {
           --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" \
           --output tsv 2>/dev/null)
         if [[ -n "$PUBLIC_IP" ]]; then
-          echo "##[section]VM retained — SSH with: ssh ${var.ssh_username}@$PUBLIC_IP"
+          echo "##[section]VM retained — SSH with: ssh ${local.ssh_username}@$PUBLIC_IP"
         else
           echo "##[warning]Could not determine public IP for VMs in ${local.azure_resource_group}"
         fi

@@ -81,7 +81,7 @@ else
     update_waagent_conf "Extensions.GoalStatePeriod" "300"
     update_waagent_conf "Extensions.InitialGoalStatePeriod" "6"
     update_waagent_conf "OS.EnableFirewallPeriod" "300"
-    if [[ "${NODE_TYPE:-azure-vm}" != "baremetal" ]]; then
+    if sku_uses_ipoib; then
         update_waagent_conf "OS.EnableRDMA" "y"
     fi
     update_waagent_conf "OS.RemovePersistentNetRulesPeriod" "300"

@@ -21,8 +21,6 @@ source "azure-arm" "hpc" {
   # TODO: support additional authentication methods
   use_azure_cli_auth = true
 
-  # TODO: support accelerated networking https://github.com/hashicorp/packer-plugin-azure/pull/580
-
   # RG for build VM; see locals for distinction
   temp_resource_group_name  = local.temp_resource_group_name
   location                  = local.location
@@ -34,6 +32,7 @@ source "azure-arm" "hpc" {
   virtual_network_name                   = var.virtual_network_name
   virtual_network_subnet_name            = var.virtual_network_subnet_name
   virtual_network_resource_group_name    = var.virtual_network_resource_group_name
+  accelerated_networking                 = local.accelerated_networking
 
   dynamic "spot" {
     for_each = local.use_spot_instances ? [1] : []
@@ -58,6 +57,7 @@ source "azure-arm" "hpc" {
       image_version        = local.image_version
       replication_regions  = local.sig_replication_regions
       storage_account_type = var.storage_account_type
+      specialized     = local.target_node_type == "baremetal_1p" ? true : false
     }
   }
 
@@ -97,9 +97,9 @@ source "azure-arm" "hpc" {
   os_disk_size_gb = 64
 
   # SSH Configuration
-  communicator = "ssh"
-  ssh_username = var.ssh_username
-  ssh_timeout  = "10m"
+  communicator           = "ssh"
+  ssh_username           = local.ssh_username
+  ssh_timeout            = "10m"
 
   polling_duration_timeout = "2h"
 

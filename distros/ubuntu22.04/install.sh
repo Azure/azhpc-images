@@ -36,9 +36,6 @@ $COMPONENT_DIR/install_pmix.sh
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
 
-# install mpifileutils
-$COMPONENT_DIR/install_mpifileutils.sh
-
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
     $COMPONENT_DIR/install_nvidiagpudriver.sh
@@ -68,6 +65,9 @@ fi
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
+
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh
 
@@ -89,6 +89,9 @@ rm -rf /var/intel/
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
+
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
 # Install AZNFS Mount Helper
 $COMPONENT_DIR/install_aznfs.sh

@@ -7,8 +7,11 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
+# Placeholder for VR200 SKU, uses GB200 temporarily for installation purposes
 export GPU=$1
-export SKU=$2
+export SKU=$([[ $2 == "VR200" ]] && echo "GB200" || echo "$2")
+
+
 
 if [[ "$#" -gt 0 ]]; then
    if [[ "$GPU" != "NVIDIA" && "$GPU" != "AMD" ]]; then
@@ -28,7 +31,7 @@ if [ "$SKU" != "GB200" ]; then
 fi
 
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
-if sku_has_infiniband; then
+if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
     $COMPONENT_DIR/install_doca.sh
 else
     # Non-IB SKUs: install rdma-core for kernel-native IB module management (mana_ib support)
@@ -48,16 +51,12 @@ $COMPONENT_DIR/install_pmix.sh
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
 
-# install mpifileutils
-$COMPONENT_DIR/install_mpifileutils.sh
-
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
 
     if [ "$SKU" = "GB200" ]; then
         # For GB200, pass SKU to install the correct driver
-        ./install_nvidiagpudriver_gb200.sh
-
+        $COMPONENT_DIR/install_nvidiagpudriver.sh
         # Install NVSHMEM
         $COMPONENT_DIR/install_nvshmem.sh
 
@@ -98,6 +97,9 @@ fi
 # install Lustre client
 $COMPONENT_DIR/install_lustre_client.sh
 
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
+
 if [ "$ARCHITECTURE" == "x86_64" ]; then
 
     # install AMD libs
@@ -122,6 +124,9 @@ rm -rf /var/intel/
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
+
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
 # install persistent rdma naming
 $COMPONENT_DIR/install_azure_persistent_rdma_naming.sh

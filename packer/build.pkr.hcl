@@ -101,11 +101,10 @@ build {
           # shellcheck disable=SC1091
           . /etc/os-release
           if [[ "$${ID:-}" == "ubuntu" && "$${VERSION_ID:-}" == "26.04" ]]; then
-            echo "[mdatp] Ubuntu 26.04 detected; patching mde_installer.sh and using insiders-fast channel."
+            echo "[mdatp] Ubuntu 26.04 detected; patching mde_installer.sh and using prod channel."
             sed -i 's#\^(20\.04|22\.04|24\.04)\$#^(20.04|22.04|24.04|26.04)$#' /tmp/mde_installer.sh
-            sed -i 's#if { \[ "$DISTRO" = "ubuntu" \] && \[ "$VERSION" = "24.04" \]; }#if { [ "$DISTRO" = "ubuntu" ] \&\& [[ "$VERSION" =~ ^(24.04|26.04)$ ]]; }#' /tmp/mde_installer.sh
+            sed -i 's#elif { \[ "$DISTRO" = "debian" \] && \[ "$VERSION" = "13" \]; }; then#elif { [ "$DISTRO" = "debian" ] \&\& [ "$VERSION" = "13" ]; } || { [ "$DISTRO" = "ubuntu" ] \&\& [ "$VERSION" = "26.04" ]; }; then#' /tmp/mde_installer.sh
             sed -i 's#\[\[ $VERSION != "24\.04" \]\]; then#[[ $VERSION != "24.04" ]] \&\& [[ $VERSION != "26.04" ]]; then#' /tmp/mde_installer.sh
-            installer_channel=insiders-fast
           fi
         fi
 

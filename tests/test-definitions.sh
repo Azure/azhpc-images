@@ -552,9 +552,11 @@ function verify_sunrpc_tcp_settings_service {
 }
 
 function verify_azure_persistent_rdma_naming_service {
-    # Check if the azure persistent rdma naming service is active
-    systemctl is-active --quiet azure_persistent_rdma_naming
-    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
+    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
+
+    systemctl is-active --quiet azure_persistent_rdma_naming.timer
+    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
 }
 
 function verify_nvbandwidth_setup {

@@ -35,24 +35,13 @@ PATCH[0]="dpll-ffo-param.patch"
 EOF
 }
 
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    dpkg -i $DOCA_FILE
-
-    # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
-    cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
-Package: dkms
-Pin: release l=DOCA-HOST*
-Pin-Priority: -1
-PIN
-
-    apt-get update
-
+install_hpcx_provides_openmpi() {
     # Install a single equivs marker package telling apt that HPC-X provides Open MPI,
     # blocking two separate attempts to install an upstream Open MPI .deb:
     #
     #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
-    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
-    #     (installed later by install_mpis.sh) provides Open MPI at /opt — and the
+    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime -- HPC-X
+    #     (installed later by install_mpis.sh) provides Open MPI at /opt -- and the
     #     .deb ships /etc/pmix-mca-params.conf, colliding with the pmix package
     #     installed by install_pmix.sh (pmix >=4.2.9-2 dropped its
     #     `Conflicts: openmpi`, so dpkg now aborts with "trying to overwrite
@@ -103,14 +92,29 @@ EOF
         dpkg -i /tmp/hpcx-provides-openmpi_*_all.deb
     )
     rm -f /tmp/hpcx-provides-openmpi_*_all.deb /tmp/hpcx-provides-openmpi
+}
 
+if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    dpkg -i $DOCA_FILE
+
+    # Prefer distro-shipped DKMS over the copy from DOCA.
+    cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
+Package: dkms
+Pin: release l=DOCA-HOST*
+Pin-Priority: -1
+PIN
+
+    apt-get update
+    install_hpcx_provides_openmpi
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    download_and_verify $DOCA_URL $DOCA_SHA256
     rpm -i $DOCA_FILE
     dnf clean all
     dnf -y install doca-ofed
 else
+    download_and_verify $DOCA_URL $DOCA_SHA256
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all

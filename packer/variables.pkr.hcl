@@ -358,23 +358,32 @@ locals {
   refresh_mode = try(convert(lower(var.refresh_mode), bool), false)
 }
 
-# When disable_dynolog_mode is enabled, a previously published HPC image (from
-# SIG) is used as the base. No HPC components are (re)installed; the only change
-# is that the dynolog services are stopped and disabled so they no longer hold
-# the exclusive GPU profiling context. Tests (including the GPU profiling
-# context check) then run to confirm the context is free before a new image is
-# produced.
-variable "disable_dynolog_mode" {
+# Generic fix-up hook. When set, Packer runs an extra script on the build VM
+# after the (possibly skipped) component provisioning and before the final
+# tests. This is intended for one-off in-place-refresh fix-ups (e.g. disabling a
+# service) without hardcoding the specific fix into the build definition. Only
+# this generic mechanism lives on main; the specific fix-up scripts it runs
+# should live on temporary branches so they don't accumulate in the repo.
+variable "extra_provision_script" {
   type        = string
-  description = "Boot from a published HPC image, disable the dynolog services, run tests, and output a new image without reinstalling HPC components"
-  default     = env("DISABLE_DYNOLOG_MODE")
+  description = "Optional path to an extra fix-up script to run on the build VM. Relative to the azhpc-images repo root (uploaded to the VM) or an absolute path already on the VM. Default: none."
+  default     = env("EXTRA_PROVISION_SCRIPT")
 }
 locals {
-  disable_dynolog_mode = try(convert(lower(var.disable_dynolog_mode), bool), false)
+  extra_provision_script     = var.extra_provision_script == null ? "" : trimspace(var.extra_provision_script)
+  run_extra_provision_script = local.extra_provision_script != ""
+}
 
-  # Modes that boot from a previously published SIG image instead of a
-  # marketplace image. Both reuse the refresh_base_image_id/version plumbing.
-  base_from_published_image = local.refresh_mode || local.disable_dynolog_mode
+# Skip the prerequisites script (LTS kernel install + base package updates).
+# Useful for in-place refresh fix-ups that must not upgrade the kernel or any
+# packages and should only run the extra provision script.
+variable "skip_prerequisites" {
+  type        = string
+  description = "Skip the prerequisites script (LTS kernel install, package updates). Useful for in-place refresh fix-ups that should not upgrade the kernel or packages."
+  default     = env("SKIP_PREREQUISITES")
+}
+locals {
+  skip_prerequisites = try(convert(lower(var.skip_prerequisites), bool), false)
 }
 
 variable "refresh_base_image_id" {
@@ -397,17 +406,17 @@ locals {
   )
 
   # Validate that a base image is specified when refresh mode is enabled
-  _refresh_id_valid = !local.base_from_published_image || local.refresh_base_image_id != "not-set"
-  _refresh_id_check = local._refresh_id_valid ? true : file("ERROR: refresh_mode/disable_dynolog_mode is enabled but neither refresh_base_image_id nor refresh_base_image_version was provided")
+  _refresh_id_valid = !local.refresh_mode || local.refresh_base_image_id != "not-set"
+  _refresh_id_check = local._refresh_id_valid ? true : file("ERROR: refresh_mode is enabled but neither refresh_base_image_id nor refresh_base_image_version was provided")
 
   # Parse the SIG image ID into components for the shared_image_gallery source block
   # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/galleries/{gallery}/images/{image}/versions/{version}
-  _refresh_id_parts          = local.base_from_published_image ? split("/", local.refresh_base_image_id) : []
-  refresh_sig_subscription   = local.base_from_published_image ? local._refresh_id_parts[2] : ""
-  refresh_sig_resource_group = local.base_from_published_image ? local._refresh_id_parts[4] : ""
-  refresh_sig_gallery_name   = local.base_from_published_image ? local._refresh_id_parts[8] : ""
-  refresh_sig_image_name     = local.base_from_published_image ? local._refresh_id_parts[10] : ""
-  refresh_sig_image_version  = local.base_from_published_image ? local._refresh_id_parts[12] : ""
+  _refresh_id_parts          = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
+  refresh_sig_subscription   = local.refresh_mode ? local._refresh_id_parts[2] : ""
+  refresh_sig_resource_group = local.refresh_mode ? local._refresh_id_parts[4] : ""
+  refresh_sig_gallery_name   = local.refresh_mode ? local._refresh_id_parts[8] : ""
+  refresh_sig_image_name     = local.refresh_mode ? local._refresh_id_parts[10] : ""
+  refresh_sig_image_version  = local.refresh_mode ? local._refresh_id_parts[12] : ""
 }
 
 # =============================================================================

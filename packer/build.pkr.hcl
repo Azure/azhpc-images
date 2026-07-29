@@ -77,6 +77,7 @@ build {
 
   provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
+    except          = local.disable_dynolog_mode ? ["azure-arm.hpc"] : []
     script          = "scripts/prerequisites.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
@@ -127,7 +128,7 @@ build {
 // Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "download and extract Azure Linux prebuilts for GB200"
-    except         = (!var.skip_hpc && !local.refresh_mode && local.os_family == "azurelinux" && local.nvlink_rackscale) ? [] : ["azure-arm.hpc"]
+    except         = (!var.skip_hpc && !local.refresh_mode && !local.disable_dynolog_mode && local.os_family == "azurelinux" && local.nvlink_rackscale) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
         "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
@@ -140,7 +141,7 @@ build {
 // Placeholder, will check whether VR200 really needs internal bits
   provisioner "shell-local" {
     name           = "(1P specific) download and extract GB200 prebuilts"
-    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.nvlink_rackscale ) ? [] : ["azure-arm.hpc"]
+    except         = (var.enable_first_party_specifics && !var.skip_hpc && !local.refresh_mode && !local.disable_dynolog_mode && local.os_family == "ubuntu" && local.distro_version == "24.04" && local.nvlink_rackscale ) ? [] : ["azure-arm.hpc"]
     inline_shebang = var.default_inline_shebang
     inline         = [
       "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping internal bits download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
@@ -180,7 +181,7 @@ build {
 
   provisioner "shell" {
     name              = "Reboot"
-    except            = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
+    except            = (var.skip_hpc || local.refresh_mode || local.disable_dynolog_mode) ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
@@ -192,7 +193,7 @@ build {
 
   provisioner "shell" {
     name            = "Install HPC components"
-    except          = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
+    except          = (var.skip_hpc || local.refresh_mode || local.disable_dynolog_mode) ? ["azure-arm.hpc"] : []
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
     "TARGET_NODE_TYPE=${local.target_node_type}",
@@ -206,7 +207,7 @@ build {
 
   provisioner "shell" {
     name              = "Reboot"
-    except            = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
+    except            = (var.skip_hpc || local.refresh_mode || local.disable_dynolog_mode) ? ["azure-arm.hpc"] : []
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
@@ -222,6 +223,42 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "cd /home/${local.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "(Disable dynolog mode) Stop and disable dynolog services"
+    except         = local.disable_dynolog_mode ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "for svc in dynolog.service dyno-relay-logger.service; do",
+      "  if systemctl list-unit-files --no-legend \"$svc\" 2>/dev/null | grep -q .; then",
+      "    echo \"Stopping and disabling $svc\"",
+      "    sudo systemctl stop \"$svc\" || true",
+      "    sudo systemctl disable \"$svc\" || true",
+      "  else",
+      "    echo \"$svc not installed; skipping\"",
+      "  fi",
+      "done",
+      "sudo systemctl daemon-reload",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "(Published-image base) Refresh test definitions from latest repo"
+    except          = local.base_from_published_image ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "AZHPC_IMAGES_TEST_DIR=/home/${local.ssh_username}/azhpc-images/tests",
+    ]
+    # In-place refresh and disable-dynolog modes boot from a published base image
+    # that may carry stale tests under /opt/azurehpc/test. Re-run the canonical
+    # copy so the run-tests step uses the latest definitions. Remove the existing
+    # health_checks dir first so copy_test_file.sh's `cp -r` replaces it cleanly
+    # instead of nesting into the pre-existing directory.
+    inline = [
+      "sudo rm -rf /opt/azurehpc/test/health_checks",
+      "bash /home/${local.ssh_username}/azhpc-images/components/copy_test_file.sh",
     ]
   }
 

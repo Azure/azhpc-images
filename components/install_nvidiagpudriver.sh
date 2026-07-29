@@ -210,6 +210,8 @@ else
         echo "Unsupported distribution for nvidia-imex: $DISTRIBUTION"
         exit 1
     fi
+    
+    write_component_version "IMEX" $IMEX_VERSION
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf

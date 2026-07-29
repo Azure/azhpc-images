@@ -40,11 +40,13 @@ EOF
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
     if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
-        apt update
-        apt install -y python3-setuptools python3-wheel
-        apt install -y amdgpu-dkms rocm
-        # ROCm bundles RCCL
-        write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
+        # TODO: go back to bundled userspace once we move back to ROCm 7.0
+        # apt update
+        # apt install -y python3-setuptools python3-wheel
+        # apt install -y amdgpu-dkms rocm
+        # # ROCm bundles RCCL
+        # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
+        amdgpu-install -y --usecase=graphics,rocm
     else
         amdgpu-install -y --usecase=graphics,rocm
     fi

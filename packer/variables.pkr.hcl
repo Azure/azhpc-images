@@ -138,7 +138,7 @@ locals {
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
     contains(["Standard_ND128isr_NDR_GB200_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
     contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
-    local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
+    local.target_vm_size == "Standard_NC144lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
   gpu_platform = (
@@ -153,6 +153,16 @@ variable "use_spot_instances" {
 }
 locals {
   use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
+}
+
+variable "accelerated_networking" {
+  type        = string
+  description = "Whether to enable accelerated networking for the build VM; false or unset lets Azure decide"
+  default     = env("ACCL_NW")
+}
+locals {
+  # use platform default (i.e. omit from underlying ARM template) if not explicitly set to true
+  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false) ? true : null
 }
 
 variable "ssh_username" {
@@ -528,12 +538,13 @@ variable "sig_replication_regions" {
 }
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
-  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
+  # use the following pre-defined replication regions for internal workloads.
   _sig_replication_regions_map = {
     "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
     "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
     "GB200F"                 = ["southeastus5", "northeastus5", "centralus","westeurope", "eastus2euap"]
+    "A100"                   = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", "japaneast"]
   }
   _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
 
@@ -619,15 +630,15 @@ locals {
   # Keep target-node compatibility keyed by target VM size, not GPU SKU. Multiple
   # VM sizes can map to the same GPU SKU but still represent different build targets.
   target_vm_size_allowed_node_types = {
-    "Standard_ND40rs_v2"                  = ["azure_vm_regular"]
-    "Standard_ND96asr_v4"                 = ["azure_vm_regular"]
-    "Standard_ND96amsr_A100_v4"           = ["azure_vm_regular"]
-    "Standard_ND96isr_MI300X_v5"          = ["azure_vm_regular"]
-    "Standard_ND128isr_NDR_GB200_v6"      = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
-    "Standard_ND128isr_VR200_v6"          = ["azure_vm_regular"]
-    "Standard_NC128lds_xl_RTXPRO6000BSE_v6" = ["azure_vm_regular"]
-    "ND144ISR_ETH_GB200_METAL_V6"         = ["baremetal_1p"]
-    "ND144ISR_ETH_VR200_METAL_V6"         = ["baremetal_1p"]
+    "Standard_ND40rs_v2"                    = ["azure_vm_regular"]
+    "Standard_ND96asr_v4"                   = ["azure_vm_regular"]
+    "Standard_ND96amsr_A100_v4"             = ["azure_vm_regular"]
+    "Standard_ND96isr_MI300X_v5"            = ["azure_vm_regular"]
+    "Standard_ND128isr_NDR_GB200_v6"        = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
+    "Standard_ND128isr_VR200_v6"            = ["azure_vm_regular"]
+    "Standard_NC144lds_xl_RTXPRO6000BSE_v6" = ["azure_vm_regular"]
+    "ND144ISR_ETH_GB200_METAL_V6"           = ["baremetal_1p"]
+    "ND144ISR_ETH_VR200_METAL_V6"           = ["baremetal_1p"]
   }
   target_vm_size_allowed_node_types_default = ["azure_vm_regular"]
   target_vm_size_node_types = lookup(local.target_vm_size_allowed_node_types, local.target_vm_size, local.target_vm_size_allowed_node_types_default)

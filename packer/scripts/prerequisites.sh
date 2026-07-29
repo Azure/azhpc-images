@@ -16,7 +16,7 @@ set -euox pipefail
 #   DISTRO_VERSION   - Distro version (22.04, 24.04, etc.)
 #   GPU_SKU          - GPU SKU (a100, h100, gb200, mi300x) - required
 #   GB200_PARTUUID   - Disk PARTUUID for GB200 builds (None for non-GB200)
-#   TARGET_NODE_TYPE - Target image variant (regular/aks_host_image/baremetal_image)
+#   TARGET_NODE_TYPE - Target node type (azure_vm_regular/azure_vm_akshost/baremetal_1p/baremetal_3p)
 # =============================================================================
 
 ####

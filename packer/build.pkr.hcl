@@ -279,7 +279,7 @@ build {
 
   provisioner "shell" {
     name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
-    except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
+    except          = (var.skip_hpc || local.refresh_mode) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",

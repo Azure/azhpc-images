@@ -344,7 +344,7 @@ install_ubuntu_lts_kernel() {
             echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 24.04"
 
             # Build list of kernel minor versions to purge (everything except the target)
-            local all_kernel_minors="6.8 6.11 6.14 6.17"
+            local all_kernel_minors="6.8 6.11 6.14 6.17 7.0"
             local purge_patterns=""
             for minor in $all_kernel_minors; do
                 if [[ "$minor" != "$kernel_ver" ]]; then

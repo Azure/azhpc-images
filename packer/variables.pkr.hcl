@@ -49,7 +49,7 @@ locals {
 
 variable "kernel_version" {
   type        = string
-  description = "Kernel minor version override (e.g. 6.8, 6.14, 6.17). Leave empty for distro default LTS kernel."
+  description = "Kernel minor version override (e.g. 6.8, 6.14, 6.17, 7.0). Leave empty for distro default LTS kernel."
   default     = env("KERNEL_VERSION")
 }
 locals {

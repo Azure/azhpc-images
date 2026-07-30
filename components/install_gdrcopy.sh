@@ -57,6 +57,15 @@ else
             cuda_metadata=$(get_component_config "cuda")
             CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
+            # Workaround upstream bug in build-deb-packages.sh: when PATCH_VERSION
+            # is set, FULL_VERSION is assigned ${VERSION} without the Debian
+            # revision, producing a changelog entry like "libgdrapi (2.5.2)".
+            # debian/source/format is "3.0 (quilt)" (non-native), so newer
+            # dpkg-source (e.g. on Ubuntu 26.04) rejects it with:
+            #   non-native package version does not contain a revision
+            sed -i 's|^\(\s*\)FULL_VERSION="\${VERSION}"\s*$|\1FULL_VERSION="${VERSION}-${DEBIAN_VERSION}"|' \
+                build-deb-packages.sh
+
             CUDA=/usr/local/cuda ./build-deb-packages.sh
             dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_${ARCHITECTURE_DISTRO}.${GDRCOPY_DISTRIBUTION}.deb
             apt-mark hold gdrdrv-dkms

@@ -12,7 +12,7 @@ MONEO_SHA256=$(jq -r '.sha256' <<< $moneo_metadata)
 # Dependencies 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y python3-pip
-elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+elif [[ $DISTRIBUTION == "ubuntu24.04" ]] || [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     apt-get install -y --only-upgrade python3-pip
 else
     python3 -m pip install --upgrade pip

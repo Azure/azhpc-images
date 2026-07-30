@@ -64,11 +64,12 @@ EOF
     module unload mpi/hpcx
 }
 
-# On Ubuntu 24.04 and Azure Linux 3, RCCL comes from ROCm packages; build from source on other distros
+# Azure Linux 3 uses packaged RCCL; build from source on other distros.
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
-elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
+else
+    # Ubuntu 24.04 temporarily needs a source build while using ROCm 6.4.
     rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
     rccl_version=$(jq -r '.version' <<< $rccl_metadata)
@@ -129,7 +130,9 @@ fi
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 
-if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
+# TODO: uncomment if we switch back to ROCm 7
+# if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # RCCL ships via ROCm distro packages and lives in /opt/rocm
     RCCL_PREFIX="/opt/rocm"
 else

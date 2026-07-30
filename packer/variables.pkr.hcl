@@ -358,6 +358,34 @@ locals {
   refresh_mode = try(convert(lower(var.refresh_mode), bool), false)
 }
 
+# Generic fix-up hook. When set, Packer runs an extra script on the build VM
+# after the (possibly skipped) component provisioning and before the final
+# tests. This is intended for one-off in-place-refresh fix-ups (e.g. disabling a
+# service) without hardcoding the specific fix into the build definition. Only
+# this generic mechanism lives on main; the specific fix-up scripts it runs
+# should live on temporary branches so they don't accumulate in the repo.
+variable "extra_provision_script" {
+  type        = string
+  description = "Optional path to an extra fix-up script to run on the build VM. Relative to the azhpc-images repo root (uploaded to the VM) or an absolute path already on the VM. Default: none."
+  default     = env("EXTRA_PROVISION_SCRIPT")
+}
+locals {
+  extra_provision_script     = var.extra_provision_script == null ? "" : trimspace(var.extra_provision_script)
+  run_extra_provision_script = local.extra_provision_script != ""
+}
+
+# Skip the prerequisites script (LTS kernel install + base package updates).
+# Useful for in-place refresh fix-ups that must not upgrade the kernel or any
+# packages and should only run the extra provision script.
+variable "skip_prerequisites" {
+  type        = string
+  description = "Skip the prerequisites script (LTS kernel install, package updates). Useful for in-place refresh fix-ups that should not upgrade the kernel or packages."
+  default     = env("SKIP_PREREQUISITES")
+}
+locals {
+  skip_prerequisites = try(convert(lower(var.skip_prerequisites), bool), false)
+}
+
 variable "refresh_base_image_id" {
   type        = string
   description = "Full SIG image version resource ID to use as base for refresh builds (e.g., /subscriptions/.../galleries/.../images/.../versions/...)"

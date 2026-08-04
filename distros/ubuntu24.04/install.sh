@@ -137,6 +137,11 @@ fi
 # Clear stale /dev stubs so the drivers can register their real char devices.
 rm -f /dev/apu[0-9]* /dev/apu-dma-mem /dev/maianexus[0-9]* || true
 
+# Track load failures so the unit ends up in a failed state instead of
+# reporting success with no drivers loaded.  A silently-skipped maianexus
+# is not detectable until validation fails ~30 minutes later.
+load_failed=0
+
 # Load apupci with DMA reserved memory enabled.  loaddriver.sh uses a
 # relative path for apupci.ko, so we must cd into its directory.
 LOADDRIVER_DIR=/opt/maia/drivers/vfdriver/release/driver
@@ -152,29 +157,52 @@ if [ -f "$LOADDRIVER_SH" ] && [ ! -x "$LOADDRIVER_SH" ]; then
 fi
 if [ ! -x "$LOADDRIVER_SH" ]; then
     echo "maia-drivers: $LOADDRIVER_SH not found, skipping apupci"
+    load_failed=1
 else
     rmmod apupci 2>/dev/null || true
     if ! ( cd "$LOADDRIVER_DIR" && ./loaddriver.sh dma_mem ); then
         echo "maia-drivers: apupci load failed"
+        load_failed=1
     fi
 fi
 
 # Load maianexus from the bundled per-kernel zip.
 NEXUS_LOAD=/opt/maia/drivers/maianexus/utils/load_maianexus.sh
-NEXUS_ZIP=/opt/maia/drivers/maianexus/maianexus_ubuntu_2404.zip
+NEXUS_DIR=/opt/maia/drivers/maianexus
+# The guest-stack tarball ships the master zip as maianexus_ubuntu_2404.zip
+# when unsigned and maianexus_ubuntu_2404_signed.zip once it has been through
+# the kernel-module signing pipeline.  Hardcoding the unsigned name meant the
+# guard below failed on every signed image and maianexus was never loaded.
+# Resolve either, preferring the signed one, matching the resolution already
+# done in install_dependencies.sh (hpc-image-val).
+NEXUS_ZIP=$(ls -1 "$NEXUS_DIR"/maianexus_ubuntu_2404*signed*.zip 2>/dev/null | sort -V | tail -1)
+[ -z "$NEXUS_ZIP" ] && NEXUS_ZIP=$(ls -1 "$NEXUS_DIR"/maianexus_ubuntu_2404*.zip 2>/dev/null | sort -V | tail -1)
 # Same self-heal as loaddriver.sh above — load_maianexus.sh is also shipped 0664.
 if [ -f "$NEXUS_LOAD" ] && [ ! -x "$NEXUS_LOAD" ]; then
     echo "maia-drivers: $NEXUS_LOAD exists but is not executable — applying chmod +x"
     chmod +x "$NEXUS_LOAD" || echo "maia-drivers: chmod +x failed on $NEXUS_LOAD"
 fi
-if [ ! -x "$NEXUS_LOAD" ] || [ ! -f "$NEXUS_ZIP" ]; then
+if [ ! -x "$NEXUS_LOAD" ] || [ -z "$NEXUS_ZIP" ] || [ ! -f "$NEXUS_ZIP" ]; then
     echo "maia-drivers: maianexus loader or zip not found, skipping maianexus"
+    echo "maia-drivers:   loader=$NEXUS_LOAD (executable: $( [ -x "$NEXUS_LOAD" ] && echo yes || echo no ))"
+    echo "maia-drivers:   zip=${NEXUS_ZIP:-<none matched>}"
+    ls -la "$NEXUS_DIR" 2>&1 || true
+    load_failed=1
 else
+    echo "maia-drivers: loading maianexus from $NEXUS_ZIP"
     rmmod maianexus 2>/dev/null || true
-    "$NEXUS_LOAD" -z "$NEXUS_ZIP" || echo "maia-drivers: maianexus load failed"
+    if ! "$NEXUS_LOAD" -z "$NEXUS_ZIP"; then
+        echo "maia-drivers: maianexus load failed"
+        load_failed=1
+    fi
 fi
 
 udevadm settle --timeout=30 || true
+
+if [ "$load_failed" -ne 0 ]; then
+    echo "maia-drivers: one or more MAIA drivers failed to load, failing the unit"
+    exit 1
+fi
 LOADEROF
     sudo chmod +x /usr/local/bin/maia-load-drivers.sh
 

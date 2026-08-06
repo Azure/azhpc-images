@@ -132,8 +132,18 @@ if ! dpkg-query -W -f='${Status}' "linux-headers-$MAIA_KERNEL" 2>/dev/null | gre
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "linux-headers-$MAIA_KERNEL"
 fi
 
-mismatched_headers=$(dpkg-query -W -f='${Package}\n' 'linux-headers-*azure' 2>/dev/null \
-    | grep -v "^linux-headers-$MAIA_KERNEL$" || true)
+# dpkg-query -W lists every package name it knows, whatever its state, so the
+# output includes packages already removed but still holding config files and
+# packages registered only by an apt-mark hold.  Build 36498 warned that
+# linux-headers-6.17.0-1022-azure was still present seconds after apt had
+# reported removing it, for that reason alone.  Filter on install status so
+# both the removal list and the check below see only installed packages.
+maia_installed_headers() {
+    dpkg-query -W -f='${Status} ${Package}\n' 'linux-headers-*azure' 2>/dev/null \
+        | awk '$1 == "install" && $3 == "installed" { print $4 }'
+}
+
+mismatched_headers=$(maia_installed_headers | grep -v "^linux-headers-$MAIA_KERNEL$" || true)
 if [ -n "$mismatched_headers" ]; then
     echo "Removing headers that do not match $MAIA_KERNEL:"
     echo "$mismatched_headers"
@@ -146,10 +156,9 @@ fi
 # newer series.  apt-mark hold applies to packages that are not installed.
 sudo apt-mark hold linux-headers-azure linux-image-azure "linux-headers-$MAIA_KERNEL" 2>/dev/null || true
 
-remaining=$(dpkg-query -W -f='${Package}\n' 'linux-headers-*azure' 2>/dev/null \
-    | grep -v "^linux-headers-$MAIA_KERNEL$" || true)
+remaining=$(maia_installed_headers | grep -v "^linux-headers-$MAIA_KERNEL$" || true)
 if [ -n "$remaining" ]; then
-    echo "##[warning]Header packages still present for another kernel series: $remaining"
+    echo "##[warning]Header packages still installed for another kernel series: $remaining"
 else
     echo "Kernel headers aligned with $MAIA_KERNEL"
 fi

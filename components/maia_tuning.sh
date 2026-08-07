@@ -127,7 +127,7 @@ echo "##[section]Aligning kernel headers with the running kernel"
 MAIA_KERNEL="$(uname -r)"
 echo "Running kernel: $MAIA_KERNEL"
 
-if ! dpkg-query -W -f='${Status}' "linux-headers-$MAIA_KERNEL" 2>/dev/null | grep -q "install ok installed"; then
+if ! dpkg-query -W -f='${Status}' "linux-headers-$MAIA_KERNEL" 2>/dev/null | grep -qE ' installed$'; then
     echo "##[section]Installing linux-headers-$MAIA_KERNEL"
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "linux-headers-$MAIA_KERNEL"
 fi
@@ -138,9 +138,14 @@ fi
 # linux-headers-6.17.0-1022-azure was still present seconds after apt had
 # reported removing it, for that reason alone.  Filter on install status so
 # both the removal list and the check below see only installed packages.
+#
+# dpkg Status is "<desired> <error> <current>" and only the current field says
+# whether the files are on disk.  Match on that field alone: a held package
+# reads "hold ok installed", so testing the desired field as well would hide
+# every package this script itself holds a few lines further down.
 maia_installed_headers() {
     dpkg-query -W -f='${Status} ${Package}\n' 'linux-headers-*azure' 2>/dev/null \
-        | awk '$1 == "install" && $3 == "installed" { print $4 }'
+        | awk '$3 == "installed" { print $4 }'
 }
 
 mismatched_headers=$(maia_installed_headers | grep -v "^linux-headers-$MAIA_KERNEL$" || true)

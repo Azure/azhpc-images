@@ -193,7 +193,20 @@ else
     IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
 
     if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-        tdnf install -y nvidia-imex-${IMEX_VERSION}
+        # The aarch64 (GB200/GB300) GPU driver is PMC's 'cuda-open-hwe', which
+        # bundles /usr/bin/nvidia-modprobe (and its man page) but does NOT
+        # declare 'Provides: nvidia-modprobe'. nvidia-imex has
+        # 'Requires: nvidia-modprobe = <ver>', so tdnf pulls the standalone
+        # nvidia-modprobe package from the CUDA repo, whose files then collide
+        # with cuda-open-hwe's bundled copy and abort the rpm transaction
+        # ("conflicts with file from package cuda-open-hwe"). Download imex plus
+        # its nvidia-modprobe dependency and install with rpm --replacefiles so
+        # the identical standalone nvidia-modprobe file cleanly overwrites the
+        # copy shipped in cuda-open-hwe.
+        imex_download_dir=$(mktemp -d)
+        tdnf install -y --downloadonly --downloaddir="$imex_download_dir" nvidia-imex-${IMEX_VERSION}
+        rpm -Uvh --replacefiles "$imex_download_dir"/*.rpm
+        rm -rf "$imex_download_dir"
     elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install nvidia-imex -y
     else

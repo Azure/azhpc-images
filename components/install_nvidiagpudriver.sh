@@ -128,7 +128,7 @@ touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
 
-if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     echo "options nvidia NVreg_GrdmaPciTopoCheckOverride=1" >> /etc/modprobe.d/nvidia.conf
 fi
 

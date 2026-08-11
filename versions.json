@@ -13,9 +13,9 @@
     },
     "cmake": {
         "common": {
-            "version": "4.3.3",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
-            "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
+            "version": "4.4.2",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
+            "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
         },
         "ubuntu24.04": {
             "aarch64": {

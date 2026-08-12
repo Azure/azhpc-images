@@ -9,9 +9,7 @@ packer {
 
   required_plugins {
     azure = {
-      # Pinned to 2.6.1 as 2.6.2 has a regression on log
-      # throughput
-      version = "2.6.1"
+      version = "~> 2.6.0"
       source  = "github.com/hashicorp/azure"
     }
   }

@@ -13,9 +13,9 @@
     },
     "cmake": {
         "common": {
-            "version": "4.3.3",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
-            "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
+            "version": "4.4.2",
+            "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
+            "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
         },
         "ubuntu24.04": {
             "aarch64": {
@@ -908,12 +908,12 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.2.0",
-                "sha256": "89084b49f7706ed8fa393bbaac501b2dfc74665f3a6ec6173aafe34a1bd23f32"
+                "version": "5.3.0",
+                "sha256": "e23282a94fbeded5bda38a099b61d044d082efc33a06f7b1ab835b36996c089c"
             },
             "aocc": {
-                "version": "5.0.0",
-                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
+                "version": "5.2.0",
+                "sha256": "f98af7e2ae8801dd4ba443520653acb739536a86c2a1caf096310c3cfd554ca0"
             }
         }
     },

@@ -3,14 +3,14 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
-# On Ubuntu 24.04 and Azure Linux 3, RCCL comes from ROCm packages; build from source on other distros
+rccl_metadata=$(get_component_config "rccl")
+
+# Azure Linux 3 uses packaged RCCL; build from source on other distros.
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
-# TODO: go back to bundled RCCL once we move back to ROCm 7.0, which will have a new enough RCCL that doesn't require manual building
-# elif [[ $DISTRIBUTION != "ubuntu24.04" ]]; then
 else
-    rccl_metadata=$(get_component_config "rccl")
+    # Ubuntu 24.04 temporarily needs a source build while using ROCm 6.4.
     rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
     rccl_version=$(jq -r '.version' <<< $rccl_metadata)
@@ -64,8 +64,8 @@ echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 # Build rccl-tests from the modern home in ROCm/rocm-systems using its CMake
 # build system. This supersedes the legacy ROCmSoftwarePlatform/rccl-tests
 # Makefile flow and handles hipify automatically for all distros.
-source /opt/hpcx*/hpcx-init.sh
-hpcx_load
+source /etc/profile.d/modules.sh
+module load mpi/hpcx
 
 # TODO: uncomment if we switch back to ROCm 7
 # if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
@@ -105,6 +105,7 @@ popd  # build
 popd  # projects/rccl-tests
 popd  # rocm-systems
 rm -rf rocm-systems
+module unload mpi/hpcx
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y libpci-dev

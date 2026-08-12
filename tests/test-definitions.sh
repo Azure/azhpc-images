@@ -424,8 +424,17 @@ function verify_gcc_installation {
 function verify_aocl_installation {
     # verify AMD modulefiles
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
+    check_exists "/opt/amd/MT/lib/"
+    check_exists "/opt/amd/MT/include/"
+    check_exists "/opt/amd/ST/lib/"
+    check_exists "/opt/amd/ST/include/"
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
+
+    readlink -f /opt/amd/lib | grep -Fx "/opt/amd/MT/lib"
+    check_exit_code "AOCL default library path uses MT" "AOCL default library path does not use MT"
+    readlink -f /opt/amd/include | grep -Fx "/opt/amd/MT/include"
+    check_exit_code "AOCL default include path uses MT" "AOCL default include path does not use MT"
 }
 
 function verify_aocc_installation {

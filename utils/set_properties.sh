@@ -57,6 +57,8 @@ elif [[ $DISTRIBUTION == almalinux* ]]; then
         rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
     elif [[ $DISTRIBUTION == almalinux9* ]]; then
         rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-9
+    elif [[ $DISTRIBUTION == almalinux10* ]]; then
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-10
     fi
     yum install -y jq    
     export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles

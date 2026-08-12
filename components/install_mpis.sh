@@ -128,7 +128,9 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
         mvapich_transport_args="--with-device=ch4:ofi --with-libfabric=${LIBFABRIC_PATH}"
         MVAPICH_TRANSPORT_LIB_PATH="${LIBFABRIC_PATH}/lib"
     fi
-    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes ${mvapich_transport_args} && make -j$(nproc) && make install
+    ./configure $(if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then echo "FFLAGS=-fallow-argument-mismatch"; fi) --prefix=${INSTALL_PREFIX}/mvapich-${MVAPICH_VERSION} --enable-g=none --enable-fast=yes ${mvapich_transport_args}
+    make -j$(nproc)
+    make install
     popd
     write_component_version "MVAPICH" ${MVAPICH_VERSION}
 fi

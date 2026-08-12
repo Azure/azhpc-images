@@ -25,6 +25,11 @@ source ../../utils/set_properties.sh
 # install Mellanox OFED
 $COMPONENT_DIR/install_mofed.sh
 
+if [ "$GPU" = "AMD" ]; then
+    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
+    $COMPONENT_DIR/install_rocm.sh
+fi
+
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -52,22 +57,17 @@ if [ "$GPU" = "NVIDIA" ]; then
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
     fi
     
-    # Install NVIDIA docker container
-    $COMPONENT_DIR/install_docker.sh
+fi
 
+# Install Docker container runtime
+$COMPONENT_DIR/install_docker.sh
 
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
-    # Set up docker
-    tdnf install -y moby-engine moby-cli
-    systemctl enable docker
-    systemctl restart docker
-
-    #install rocm software stack
-    $COMPONENT_DIR/install_rocm.sh    
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi

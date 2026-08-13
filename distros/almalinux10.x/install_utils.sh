@@ -24,8 +24,6 @@ yum install -y wget \
                net-tools \
                python3.12
 
-alternatives --set python3 /usr/bin/python3.12
-
 # Install EPEL repository
 yum install -y epel-release
 

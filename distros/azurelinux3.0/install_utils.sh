@@ -9,31 +9,31 @@ $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
 # Install Kernel dependencies
 if [ "$ARCHITECTURE" = "aarch64" ]; then
-    tdnf install -y kernel-hwe-devel-$(uname -r) \
+    dnf install -y kernel-hwe-devel-$(uname -r) \
                 kernel-hwe-drivers-gpu-$(uname -r) \
                 kernel-headers
 
 else
-    tdnf install -y kernel-headers-$(uname -r) \
+    dnf install -y kernel-headers-$(uname -r) \
                 kernel-devel-$(uname -r) \
                 kernel-drivers-gpu-$(uname -r) \
                 dkms
 fi
 
 # Install Python 3.12
-tdnf install -y python
+dnf install -y python
 
 # install pssh
-tdnf install -y pssh
+dnf install -y pssh
 
 # tk package is present in extended repo
-tdnf install -y azurelinux-repos-extended
+dnf install -y azurelinux-repos-extended
 
-tdnf repolist --refresh
+dnf repolist --refresh
 
 # Install pre-reqs and development tools
-# tdnf groupinstall -y "Development Tools"
-tdnf install -y numactl \
+# dnf groupinstall -y "Development Tools"
+dnf install -y numactl \
     numactl-devel \
     libxml2-devel \
     byacc \
@@ -94,15 +94,15 @@ sed -i 's/^\#kern\.\*.*/kern\.\*                                \-\/var\/log\/ke
 sed -i 's#/var/log/maillog#/var/log/maillog\n/var/log/kern.log#' /etc/logrotate.d/rsyslog
 
 ## Install dkms
-tdnf install -y dkms
+dnf install -y dkms
 
 ## Install subunit and subunit-devel
-tdnf install -y subunit
-tdnf install -y subunit-devel
+dnf install -y subunit
+dnf install -y subunit-devel
 
 ## Install libmd and libmd-devel 
-tdnf install -y libmd
-tdnf install -y libmd-devel
+dnf install -y libmd
+dnf install -y libmd-devel
 
 # Install azure-vm-utils from source (upstream package for AZL3 is too outdated right now, see https://github.com/microsoft/azurelinux/issues/15661)
 git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils

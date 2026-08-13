@@ -11,11 +11,11 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == almalinux* ]]; then
     dnf -y install boost-devel
 elif [[ $DISTRIBUTION == "azurelinux3.0" && $ARCHITECTURE != "aarch64" ]]; then
-    tdnf -y install boost-devel
+    dnf -y install boost-devel
 elif [[ $DISTRIBUTION == "azurelinux3.0" && $ARCHITECTURE == "aarch64" ]]; then
     # Download dependencies
-    tdnf install -y boost-devel boost-program-options
-    tdnf install -y cmake
+    dnf install -y boost-devel boost-program-options
+    dnf install -y cmake
 fi
 
 # Download the nvbandwidth tool

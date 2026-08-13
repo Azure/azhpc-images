@@ -7,7 +7,7 @@ rccl_metadata=$(get_component_config "rccl")
 
 # Azure Linux 3 uses packaged RCCL; build from source on other distros.
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rccl rccl-devel rccl-unittests
+    dnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
 else
     # Ubuntu 24.04 temporarily needs a source build while using ROCm 6.4.

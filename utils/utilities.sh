@@ -199,16 +199,14 @@ function sku_uses_ipoib {
 }
 
 ############################################################################
-# @Brief    : Idempotently pin packages so 'dnf'/'yum update' won't upgrade
-#             them. Maintains a single 'exclude=PKG1 PKG2 ...' line in
-#             /etc/dnf/dnf.conf, creating it if absent.
+# @Brief    : Idempotently pin packages so 'dnf update' won't upgrade them.
+#             Uses the DNF versionlock plugin configured by prerequisites.
 #
-# Replaces the legacy
-#     sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf
-# pattern, which silently corrupted the last line of dnf.conf (e.g.
+# Replaces the legacy pattern that appended package names to the last line of
+# dnf.conf, which silently corrupted the last setting (e.g.
 # 'skip_if_unavailable=False') on distros/configurations where the
 # 'exclude=' line wasn't seeded first (e.g. Rocky/Alma 9.7). A broken pin lets subsequent
-# 'yum update -y' upgrade pinned packages -- most critically
+# 'dnf update -y' upgrade pinned packages -- most critically
 # nvidia-fabricmanager, which must match the NVIDIA driver version exactly.
 #
 # @Args     : One or more package names/globs (e.g. "ucx*" "openmpi").
@@ -216,13 +214,12 @@ function sku_uses_ipoib {
 #             unset variables or empty array expansions. There is no
 #             legitimate "pin nothing" use case -- such a call almost
 #             always indicates a bug (e.g. unset $PACKAGE_NAME or an
-#             empty mapfile result) and would silently corrupt the
-#             'exclude=' line with stray whitespace.
-# @Returns  : 0 on success, 0 (no-op) if /etc/dnf/dnf.conf is absent,
-#             1 if no non-empty package arguments were provided.
+#             empty mapfile result).
+# @Returns  : 0 on success, 0 (no-op) if dnf is unavailable,
+#             non-zero if arguments are invalid or versionlock fails.
 ############################################################################
 function dnf_pin_packages {
-    [[ -f /etc/dnf/dnf.conf ]] || return 0
+    command -v dnf >/dev/null 2>&1 || return 0
     local pkgs=()
     local arg
     for arg in "$@"; do
@@ -232,24 +229,8 @@ function dnf_pin_packages {
         echo "dnf_pin_packages: no non-empty package arguments provided (likely an unset variable or empty array)" >&2
         return 1
     fi
-    local current="" new=""
-    if grep -q '^exclude=' /etc/dnf/dnf.conf; then
-        current=$(sed -n 's/^exclude=//p' /etc/dnf/dnf.conf | head -n1)
-        new="$current"
-        for p in "${pkgs[@]}"; do
-            # Skip if already present (whitespace-bounded match).
-            case " $current " in
-                *" $p "*) continue ;;
-            esac
-            new="$new $p"
-        done
-        new="${new# }"
-        if [[ "$new" != "$current" ]]; then
-            # '|' is safe as a sed delimiter: package globs contain only
-            # [A-Za-z0-9._*-], never '|' or '\'.
-            sed -i "s|^exclude=.*|exclude=${new}|" /etc/dnf/dnf.conf
-        fi
-    else
-        echo "exclude=${pkgs[*]}" >> /etc/dnf/dnf.conf
+    if ! dnf versionlock add "${pkgs[@]}"; then
+        echo "dnf_pin_packages: failed to pin package(s): ${pkgs[*]}" >&2
+        return 1
     fi
 }

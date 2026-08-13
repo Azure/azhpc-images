@@ -40,10 +40,10 @@ locals {
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
   os_family        = regex(local.os_version_regex, local.os_version)["os_family"]
   distro_version   = regex(local.os_version_regex, local.os_version)["distro_version"]
-  # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
-  # share a single `9.x` folder since their install scripts are not minor-specific.
-  # All other distros pin to the minor.
-  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  # Folder suffix for distros/ scripts. EL9 and EL10 distros (AlmaLinux/Rocky
+  # 9.* and 10.*) share a single `<major>.x` folder since their install scripts
+  # are not minor-specific. All other distros pin to the minor.
+  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^(9|10)\\.", local.distro_version))) ? "${split(".", local.distro_version)[0]}.x" : local.distro_version
   os_script_folder_name            = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 

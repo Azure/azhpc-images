@@ -77,6 +77,7 @@ build {
 
   provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
+    except          = local.skip_prerequisites ? ["azure-arm.hpc"] : []
     script          = "scripts/prerequisites.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
@@ -218,10 +219,51 @@ build {
 
   provisioner "shell" {
     name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
-    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    except          = (local.refresh_mode && !var.skip_hpc && !local.skip_prerequisites) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "cd /home/${local.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "Run extra fix-up script"
+    except          = local.run_extra_provision_script ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "GPU=${local.gpu_platform}",
+      "GPU_SKU=${local.gpu_sku}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "REFRESH_MODE=${local.refresh_mode}",
+    ]
+    # Generic hook for one-off in-place-refresh fix-ups (e.g. disabling a
+    # service). The specific script is provided via extra_provision_script and
+    # should live on a temporary branch, not on main.
+    inline = [
+      "REPO_DIR=/home/${local.ssh_username}/azhpc-images",
+      "SCRIPT='${local.extra_provision_script}'",
+      "case \"$SCRIPT\" in /*) SCRIPT_PATH=\"$SCRIPT\";; *) SCRIPT_PATH=\"$REPO_DIR/$SCRIPT\";; esac",
+      "echo \"Running extra fix-up script: $SCRIPT_PATH\"",
+      "if [[ ! -f \"$SCRIPT_PATH\" ]]; then echo \"ERROR: extra provisioning script not found: $SCRIPT_PATH\"; exit 1; fi",
+      "bash \"$SCRIPT_PATH\"",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "(In-place refresh) Refresh test definitions from latest repo"
+    except          = local.refresh_mode ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "AZHPC_IMAGES_TEST_DIR=/home/${local.ssh_username}/azhpc-images/tests",
+    ]
+    # In-place refresh boots from a published base image that may carry stale
+    # tests under /opt/azurehpc/test. Re-run the canonical copy so the run-tests
+    # step uses the latest definitions. Remove the existing health_checks dir
+    # first so copy_test_file.sh's `cp -r` replaces it cleanly instead of nesting
+    # into the pre-existing directory.
+    inline = [
+      "sudo rm -rf /opt/azurehpc/test/health_checks",
+      "bash /home/${local.ssh_username}/azhpc-images/components/copy_test_file.sh",
     ]
   }
 
@@ -237,7 +279,7 @@ build {
 
   provisioner "shell" {
     name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
-    except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
+    except          = (var.skip_hpc || local.refresh_mode) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline          = [
       "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",

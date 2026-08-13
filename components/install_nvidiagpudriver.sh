@@ -128,7 +128,7 @@ touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
 
-if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     echo "options nvidia NVreg_GrdmaPciTopoCheckOverride=1" >> /etc/modprobe.d/nvidia.conf
 fi
 
@@ -156,8 +156,15 @@ if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
         # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
         # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
         # the (removed) global DOCA pin in install_doca.sh.
+        cuda_excludes="mft* kernel-mft*"
+        # CUDA 13 cccl packages obsolete cuda-cccl-12-*, which is still required
+        # by cuda-cudart-devel-12-* and makes later DNF transactions unsolvable.
+        if [[ "${CUDA_DRIVER_VERSION}" == 12.* ]]; then
+            cuda_excludes="${cuda_excludes} cccl-*"
+        fi
+
         dnf config-manager --save \
-            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=mft* kernel-mft*" >/dev/null
+            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=${cuda_excludes}" >/dev/null
 
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
@@ -210,7 +217,7 @@ else
         echo "Unsupported distribution for nvidia-imex: $DISTRIBUTION"
         exit 1
     fi
-    
+
     write_component_version "IMEX" $IMEX_VERSION
 
     # Add configuration to /etc/modprobe.d/nvidia.conf

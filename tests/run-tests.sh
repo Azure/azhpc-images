@@ -92,6 +92,11 @@ function verify_common_components {
         verify_package_updates;
     fi
 
+    # Ensure the exclusive GPU profiling context is actually acquirable and not
+    # held by another client (e.g. dynolog), which would clash with dcgm-exporter.
+    # No-op on images without DCGM (e.g. AMD).
+    verify_gpu_profiling_context_available;
+
     if ! verify_network_components_hook; then
         if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
             verify_ofed_installation;

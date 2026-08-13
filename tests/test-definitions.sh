@@ -149,8 +149,7 @@ function verify_mvapich2_installation {
         # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
         mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
     else
-        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
-        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
+        mpiexec -np 2 -ppn 2 ${mvapich_omb_path}/osu_latency
     fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
@@ -159,12 +158,8 @@ function verify_mvapich2_installation {
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
 
-    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
-    local fi_provider="mlx"
-    if [[ "$(sku_network_mode)" == "no_rdma" ]]; then fi_provider="tcp"; fi
-    
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
@@ -245,7 +240,7 @@ function verify_nccl_installation {
         standard_nd40rs_v2 | standard_nd96*v4 | standard_nc*ads_a100_v4) mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=tcp \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
@@ -258,7 +253,7 @@ function verify_nccl_installation {
         standard_nc80adis_h100_v5) mpirun -np 2 \
                 --allow-run-as-root \
                 --map-by ppr:2:node \
-                -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+                -x LD_LIBRARY_PATH \
                 -mca coll_hcoll_enable 0 \
                 -x UCX_TLS=tcp \
                 -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
@@ -276,7 +271,7 @@ function verify_nccl_installation {
         mpirun -np 4 \
             --allow-run-as-root \
             --map-by ppr:4:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=rc \
             -x UCX_IB_GID_INDEX=0 \
@@ -523,6 +518,57 @@ function verify_dcgm_installation {
     # Check if the NVIDIA DCGM service is active
     systemctl is-active --quiet nvidia-dcgm
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
+}
+
+# Verify the exclusive GPU profiling context can actually be acquired.
+#
+# GPU hardware profiling is exclusive - only one profiling client per GPU at a
+# time. dynolog is built with the DCGM_FI_PROF_* fields; if it (or any other
+# client) holds that context, dcgm-exporter cannot acquire it and enters
+# CrashLoopBackOff. Rather than only inspecting dynolog's systemd state, this
+# probes the context the same way dcgm-exporter does: it asks the standalone
+# nv-hostengine (nvidia-dcgm.service) to watch a DCGM_FI_PROF_* profiling field.
+# If another client is holding the context exclusively, the watch fails.
+function verify_gpu_profiling_context_available {
+    # Only meaningful on NVIDIA images where DCGM is installed and running.
+    if ! command -v dcgmi &>/dev/null; then
+        echo "dcgmi not present; skipping GPU profiling context check [OK]"
+        return 0
+    fi
+    if ! systemctl is-active --quiet nvidia-dcgm; then
+        echo "nvidia-dcgm inactive; skipping GPU profiling context check [OK]"
+        return 0
+    fi
+
+    # 1001 = DCGM_FI_PROF_GR_ENGINE_ACTIVE, a DCP profiling field that requires
+    # the exclusive profiling context. -c 1 takes a single sample then exits.
+    local prof_field="1001"
+    local out rc
+    out=$(timeout 1m dcgmi dmon -e ${prof_field} -c 1 2>&1)
+    rc=$?
+
+    # GPUs that don't support DCP profiling at all are out of scope for this
+    # clash - treat as a skip rather than a failure.
+    if echo "$out" | grep -qiE "not supported|unsupported|profiling.*disabled"; then
+        echo "GPU profiling (DCP) not supported on this SKU; skipping check [OK]"
+        return 0
+    fi
+
+    # A held/exclusive context surfaces as a non-zero exit or an "in use" style
+    # error from DCGM.
+    if [[ $rc -ne 0 ]] || echo "$out" | grep -qiE "in use|already|could not be completed|resource"; then
+        echo "*** ${FUNCNAME[0]}: Error - could not acquire the GPU profiling context (DCGM field ${prof_field})!" >&2
+        echo "*** Another profiling client is likely holding it exclusively; dcgm-exporter will CrashLoopBackOff." >&2
+        if systemctl is-active --quiet dynolog.service 2>/dev/null; then
+            echo "*** Hint: dynolog.service is active and is the likely holder." >&2
+        fi
+        echo "*** dcgmi output:" >&2
+        echo "$out" >&2
+        exit_on_error
+        return
+    fi
+
+    echo "[OK] : GPU profiling context is available (DCGM field ${prof_field})"
 }
 
 function verify_sku_customization_service {

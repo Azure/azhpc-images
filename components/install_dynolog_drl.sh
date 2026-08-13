@@ -86,7 +86,10 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload
-    systemctl enable dynolog.service
+    # dynolog holds an exclusive GPU profiling context (DCGM_FI_PROF_* fields), which clashes
+    # with dcgm-exporter (one profiling client per GPU at a time). Leave the service installed
+    # but disabled so dcgm-exporter can acquire the profiling context.
+    # systemctl enable dynolog.service
 
     ##########################################################################
     # Build and install dyno-relay-logger

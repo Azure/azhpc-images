@@ -21,10 +21,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # For VM it has been installed via the install_utils.sh or install_doca.sh
     apt install -y zlib1g-dev # libibverbs-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rpm-build rpmdevtools autoconf automake git libtool
+    tdnf install -y rpm-build rpmdevtools autoconf automake git libtool patchelf
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    yum install -y rpm-build rpmdevtools
+    yum install -y rpm-build rpmdevtools 
 fi
 
 pushd /tmp

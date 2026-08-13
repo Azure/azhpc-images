@@ -24,9 +24,7 @@ yum install -y wget \
                net-tools \
                python3.12
 
-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 20
-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 10
-alternatives --set python3 /usr/bin/python3.9
+alternatives --set python3 /usr/bin/python3.12
 
 # Install EPEL repository
 yum install -y epel-release
@@ -70,8 +68,15 @@ yum install -y numactl \
     perl \
     azure-vm-utils \
     dos2unix \
-    azcopy \
-    mdadm
+    mdadm \
+    keyutils-libs-devel
+    
+# Install azcopy
+wget -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux
+tar -xvf azcopy_v10.tar.gz
+sudo cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+sudo chmod +x /usr/bin/azcopy
+rm -rf azcopy_*
 
 # Install environment-modules 5.3.1
 wget https://vault.almalinux.org/10.0/BaseOS/x86_64/os/Packages/environment-modules-5.3.1-8.el10.x86_64.rpm

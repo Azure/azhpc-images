@@ -627,12 +627,12 @@
         "almalinux10.2": {
             "x86_64": {
                 "driver": {
-                    "version": "13.3",
+                    "version": "13.0",
                     "distribution": "rhel10"
                 },
                 "samples": {
-                    "version": "13.3",
-                    "sha256": "fab59f405d6c0b87395ce6fc1d46d3f559c380c9a2704ab14d6dc0d3ce1cff16"
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
                 }
             }
         },
@@ -1038,6 +1038,11 @@
             },
             "aarch64": {
                 "version": "5.0.1-1"
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "5.0.11-1"
             }
         }
     },

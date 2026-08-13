@@ -73,6 +73,8 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
 
     if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose
+    elif [[ $DISTRIBUTION == almalinux10* ]]; then
+        dnf install -y patchelf
     fi
 
     ./autogen.sh

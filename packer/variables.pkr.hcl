@@ -62,6 +62,7 @@ locals {
     "alma" = {
       "8.10" = "4.18"
       "9.8"  = "5.14"
+      "10.2"  = "6.12"
     }
     "rocky" = {
       "8.10" = "4.18"
@@ -758,7 +759,8 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"],
+          "10.2"  = ["almalinux", "almalinux-x86_64", "10-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
@@ -834,6 +836,7 @@ locals {
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
         "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "10.2"  = "AlmaLinuxHPC-10.2-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
         "3.0" = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"

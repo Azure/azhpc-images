@@ -97,6 +97,15 @@ else
     rpm -i $DOCA_FILE
     dnf clean all
 
+    if [[ $DISTRIBUTION == *"almalinux10"* ]]; then
+        if [[ -d /etc/init.d && ! -L /etc/init.d ]]; then
+            echo "Normalizing /etc/init.d directory -> rc.d/init.d symlink for chkconfig"
+            mkdir -p /etc/rc.d/init.d
+            cp -a /etc/init.d/. /etc/rc.d/init.d/ 2>/dev/null || true
+            rm -rf /etc/init.d
+            ln -s rc.d/init.d /etc/init.d
+        fi
+    fi
     # Backup
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
@@ -163,6 +172,17 @@ EOF
 
 if ! sku_uses_ipoib; then
     echo -e "\n# Load IPoIB\nIPOIB_LOAD=no" | sudo tee -a /etc/infiniband/openib.conf
+fi
+
+# openibd is a SysV init script on EL; 'systemctl enable' shells out to
+# /usr/lib/systemd/systemd-sysv-install, shipped by chkconfig. Ensure it's
+# present (its RPM can fail to install on EL10 if /etc/init.d is a real
+# directory rather than the symlink chkconfig expects).
+if [[ $DISTRIBUTION == *"almalinux10"* ]]; then
+    if ! rpm -q chkconfig >/dev/null 2>&1 || [[ ! -x /usr/lib/systemd/systemd-sysv-install ]]; then
+        echo "chkconfig/systemd-sysv-install missing; installing chkconfig"
+        dnf -y install chkconfig
+    fi
 fi
 
 # Enable only; do not restart at build time. Restarting openibd here probes

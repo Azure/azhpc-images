@@ -431,9 +431,9 @@ function verify_aocl_installation {
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
 
-    readlink -f /opt/amd/lib | grep -Fx "/opt/amd/MT/lib"
+    readlink -f /opt/amd/lib | grep -q "^/opt/amd/MT/"
     check_exit_code "AOCL default library path uses MT" "AOCL default library path does not use MT"
-    readlink -f /opt/amd/include | grep -Fx "/opt/amd/MT/include"
+    readlink -f /opt/amd/include | grep -q "^/opt/amd/MT/"
     check_exit_code "AOCL default include path uses MT" "AOCL default include path does not use MT"
 }
 

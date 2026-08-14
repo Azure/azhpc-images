@@ -33,22 +33,55 @@ function ver {
     printf "10#%03d%03d%03d" $(echo "$1" | tr '.' ' '); 
 }
 
-# Private helper that matches NCv6 VM sizes.
+# Private helper that matches NCv6.
 function _is_ncv6_sku {
     local ncv6_sizes="standard_nc.*_rtxpro6000bse_v6"
     [[ "${VMSIZE}" =~ ^($ncv6_sizes)$ ]]
 }
 
-function has_infiniband {
-    ! _is_ncv6_sku
-}
-
+# Whether the current SKU has NVLink.
 function has_nvlink {
     ! _is_ncv6_sku
 }
 
-function uses_ucx {
-    ! _is_ncv6_sku
+# Private helper that matches current MRC scope.
+# MRC currently applies to baremetal_1p regardless of SKU.
+function _is_mrc_network {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]
+}
+
+# Return current network mode for this build target.
+# Values:
+#   - no_rdma: no RDMA-capable fabric (e.g. NCv6)
+#   - mrc : MRC network mode (currently baremetal_1p)
+#   - ib  : regular InfiniBand-capable path
+function sku_network_mode {
+    if _is_ncv6_sku; then
+        echo "no_rdma"
+    elif _is_mrc_network; then
+        echo "mrc"
+    else
+        echo "standard_ib"
+    fi
+}
+
+# Whether this SKU uses UCX as its MPI transport layer.
+# Backward-compatible: only "no_rdma" (NCv6) disables UCX.
+function sku_uses_ucx {
+    ! [[ "$(sku_network_mode)" == "no_rdma" ]]
+}
+
+function sku_uses_ipoib {
+    [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" && "$(sku_network_mode)" == "standard_ib" ]]
+}
+
+# Whether the current SKU is NVSwitch-based (NDv4 A100 and NDv5 H100/H200).
+# Used to gate Fabric Manager checks and bring-up, since cuInit() returns
+# CUDA_ERROR_SYSTEM_NOT_READY on these SKUs until FM finishes NVLink fabric
+# setup. GB200/GB300 use NVLink5 / a separate IMEX flow and are not included.
+function sku_has_nvswitch {
+    local nvswitch_sizes="standard_nd96.*v4|standard_nd96is.*_h[12]00_v5"
+    [[ "${VMSIZE}" =~ ^($nvswitch_sizes)$ ]]
 }
 
 # verify OFED installation
@@ -64,18 +97,14 @@ function verify_ib_device_status {
     lspci | grep "Infiniband controller\|Network controller"
     check_exit_code "IB device is listed" "IB device not found"
 
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
-        # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
-        ibstatus | grep "LinkUp"
-        check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
+    ibstatus | grep "LinkUp"
+    check_exit_code "IB devices are active and LinkUp" "IB Link is DOWN"
 
+    if ! sku_uses_ipoib; then
+        # Baremetal GB200/GB300: Verify IB devices are active and LinkUp
         ! ifconfig | grep "ib[[:digit:]]:\|ibP"
         check_exit_code "IB Links are Down" "IB Links are Brought Up unexpectedly"
     else
-        # Azure HPC VMs: IB device should be up and configured
-        ibstatus | grep "LinkUp"
-        check_exit_code "IB device state: LinkUp" "IB link not up"
-
         ifconfig | grep "ib[[:digit:]]:\|ibP"
         check_exit_code "IB device is configured" "IB device not configured"
     fi
@@ -93,7 +122,7 @@ function verify_hpcx_installation {
 
     # UCX SKUs: use UCX RC transport. Non-UCX SKUs: no args needed (built with libfabric, auto-selects OFI).
     local mpi_args=""
-    if uses_ucx; then
+    if sku_uses_ucx; then
         mpi_args="-x UCX_TLS=rc"
     fi
     
@@ -116,12 +145,11 @@ function verify_mvapich2_installation {
 
     module load mpi/mvapich
     local mvapich_omb_path=${MPI_HOME}/libexec/osu-micro-benchmarks/mpi/pt2pt
-    if uses_ucx; then
+    if sku_uses_ucx; then
         # UCX transport: MV2_FORCE_HCA_TYPE=22 explicitly selects EDR
         mpiexec -np 2 -ppn 2 -env MV2_USE_SHARED_MEM=0 -env MV2_FORCE_HCA_TYPE=22 ${mvapich_omb_path}/osu_latency
     else
-        # OFI transport: disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes)
-        mpiexec -np 2 -ppn 2 -env MPIR_CVAR_CH4_CMA_ENABLE=0 ${mvapich_omb_path}/osu_latency
+        mpiexec -np 2 -ppn 2 ${mvapich_omb_path}/osu_latency
     fi
     check_exit_code "MVAPICH ${VERSION_MVAPICH}" "Failed to run MVAPICH"
     module unload mpi/mvapich
@@ -130,12 +158,8 @@ function verify_mvapich2_installation {
 function verify_impi_2021_installation {
     check_exists "${MODULE_FILES_ROOT}/mpi/impi-2021"
 
-    # Use TCP on non-IB SKUs and Mellanox (mlx) on IB SKUs
-    local fi_provider="mlx"
-    if ! has_infiniband; then fi_provider="tcp"; fi
-    
     module load mpi/impi-2021
-    mpiexec -np 2 -ppn 2 -env FI_PROVIDER=${fi_provider} -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
+    mpiexec -np 2 -ppn 2 -env I_MPI_SHM=0 ${MPI_BIN}/IMB-MPI1 pingpong
     check_exit_code "Intel MPI 2021 ${VERSION_IMPI}" "Failed to run Intel MPI 2021"
     module unload mpi/impi-2021
 }
@@ -152,7 +176,8 @@ function verify_nvidia_driver_installation {
     check_exit_code "NVIDIA Driver ${VERSION_NVIDIA}" "Failed to run NVIDIA SMI"
     
     # Verify if NVIDIA peer memory module is inserted on SKUs with IB
-    if has_infiniband; then
+    # Any of the MRC bring up doesn't require nvidia_peermem
+    if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
         lsmod | grep nvidia_peermem
         check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
     fi
@@ -209,29 +234,35 @@ function verify_nccl_installation {
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         standard_nd40rs_v2 | standard_nd96*v4 | standard_nc*ads_a100_v4) mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=tcp \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         standard_nc80adis_h100_v5) mpirun -np 2 \
                 --allow-run-as-root \
                 --map-by ppr:2:node \
-                -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+                -x LD_LIBRARY_PATH \
                 -mca coll_hcoll_enable 0 \
                 -x UCX_TLS=tcp \
                 -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
                 -x NCCL_SOCKET_IFNAME=eth0 \
                 -x NCCL_DEBUG=WARN \
                 -x NCCL_NET_GDR_LEVEL=5 \
-                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+                /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+                check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+                ;;
         standard_nd128isr_ndr_gb200_v6|standard_nd128isr_gb300_v6) _is_gb_family=1;;
         *) ;;
     esac
@@ -240,7 +271,7 @@ function verify_nccl_installation {
         mpirun -np 4 \
             --allow-run-as-root \
             --map-by ppr:4:node \
-            -x LD_LIBRARY_PATH=/usr/local/nccl-rdma-sharp-plugins/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH \
             -mca coll_hcoll_enable 0 \
             -x UCX_TLS=rc \
             -x UCX_IB_GID_INDEX=0 \
@@ -249,6 +280,7 @@ function verify_nccl_installation {
             -x NCCL_DEBUG=WARN \
             -x NCCL_NET_GDR_LEVEL=5 \
             /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     fi
 
     case ${VMSIZE} in
@@ -262,10 +294,11 @@ function verify_nccl_installation {
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \
-            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G;;
+            /opt/nccl-tests/build/all_reduce_perf -b1K -f2 -g1 -e 4G
+            check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
+            ;;
         *) ;;
     esac
-    check_exit_code "NCCL ${VERSION_NCCL}" "Failed to run NCCL all reduce perf"
     
     module unload mpi/hpcx
 }
@@ -306,26 +339,53 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+# Validate /etc/dnf/dnf.conf is well-formed. Build-time only (call sites
+# should gate on validation_mode).
+#
+# Motivation: the legacy `sed -i "$ s/$/ PKG/" /etc/dnf/dnf.conf` pattern
+# (see utils/utilities.sh::dnf_pin_packages) appended package globs onto
+# the last line of dnf.conf (e.g. `skip_if_unavailable=False`), which dnf
+# treats as an `Invalid configuration value` *warning* and silently
+# disables the pin -- letting `yum update` upgrade nvidia-fabricmanager
+# out of sync with the driver. This check fails the build if dnf can't
+# parse its own config.
+function verify_dnf_conf {
+    # Only RHEL-family + azurelinux use /etc/dnf/dnf.conf; Ubuntu uses apt.
+    case "${ID}" in
+        almalinux|rocky|rhel|azurelinux) ;;
+        *) return 0 ;;
+    esac
+
+    local conf=/etc/dnf/dnf.conf
+    check_exists "${conf}"
+
+    # dnf must accept the config without `Invalid configuration value`
+    # warnings. Use `-C` so we don't refresh metadata; we only care
+    # whether dnf can parse the config file.
+    local dnf_out
+    dnf_out=$(sudo dnf -C --quiet repolist 2>&1 || true)
+    if grep -qi 'invalid configuration value' <<< "${dnf_out}"; then
+        echo "*** verify_dnf_conf: Error - dnf rejects ${conf}:" >&2
+        grep -i 'invalid configuration' <<< "${dnf_out}" >&2
+        echo "--- ${conf} ---" >&2
+        cat "${conf}" >&2
+        exit_on_error
+        return 0
+    fi
+
+    echo "[OK] : ${conf} parses cleanly"
+}
+
 function verify_package_updates {
     case ${ID} in
         ubuntu)
-            if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
+            # TODO: re-enable upgrade count check after pinning
+            # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
+            # [[ "$num_upgradable" -eq 0 ]]
+            if [[ "${VERSION_ID}" != "22.04" ]]; then
                 sudo apt -s upgrade 2> /dev/null
-                # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-                # [[ "$num_upgradable" -eq 0 ]];;
-                # TODO: re-enable check after pinning
-                true
-            else
-                case ${VERSION_ID} in
-                    22.04) true;; # apt is somehow entirely broken for this on ubuntu 22.04 and aptitude doesn't have the notion of phased updates
-                    *)
-                        sudo apt -s upgrade 2> /dev/null
-                        # num_upgradable=$(sudo apt -s upgrade 2>/dev/null | grep -oP '^\K[0-9]+(?= upgraded,)')
-                        # [[ "$num_upgradable" -eq 0 ]];;
-                        # TODO: re-enable check after pinning
-                        true;;
-                esac
             fi
+            true
             ;;   
         azurelinux) true;;
         *)
@@ -359,8 +419,17 @@ function verify_gcc_installation {
 function verify_aocl_installation {
     # verify AMD modulefiles
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
+    check_exists "/opt/amd/MT/lib/"
+    check_exists "/opt/amd/MT/include/"
+    check_exists "/opt/amd/ST/lib/"
+    check_exists "/opt/amd/ST/include/"
     check_exists "/opt/amd/lib/"
     check_exists "/opt/amd/include/"
+
+    readlink -f /opt/amd/lib | grep -q "^/opt/amd/MT/lib"
+    check_exit_code "AOCL default library path uses MT" "AOCL default library path does not use MT"
+    readlink -f /opt/amd/include | grep -q "^/opt/amd/MT/include"
+    check_exit_code "AOCL default include path uses MT" "AOCL default include path does not use MT"
 }
 
 function verify_aocc_installation {
@@ -388,7 +457,7 @@ function verify_ib_modules_and_devices {
     # Check if all key IB modules are inserted.
     # ib_ipoib is not loaded on baremetal nodes (IPoIB is not used).
     local ib_modules
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
+    if ! sku_uses_ipoib; then
         ib_modules=("ib_uverbs" "ib_umad" "ib_cm" "ib_core")
     else
         ib_modules=("ib_uverbs" "ib_umad" "ib_ipoib" "ib_cm" "ib_core")
@@ -399,8 +468,7 @@ function verify_ib_modules_and_devices {
     done
 
     # Check if ib devices are listed
-    if [[ "${NODE_TYPE:-azure-vm}" == "baremetal" ]]; then
-        # On baremetal GB200/GB300, IPoIB is not used
+    if ! sku_uses_ipoib; then
         ! (ip addr | grep ib)
         check_exit_code "IPoIB not present as expected" "IPoIB unexpectedly present!"
     else
@@ -409,16 +477,20 @@ function verify_ib_modules_and_devices {
     fi
 }
 
-# only best-effort install since Lustre isn't always available
-# function verify_lustre_installation {
-#     case ${ID} in
-#         ubuntu) dpkg -l | grep lustre-client;;
-#         almalinux|rocky|rhel) dnf list installed | grep lustre-client;;
-#         azurelinux) true;;
-#         * ) ;;
-#     esac
-#     check_exit_code "Lustre Installed" "Lustre not installed!"
-# }
+function verify_lustre_installation {
+    # Verify both halves of a usable Lustre client: the userspace utilities and
+    # the kernel module for the running kernel (modinfo catches a silently-failed
+    # DKMS build, where the package installs but no module is built).
+    command -v lctl > /dev/null 2>&1
+    check_exit_code "Lustre userspace client (lctl) is present" "Lustre userspace client (lctl) not found!"
+
+    if modinfo lustre > /dev/null 2>&1; then
+        echo "[OK] : Lustre client kernel module (lustre.ko) is present"
+    else
+        echo "*** verify_lustre_installation: Error - no loadable Lustre client kernel module (lustre.ko) for running kernel $(uname -r); DKMS build likely failed (dkms status shows it 'added', not 'installed' for this kernel)" >&2
+        exit_on_error
+    fi
+}
 
 function verify_gdrcopy_installation {
     # Verify GDRCopy package installation
@@ -457,9 +529,61 @@ function verify_dcgm_installation {
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
 }
 
+# Verify the exclusive GPU profiling context can actually be acquired.
+#
+# GPU hardware profiling is exclusive - only one profiling client per GPU at a
+# time. dynolog is built with the DCGM_FI_PROF_* fields; if it (or any other
+# client) holds that context, dcgm-exporter cannot acquire it and enters
+# CrashLoopBackOff. Rather than only inspecting dynolog's systemd state, this
+# probes the context the same way dcgm-exporter does: it asks the standalone
+# nv-hostengine (nvidia-dcgm.service) to watch a DCGM_FI_PROF_* profiling field.
+# If another client is holding the context exclusively, the watch fails.
+function verify_gpu_profiling_context_available {
+    # Only meaningful on NVIDIA images where DCGM is installed and running.
+    if ! command -v dcgmi &>/dev/null; then
+        echo "dcgmi not present; skipping GPU profiling context check [OK]"
+        return 0
+    fi
+    if ! systemctl is-active --quiet nvidia-dcgm; then
+        echo "nvidia-dcgm inactive; skipping GPU profiling context check [OK]"
+        return 0
+    fi
+
+    # 1001 = DCGM_FI_PROF_GR_ENGINE_ACTIVE, a DCP profiling field that requires
+    # the exclusive profiling context. -c 1 takes a single sample then exits.
+    local prof_field="1001"
+    local out rc
+    out=$(timeout 1m dcgmi dmon -e ${prof_field} -c 1 2>&1)
+    rc=$?
+
+    # GPUs that don't support DCP profiling at all are out of scope for this
+    # clash - treat as a skip rather than a failure.
+    if echo "$out" | grep -qiE "not supported|unsupported|profiling.*disabled"; then
+        echo "GPU profiling (DCP) not supported on this SKU; skipping check [OK]"
+        return 0
+    fi
+
+    # A held/exclusive context surfaces as a non-zero exit or an "in use" style
+    # error from DCGM.
+    if [[ $rc -ne 0 ]] || echo "$out" | grep -qiE "in use|already|could not be completed|resource"; then
+        echo "*** ${FUNCNAME[0]}: Error - could not acquire the GPU profiling context (DCGM field ${prof_field})!" >&2
+        echo "*** Another profiling client is likely holding it exclusively; dcgm-exporter will CrashLoopBackOff." >&2
+        if systemctl is-active --quiet dynolog.service 2>/dev/null; then
+            echo "*** Hint: dynolog.service is active and is the likely holder." >&2
+        fi
+        echo "*** dcgmi output:" >&2
+        echo "$out" >&2
+        exit_on_error
+        return
+    fi
+
+    echo "[OK] : GPU profiling context is available (DCGM field ${prof_field})"
+}
+
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
-    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is*_h100_v5|standard_nc.*_rtxpro6000bse_v6"
+    # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
+    local valid_sizes="standard_nc.*ads_a100_v4|standard_nd96.*v4|standard_nd40rs_v2|standard_hb176.*v4|standard_nd96is.*_h[12]00_v5|standard_nd128is.*_gb[2-3]00_v6|standard_nc.*_rtxpro6000bse_v6"
     if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
     then
         systemctl is-active --quiet sku-customizations
@@ -469,8 +593,7 @@ function verify_sku_customization_service {
 
 function verify_nvidia_fabricmanager_service {
     # Check if the NVIDIA Fabricmanager service is active
-    local valid_sizes="standard_nd96.*v4|standard_nd96is*_h100_v5"
-    if [[ "${VMSIZE}" =~ ^($valid_sizes)$ ]]
+    if sku_has_nvswitch
     then
         systemctl is-active --quiet nvidia-fabricmanager
         check_exit_code "NVIDIA Fabricmanager is active" "NVIDIA Fabricmanager is inactive/dead!"
@@ -491,8 +614,12 @@ function verify_azure_persistent_rdma_naming_service {
 
 function verify_nvbandwidth_setup {
     # Verify nvbandwidth setup
+    # Nvbandwith is compiled in mulitple node, so we need to load mpi/hpcx module to run it
+    # See https://github.com/NVIDIA/nvbandwidth#multinode-benchmarks
+    module load mpi/hpcx
     /opt/nvidia/nvbandwidth/nvbandwidth
     check_exit_code "NV Bandwidth Installed!" "Issue with NV Bandwidth installation!"
+    module unload mpi/hpcx
 }
 
 function verify_nvloom_setup {

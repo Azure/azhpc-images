@@ -14,26 +14,26 @@
     "doca": {
         "ubuntu22.04": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "75b8d4258b7239ef5021abaa25e7eeb4fcbc0c8117cab89ce1a766d2d218c8a0",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2204_amd64.deb"
+                "version": "3.2.3",
+                "sha256": "f450b5eba37bfba96fcdd35c39bf1c17b88918bd4bc47e8d8bb2ecae18a2f24b",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host_3.2.3-019000-25.10-ubuntu2204_amd64.deb"
             }
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "3.2.2",
-                "sha256": "16e5f6cf50ad2e96e1b39dfd29979d17f9883ecd4a4fa7f71b98050b4f1f0e08",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_amd64.deb"
+                "version": "3.2.3",
+                "sha256": "762a3dbc1c8c1e4b03867b022ccafcfafa95bffe461a58a5b6e38fc678263614",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host_3.2.3-019000-25.10-ubuntu2404_amd64.deb"
             },
             "aarch64": {
+                "azure_vm_akshost":{
+                    "version": "3.1.0-091513-25.07-ubuntu2404",
+                    "file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
+                    "source": "private"
+                },
                 "version": "3.2.2",
                 "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
-            }
-        },
-        "ubuntu24.04-aks": {
-            "aarch64": {
-                "version": "3.1.0-091513-25.07-ubuntu2404"
             }
         },
         "almalinux8.10": {
@@ -43,11 +43,11 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel8.x86_64.rpm"
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "7b9bee723c1bb37388814160a6970f4a24e76801765c4d235a1db240e9ebe307",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel9.x86_64.rpm"
+                "version": "3.2.2",
+                "sha256": "97d2ff3f271bd7e324e2c25b17ac12fb22e91be3e8a4bdf50a399ced1e5a7bc9",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host-3.2.2-035000_25.10_rhel9.x86_64.rpm"
             }
         },
         "rhel8.10": {
@@ -71,21 +71,23 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel8.x86_64.rpm"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "7b9bee723c1bb37388814160a6970f4a24e76801765c4d235a1db240e9ebe307",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel9.x86_64.rpm"
+                "version": "3.2.2",
+                "sha256": "97d2ff3f271bd7e324e2c25b17ac12fb22e91be3e8a4bdf50a399ced1e5a7bc9",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host-3.2.2-035000_25.10_rhel9.x86_64.rpm"
             }
         }
     },
     "hpcx": {
         "ubuntu22.04": {
             "x86_64": {
-                "nvidia_v100": {
-                    "version": "2.24.1",
-                    "sha256": "6a999297fda98ca833c47a09a6a13e92d4f759d75a9258ec2355304d479e4653",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.24.1",
+                        "sha256": "6a999297fda98ca833c47a09a6a13e92d4f759d75a9258ec2355304d479e4653",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-ubuntu22.04-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.25.1",
                 "sha256": "f64228e4d54c6fc83d7ea9ad7048bad1545a58388c9baad9f335d16c881f5d9d",
@@ -94,29 +96,22 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "2.24.1",
-                        "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
-                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
-                    }
-                },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "2.24.1",
-                        "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
-                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
-                    }
+                "baremetal_3p": {
+                    "version": "2.24.1",
+                    "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
                 },
                 "version": "2.25.1",
                 "sha256": "cfc6816a4ac7932cf65e3f17a47106845728652cfd4d5ad71b0cb9b3ce2a9e48",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
             },
             "x86_64": {
-                "nvidia_v100": {
-                    "version": "2.25.1",
-                    "sha256": "12dced766fee0946210693ab7ee8b7a7491082a775db837bcfd73323f155e4a7",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.25.1",
+                        "sha256": "12dced766fee0946210693ab7ee8b7a7491082a775db837bcfd73323f155e4a7",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.25.1",
                 "sha256": "8767bea4f0967a6b0f5e1b31395a431bf5624eaf34c928f109bc2db985f26887",
@@ -125,22 +120,26 @@
         },
         "almalinux8.10": {
             "x86_64": {
-                "nvidia_v100": {
-                    "version": "2.25.1",
-                    "sha256": "80df70a0113b4ba23f34a06ab30ed0d740b2006d4503e683195a6f6d1b59e7f1",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.25.1",
+                        "sha256": "80df70a0113b4ba23f34a06ab30ed0d740b2006d4503e683195a6f6d1b59e7f1",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.25.1",
                 "sha256": "5af44cf5dba8efc33f4e596fdf838e217e5071ce6a355a3a75fc72b66a6e646c",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
-                "nvidia_v100": {
-                    "version": "2.25.1",
-                    "sha256": "006b976fd64e79eb26177fe45714252e78d0e09d27b8cdbf1baf7be6fee8fa32",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.25.1",
+                        "sha256": "006b976fd64e79eb26177fe45714252e78d0e09d27b8cdbf1baf7be6fee8fa32",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.25.1",
                 "sha256": "32d26857bd9c6aa47795b0eb354773b465d44e30784587258da0c91a8081df63",
@@ -156,11 +155,12 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "nvidia_v100":{
-                    "version": "2.24.1",
-                    "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
-            
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.24.1",
+                        "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda12/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.24.1",
                 "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
@@ -170,7 +170,7 @@
                 "version": "2.24.1",
                 "sha256": "ab0c053e98c67b4a08ce73c81eb74c87dbc56dd6a21558cd721ab34e46798b4c",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat9-cuda13-aarch64.tbz"
-           }
+            }
         },
         "rocky8.10": {
             "x86_64": {
@@ -179,7 +179,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "2.24.1",
                 "sha256": "d2bf870830c88d096a209fc33bb7af7643e755b660e43fe60a3e6139af1d3016",
@@ -209,7 +209,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
                 "version": "2.24.1",
                 "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
@@ -237,7 +237,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "2.24.1",
                 "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
@@ -267,7 +267,7 @@
             "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
             "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
                 "version": "4.1",
                 "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
@@ -288,7 +288,7 @@
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "4.0",
                 "sha256": "c532f7bdd5cca71f78c12e0885c492f6e276e283711806c84d0b0f80bb3e3b74",
@@ -311,19 +311,10 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "5.0.8",
-                        "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
-                        "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
-                    }
-                },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "5.0.8",
-                        "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
-                        "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
-                    }
+                "baremetal_3p": {
+                    "version": "5.0.8",
+                    "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
+                    "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
                 },
                 "version": "5.0.10",
                 "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
@@ -348,24 +339,29 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "driver": {
-                    "version": "580.126.20"
-                }
-            },
-            "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
+                "baremetal_3p": {
+                    "nvidia_h100": {
                         "driver": {
-                            "version": "580.126.20",
-                            "major_version": "580"
-                        },
-                        "imex": {
-                            "version": "580.126.20-1"
+                            "version": "580.126.20"
                         }
                     }
                 },
-                "nvidia_gb300": {
-                    "baremetal": {
+                "driver": {
+                    "version": "580.178.04"
+                }
+            },
+            "aarch64": {
+                "baremetal_3p": {
+                    "nvidia_gb200": {
+                        "driver": {
+                            "version": "580.159.04",
+                            "major_version": "580"
+                        },
+                        "imex": {
+                            "version": "580.159.04-1"
+                        }
+                    },
+                    "nvidia_gb300": {
                         "driver": {
                             "version": "580.126.20",
                             "major_version": "580"
@@ -384,17 +380,6 @@
                 }
             }
         },
-        "ubuntu24.04-aks": {
-            "aarch64": {
-                "driver": {
-                    "version": "580.105.08",
-                    "major_version": "580"
-                },
-                "imex": {
-                    "version": "580.105.08-1"
-                }
-            }
-        },
         "almalinux8.10": {
             "x86_64": {
                 "driver": {
@@ -408,7 +393,7 @@
                 }
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
                 "driver": {
                     "version": "580.126.20",
@@ -447,7 +432,7 @@
                 }
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "driver": {
                     "version": "580.105.08",
@@ -463,7 +448,7 @@
         "azurelinux3.0": {
             "aarch64": {
                 "imex": {
-                    "version": "580.105.08"
+                    "version": "580.159.04"
                 }
             }
         }
@@ -471,14 +456,16 @@
     "cuda": {
         "ubuntu22.04": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "ubuntu2204"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "ubuntu2204"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     }
                 },
                 "driver": {
@@ -493,25 +480,27 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "ubuntu2404"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "ubuntu2404"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
-                    }
-                },
-                "nvidia_ncv6": {
-                    "driver": {
-                        "version": "13.2",
-                        "distribution": "ubuntu2404"
-                    },
-                    "samples": {
-                        "version": "13.2",
-                        "sha256": "c7d8da987a43fd6ed7c2641df204dfc639768adbae070bc22f9df0e03005f7de"
-                    }
+                    "nvidia_ncv6": {
+                        "driver": {
+                            "version": "13.2",
+                            "distribution": "ubuntu2404"
+                        },
+                        "samples": {
+                            "version": "13.2",
+                            "sha256": "c7d8da987a43fd6ed7c2641df204dfc639768adbae070bc22f9df0e03005f7de"
+                        }
+                    }                    
                 },
                 "driver": {
                     "version": "13.0",
@@ -533,24 +522,18 @@
                 }
             }
         },
-        "ubuntu24.04-aks": {
-            "aarch64": {
-                "driver": {
-                    "version": "13.0",
-                    "distribution": "ubuntu2404"
-                }
-            }
-        },
         "almalinux8.10": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "rhel8"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "rhel8"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     }
                 },
                 "driver": {
@@ -563,17 +546,20 @@
                 }
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "rhel9"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
-                    }
+                "azure_vm_regular": {
+                    "nvidia_v100": 
+                        {
+                            "driver": {
+                                "version": "12.9",
+                                "distribution": "rhel9"
+                            },
+                            "samples": {
+                                "version": "12.9",
+                                "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                            }
+                        }
                 },
                 "driver": {
                     "version": "13.0",
@@ -598,15 +584,17 @@
             }
         },
         "azurelinux3.0": {
-            "x86_64":{
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "azl3"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+            "x86_64": {
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "azl3"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     }
                 },
                 "driver": {
@@ -631,14 +619,16 @@
         },
         "rocky8.10": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "rhel8"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "rhel8"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     }
                 },
                 "driver": {
@@ -651,16 +641,18 @@
                 }
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
-                "nvidia_v100": {
-                    "driver": {
-                        "version": "12.9",
-                        "distribution": "rhel9"
-                    },
-                    "samples": {
-                        "version": "12.9",
-                        "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "rhel9"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
                     }
                 },
                 "driver": {
@@ -684,34 +676,23 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "2.5.1-1",
-                        "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
-                        "distribution": "Ubuntu24_04"
-                    }
+                "baremetal_3p": {
+                    "version": "2.5.1-1",
+                    "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                    "distribution": "Ubuntu24_04"
                 },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "2.5.1-1",
-                        "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
-                        "distribution": "Ubuntu24_04"
-                    }
-                },                
+                "azure_vm_akshost": {
+                    "version": "2.5.1-1",
+                    "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                    "distribution": "Ubuntu24_04"
+                },
                 "version": "2.5.2-1",
                 "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                 "distribution": "Ubuntu24_04"
             },
             "x86_64": {
-                "version": "2.5.2-1",
-                "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
-                "distribution": "Ubuntu24_04"
-            }
-        },
-        "ubuntu24.04-aks": {
-            "aarch64": {
-                "version": "2.5.2-1",
-                "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
                 "distribution": "Ubuntu24_04"
             }
         },
@@ -722,7 +703,7 @@
                 "distribution": "el8"
             }
         },
-        "almalinux9.7": {
+        "almalinux9.8": {
             "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
@@ -755,7 +736,7 @@
                 "distribution": "el8"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
@@ -765,7 +746,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.29.7-1",
+            "version": "2.30.4-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -780,29 +761,19 @@
             "aarch64": {
                 "version": "2.28.9-1",
                 "rdmasharpplugins": {
-                    "commit": "master"
+                    "commit": "v2.7.x"
                 }
             }
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "2.28.3-1",
-                        "rdmasharpplugins": {
-                            "commit": "v2.7.x"
-                        }
+                "baremetal_3p": {
+                    "version": "2.28.3-1",
+                    "rdmasharpplugins": {
+                        "commit": "v2.7.x"
                     }
                 },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "2.28.3-1",
-                        "rdmasharpplugins": {
-                            "commit": "v2.7.x"
-                        }
-                    }
-                },
-                "version": "2.29.3-1",
+                "version": "2.29.7-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -816,17 +787,9 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "0.8",
-                        "url": "https://github.com/NVIDIA/nvbandwidth"
-                    }
-                },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "0.8",
-                        "url": "https://github.com/NVIDIA/nvbandwidth"
-                    }
+                "baremetal_3p": {
+                    "version": "0.8",
+                    "url": "https://github.com/NVIDIA/nvbandwidth"
                 },
                 "version": "0.9",
                 "url": "https://github.com/NVIDIA/nvbandwidth"
@@ -841,18 +804,16 @@
         },
         "ubuntu24.04": {
             "x86_64": {
-                "version": "1:4.5.2-1"
-            },
-            "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "1:4.4.2-1"
+                "baremetal_3p": {
+                    "nvidia_h100": {
+                        "version": "1:4.5.2-1"
                     }
                 },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "1:4.4.2-1"
-                    }
+                "version": "1:4.6.0-1"
+            },
+            "aarch64": {
+                "baremetal_3p": {
+                    "version": "1:4.4.2-1"
                 },
                 "version": "1:4.5.3-1"
             }
@@ -880,17 +841,9 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "2.14.0.1",
-                        "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
-                    }
-                },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "2.14.0.1",
-                        "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
-                    }
+                "baremetal_3p": {
+                    "version": "2.14.0.1",
+                    "sha256": "edcdfcbae753e1dd3b33d2fbe983f5b17def75441cdcc247a70fc8e19610e470"
                 },
                 "version": "2.15.0.1",
                 "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
@@ -919,7 +872,10 @@
             }
         },
         "ubuntu24.04": {
-            "aarch64":{
+            "aarch64": {
+                "version": "29.1.4-ubuntu24.04u1"
+            },
+            "x86_64":{
                 "version": "29.1.4-ubuntu24.04u1"
             }
         }
@@ -933,40 +889,47 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.2.0",
-                "sha256": "89084b49f7706ed8fa393bbaac501b2dfc74665f3a6ec6173aafe34a1bd23f32"
+                "version": "5.3.0",
+                "sha256": "e23282a94fbeded5bda38a099b61d044d082efc33a06f7b1ab835b36996c089c"
             },
             "aocc": {
-                "version": "5.0.0",
-                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
+                "version": "5.2.0",
+                "sha256": "f98af7e2ae8801dd4ba443520653acb739536a86c2a1caf096310c3cfd554ca0"
             }
         }
     },
     "lustre": {
-        "common": {
-            "version": "2.15.6-39-g3e00a10"
-        },
-        "almalinux9.7": {
+        "almalinux8.10": {
             "x86_64": {
-                "version": "2.15.7_33_g79ddf99"
+                "version": "2.15.8_35_gdf4872c"
+            }
+        },
+        "almalinux9.8": {
+            "x86_64": {
+                "version": "2.15.8_35_gdf4872c"
             }
         },
         "ubuntu22.04": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99"
+                "version": "2.15.8-35-gdf4872c"
             }
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.16.1-14-gbc76088"
+                "version": "2.17.0-24-gf517bc4"
             },
             "x86_64": {
-                "version": "2.16.1-14-gbc76088"
+                "version": "2.17.0-24-gf517bc4"
             }
         },
-        "rocky9.7": {
+        "rocky8.10": {
             "x86_64": {
-                "version": "2.15.7-33-g79ddf99"
+                "version": "2.15.8_35_gdf4872c"
+            }
+        },
+        "rocky9.8": {
+            "x86_64": {
+                "version": "2.15.8_35_gdf4872c"
             }
         }
     },
@@ -996,7 +959,7 @@
             "x86_64": {
                 "version": "5.0.1-1"
             },
-            "aarch64":{
+            "aarch64": {
                 "version": "5.0.1-1"
             }
         }
@@ -1011,7 +974,7 @@
     },
     "rocm": {
         "ubuntu22.04": {
-            "x86_64":{
+            "x86_64": {
                 "version": "6.2.4",
                 "url": "https://repo.radeon.com/amdgpu-install/6.2.4/ubuntu/jammy/amdgpu-install_6.2.60204-1_all.deb",
                 "sha256": "38ba7dbf74b2145e406d800772f7918b8cd53b3efb94f5f17cdea21497ef4dab"
@@ -1026,7 +989,7 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "6.2.2.1"
+                "version": "7.0.3"
             }
         },
         "rocky8.10": {
@@ -1036,7 +999,7 @@
                 "sha256": "29cd971c6a0226ea9c93463f2604d4448a99788bc15670dde67d15af24c17fb6"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "6.4.3",
                 "url": "https://repo.radeon.com/amdgpu-install/6.4.3/rhel/9.6/amdgpu-install-6.4.60403-1.el9.noarch.rpm",
@@ -1077,7 +1040,7 @@
                 "sha256": "2f4fdc54841e810e3f02ad96bbd113ef8fd2fca6f268ad12aa603c440737a22e"
             }
         },
-        "rocky9.7": {
+        "rocky9.8": {
             "x86_64": {
                 "version": "2.22.3",
                 "branch": "release/rocm-rel-6.4",
@@ -1096,17 +1059,9 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "nvidia_gb200": {
-                    "baremetal": {
-                        "version": "1.2.0",
-                        "url": "https://github.com/NVIDIA/nvloom.git"
-                    }
-                },
-                "nvidia_gb300": {
-                    "baremetal": {
-                        "version": "1.2.0",
-                        "url": "https://github.com/NVIDIA/nvloom.git"
-                    }
+                "baremetal_3p": {
+                    "version": "1.2.0",
+                    "url": "https://github.com/NVIDIA/nvloom.git"
                 },
                 "version": "2.0.0",
                 "url": "https://github.com/NVIDIA/nvloom.git"
@@ -1116,13 +1071,15 @@
     "dynolog": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dynolog.git"
+            "url": "https://github.com/jasontmsft/dynolog.git",
+            "commit": "1f61fd5e6d7499e7bd7531830cbe1f81b43ff815"
         }
     },
     "dyno_relay_logger": {
         "common": {
             "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dyno-relay-logger.git"
+            "url": "https://github.com/jasontmsft/dyno-relay-logger.git",
+            "commit": "97ef384edacde60cde30f76f4c1b683087c3b24c"
         }
     },
     "nvidia_grid": {

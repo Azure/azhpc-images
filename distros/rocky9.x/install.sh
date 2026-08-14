@@ -29,17 +29,23 @@ source ../../utils/set_properties.sh
 # Fix python3-setools bug for CycleCloud compatibility (Rocky 8.x only, but safe to run on 9.x)
 $COMPONENT_DIR/fix_setools_cyclecloud.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
+
+if [ "$GPU" = "AMD" ]; then
+    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
+    $COMPONENT_DIR/install_rocm.sh "$SKU"
+fi
 
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
+
+# install Lustre client (must run after install_doca + install_mpis so the
+# build-from-source path can use /usr/src/ofa_kernel/default and HPC-X)
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install mpifileutils
 $COMPONENT_DIR/install_mpifileutils.sh
@@ -51,22 +57,17 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 
-    # Install NVIDIA docker container
-    $COMPONENT_DIR/install_docker.sh
+fi
 
+# Install Docker container runtime
+$COMPONENT_DIR/install_docker.sh
+
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
-    # Set up docker for AMD
-    dnf install -y moby-engine moby-cli
-    systemctl enable docker
-    systemctl restart docker
-
-    # install rocm software stack
-    $COMPONENT_DIR/install_rocm.sh "$SKU"
-
     # install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
@@ -81,11 +82,17 @@ $COMPONENT_DIR/install_intel_libs.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
+
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
@@ -104,6 +111,9 @@ $COMPONENT_DIR/copy_test_file.sh
 
 # install Azure/NHC Health Checks
 $COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh

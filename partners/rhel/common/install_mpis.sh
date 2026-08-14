@@ -175,4 +175,7 @@ ln -s ${MPI_MODULE_FILES_DIRECTORY}/impi_${impi_2021_version} ${MPI_MODULE_FILES
 
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
-rm -rf -- */
+(
+	shopt -s dotglob nullglob
+	rm -rf -- */ || true
+)

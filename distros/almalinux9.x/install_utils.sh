@@ -3,6 +3,10 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+# Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
+# calls to Microsoft endpoints.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
 curl https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-prod.repo
@@ -74,15 +78,8 @@ wget https://repo.almalinux.org/vault/9.4/BaseOS/x86_64/os/Packages/environment-
 yum install -y environment-modules-5.3.0-1.el9.x86_64.rpm
 rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 
-## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+## Install kernel-abi-stablelists (needed by DOCA)
 yum install -y kernel-abi-stablelists
-
-## Disable kernel updates
-echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
-
-# Disable dependencies on kernel core
-sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
-sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 yum install -y pssh dkms subunit subunit-devel

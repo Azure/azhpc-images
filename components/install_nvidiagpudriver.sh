@@ -42,16 +42,43 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
     CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 
+    if [ "$ARCHITECTURE" = "aarch64" ]; then
+        CUDA_ARCHITECTURE="sbsa"
+    else
+        CUDA_ARCHITECTURE="x86_64"
+    fi
     # Add NVIDIA CUDA APT repo (provides both driver and toolkit packages)
-    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
+    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/${CUDA_ARCHITECTURE}/cuda-keyring_1.1-1_all.deb
     dpkg -i ./cuda-keyring_1.1-1_all.deb
     apt-get update
 
+    # MRC image uses local NVIDIA repo for nvidia driver packages
+    # The local NVIDIA repo and cuda repo downloaded from online contain the nvidia driver packages: prefer NVIDIA local repo over other sources
+    # Nvidia driver packages should be installed from the local NVIDIA repo
+    # Cuda toolkit packages should be installed from the downloaded CUDA repo
+    if _is_mrc_network; then
+        NVIDIA_GPU_DRIVER_REPO_FILE=$(jq -r '.driver.repo_file' <<< $nvidia_metadata)
+        dpkg -i $TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE
+        NVIDIA_GPU_DRIVER_REPO_DIR=$(echo $NVIDIA_GPU_DRIVER_REPO_FILE | awk -F'_' '{print $1}')
+        cp /var/$NVIDIA_GPU_DRIVER_REPO_DIR/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
+        
+        # Set preference BEFORE apt update so priority rules are applied during metadata refresh
+        cat <<EOF > /etc/apt/preferences.d/00-nvidia-prefer
+Package: *
+Pin: origin ""
+Pin-Priority: 1001
+EOF
+        apt update
+    fi
     # Pin the driver version and install via APT packages
     apt install nvidia-driver-pinning-${NVIDIA_DRIVER_VERSION} -y
+
     if [ "$SKU" = "V100" ]; then
         # V100 requires proprietary kernel modules
         apt install cuda-drivers -y
+    elif [[ "${NVLINK_RACKSCALE,,}" == "true" ]]; then
+        NVIDIA_GPU_DRIVER_MAJOR_VERSION=$(jq -r '.driver.major_version' <<< $nvidia_metadata)
+        apt install nvidia-dkms-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-driver-$NVIDIA_GPU_DRIVER_MAJOR_VERSION-open nvidia-modprobe -y
     else
         # A100, H100, H200 use open kernel modules
         apt install nvidia-open -y
@@ -100,7 +127,12 @@ write_component_version "NVIDIA" ${NVIDIA_DRIVER_VERSION}
 touch /etc/modules-load.d/nvidia-peermem.conf
 echo "nvidia_peermem" >> /etc/modules-load.d/nvidia-peermem.conf
 
-if [[ "$DISTRIBUTION" != *-aks ]]; then
+
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+    echo "options nvidia NVreg_GrdmaPciTopoCheckOverride=1" >> /etc/modprobe.d/nvidia.conf
+fi
+
+if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
     # Install CUDA toolkit
     CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
     CUDA_SAMPLES_VERSION=$(jq -r '.samples.version' <<< $cuda_metadata)
@@ -114,12 +146,32 @@ if [[ "$DISTRIBUTION" != *-aks ]]; then
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo
+
+        # DOCA ships mft tied to the kernel-mft-dkms it built; cuda-rhel9
+        # ships mft on a different cadence (sometimes newer). Letting
+        # cuda-rhel9 offer mft causes 'dnf check-update' to flag a
+        # stale-package upgrade in verify_package_updates and risks an
+        # accidental upgrade that breaks compat with the DOCA-built
+        # kernel-mft-dkms. mft must track DOCA, not CUDA. Same pattern as
+        # install_nvidia_fabric_manager.sh excluding nvidia-fabricmanager*
+        # from cuda-azl3 on AzureLinux 3, and a per-repo replacement for
+        # the (removed) global DOCA pin in install_doca.sh.
+        cuda_excludes="mft* kernel-mft*"
+        # CUDA 13 cccl packages obsolete cuda-cccl-12-*, which is still required
+        # by cuda-cudart-devel-12-* and makes later DNF transactions unsolvable.
+        if [[ "${CUDA_DRIVER_VERSION}" == 12.* ]]; then
+            cuda_excludes="${cuda_excludes} cccl-*"
+        fi
+
+        dnf config-manager --save \
+            --setopt="cuda-${CUDA_DRIVER_DISTRIBUTION}-x86_64.excludepkgs=${cuda_excludes}" >/dev/null
+
         dnf clean expire-cache
         dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
     fi
 
-    echo 'export PATH=$PATH:/usr/local/cuda/bin' | tee /etc/profile.d/cuda.sh > /dev/null
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64' | tee -a /etc/profile.d/cuda.sh > /dev/null
+    echo 'export PATH="${PATH:+$PATH:}/usr/local/cuda/bin"' | tee /etc/profile.d/cuda.sh > /dev/null
+    echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/local/cuda/lib64"' | tee -a /etc/profile.d/cuda.sh > /dev/null
 
     # Ensure proper permissions
     chmod 644 /etc/profile.d/cuda.sh
@@ -133,7 +185,7 @@ fi
 
 $COMPONENT_DIR/install_gdrcopy.sh
 
-if [[ "$ARCHITECTURE" != "aarch64" ]]; then
+if [[ "${NVLINK_RACKSCALE,,}" != "true" ]]; then
     # Install nvidia fabric manager (required for ND96asr_v4)
     $COMPONENT_DIR/install_nvidia_fabric_manager.sh
 else
@@ -146,18 +198,28 @@ else
     # Install NVIDIA IMEX
     nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)
     IMEX_VERSION=$(jq -r '.version' <<< $nvidia_imex_metadata)
-    tdnf install -y nvidia-imex-${IMEX_VERSION}
+
+    if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+        tdnf install -y nvidia-imex-${IMEX_VERSION}
+    elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        apt-get install nvidia-imex -y
+    else
+        echo "Unsupported distribution for nvidia-imex: $DISTRIBUTION"
+        exit 1
+    fi
+
+    write_component_version "IMEX" $IMEX_VERSION
 
     # Add configuration to /etc/modprobe.d/nvidia.conf
     cat <<EOF >> /etc/modprobe.d/nvidia.conf
 options nvidia NVreg_CreateImexChannel0=1
 EOF
 
-    grep -q 'RMBug5172204War=4' /etc/modprobe.d/nvidia.conf 2>/dev/null || \
-        echo 'options nvidia NVreg_RegistryDwords="RMBug5172204War=4"' | tee -a /etc/modprobe.d/nvidia.conf
-
-    # Ensure modprobe settings are available when nvidia module loads on next boot
-    dracut --force
+    if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+        dracut --force
+    else #ubuntu
+        sudo update-initramfs -u -k all
+    fi
 
     # Configuring nvidia-imex service
     systemctl enable nvidia-imex.service
@@ -168,4 +230,7 @@ $COMPONENT_DIR/configure_nvidia_persistence.sh
 
 # cleanup downloaded files
 rm -rf *.run *.tar.gz *.rpm
-rm -rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- */ || true
+)

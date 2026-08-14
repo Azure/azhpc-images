@@ -3,6 +3,10 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+# Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
+# calls to Microsoft endpoints.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Setup microsoft packages repository for moby
 # Download the repository configuration package
 curl https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-prod.repo
@@ -18,7 +22,7 @@ sudo dnf install -y wget \
                jq
 
 # Install Kernel dependencies
-# Rocky 9.7 kernel-devel installation requires complex fallback logic due to:
+# Rocky 9.x kernel-devel installation requires complex fallback logic due to:
 # 1. kernel-devel-matched may not always find exact match in active repositories
 # 2. Azure VMs may run on kernel versions only available in vault mirrors
 # 3. kernel-devel must exactly match running kernel for DKMS module builds (DOCA, ROCm drivers)
@@ -134,15 +138,8 @@ wget https://dl.rockylinux.org/vault/rocky/9.6/BaseOS/x86_64/os/Packages/e/envir
 dnf install -y environment-modules-5.3.0-1.el9.x86_64.rpm
 rm -f environment-modules-5.3.0-1.el9.x86_64.rpm
 
-## Install kernel-abi-stablelists (needed by DOCA) before locking kernel packages
+## Install kernel-abi-stablelists (needed by DOCA)
 dnf install -y kernel-abi-stablelists
-
-## Disable kernel updates (but not kernel-rpm-macros and other tools)
-echo "exclude=kernel kernel-core kernel-modules kernel-devel kernel-headers kernel-modules-extra" | tee -a /etc/dnf/dnf.conf
-
-# Disable dependencies on kernel core
-sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
-sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel

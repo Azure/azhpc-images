@@ -31,7 +31,7 @@ systemctl enable nvidia-persistenced.service
 
 # Do NOT start/restart nvidia-persistenced at build time. The daemon attaches
 # to /dev/nvidia* and exits non-zero if no GPU is present, which breaks builds
-# on general-purpose build SKUs (build_vm_size != vm_size). The unit is
+# on general-purpose build SKUs (build_vm_size != target_vm_size). The unit is
 # enabled above and Restart=always in its [Service] section, so it will come
 # up cleanly on first boot on the customer VM. Activation is verified after
 # reboot by `verify_nvidia_persistenced_service` in tests/test-definitions.sh

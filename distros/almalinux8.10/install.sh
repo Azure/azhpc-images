@@ -25,9 +25,6 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -36,6 +33,10 @@ $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
+
+# install Lustre client (must run after install_doca + install_mpis so the
+# build-from-source path can use /usr/src/ofa_kernel/default and HPC-X)
+$COMPONENT_DIR/install_lustre_client.sh
 
 # install mpifileutils
 $COMPONENT_DIR/install_mpifileutils.sh
@@ -65,11 +66,17 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
+
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
@@ -88,6 +95,9 @@ $COMPONENT_DIR/copy_test_file.sh
 
 # install Azure/NHC Health Checks
 $COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh

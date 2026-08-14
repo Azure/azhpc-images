@@ -24,23 +24,27 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.7, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.8, 3.0)"
   default     = "24.04"
 }
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.7, rocky8.10, rocky9.7, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
 locals {
   # derive os_version from os_family + distro_version if not explicitly set
-  os_version = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
+  os_version       = coalesce(var.os_version, var.os_family == "ubuntu" ? "${var.os_family}_${var.distro_version}" : "${var.os_family}${var.distro_version}")
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
-  os_family  = regex(local.os_version_regex, local.os_version)["os_family"]
-  distro_version = regex(local.os_version_regex, local.os_version)["distro_version"]
-  os_script_folder_name = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local.distro_version}"
+  os_family        = regex(local.os_version_regex, local.os_version)["os_family"]
+  distro_version   = regex(local.os_version_regex, local.os_version)["distro_version"]
+  # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
+  # share a single `9.x` folder since their install scripts are not minor-specific.
+  # All other distros pin to the minor.
+  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  os_script_folder_name            = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
 variable "kernel_version" {
@@ -57,11 +61,11 @@ locals {
     }
     "alma" = {
       "8.10" = "4.18"
-      "9.7"  = "5.14"
+      "9.8"  = "5.14"
     }
     "rocky" = {
       "8.10" = "4.18"
-      "9.7"  = "5.14"
+      "9.8"  = "5.14"
     }
     "azurelinux" = {
       "3.0" = "6.6"
@@ -75,10 +79,45 @@ locals {
   )
 }
 
-variable "vm_size" {
+variable "use_ubuntu_proposed_suite" {
+  type        = string
+  description = "Use Proposed Suite for Kernel Installation"
+  default     = env("USE_UBUNTU_PROPOSED_SUITE")
+}
+
+variable "use_ubuntu_ppa_repo" {
+  type        = string
+  description = "Use Kernel in Personal Package Archive (PPA) Repo"
+  default     = env("USE_UBUNTU_PPA_REPO")
+}
+
+variable "ubuntu_ppa_repo_name" {
+  type        = string
+  description = "Personal Package Archive Repo Name (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = env("UBUNTU_PPA_REPO_NAME")
+}
+
+variable "ubuntu_ppa_kernel_patch_version" {
+  type        = string
+  description = "Personal Package Archive Kernel Version (only for GB-Family, set to None for released kernels or non GB-Family SKUs)"
+  default     = env("UBUNTU_PPA_KERNEL_PATCH_VERSION")
+}
+
+locals {
+  use_ubuntu_proposed_suite         = try(convert(lower(var.use_ubuntu_proposed_suite), bool), false)
+  use_ubuntu_ppa_repo               = try(convert(lower(var.use_ubuntu_ppa_repo), bool), false)
+  ubuntu_ppa_repo_name              = coalesce(var.ubuntu_ppa_repo_name, "None")
+  ubuntu_ppa_kernel_patch_version   = coalesce(var.ubuntu_ppa_kernel_patch_version, "None")
+
+  # Validate: if use_ubuntu_ppa_repo is true, both PPA variables must be set (not "None")
+  _ppa_valid = !local.use_ubuntu_ppa_repo || (local.ubuntu_ppa_repo_name != "None" && local.ubuntu_ppa_kernel_patch_version != "None")
+  _ppa_check = local._ppa_valid ? true : file("ERROR: use_ubuntu_ppa_repo is true but ubuntu_ppa_repo_name and/or ubuntu_ppa_kernel_patch_version is not set")
+}
+
+variable "target_vm_size" {
   type        = string
   description = "VM SKU to target for the image."
-  default     = env("GPU_SIZE_OPTION")
+  default     = env("TARGET_VM_SIZE")
 }
 
 variable "build_vm_size" {
@@ -88,16 +127,18 @@ variable "build_vm_size" {
 }
 
 locals {
-  target_vm_size = coalesce(var.vm_size, "Standard_ND96asr_v4")
+  target_vm_size = coalesce(var.target_vm_size, "Standard_ND96asr_v4")
   build_vm_size  = coalesce(var.build_vm_size, local.target_vm_size)
 }
 
+# Placeholder for VR SKU Name
 locals {
   gpu_sku = (
     local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
     local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    local.target_vm_size == "Standard_ND128isr_NDR_GB200_v6" ? "GB200" :
-    local.target_vm_size == "Standard_NC128lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
+    contains(["Standard_ND128isr_NDR_GB200_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
+    contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
+    local.target_vm_size == "Standard_NC144lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
     "A100"
   )
   gpu_platform = (
@@ -114,10 +155,23 @@ locals {
   use_spot_instances = try(convert(lower(var.use_spot_instances), bool), false)
 }
 
+variable "accelerated_networking" {
+  type        = string
+  description = "Whether to enable accelerated networking for the build VM; false or unset lets Azure decide"
+  default     = env("ACCL_NW")
+}
+locals {
+  # use platform default (i.e. omit from underlying ARM template) if not explicitly set to true
+  accelerated_networking = try(convert(lower(var.accelerated_networking), bool), false) ? true : null
+}
+
 variable "ssh_username" {
   type        = string
   description = "SSH username for the build VM"
-  default     = "hpcuser"
+  default     = null
+}
+locals {
+  ssh_username = coalesce(var.ssh_username, local.target_node_type == "baremetal_1p" ? "azhpcuser" : "hpcuser")
 }
 
 variable "azure_resource_group" {
@@ -148,8 +202,8 @@ locals {
 }
 
 locals {
-  temp_resource_group_name = local.externally_managed_resource_group ? null : local.azure_resource_group # create rg if not externally managed
-  location = local.externally_managed_resource_group ? null : local.azure_location # location is only needed if Packer is creating the RG
+  temp_resource_group_name  = local.externally_managed_resource_group ? null : local.azure_resource_group # create rg if not externally managed
+  location                  = local.externally_managed_resource_group ? null : local.azure_location       # location is only needed if Packer is creating the RG
   build_resource_group_name = local.externally_managed_resource_group ? local.azure_resource_group : null # use existing rg if externally managed
 }
 
@@ -171,8 +225,8 @@ variable "skip_validation" {
   default     = null
 }
 locals {
-  # Skip validation if build_vm_size is set and different from vm_size (usually meaning using a general-purpose SKU for the build VM)
-  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.vm_size)) || var.skip_hpc)
+  # Skip validation if build_vm_size is set and different from target_vm_size (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
+  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.target_vm_size)) || var.skip_hpc)
 }
 
 variable "public_key" {
@@ -245,7 +299,7 @@ variable "current_user" {
 }
 
 locals {
-  owner_alias   = try(coalesce(
+  owner_alias = try(coalesce(
     var.owner_alias,
     var.build_requestedforemail,
     var.build_requestedfor,
@@ -273,18 +327,96 @@ variable "extra_tags" {
 locals {
   first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
-    "SkipASMAzSecPack" = "true"
+    "SkipASMAzSecPack"          = "true"
     },
-    (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? {"TipNode.SessionId" = local.tip_session_id} : {}
+    (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? { "TipNode.SessionId" = local.tip_session_id } : {}
   ) : {}
-  owner_tag = (local.owner_alias != null && local.owner_alias != "") ? {"Owner" = local.owner_alias} : {}
-  buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? {"BuildId" = var.build_buildid} : {}
+  owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
+  buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(
     local.first_party_tags,
     local.owner_tag,
     local.buildid_tag,
     var.extra_tags,
   )
+}
+
+# =============================================================================
+# In-Place Refresh Mode
+# =============================================================================
+# When refresh_mode is enabled, a previously built HPC image (from SIG) is used
+# as the base instead of a marketplace image. This allows upgrading components
+# in-place rather than building from scratch, dramatically reducing build time.
+# =============================================================================
+
+variable "refresh_mode" {
+  type        = string
+  description = "Enable in-place refresh mode: use a previous HPC image as base and upgrade components"
+  default     = env("REFRESH_MODE")
+}
+locals {
+  refresh_mode = try(convert(lower(var.refresh_mode), bool), false)
+}
+
+# Generic fix-up hook. When set, Packer runs an extra script on the build VM
+# after the (possibly skipped) component provisioning and before the final
+# tests. This is intended for one-off in-place-refresh fix-ups (e.g. disabling a
+# service) without hardcoding the specific fix into the build definition. Only
+# this generic mechanism lives on main; the specific fix-up scripts it runs
+# should live on temporary branches so they don't accumulate in the repo.
+variable "extra_provision_script" {
+  type        = string
+  description = "Optional path to an extra fix-up script to run on the build VM. Relative to the azhpc-images repo root (uploaded to the VM) or an absolute path already on the VM. Default: none."
+  default     = env("EXTRA_PROVISION_SCRIPT")
+}
+locals {
+  extra_provision_script     = var.extra_provision_script == null ? "" : trimspace(var.extra_provision_script)
+  run_extra_provision_script = local.extra_provision_script != ""
+}
+
+# Skip the prerequisites script (LTS kernel install + base package updates).
+# Useful for in-place refresh fix-ups that must not upgrade the kernel or any
+# packages and should only run the extra provision script.
+variable "skip_prerequisites" {
+  type        = string
+  description = "Skip the prerequisites script (LTS kernel install, package updates). Useful for in-place refresh fix-ups that should not upgrade the kernel or packages."
+  default     = env("SKIP_PREREQUISITES")
+}
+locals {
+  skip_prerequisites = try(convert(lower(var.skip_prerequisites), bool), false)
+}
+
+variable "refresh_base_image_id" {
+  type        = string
+  description = "Full SIG image version resource ID to use as base for refresh builds (e.g., /subscriptions/.../galleries/.../images/.../versions/...)"
+  default     = env("REFRESH_BASE_IMAGE_ID")
+}
+
+variable "refresh_base_image_version" {
+  type        = string
+  description = "SIG image version to use as base for refresh builds when using the same gallery (e.g., 2504.15.1). Alternative to refresh_base_image_id."
+  default     = env("REFRESH_BASE_IMAGE_VERSION")
+}
+locals {
+  # Build the full SIG image ID from gallery details + version when refresh_base_image_id is not directly provided
+  refresh_base_image_id = coalesce(
+    var.refresh_base_image_id,
+    var.refresh_base_image_version != null && var.refresh_base_image_version != "" ? "/subscriptions/${var.sig_subscription_id}/resourceGroups/${var.sig_resource_group_name}/providers/Microsoft.Compute/galleries/${var.sig_gallery_name}/images/${local.sig_image_name}/versions/${var.refresh_base_image_version}" : null,
+    "not-set"
+  )
+
+  # Validate that a base image is specified when refresh mode is enabled
+  _refresh_id_valid = !local.refresh_mode || local.refresh_base_image_id != "not-set"
+  _refresh_id_check = local._refresh_id_valid ? true : file("ERROR: refresh_mode is enabled but neither refresh_base_image_id nor refresh_base_image_version was provided")
+
+  # Parse the SIG image ID into components for the shared_image_gallery source block
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/galleries/{gallery}/images/{image}/versions/{version}
+  _refresh_id_parts          = local.refresh_mode ? split("/", local.refresh_base_image_id) : []
+  refresh_sig_subscription   = local.refresh_mode ? local._refresh_id_parts[2] : ""
+  refresh_sig_resource_group = local.refresh_mode ? local._refresh_id_parts[4] : ""
+  refresh_sig_gallery_name   = local.refresh_mode ? local._refresh_id_parts[8] : ""
+  refresh_sig_image_name     = local.refresh_mode ? local._refresh_id_parts[10] : ""
+  refresh_sig_image_version  = local.refresh_mode ? local._refresh_id_parts[12] : ""
 }
 
 # =============================================================================
@@ -377,7 +509,7 @@ locals {
 }
 
 locals {
-  create_image = try(convert(lower(var.create_image), bool), false)
+  create_image          = try(convert(lower(var.create_image), bool), false)
   skip_create_artifacts = !local.create_vhd && !local.create_image
 }
 
@@ -434,24 +566,26 @@ variable "sig_replication_regions" {
 }
 locals {
   # When enable_first_party_specifics is on and no explicit regions are provided,
-  # replicate to the same regions as the hpc-image-val pipeline (create_image.sh).
-  first_party_sig_replication_regions = (
-    local.gpu_sku == "MI300X"
-      ? ["westus", "francecentral", "eastus2euap", local.azure_location]
-      : local.gpu_sku == "NCv6"
-        ? ["centraluseuap", "westus2", "southeastasia", local.azure_location]
-        : local.target_image_variant == "baremetal_image" && local.gpu_sku == "GB200"
-          ? ["southeastus5", "northeastus5" ,local.azure_location]
-            : local.gpu_sku == "GB200"
-            ? ["centraluseuap", "eastus2euap" , "northeurope", "westeurope", local.azure_location]
-              : ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", local.azure_location]
+  # use the following pre-defined replication regions for internal workloads.
+  _sig_replication_regions_map = {
+    "MI300X"                 = ["westus", "francecentral", "eastus2euap"]
+    "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
+    "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
+    "GB200F"                 = ["southeastus5", "northeastus5", "centralus","westeurope", "eastus2euap"]
+    "A100"                   = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", "japaneast"]
+  }
+  _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
+
+  first_party_sig_replication_regions = concat(
+    try(local._sig_replication_regions_map[local.gpu_sku], local._sig_replication_default),
+    [local.azure_location]
   )
   sig_replication_regions = (
     var.sig_replication_regions != null
-      ? var.sig_replication_regions
-      : var.enable_first_party_specifics
-        ? distinct(local.first_party_sig_replication_regions)
-        : null
+    ? var.sig_replication_regions
+    : var.enable_first_party_specifics
+    ? distinct(local.first_party_sig_replication_regions)
+    : null
   )
 }
 
@@ -478,21 +612,9 @@ locals {
   azl_base_image_type = coalesce(var.azl_base_image_type, "Marketplace-Non-FIPS")
 }
 
-variable "azl_prebuilt_version" {
-  type        = string
-  description = "Version for Azure Linux prebuilt artifacts (e.g., 0.0.17)"
-  default     = env("AZL_PREBUILT_VERSION")
-}
-
 # =============================================================================
 # GB200 Specific Variables
 # =============================================================================
-
-variable "gb200_internal_bits_version" {
-  type        = string
-  description = "Version for Ubuntu 24.04 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("U24GB200_INTERNALBITS_VERSION")
-}
 
 variable "gb200_partuuid" {
   type        = string
@@ -500,30 +622,95 @@ variable "gb200_partuuid" {
   default     = env("PARTUUID")
 }
 
-variable "azl3gb200_prebuilt_version" {
+# =============================================================================
+# Internal Bits Variables
+# =============================================================================
+
+variable "internal_bits_container_name" {
   type        = string
-  description = "Version for AzureLinux 3.0 GB200 internal bits (e.g., 0.0.1)"
-  default     = env("AZL3GB200_PREBUILT_VERSION")
+  description = "Container name for internal bits (e.g., u24-gb200-internal)"
+  default     = env("INTERNAL_BITS_CONTAINER_NAME")
+}
+
+variable "internal_bits_blob_name" {
+  type        = string
+  description = "Blob name for internal bits (e.g., u24_gb200_internal_0.0.1)"
+  default     = env("INTERNAL_BITS_BLOB_NAME")
 }
 
 # =============================================================================
-# Target Image Variant Variables
+# Target Node Feature Variables
 # =============================================================================
 
-variable "target_image_variant" {
+variable "target_node_type" {
   type        = string
-  description = "Target image variant: regular, aks_host_image, or baremetal_image"
-  default     = env("TARGET_IMAGE_VARIANT")
+  description = "Target node type: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p"
+  default     = env("TARGET_NODE_TYPE")
   validation {
-    condition     = var.target_image_variant == null || contains(["regular", "aks_host_image", "baremetal_image", ""], var.target_image_variant)
-    error_message = "Target_image_variant must be one of: regular, aks_host_image, baremetal_image."
+    condition     = var.target_node_type == null || contains(["azure_vm_regular", "azure_vm_akshost", "baremetal_1p", "baremetal_3p", ""], var.target_node_type)
+    error_message = "Target_node_type must be one of: azure_vm_regular, azure_vm_akshost, baremetal_1p, baremetal_3p."
   }
 }
 locals {
-  target_image_variant = coalesce(var.target_image_variant, "regular")
-  aks_host_image = local.target_image_variant == "aks_host_image"
-  install_script_name = local.aks_host_image ? "install_aks.sh" : "install.sh"
-  aks_test_flag = local.aks_host_image ? "-aks-host" : ""
+  target_node_type = coalesce(var.target_node_type, "azure_vm_regular")
+  install_script_name = local.target_node_type == "azure_vm_akshost" ? "install_aks.sh" : "install.sh"
+
+  # Keep target-node compatibility keyed by target VM size, not GPU SKU. Multiple
+  # VM sizes can map to the same GPU SKU but still represent different build targets.
+  target_vm_size_allowed_node_types = {
+    "Standard_ND40rs_v2"                    = ["azure_vm_regular"]
+    "Standard_ND96asr_v4"                   = ["azure_vm_regular"]
+    "Standard_ND96amsr_A100_v4"             = ["azure_vm_regular"]
+    "Standard_ND96isr_MI300X_v5"            = ["azure_vm_regular"]
+    "Standard_ND128isr_NDR_GB200_v6"        = ["azure_vm_regular", "azure_vm_akshost", "baremetal_3p"]
+    "Standard_ND128isr_VR200_v6"            = ["azure_vm_regular"]
+    "Standard_NC144lds_xl_RTXPRO6000BSE_v6" = ["azure_vm_regular"]
+    "ND144ISR_ETH_GB200_METAL_V6"           = ["baremetal_1p"]
+    "ND144ISR_ETH_VR200_METAL_V6"           = ["baremetal_1p"]
+  }
+  target_vm_size_allowed_node_types_default = ["azure_vm_regular"]
+  target_vm_size_node_types = lookup(local.target_vm_size_allowed_node_types, local.target_vm_size, local.target_vm_size_allowed_node_types_default)
+  target_vm_size_node_type_valid = contains(local.target_vm_size_node_types, local.target_node_type)
+  _target_vm_size_node_type_check = local.target_vm_size_node_type_valid ? true : file("ERROR: Unsupported TARGET_VM_SIZE/TARGET_NODE_TYPE combination. Check target_vm_size_allowed_node_types in packer/variables.pkr.hcl.")
+}
+
+locals {
+  nvlink_rackscale = startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")
+}
+
+# =============================================================================
+# Credentials Variables
+# =============================================================================
+
+variable "ado_access_token" {
+  type        = string
+  description = "Access token for ADO Internal Repos"
+  default     = env("ADO_ACCESS_TOKEN")
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_user" {
+  type        = string
+  description = "First secret for baremetal_1p provisioning"
+  default     = null
+  sensitive   = true
+}
+
+variable "baremetal_1p_login_passwd" {
+  type        = string
+  description = "Second secret for baremetal_1p provisioning"
+  default     = env("BAREMETAL_1P_LOGIN_PASSWD")
+  sensitive   = true
+}
+
+locals {
+  baremetal_1p_login_user = coalesce(var.baremetal_1p_login_user, local.ssh_username)
+  _baremetal_1p_creds_valid = local.target_node_type != "baremetal_1p" || (
+    var.ado_access_token != null && var.ado_access_token != "" &&
+    local.baremetal_1p_login_user != null && local.baremetal_1p_login_user != "" &&
+    var.baremetal_1p_login_passwd != null && var.baremetal_1p_login_passwd != ""
+  )
+  _baremetal_1p_creds_check = local._baremetal_1p_creds_valid ? true : file("ERROR: Baremetal 1P build requires ADO_ACCESS_TOKEN and BAREMETAL_1P_LOGIN_PASSWD environment variables")
 }
 
 # =============================================================================
@@ -533,11 +720,11 @@ locals {
 # =============================================================================
 
 locals {
-  numeric_timestamp = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
-  
+  numeric_timestamp                 = formatdate("YYYYMMDDHHmmss", local.iso_format_start_time)
+
   # Image naming components
   distro_version_safe = replace(local.distro_version, ".", "-")
-  
+
   # Azure Linux base image type suffix (only for azurelinux)
   azl_type_suffix = local.os_family == "azurelinux" ? (
     local.azl_base_image_type == "Marketplace" ? "-mkt-fips" :
@@ -546,7 +733,7 @@ locals {
     local.azl_base_image_type == "1P-Non-FIPS" ? "-1p" :
     ""
   ) : ""
-  
+
   architecture = (startswith(local.gpu_sku, "GB") || startswith(local.gpu_sku, "VR")) ? "aarch64" : "x86_64"
   short_uuid   = substr(replace(lower(uuidv4()), "-", ""), 0, 6)
 
@@ -571,14 +758,14 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.7" = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
         },
         "rocky" = {
           "8.10" = ["resf", "rockylinux-x86_64", "8-base"],
-          "9.7"  = ["resf", "rockylinux-x86_64", "9-base"]
+          "9.8"  = ["resf", "rockylinux-x86_64", "9-base"]
         }
       },
       "Marketplace-FIPS" = {
@@ -617,12 +804,12 @@ locals {
   has_plan_info = contains(keys(local.builtin_marketplace_plan_info), local.os_family) && !local.use_direct_shared_gallery_base_image && length(local.custom_base_image_detail) == 0
 
   use_direct_shared_gallery_base_image = local.azl_base_image_type == "1P-FIPS" || local.azl_base_image_type == "1P-Non-FIPS" || (var.direct_shared_gallery_image_id != null && var.direct_shared_gallery_image_id != "")
-  custom_base_image_detail = compact([var.image_publisher, var.image_offer, var.image_sku])
-  marketplace_base_image_detail = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])
-  image_publisher = local.marketplace_base_image_detail[0]
-  image_offer = local.marketplace_base_image_detail[1]
-  image_sku = local.marketplace_base_image_detail[2]
-  direct_shared_gallery_image_id = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version]) : null
+  custom_base_image_detail             = compact([var.image_publisher, var.image_offer, var.image_sku])
+  marketplace_base_image_detail        = local.use_direct_shared_gallery_base_image ? [null, null, null] : (length(local.custom_base_image_detail) > 0 ? local.custom_base_image_detail : local.builtin_marketplace_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version])
+  image_publisher                      = local.marketplace_base_image_detail[0]
+  image_offer                          = local.marketplace_base_image_detail[1]
+  image_sku                            = local.marketplace_base_image_detail[2]
+  direct_shared_gallery_image_id       = local.use_direct_shared_gallery_base_image ? coalesce(var.direct_shared_gallery_image_id, local.builtin_direct_shared_gallery_base_image_details[local.architecture][local.azl_base_image_type][local.os_family][local.distro_version]) : null
 
   # Distribution string for azhpc-images scripts
   distribution = "${local.os_family}${local.distro_version}"
@@ -631,7 +818,10 @@ locals {
   internal_sig_image_definition_platform = local.gpu_platform == "AMD" ? "ROCm-" : ""
   internal_sig_image_definition_sku = (
     local.gpu_sku == "V100"  ? "V100-" :
-    local.gpu_sku == "GB200" ? "GB200-" :
+    local.gpu_sku == "GB200" && startswith(local.target_node_type, "azure_vm_") ? "GB200-" :
+    local.gpu_sku == "GB200" && local.target_node_type == "baremetal_1p" ? "GB200F-" :
+    local.gpu_sku == "VR200" && startswith(local.target_node_type, "azure_vm_") ? "VR200-" :
+    local.gpu_sku == "VR200" && local.target_node_type == "baremetal_1p" ? "VR200F-" :
     local.gpu_sku == "NCv6"  ? "NCv6-" :
     ""
   )
@@ -642,29 +832,29 @@ locals {
         "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "alma" = {
-        "8.10"  = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "9.7"   = "AlmaLinuxHPC-9.7-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+        "3.0" = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
       }
     },
     "Marketplace-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
+        "3.0" = "AzureLinuxHPC-3.0-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"
       }
     },
     "1P-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-1P-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+        "3.0" = "AzureLinuxHPC-3.0-1P-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
       }
     },
     "1P-Non-FIPS" = {
       "azurelinux" = {
-        "3.0"   = "AzureLinuxHPC-3.0-1P-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
+        "3.0" = "AzureLinuxHPC-3.0-1P-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-2"
       }
     }
   }
   internal_sig_image_definition = (local.skip_create_artifacts || local.is_experimental_image) ? (local.architecture == "x86_64" ? "Experimental" : "Experimental-arm64") : local.internal_sig_image_definition_details[local.azl_base_image_type][local.os_family][local.distro_version]
-  sig_image_name = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
+  sig_image_name                = var.sig_image_name != "" ? var.sig_image_name : local.internal_sig_image_definition
 }

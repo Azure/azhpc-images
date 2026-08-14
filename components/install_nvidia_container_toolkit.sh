@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Install NVIDIA Container Toolkit
 # Reference: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 # Setting up NVIDIA Container Toolkit
@@ -24,19 +26,17 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install --noplugins -y nvidia-container-toolkit-base nvidia-container-toolkit
     tdnf install --noplugins -y nvidia-container-runtime
-    sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "*nvidia-container*"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
     sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-    yum update -y
-
     yum clean expire-cache
     yum install -y nvidia-container-toolkit
 
     # Mark the installed packages on hold to disable updates
-    sed -i "$ s/$/ *nvidia-container*/" /etc/dnf/dnf.conf
+    dnf_pin_packages "*nvidia-container*"
 
     # Clean repos
     rm -rf /etc/yum.repos.d/nvidia-*
@@ -55,7 +55,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]] || [[ $DISTRIBUTION == *"almalinux"* ]] || 
     sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
 fi
 nvidia-ctk runtime configure --runtime=containerd --set-as-default
-if [ "$SKU" == "GB200" ]; then
+if [[ "${NVLINK_RACKSCALE,,}" == "true" ]]; then
     sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/config.toml
     sed -i 's/enable_cdi = false/enable_cdi = true/g' /etc/containerd/conf.d/*.toml 2>/dev/null || true
 fi

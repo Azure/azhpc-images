@@ -56,6 +56,6 @@ else
     yum install -y ./${FILENAME}
 
     # Prevent package from being updated after installation
-    sed -i "$ s/$/ ${PACKAGE_NAME}/" /etc/dnf/dnf.conf
+    dnf_pin_packages "${PACKAGE_NAME}"
 fi
 write_component_version "NVIDIA_FABRIC_MANAGER" ${NVIDIA_FABRICMANAGER_VERSION}

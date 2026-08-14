@@ -14,6 +14,11 @@ MPIFILEUTILS_SHA256=$(jq -r '.sha256' <<< $mpifileutils_metadata)
 INSTALL_PREFIX="/opt/mpifileutils"
 BUILD_DIR="/tmp/mpifileutils-build"
 SRC_DIR="/tmp/mpifileutils-src"
+LUSTRE_CMAKE_FLAG="ON"
+
+if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    LUSTRE_CMAKE_FLAG="OFF"
+fi
 
 echo "=== Installing mpifileutils ${MPIFILEUTILS_VERSION} ==="
 
@@ -50,7 +55,7 @@ cmake "${SRC_DIR}/mpifileutils-v${MPIFILEUTILS_VERSION}" \
     -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
     -DENABLE_XATTRS=ON \
     -DENABLE_LIBARCHIVE=ON \
-    -DENABLE_LUSTRE=OFF \
+    -DENABLE_LUSTRE="${LUSTRE_CMAKE_FLAG}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 

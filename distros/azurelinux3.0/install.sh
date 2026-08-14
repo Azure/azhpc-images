@@ -25,6 +25,11 @@ source ../../utils/set_properties.sh
 # install Mellanox OFED
 $COMPONENT_DIR/install_mofed.sh
 
+if [ "$GPU" = "AMD" ]; then
+    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
+    $COMPONENT_DIR/install_rocm.sh
+fi
+
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -41,7 +46,7 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
+    if [ "$SKU" = "GB200" ]; then
         # Install nvshmem
         $COMPONENT_DIR/install_nvshmem.sh
 
@@ -52,22 +57,17 @@ if [ "$GPU" = "NVIDIA" ]; then
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
     fi
     
-    # Install NVIDIA docker container
-    $COMPONENT_DIR/install_docker.sh
+fi
 
+# Install Docker container runtime
+$COMPONENT_DIR/install_docker.sh
 
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
-    # Set up docker
-    tdnf install -y moby-engine moby-cli
-    systemctl enable docker
-    systemctl restart docker
-
-    #install rocm software stack
-    $COMPONENT_DIR/install_rocm.sh    
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
@@ -87,13 +87,19 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
 
-if [ "$ARCHITECTURE" != "aarch64" ]; then
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
+
+if [[ "$SKU" != "GB200" ]]; then
     # Install AZNFS Mount Helper
     $COMPONENT_DIR/install_aznfs.sh
 
@@ -101,6 +107,9 @@ if [ "$ARCHITECTURE" != "aarch64" ]; then
     $COMPONENT_DIR/install_health_checks.sh "$GPU"
 
 fi
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh

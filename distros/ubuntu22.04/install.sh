@@ -24,20 +24,19 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# install Lustre client
-$COMPONENT_DIR/install_lustre_client.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
+
+if [ "$GPU" = "AMD" ]; then
+    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
+    $COMPONENT_DIR/install_rocm.sh
+fi
 
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
 # install mpi libraries
 $COMPONENT_DIR/install_mpis.sh
-
-# install mpifileutils
-$COMPONENT_DIR/install_mpifileutils.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
     # install nvidia gpu driver
@@ -46,24 +45,26 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
     
-    # Install NVIDIA docker container
-    $COMPONENT_DIR/install_docker.sh
+fi
 
+# Install Docker container runtime
+$COMPONENT_DIR/install_docker.sh
+
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
-    # Set up docker
-    apt-get install -y moby-engine
-    systemctl enable docker
-    systemctl restart docker
-
-    #install rocm software stack
-    $COMPONENT_DIR/install_rocm.sh    
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
+
+# install Lustre client
+$COMPONENT_DIR/install_lustre_client.sh
+
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
 
 # install AMD libs
 $COMPONENT_DIR/install_amd_libs.sh
@@ -78,11 +79,17 @@ $COMPONENT_DIR/install_dynolog_drl.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # optimizations
 $COMPONENT_DIR/hpc-tuning.sh
+
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
 # Install AZNFS Mount Helper
 $COMPONENT_DIR/install_aznfs.sh
@@ -104,6 +111,9 @@ $COMPONENT_DIR/copy_test_file.sh
 
 # install Azure/NHC Health Checks
 $COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
 
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh

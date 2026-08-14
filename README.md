@@ -43,17 +43,40 @@ az login
 # Initialize Packer with Azure plugin
 cd packer
 packer init .
-packer build --var 'vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --var 'azure_location=southcentralus' --on-error=run-cleanup-provisioner .
+packer build --var 'target_vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --var 'azure_location=southcentralus' --on-error=run-cleanup-provisioner .
 ```
 
 # Kernel Update/Patching
 
-Generally, OS kernel updates break compatibility of HPC components we install, e.g., Lustre. In our HPC images, the kernel is excluded from updates for this reason.
+Historically, OS kernel updates broke compatibility of HPC components we install (e.g., Lustre), so the kernel was excluded from updates. Lustre was the last component tightly coupled to a specific kernel version, and it has since been switched to DKMS. As a result, the kernel is **no longer locked by default** in our HPC images, and kernel updates are now allowed.
 
-- Ubuntu 22.04: [https://github.com/Azure/azhpc-images/blob/master/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc/install_prerequisites.sh#L5](https://github.com/Azure/azhpc-images/blob/master/ubuntu/ubuntu-22.x/ubuntu-22.04-hpc/install_prerequisites.sh#L5)
-- AlmaLinux 8.10: [https://github.com/Azure/azhpc-images/blob/master/alma/common/install_utils.sh#L66](https://github.com/Azure/azhpc-images/blob/master/alma/common/install_utils.sh#L67)
+If you prefer to keep the kernel from updating (e.g., to avoid a kernel update potentially breaking your environment), you can lock it yourself on the running VM:
 
-We implement it this way, since lots of kernel dependencies are installed which are highly coupled to a specific kernel version. Thus, kernel updates are not encouraged in our HPC images.
+- **AlmaLinux / Rocky Linux (dnf):**
+  ```bash
+    echo "exclude=kernel*" | tee -a /etc/dnf/dnf.conf
+    # Disable dependencies on kernel core
+    sed -i "$ s/$/ shim*/" /etc/dnf/dnf.conf
+    sed -i "$ s/$/ grub2*/" /etc/dnf/dnf.conf
+  ```
+- **Ubuntu (apt):**
+  ```bash
+  # Hold the Azure kernel meta-package (adjust the name to your installed kernel, e.g. linux-azure, linux-azure-6.8, linux-azure-lts-22.04, linux-azure-nvidia)
+  sudo apt-mark hold linux-azure linux-image-azure
+  ```
+- **Azure Linux (tdnf/dnf):**
+  ```bash
+    # Disable kernel updates
+    echo "exclude=kernel* kmod*" | tee -a /etc/dnf/dnf.conf
+    # Since tdnf is the default package manager and
+    # because /etc/tdnf/tdnf.conf does not recongnize
+    # exclude option adding a kernel package lock file
+    # https://github.com/vmware/tdnf/wiki/Configuration-Options#package-locks
+    mkdir -p /etc/tdnf/locks.d
+    echo kernel > /etc/tdnf/locks.d/kernel.conf # wild cards don't seem  to work
+    echo kernel-headers >> /etc/tdnf/locks.d/kernel.conf
+    echo kmod >> /etc/tdnf/locks.d/kernel.conf
+  ```
 
 Our HPC image releasing primary cadence is quarterly. In between releases, if we get flagged for security issues, we quickly apply the patch and release a hotfix in an adhoc fashion which can be done within a week or two.
 

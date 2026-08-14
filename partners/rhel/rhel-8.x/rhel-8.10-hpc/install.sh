@@ -63,8 +63,11 @@ $COMMON_DIR/install_intel_libs.sh
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
-rm -rf /var/cache/* || true
-rm -Rf -- */
+(
+    shopt -s dotglob nullglob
+    rm -rf -- /var/cache/* || true
+    rm -Rf -- */ || true
+)
 
 # Install NCCL
 $RHEL_COMMON_DIR/install_nccl.sh
@@ -100,6 +103,9 @@ df -h
 
 # install Azure/NHC Health Checks
 $COMMON_DIR/install_health_checks.sh NVIDIA
+
+# write kernel and OS version metadata
+$COMMON_DIR/write_kernel_os_version.sh
 
 # copy test file
 $COMMON_DIR/copy_test_file.sh

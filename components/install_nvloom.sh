@@ -1,6 +1,5 @@
 #!/bin/bash
-# intended for only aarch64
-# used for MNNVL test, which only exists on GB200/300
+# used for MNNVL test, which only exists on SKUs with rackscale NVLink (e.g. GB200, GB300, VR200)
 
 set -ex
 source ${UTILS_DIR}/utilities.sh
@@ -46,5 +45,5 @@ fi
 module unload mpi/hpcx
 
 rm -rf ./nvloom
- 
+
 write_component_version "NVLOOM" ${NVLOOM_VERSION}

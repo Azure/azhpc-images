@@ -983,7 +983,7 @@
         },
         "almalinux10.2": {
             "x86_64": {
-                "version": "2.17.0_24_gf517bc4"
+                "version": "2.17.0_25_g48fb0ca"
             }
         },
         "ubuntu22.04": {

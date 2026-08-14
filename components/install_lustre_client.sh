@@ -115,52 +115,6 @@ EOF
         "Ubuntu 22.04 ko2iblnd is record 11; --with-o2ib=no intentionally skips it."
 }
 
-# EL10 renamed keyutils-devel -> keyutils-libs-devel with no compat Provides.
-# amlfs lustre-client-dkms-*.el10 still Requires: keyutils-devel, so it is
-# uninstallable on EL10 even though the real headers (keyutils.h, libkeyutils.so)
-# ship in keyutils-libs-devel. Build a tiny compat RPM that Provides: keyutils-devel
-# and Requires: keyutils-libs-devel so dnf can resolve the dkms package.
-# TODO(EL10): remove once amlfs corrects the .el10 dep to keyutils-libs-devel
-# (tracked upstream with the AMLFS package team).
-install_keyutils_devel_compat_el10() {
-    local os_major=$1
-
-    [[ "${os_major}" == "10" ]] || return 0
-    # Skip if something already provides the name (e.g. amlfs fixed it, or a
-    # future keyutils-libs-devel adds the compat Provides).
-    if rpm -q --whatprovides keyutils-devel >/dev/null 2>&1; then
-        return 0
-    fi
-
-    # Ensure the real headers are present.
-    dnf install -y keyutils-libs-devel rpm-build
-
-    local specdir; specdir=$(mktemp -d)
-    cat > "${specdir}/keyutils-devel-compat.spec" <<'EOF'
-Name:           keyutils-devel-compat
-Version:        1.6.3
-Release:        5.el10
-Summary:        EL10 compat: provides keyutils-devel (renamed to keyutils-libs-devel)
-License:        MIT
-BuildArch:      noarch
-Provides:       keyutils-devel = %{version}-%{release}
-Requires:       keyutils-libs-devel
-
-%description
-On EL10 the keyutils-devel package was renamed to keyutils-libs-devel with no
-compat Provides. This shim supplies the old name so packages that still
-Require: keyutils-devel (e.g. amlfs lustre-client-dkms .el10) can install.
-The real headers come from keyutils-libs-devel.
-
-%files
-EOF
-
-    rpmbuild --define "_topdir ${specdir}/rpmbuild" \
-             -bb "${specdir}/keyutils-devel-compat.spec"
-    dnf install -y "${specdir}/rpmbuild/RPMS/noarch/keyutils-devel-compat-1.6.3-5.el10.noarch.rpm"
-    rm -rf "${specdir}"
-}
-
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
@@ -212,7 +166,6 @@ else
     configure_lustre_dkms_skip_artifact lustre-client "${LUSTRE_VERSION_UNDERSCORE}" 3 \
         "EL ko2iblnd is record 3; --with-o2ib=no intentionally skips it."
     configure_lustre_dkms_lu20071_patch "${LUSTRE_VERSION_UNDERSCORE}"
-    install_keyutils_devel_compat_el10 "${OS_MAJOR_VERSION}"      # Remove this line once amlfs fixes the .el10 dep to keyutils-libs-devel
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     check_dkms_status lustre-client
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}

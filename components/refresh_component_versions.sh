@@ -4,13 +4,13 @@ set -euo pipefail
 # =============================================================================
 # Refresh Component Versions
 # =============================================================================
-# Regenerates /opt/azurehpc/component_versions.txt by detecting installed
-# versions of all HPC components on the running system.
+# Refreshes /opt/azurehpc/component_versions.txt for components whose versions
+# can change during the prerequisite apt/dnf transaction.
 #
 # Used during "in-place refresh" builds: an existing HPC image is the base
 # and only `apt update` / `apt upgrade` runs. install_*.sh scripts do NOT
-# re-run, so the manifest can drift. This script rebuilds it from ground
-# truth (package managers, binaries, modulefiles, etc.).
+# re-run, so package-managed entries can drift. Pinned and source-installed
+# entries remain unchanged from their install-time values.
 #
 # Usage:
 #   sudo bash refresh_component_versions.sh [GPU_PLATFORM]
@@ -25,81 +25,35 @@ source "${SCRIPT_DIR}/../utils/utilities.sh" || { echo "ERROR: Failed to source 
 GPU_PLATFORM="${1:-NVIDIA}"
 COMPONENT_VERSIONS_FILE="/opt/azurehpc/component_versions.txt"
 
-# STRICT=1 fails the script if any REQUIRED detector returned empty.
-# Default is warn-only; write_version bumps REQUIRED_MISSING per miss.
-STRICT="${STRICT:-0}"
-REQUIRED_MISSING=0
-
 mkdir -p /opt/azurehpc
 
-# Refresh is non-destructive: write_version preserves existing entries when
-# detection returns empty, so components that can't be queried without
-# hardware (NVBANDWIDTH, NVLOOM, ...) keep the value written at install time.
+# Install scripts remain the source of truth for pinned and source-installed
+# components. Their install-time versions are often more precise than values
+# recoverable from a versionless prefix or CLI after installation.
 if [ ! -f "${COMPONENT_VERSIONS_FILE}" ]; then
     echo '{}' > "${COMPONENT_VERSIONS_FILE}"
 fi
 
-# Helper: write a component's version, classified by tier.
-#
-#   required    (default) — detector MUST succeed. Empty -> [WARN], bump
-#                 REQUIRED_MISSING, fail under STRICT=1. Prior entry is
-#                 still soft-preserved.
-#   best-effort — detector may legitimately fail (hardware-gated, no
-#                 on-disk version signal, etc). Empty is silent; the entry
-#                 written by install_*.sh is the source of truth.
+# Write a detected version, preserving the existing entry if detection fails.
 write_version() {
     local component="$1"
     local version="$2"
-    local tier="${3:-required}"
     if [[ -n "${version}" && "${version}" != "null" ]]; then
         write_component_version "${component}" "${version}"
         echo "  [OK] ${component} = ${version}"
         return
     fi
-    case "${tier}" in
-        best-effort)
-            echo "  [skip] ${component} (best-effort, keeping existing entry, if any)"
-            ;;
-        required|*)
-            echo "  [WARN] ${component} REQUIRED detector returned empty; keeping existing entry, if any"
-            REQUIRED_MISSING=$((REQUIRED_MISSING + 1))
-            ;;
-    esac
+    echo "  [WARN] ${component} detector returned empty; keeping existing entry, if any"
 }
 
 echo "=== Refreshing component_versions.txt ==="
 echo "GPU Platform: ${GPU_PLATFORM}"
 echo ""
 
-# ---- OS and Kernel ----
-echo "[System]"
+# ---- Kernel ----
+echo "[Kernel]"
 KERNEL_VERSION=$(uname -r)
 write_version "KERNEL" "${KERNEL_VERSION}"
-
-OS_VERSION=$(. /etc/os-release 2>/dev/null && echo "${ID}${VERSION_ID}" || true)
-write_version "OS" "${OS_VERSION}"
-
-# ---- CMAKE ----
-# install_cmake.sh drops the upstream tarball at /usr/local/bin/cmake.
-# Pin the lookup there: sudo's secure_path puts /usr/bin first on RHEL,
-# so any distro/EPEL cmake rpm would shadow the tarball and downgrade
-# the manifest. Fall back to PATH only if the install path is missing.
-echo "[CMake]"
-CMAKE_VERSION=""
-CMAKE_BIN=""
-for candidate in /usr/local/bin/cmake /usr/bin/cmake; do
-    if [ -x "${candidate}" ]; then
-        CMAKE_BIN="${candidate}"
-        break
-    fi
-done
-if [[ -z "${CMAKE_BIN}" ]] && command -v cmake &>/dev/null; then
-    CMAKE_BIN="$(command -v cmake)"
-fi
-if [[ -n "${CMAKE_BIN}" ]]; then
-    CMAKE_VERSION=$("${CMAKE_BIN}" --version 2>/dev/null | head -1 | awk '{print $3}' || true)
-fi
-write_version "CMAKE" "${CMAKE_VERSION}"
 
 # ---- DOCA / OFED ----
 echo "[DOCA/OFED]"
@@ -146,57 +100,6 @@ if [[ -z "${PMIX_VERSION}" ]]; then
     PMIX_VERSION=$(pkg-config --modversion pmix 2>/dev/null || true)
 fi
 write_version "PMIX" "${PMIX_VERSION}"
-
-# ---- MPI: HPC-X ----
-echo "[MPI Libraries]"
-HPCX_VERSION=""
-# HPC-X is usually installed under /opt/hpcx-*
-HPCX_DIR=$(ls -d /opt/hpcx-v* 2>/dev/null | sort -V | tail -1 || true)
-if [[ -n "${HPCX_DIR}" ]]; then
-    HPCX_VERSION=$(basename "${HPCX_DIR}" | sed 's/^hpcx-v//' | sed 's/-gcc.*//')
-fi
-write_version "HPCX" "${HPCX_VERSION}"
-
-# ---- MPI: MVAPICH / MVAPICH2 ----
-MVAPICH_VERSION=""
-MVAPICH_DIR=$(ls -d /opt/mvapich2-* 2>/dev/null | sort -V | tail -1 || true)
-if [[ -n "${MVAPICH_DIR}" ]]; then
-    MVAPICH_VERSION=$(basename "${MVAPICH_DIR}" | sed 's/^mvapich2-//')
-fi
-if [[ -n "${MVAPICH_VERSION}" ]]; then
-    write_version "MVAPICH2" "${MVAPICH_VERSION}"
-else
-    MVAPICH_DIR=$(ls -d /opt/mvapich-* 2>/dev/null | sort -V | tail -1 || true)
-    if [[ -n "${MVAPICH_DIR}" ]]; then
-        MVAPICH_VERSION=$(basename "${MVAPICH_DIR}" | sed 's/^mvapich-//')
-        write_version "MVAPICH" "${MVAPICH_VERSION}"
-    fi
-fi
-
-# ---- MPI: Open MPI ----
-OMPI_VERSION=""
-OMPI_DIR=$(ls -d /opt/openmpi-* 2>/dev/null | sort -V | tail -1 || true)
-if [[ -n "${OMPI_DIR}" ]]; then
-    OMPI_VERSION=$(basename "${OMPI_DIR}" | sed 's/^openmpi-//')
-fi
-write_version "OMPI" "${OMPI_VERSION}"
-
-# ---- MPI: Intel MPI ----
-# install_mpis.sh writes the precise marketing version (e.g. "2021.16.1"),
-# but Intel oneAPI's installer truncates the on-disk path to major.minor
-# (/opt/intel/oneapi/mpi/<major.minor>/) and mpirun --version reports the
-# same truncated value. No on-system source carries the full version.
-# /opt/intel is not apt/dnf-managed, so it can't drift across refreshes.
-# Best-effort: keep the install-time entry.
-IMPI_VERSION=""
-write_version "IMPI" "${IMPI_VERSION}" best-effort
-
-# ---- mpiFileUtils ----
-# install_mpifileutils.sh installs to the versionless prefix
-# /opt/mpifileutils/ with no on-disk version, no pkg-config, and no
-# reliable CLI --version. Not apt/dnf-managed, so best-effort soft-preserve.
-echo "[mpiFileUtils]"
-write_version "MPIFILEUTILS" "" best-effort
 
 # ---- NVIDIA Components ----
 if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
@@ -302,17 +205,6 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "CUDA" "${CUDA_VERSION}"
     
-    # NCCL
-    NCCL_VERSION=""
-    if command -v dpkg-query &>/dev/null; then
-        NCCL_VERSION=$(dpkg-query -W -f='${Version}' libnccl2 2>/dev/null | sed 's/+.*//' || true)
-    fi
-    if [[ -z "${NCCL_VERSION}" ]] && command -v rpm &>/dev/null; then
-        NCCL_VERSION=$(rpm -q --qf '%{VERSION}' libnccl 2>/dev/null || true)
-        [[ "${NCCL_VERSION}" == *"not installed"* ]] && NCCL_VERSION=""
-    fi
-    write_version "NCCL" "${NCCL_VERSION}"
-    
     # NVIDIA Fabric Manager
     # Prefer package-manager metadata: works on general SKUs, matches
     # install_nvidia_fabric_manager.sh. Keep '-<revision>' (e.g.
@@ -332,13 +224,14 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVIDIA_FABRIC_MANAGER" "${NFM_VERSION}"
 
-    # IMEX: only ships on GB200. Best-effort — empty result is expected
-    # everywhere else.
+    # IMEX only ships on GB200; absence is expected everywhere else.
     IMEX_VERSION=""
     if command -v dpkg-query &>/dev/null; then
         IMEX_VERSION=$(dpkg-query -W -f='${Version}' nvidia-imex-* 2>/dev/null | head -1 | sed 's/-.*//' || true)
     fi
-    write_version "IMEX" "${IMEX_VERSION}" best-effort
+    if [[ -n "${IMEX_VERSION}" ]]; then
+        write_version "IMEX" "${IMEX_VERSION}"
+    fi
     
     # DCGM
     # 'datacenter-gpu-manager-4-core' is CUDA-version-agnostic and is
@@ -366,18 +259,6 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "DCGM" "${DCGM_VERSION}"
 
-    # GDRCopy
-    # install_gdrcopy.sh writes the full version (e.g. '2.5.2-1'), but
-    # dpkg's Version field only has the upstream '2.5.2' (the '-1' lives
-    # in the .deb filename), so dpkg-query would downgrade the manifest.
-    # GDRCopy is pinned on every target distro (apt-mark hold on Ubuntu,
-    # dnf.conf exclude on RHEL, no auto-upgrade on AzureLinux), so it
-    # can't drift here. Best-effort soft-preserve keeps the precise
-    # install-time value (with '-<rev>' suffix) intact.
-    echo "[GDRCopy]"
-    GDRCOPY_VERSION=""
-    write_version "GDRCOPY" "${GDRCOPY_VERSION}" best-effort
-
     # Docker / Moby Engine
     echo "[Container Runtime]"
     DOCKER_VERSION=""
@@ -398,27 +279,6 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "MOBY_ENGINE" "${MOBY_VERSION}"
     
-    # NVIDIA Container Toolkit
-    # `nvidia-container-toolkit --version` prints two lines (version + commit).
-    # head -1 first so awk doesn't embed a newline into the JSON manifest.
-    NCTK_VERSION=""
-    if command -v nvidia-container-toolkit &>/dev/null; then
-        NCTK_VERSION=$(nvidia-container-toolkit --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
-    fi
-    write_version "NVIDIA_CONTAINER_TOOLKIT" "${NCTK_VERSION}"
-    
-    # NVBandwidth
-    # Binary lives at /opt/nvidia/nvbandwidth/ (not on PATH); `--version`
-    # initializes CUDA and fails on non-GPU SKUs, and there's no on-disk
-    # version metadata. Best-effort: keep install-time entry on general SKUs.
-    echo "[NVBandwidth]"
-    NVBANDWIDTH_VERSION=""
-    if [ -x /opt/nvidia/nvbandwidth/nvbandwidth ]; then
-        # Only succeeds when a GPU is present; harmless when it doesn't.
-        NVBANDWIDTH_VERSION=$(/opt/nvidia/nvbandwidth/nvbandwidth --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
-    fi
-    write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
-
     # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/tdnf); no /opt path.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
@@ -430,12 +290,9 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
         NVSHMEM_VERSION=$(rpm -qa 'libnvshmem3-cuda-*' --qf '%{VERSION}\n' 2>/dev/null \
             | sort -V | tail -1 || true)
     fi
-    write_version "NVSHMEM" "${NVSHMEM_VERSION}"
-
-    # NVLOOM: no on-disk version signal and the binary needs GPU/MPI.
-    # Best-effort soft-preserve.
-    echo "[NVLOOM]"
-    write_version "NVLOOM" "" best-effort
+    if [[ -n "${NVSHMEM_VERSION}" ]]; then
+        write_version "NVSHMEM" "${NVSHMEM_VERSION}"
+    fi
 fi
 
 # ---- AMD Components ----
@@ -455,140 +312,7 @@ if [[ "${GPU_PLATFORM}" == "AMD" ]]; then
     fi
     write_version "ROCM" "${ROCM_VERSION}"
 
-    # RCCL
-    # install_rccl.sh builds from source into the versionless prefix
-    # /opt/rccl/ — no version on disk and not apt/dnf-managed, so it can't
-    # drift. Best-effort soft-preserve keeps the install-time value.
-    # (A previous glob-based detector accidentally picked up /opt/rccl-tests/
-    # and produced the literal string "tests".)
-    RCCL_VERSION=""
-    write_version "RCCL" "${RCCL_VERSION}" best-effort
 fi
-
-# ---- AMD CPU compilers / libs (installed on x86_64 for BOTH NVIDIA and AMD
-# GPU builds via components/install_amd_libs.sh) ----
-echo "[AMD CPU Libraries]"
-
-# AOCL — install_amd_libs.sh flattens lib/include into /opt/amd; the version
-# is preserved only in the modulefile name (e.g. amd/aocl-5.1.0).
-AOCL_VERSION=""
-AOCL_MODULEFILE=$(ls -1 \
-    /usr/share/modules/modulefiles/amd/aocl-* \
-    /usr/share/Modules/modulefiles/amd/aocl-* \
-    2>/dev/null | grep -v '/aocl$' | sort -V | tail -1 || true)
-if [[ -n "${AOCL_MODULEFILE}" ]]; then
-    AOCL_VERSION=$(basename "${AOCL_MODULEFILE}" | sed 's/^aocl-//')
-fi
-write_version "AOCL" "${AOCL_VERSION}"
-
-# AOCC — install_amd_libs.sh copies the extracted folder to
-# /opt/amd/aocc-compiler-<version>/.  Some legacy images use uppercase
-# /opt/AMD/aocc-compiler-<version>/ (AMD installer default), so check both.
-AOCC_VERSION=""
-AOCC_DIR=$(ls -d /opt/amd/aocc-compiler-* /opt/AMD/aocc-compiler-* 2>/dev/null | sort -V | tail -1 || true)
-if [[ -n "${AOCC_DIR}" ]]; then
-    AOCC_VERSION=$(basename "${AOCC_DIR}" | sed 's/^aocc-compiler-//')
-fi
-# Last-resort fallback: query the installed clang binary that ships with AOCC.
-if [[ -z "${AOCC_VERSION}" ]]; then
-    for clang_bin in /opt/amd/aocc-compiler-*/bin/clang /opt/AMD/aocc-compiler-*/bin/clang; do
-        if [[ -x "${clang_bin}" ]]; then
-            AOCC_VERSION=$("${clang_bin}" --version 2>/dev/null \
-                | sed -nE 's/.*AOCC[_ ]([0-9][0-9.]*).*/\1/p' | head -1 || true)
-            [[ -n "${AOCC_VERSION}" ]] && break
-        fi
-    done
-fi
-write_version "AOCC" "${AOCC_VERSION}"
-
-# ---- Intel MKL ----
-# install_intel_libs.sh writes the precise version (e.g. "2025.3.1.11"),
-# but oneAPI's installer truncates the on-disk dir to major.minor
-# (/opt/intel/oneapi/mkl/<major.minor>/). Same story as IMPI: /opt/intel
-# isn't apt/dnf-managed, so it can't drift here. Best-effort soft-preserve.
-echo "[Intel Libraries]"
-INTEL_MKL_VERSION=""
-write_version "INTEL_ONE_MKL" "${INTEL_MKL_VERSION}" best-effort
-
-# ---- Lustre ----
-# Prefer package-manager metadata to round-trip with install_lustre_client.sh:
-#   Ubuntu repo:      suffix from amlfs-lustre-client[-dkms]-<version>
-#   RHEL repo:        suffix from (lustre-client-dkms|amlfs-lustre-client)-<version>
-#   Legacy/source:    package-manager ${Version} / lfs fallback
-# `lfs --version` only returns the build's internal version (no Debian
-# revision); last-resort fallback only.
-echo "[Lustre]"
-LUSTRE_VERSION=""
-if command -v dpkg-query &>/dev/null; then
-    LUSTRE_VERSION=$(dpkg-query -W -f='${Package}\n' 'amlfs-lustre-client-*' 2>/dev/null \
-        | sed -nE 's/^amlfs-lustre-client-(dkms-)?(.+)$/\2/p' | sort -V | tail -1 || true)
-    # Legacy source-build path installed lustre-client-utils.
-    if [[ -z "${LUSTRE_VERSION}" ]]; then
-        LUSTRE_VERSION=$(dpkg-query -W -f='${Version}\n' lustre-client-utils 2>/dev/null \
-            | head -1 | cut -d'~' -f1 || true)
-    fi
-fi
-if [[ -z "${LUSTRE_VERSION}" ]] && command -v rpm &>/dev/null; then
-    LUSTRE_VERSION=$(rpm -qa 'lustre-client-dkms-*' 'amlfs-lustre-client-*' --qf '%{NAME}\n' 2>/dev/null \
-        | sed -nE 's/^(lustre-client-dkms|amlfs-lustre-client)-(.+)$/\2/p' \
-        | sort -V | tail -1 || true)
-fi
-if [[ -z "${LUSTRE_VERSION}" ]] && command -v rpm &>/dev/null; then
-    LUSTRE_VERSION=$(rpm -qa 'lustre-client*' --qf '%{VERSION}-%{RELEASE}\n' 2>/dev/null \
-        | grep -v '^1-1\.el' | head -1 || true)
-fi
-if [[ -z "${LUSTRE_VERSION}" ]] && command -v lfs &>/dev/null; then
-    LUSTRE_VERSION=$(lfs --version 2>/dev/null | awk '{print $2}' || true)
-fi
-write_version "LUSTRE" "${LUSTRE_VERSION}"
-
-# ---- dynolog / dyno_relay_logger ----
-# install_dynolog_drl.sh builds from a git tag into /usr/local/bin with no
-# package and no version sidecar. CLI --version formats aren't stable.
-# Best-effort: install-time entry is source of truth; /usr/local/bin can't
-# drift via apt.
-echo "[Dynolog]"
-DYNOLOG_VERSION=""
-if command -v dynolog &>/dev/null; then
-    if command -v dpkg-query &>/dev/null; then
-        DYNOLOG_VERSION=$(dpkg-query -W -f='${Version}' dynolog 2>/dev/null | sed 's/-.*//' || true)
-    fi
-    if [[ -z "${DYNOLOG_VERSION}" ]] && command -v rpm &>/dev/null; then
-        DYNOLOG_VERSION=$(rpm -q --qf '%{VERSION}' dynolog 2>/dev/null || true)
-        [[ "${DYNOLOG_VERSION}" == *"not installed"* ]] && DYNOLOG_VERSION=""
-    fi
-fi
-write_version "dynolog" "${DYNOLOG_VERSION}" best-effort
-
-DRL_VERSION=""
-if command -v dyno_relay_logger &>/dev/null; then
-    DRL_VERSION=$(dyno_relay_logger --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
-fi
-write_version "dyno_relay_logger" "${DRL_VERSION}" best-effort
-
-# ---- Monitoring Tools (Moneo) ----
-# install_monitoring_tools.sh extracts Moneo to /opt/azurehpc/tools/Moneo/
-# without a version sidecar. Best-effort soft-preserve.
-echo "[Monitoring]"
-MONEO_VERSION=""
-if [ -d /opt/azurehpc/tools/Moneo ]; then
-    if [ -f /opt/azurehpc/tools/Moneo/version.txt ]; then
-        MONEO_VERSION=$(cat /opt/azurehpc/tools/Moneo/version.txt 2>/dev/null || true)
-    fi
-fi
-write_version "MONEO" "${MONEO_VERSION}" best-effort
-
-# ---- Azure Health Checks ----
-# install_health_checks.sh clones to /opt/azurehpc/test/azurehpc-health-checks/
-# without a version sidecar. Best-effort soft-preserve.
-echo "[Health Checks]"
-AZHC_VERSION=""
-if [ -d /opt/azurehpc/test/azurehpc-health-checks ]; then
-    if [ -f /opt/azurehpc/test/azurehpc-health-checks/version.txt ]; then
-        AZHC_VERSION=$(cat /opt/azurehpc/test/azurehpc-health-checks/version.txt 2>/dev/null || true)
-    fi
-fi
-write_version "AZ_HEALTH_CHECKS" "${AZHC_VERSION}" best-effort
 
 # ---- WAAgent ----
 # On Alma9/Rocky9/RHEL9, install_waagent.sh installs WALinuxAgent via
@@ -640,20 +364,8 @@ write_version "WAAGENT" "${WAAGENT_VERSION}"
 write_version "WAAGENT_EXTENSIONS" "${WAAGENT_EXT_VERSION}"
 
 echo ""
-if [[ "${REQUIRED_MISSING}" -gt 0 ]]; then
-    echo "WARNING: ${REQUIRED_MISSING} REQUIRED detector(s) returned empty."
-    echo "         Inherited manifest entries may be STALE if apt upgrade"
-    echo "         changed the underlying packages. Audit the [WARN] lines"
-    echo "         above and fix detectors in refresh_component_versions.sh."
-fi
 echo "=== component_versions.txt refresh complete ==="
 echo "Output: ${COMPONENT_VERSIONS_FILE}"
 echo ""
 echo "Contents:"
 cat "${COMPONENT_VERSIONS_FILE}"
-
-if [[ "${REQUIRED_MISSING}" -gt 0 && "${STRICT}" == "1" ]]; then
-    echo ""
-    echo "STRICT=1: failing build because ${REQUIRED_MISSING} REQUIRED detector(s) returned empty."
-    exit 1
-fi

@@ -17,6 +17,21 @@
             "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
             "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
         },
+        "ubuntu22.04": {
+            "x86_64": {
+                "azure_vm_regular": {
+                    "amd_mi300x": {
+                        "_comment": "CMake 4.4.x makes the RCCL 2.20.5 (rocm-6.2.4) build emit no collective device kernels, so librccl.so links successfully but every ncclAllReduce fails with 'computeCollWorkFunc: unsupported collective'. Keep 4.3.3 until the RCCL source build is fixed.",
+                        "version": "4.3.3",
+                        "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
+                        "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
+                    }
+                },
+                "version": "4.4.2",
+                "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
+                "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
+            }
+        },
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {

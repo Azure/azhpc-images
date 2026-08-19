@@ -7,6 +7,14 @@ source ${UTILS_DIR}/utilities.sh
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
+# The legacy TDNF repo metadata plugin uses root's per-user GnuPG keyring,
+# which is removed when the image is deprovisioned. Disable only this plugin;
+# DNF and RPM package signature checks remain enabled.
+tdnf_repogpgcheck_config=/etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf
+if [[ -f "$tdnf_repogpgcheck_config" ]]; then
+    sed -i 's/^enabled=.*/enabled=0/' "$tdnf_repogpgcheck_config"
+fi
+
 # Install Kernel dependencies
 if [ "$ARCHITECTURE" = "aarch64" ]; then
     dnf install -y kernel-hwe-devel-$(uname -r) \

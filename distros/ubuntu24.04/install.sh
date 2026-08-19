@@ -25,11 +25,6 @@ source ${UTILS_DIR}/utilities.sh
 
 ./install_utils.sh
 
-if [ "$SKU" != "GB200" ]; then
-    # update cmake
-    $COMPONENT_DIR/install_cmake.sh
-fi
-
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
 if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
     $COMPONENT_DIR/install_doca.sh

@@ -11,40 +11,6 @@
             "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"
         }
     },
-    "cmake": {
-        "common": {
-            "version": "4.4.2",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
-            "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
-        },
-        "ubuntu22.04": {
-            "x86_64": {
-                "azure_vm_regular": {
-                    "amd_mi300x": {
-                        "_comment": "CMake 4.4.x makes the RCCL 2.20.5 (rocm-6.2.4) build emit no collective device kernels, so librccl.so links successfully but every ncclAllReduce fails with 'computeCollWorkFunc: unsupported collective'. Keep 4.3.3 until the RCCL source build is fixed.",
-                        "version": "4.3.3",
-                        "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
-                        "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
-                    }
-                },
-                "version": "4.4.2",
-                "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
-                "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
-            }
-        },
-        "ubuntu24.04": {
-            "aarch64": {
-                "baremetal_3p": {
-                    "version": "4.1.1",
-                    "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
-                    "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
-                },
-                "version": "4.3.1",
-                "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
-                "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
-            }
-        }
-    },
     "doca": {
         "ubuntu22.04": {
             "x86_64": {

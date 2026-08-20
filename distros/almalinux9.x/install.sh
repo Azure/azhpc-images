@@ -25,9 +25,6 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# update cmake
-$COMPONENT_DIR/install_cmake.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 

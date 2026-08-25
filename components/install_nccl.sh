@@ -16,7 +16,7 @@ NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    apt install -y build-essential devscripts debhelper fakeroot
+    apt install -y build-essential devscripts debhelper fakeroot patchelf
     # Comment the installation of libibverbs-dev to avoid conflicts on builds for bare metal 1P nodes
     # For VM it has been installed via the install_utils.sh or install_doca.sh
     apt install -y zlib1g-dev # libibverbs-dev
@@ -24,7 +24,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y rpm-build rpmdevtools autoconf automake git libtool patchelf
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    yum install -y rpm-build rpmdevtools 
+    yum install -y rpm-build rpmdevtools patchelf
 fi
 
 pushd /tmp

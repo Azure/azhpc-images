@@ -24,8 +24,8 @@ pushd ${AOCL_FOLDER}
 cp -r amd/${AOCL_VERSION}/aocc/* ${INSTALL_PREFIX}
 AOCL_MT_ROOT="${INSTALL_PREFIX}/MT"
 if [[ ! -d "${AOCL_MT_ROOT}/lib" || ! -d "${AOCL_MT_ROOT}/include" ]]; then
-    echo "AOCL MT installation is incomplete: expected ${AOCL_MT_ROOT}/lib and ${AOCL_MT_ROOT}/include" >&2
-    exit 1
+	echo "AOCL MT installation is incomplete: expected ${AOCL_MT_ROOT}/lib and ${AOCL_MT_ROOT}/include" >&2
+	exit 1
 fi
 ln -sfn "${AOCL_MT_ROOT}/lib" "${INSTALL_PREFIX}/lib"
 ln -sfn "${AOCL_MT_ROOT}/include" "${INSTALL_PREFIX}/include"

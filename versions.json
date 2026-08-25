@@ -11,31 +11,12 @@
             "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"
         }
     },
-    "cmake": {
-        "common": {
-            "version": "4.4.2",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.4.2/cmake-4.4.2-linux-x86_64.tar.gz",
-            "sha256": "3ada9a3f5d8a85413579bdd0ea6aa8e8da86efdd6d15c91a1afa517f2021956c"
-        },
-        "ubuntu24.04": {
-            "aarch64": {
-                "baremetal_3p": {
-                    "version": "4.1.1",
-                    "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
-                    "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
-                },
-                "version": "4.3.1",
-                "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
-                "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
-            }
-        }
-    },
     "doca": {
         "ubuntu22.04": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "75b8d4258b7239ef5021abaa25e7eeb4fcbc0c8117cab89ce1a766d2d218c8a0",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2204_amd64.deb"
+                "version": "3.2.3",
+                "sha256": "f450b5eba37bfba96fcdd35c39bf1c17b88918bd4bc47e8d8bb2ecae18a2f24b",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host_3.2.3-019000-25.10-ubuntu2204_amd64.deb"
             }
         },
         "ubuntu24.04": {
@@ -387,7 +368,7 @@
                     }
                 },
                 "driver": {
-                    "version": "580.173.02"
+                    "version": "580.178.04"
                 }
             },
             "aarch64": {
@@ -961,12 +942,12 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.2.0",
-                "sha256": "89084b49f7706ed8fa393bbaac501b2dfc74665f3a6ec6173aafe34a1bd23f32"
+                "version": "5.3.0",
+                "sha256": "e23282a94fbeded5bda38a099b61d044d082efc33a06f7b1ab835b36996c089c"
             },
             "aocc": {
-                "version": "5.0.0",
-                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
+                "version": "5.2.0",
+                "sha256": "f98af7e2ae8801dd4ba443520653acb739536a86c2a1caf096310c3cfd554ca0"
             }
         }
     },

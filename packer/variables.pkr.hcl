@@ -572,7 +572,7 @@ locals {
     "NCv6"                   = ["centraluseuap", "westus2", "southeastasia"]
     "GB200"                  = ["centraluseuap", "eastus2euap", "northeurope", "westeurope"]
     "GB200F"                 = ["southeastus5", "northeastus5", "centralus","westeurope", "eastus2euap"]
-    "A100"                   = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", "japaneast"]
+    "A100"                   = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap", "japaneast", "westeurope"]
   }
   _sig_replication_default = ["southcentralus", "northcentralus", "westcentralus", "westus", "westus2", "westus3", "eastus", "eastus2", "centralus", "centraluseuap"]
 

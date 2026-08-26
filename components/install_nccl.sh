@@ -84,7 +84,7 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
 
     if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose
-    elif [[ $DISTRIBUTION == almalinux10* ]]; then
+    elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
         dnf install -y patchelf
     fi
 

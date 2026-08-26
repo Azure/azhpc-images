@@ -40,7 +40,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         postfix="x86_64"
     fi
     PMIX_VERSION=$(tdnf list installed | grep -i pmix.${postfix} | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
-elif [[ $DISTRIBUTION == almalinux10* ]]; then
+elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
     # EL10: PMC does not yet ship a slurm-el10/pmix package. Build PMIx from the
     # upstream openpmix GitHub release into /opt/pmix/<ver> so install_mpis.sh can
     # rebuild HPC-X's Open MPI against it via --with-pmix=${PMIX_PATH}.

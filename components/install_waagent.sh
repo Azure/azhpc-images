@@ -52,7 +52,7 @@ else
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install distro
         python3 setup.py install --register-service
-    elif [[ $DISTRIBUTION == almalinux9* ]] || [[ $DISTRIBUTION == rocky9* ]] || [[ $DISTRIBUTION == rhel9* ]] || [[ $DISTRIBUTION == almalinux10* ]]; then
+    elif [[ $DISTRIBUTION == almalinux9* ]] || [[ $DISTRIBUTION == rocky9* ]] || [[ $DISTRIBUTION == rhel9* ]] || [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
         python3.12 -m ensurepip --upgrade  # Ensures pip is available
         python3.12 -m pip install --upgrade pip setuptools
         python3.12 -m pip install distro

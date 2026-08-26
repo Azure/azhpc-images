@@ -25,7 +25,7 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
     tdnf install -y docker-buildx
-elif [[ $DISTRIBUTION == almalinux10* ]]; then
+elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
     # Microsoft's moby-* packages are not (yet) published for EL10; use upstream
     # Docker CE, which provides docker-ce (engine), docker-ce-cli, and
     # docker-buildx-plugin for the EL10 family.

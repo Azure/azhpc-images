@@ -51,44 +51,6 @@ BUILD_EXCLUSIVE_KERNEL[${slot}]="^$"
 EOF
 }
 
-configure_lustre_dkms_lu20071_patch() {
-    local module=lustre-client
-    local module_version=$1
-    local kernel_header=/lib/modules/$(uname -r)/build/include/linux/timer.h
-    local dkms_conf=/etc/dkms/${module}-${module_version}.conf
-    local patch_file=${COMPONENT_DIR}/patches/lustre-client-lu-20071-timer-container-of.patch
-    local patch_dir=/etc/dkms/${module}/patches
-    # The file the LU-20071 patch targets, relative to the DKMS source root.
-    local target_rel="libcfs/include/libcfs/linux/linux-time.h"
-    local src_root="/usr/src/${module}-${module_version}"
-
-    # Only relevant on kernels that dropped from_timer().
-    [[ -f "${kernel_header}" ]] || return 0
-    grep -q 'from_timer' "${kernel_header}" && return 0
-
-    # Newer AMLFS Lustre trees removed/relocated
-    # libcfs/.../linux-time.h, so the LU-20071 patch no longer applies and
-    # would abort the DKMS build with "can't find file to patch". Only
-    # register the patch when its target file is actually present.
-    if [[ ! -f "${src_root}/${target_rel}" ]]; then
-        echo "LU-20071: ${target_rel} not present in ${src_root}; patch obsolete for this Lustre version, skipping."
-        return 0
-    fi
-
-    # Also skip if the fix is already applied upstream.
-    if grep -q 'timer_container_of' "${src_root}/${target_rel}" 2>/dev/null; then
-        echo "LU-20071: source already contains timer_container_of; skipping patch."
-        return 0
-    fi
-
-    mkdir -p "${patch_dir}"
-    cp "${patch_file}" "${patch_dir}/lu-20071-timer-container-of.patch"
-    mkdir -p "$(dirname "${dkms_conf}")"
-    cat >> "${dkms_conf}" <<'EOF'
-PATCH[0]="lu-20071-timer-container-of.patch"
-EOF
-}
-
 configure_lustre_dkms_no_o2ib_with_tr_workaround() {
     local config_file=$1
 
@@ -165,7 +127,6 @@ else
     configure_lustre_dkms_no_o2ib /etc/sysconfig/lustre
     configure_lustre_dkms_skip_artifact lustre-client "${LUSTRE_VERSION_UNDERSCORE}" 3 \
         "EL ko2iblnd is record 3; --with-o2ib=no intentionally skips it."
-    configure_lustre_dkms_lu20071_patch "${LUSTRE_VERSION_UNDERSCORE}"
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
     check_dkms_status lustre-client
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}

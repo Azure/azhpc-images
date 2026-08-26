@@ -76,6 +76,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
 
+    # Multinode diagnostic plugin (mnubergemm) for multi-node/rack-level testing; requires CUDA 12+.
+    apt-get install -y datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
+
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
     # of the user-mode driver (e.g. datacenter-gpu-manager-4-cuda12) rather than DCGM packages targeting major version 13."
@@ -85,6 +88,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y \
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
             datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+        apt-get install -y datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Get DCGM version from versions.json
@@ -94,17 +98,22 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # so use DCGM compatible with CUDA 12
     if [ "$1" = "V100" ]; then
         tdnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
+        tdnf install -y datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
     else
         tdnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
+        tdnf install -y datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}
     fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+    # Multinode diagnostic plugin (mnubergemm) for multi-node/rack-level testing; requires CUDA 12+.
+    dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}
     # V100 needs cuda12 DCGM packages in addition to cuda13 (same as Ubuntu logic above)
     if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}
+        dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
     fi
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 fi

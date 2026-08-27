@@ -22,6 +22,13 @@ tar -xvf ${AOCL_TARBALL}
 pushd ${AOCL_FOLDER}
 ./install.sh -t amd -l blis fftw libflame -i lp64
 cp -r amd/${AOCL_VERSION}/aocc/* ${INSTALL_PREFIX}
+AOCL_MT_ROOT="${INSTALL_PREFIX}/MT"
+if [[ ! -d "${AOCL_MT_ROOT}/lib" || ! -d "${AOCL_MT_ROOT}/include" ]]; then
+	echo "AOCL MT installation is incomplete: expected ${AOCL_MT_ROOT}/lib and ${AOCL_MT_ROOT}/include" >&2
+	exit 1
+fi
+ln -sfn "${AOCL_MT_ROOT}/lib" "${INSTALL_PREFIX}/lib"
+ln -sfn "${AOCL_MT_ROOT}/include" "${INSTALL_PREFIX}/include"
 popd
 
 # Setup module files for AMD Libraries

@@ -347,20 +347,20 @@
                 "baremetal_3p": {
                     "nvidia_gb200": {
                         "driver": {
-                            "version": "580.159.04",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.159.04-1"
+                            "version": "580.167.08-1"
                         }
                     },
                     "nvidia_gb300": {
                         "driver": {
-                            "version": "580.126.20",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.126.20-1"
+                            "version": "580.167.08-1"
                         }
                     }
                 },
@@ -670,8 +670,8 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "2.5.1-1",
-                    "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                    "version": "2.5.2-1",
+                    "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                     "distribution": "Ubuntu24_04"
                 },
                 "azure_vm_akshost": {
@@ -806,7 +806,7 @@
             },
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "1:4.4.2-1"
+                    "version": "1:4.5.3-1"
                 },
                 "version": "1:4.5.3-1"
             }

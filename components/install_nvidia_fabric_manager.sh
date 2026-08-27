@@ -49,8 +49,22 @@ else
     else
         PACKAGE_NAME="nvidia-fabric-manager"
     fi
-    NVIDIA_FABRIC_MNGR_PKG=https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
-    FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
+    REPO_URL="https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64"
+
+    # NVIDIA changed the fabricmanager RPM filename convention within the 580
+    # branch: <=580.126.20 is "<pkg>-<version>.x86_64.rpm", while >=580.159.03
+    # inserts a distro tag "<pkg>-<version>.el8.x86_64.rpm". Rather than
+    # hard-code either form, discover the exact filename from the repo listing.
+    FILENAME=$(curl -fsSL "${REPO_URL}/" \
+        | grep -oE "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}(\.[a-z0-9_]+)?\.x86_64\.rpm" \
+        | sort -u | head -1)
+
+    if [[ -z "${FILENAME}" ]]; then
+        echo "ERROR: could not locate ${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION} RPM in ${REPO_URL}" >&2
+        exit 1
+    fi
+
+    NVIDIA_FABRIC_MNGR_PKG="${REPO_URL}/${FILENAME}"
     download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
     
     yum install -y ./${FILENAME}

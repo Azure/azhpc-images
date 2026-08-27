@@ -7,10 +7,25 @@ if [[ $DISTRIBUTION == *"almalinux"* ]] || [[ $DISTRIBUTION == *"rocky"* ]] || [
 network: {config: disabled}
 EOF
 
-    # Remove Hardware Mac Address and DHCP Name
-    sed -i '/^HWADDR=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
-    sed -i '/^DHCP_HOSTNAME=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
-    sed -i '/^IPV6INIT=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
+    IFCFG_FILE="/etc/sysconfig/network-scripts/ifcfg-eth0"
+    if [[ -f "$IFCFG_FILE" ]]; then
+        # EL8/EL9 legacy ifcfg format. Remove pinned MAC / DHCP name / IPv6 init.
+        sed -i '/^HWADDR=.*$/d'        "$IFCFG_FILE"
+        sed -i '/^DHCP_HOSTNAME=.*$/d' "$IFCFG_FILE"
+        sed -i '/^IPV6INIT=.*$/d'      "$IFCFG_FILE"
+    else
+        # EL10+: ifcfg/network-scripts removed. NetworkManager uses keyfiles under
+        # /etc/NetworkManager/system-connections/*.nmconnection. With cloud-init
+        # network config disabled above, no pinned MAC/DHCP-hostname is written,
+        # so strip them from any keyfile only if present.
+        for kf in /etc/NetworkManager/system-connections/*.nmconnection; do
+            [[ -f "$kf" ]] || continue
+            # Remove a pinned MAC (mac-address=) under [ethernet] and any dhcp
+            # hostname under [ipv4]; harmless no-ops if absent.
+            sed -i '/^mac-address=.*/d'        "$kf"
+            sed -i '/^dhcp-hostname=.*/d'      "$kf"
+        done
+    fi
 
     if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         SCRIPT_PATH="/usr/sbin/disable_cloudinit.sh"

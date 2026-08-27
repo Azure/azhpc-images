@@ -25,6 +25,14 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     tdnf install -y moby-engine
     tdnf install -y moby-cli
     tdnf install -y docker-buildx
+elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
+    # Microsoft's moby-* packages are not (yet) published for EL10; use upstream
+    # Docker CE, which provides docker-ce (engine), docker-ce-cli, and
+    # docker-buildx-plugin for the EL10 family.
+    # Remove this once Microsoft publishes moby-* packages for EL10.
+    dnf install -y dnf-plugins-core
+    dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     # NOTE: on el8 the MS repo is marked with `module_hotfixes=1` by the

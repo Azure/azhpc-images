@@ -20,36 +20,30 @@ set -euox pipefail
 # =============================================================================
 
 ####
-# @Brief        : Wait for apt lock to be released and cloud-init to complete
+# @Brief        : Configure apt/dpkg to wait for package-manager locks
 # @Param        : None
 # @RetVal       : 0 on success
 ####
-wait_for_apt() {
+configure_apt_lock_timeout() {
+    if [[ "${OS_FAMILY}" != "ubuntu" ]]; then
+        return 0
+    fi
+
+    echo "##[section]Configuring apt lock timeout"
+    printf 'DPkg::Lock::Timeout "-1";\n' > /etc/apt/apt.conf.d/99dpkg-lock-timeout
+}
+
+####
+# @Brief        : Wait for cloud-init before starting package operations
+# @Param        : None
+# @RetVal       : 0 on success
+####
+wait_for_cloud_init() {
     echo "Waiting for cloud-init to complete..."
     cloud-init status --wait || true
-    
-    echo "Waiting for apt lock to be released..."
-    local max_attempts=30
-    local attempt=0
-    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
-          fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
-          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
-        attempt=$((attempt + 1))
-        if [[ $attempt -ge $max_attempts ]]; then
-            echo "##[warning]Timeout waiting for apt lock after ${max_attempts} attempts"
-            break
-        fi
-        echo "Apt is locked, waiting... (attempt ${attempt}/${max_attempts})"
-        sleep 10
-    done
-    
-    # Kill any running unattended-upgrades
-    systemctl stop unattended-upgrades.service 2>/dev/null || true
+
+    # Prevent unattended upgrades from racing later provisioning steps.
     systemctl disable unattended-upgrades.service 2>/dev/null || true
-    pkill -9 unattended-upgr 2>/dev/null || true
-    
-    # Final wait for any remaining locks
-    sleep 5
 }
 
 ####
@@ -426,13 +420,6 @@ update_rhel_packages() {
     
     echo "##[section]Updating packages for ${os_family}"
     
-    # Workaround for tdnf repo_gpgcheck bug (https://github.com/vmware/tdnf/issues/471)
-    # tdnf-plugin-repogpgcheck fails when GPG keys aren't in the root keyring,
-    # causing repo sync failures. Disable the plugin entirely until the bug is fixed.
-    if [[ "${os_family}" == "azurelinux"* ]]; then
-        sed -i 's/^enabled.*=.*1/enabled=0/' /etc/tdnf/pluginconf.d/tdnfrepogpgcheck.conf 2>/dev/null || true
-    fi
-
     dnf update -y --refresh
     dnf install -y git
     
@@ -446,6 +433,41 @@ update_rhel_packages() {
     echo "Package update complete"
 }
 
+####
+# @Brief        : Enable DNF versionlock for later install scripts
+# @Param        : None
+# @RetVal       : 0 on success
+####
+configure_dnf_versionlock() {
+    if ! command -v dnf &> /dev/null; then
+        return 0
+    fi
+
+    echo "##[section]Configuring dnf versionlock"
+
+    if ! dnf install -y 'dnf-command(versionlock)' && ! dnf install -y dnf-plugins-core; then
+        echo "ERROR: failed to install the DNF versionlock plugin" >&2
+        return 1
+    fi
+
+    local plugin_dir=/etc/dnf/plugins
+    local locklist=${plugin_dir}/versionlock.list
+    local config=${plugin_dir}/versionlock.conf
+
+    mkdir -p "${plugin_dir}"
+    touch "${locklist}"
+    cat > "${config}" <<EOF
+[main]
+enabled = 1
+locklist = ${locklist}
+EOF
+
+    if ! dnf versionlock list >/dev/null; then
+        echo "ERROR: the DNF versionlock plugin is not functional" >&2
+        return 1
+    fi
+}
+
 # =============================================================================
 # Main execution
 # =============================================================================
@@ -456,15 +478,18 @@ echo "OS: ${OS_FAMILY:-unknown} ${DISTRO_VERSION:-unknown}"
 echo "GPU SKU: ${GPU_SKU:?GPU_SKU is required}"
 echo "Target Image Variant: ${TARGET_NODE_TYPE:-azure_vm_regular}"
 echo "=========================================="
+
+configure_apt_lock_timeout
  
 if [[ "${GPU_SKU}" == "GB200" && "${DISTRO_VERSION}" == "24.04" ]]; then
     # Configure GB200 PARTUUID if specified
     configure_gb200_partuuid "${GB200_PARTUUID:-None}"
 fi
 
-# Wait for apt lock and cloud-init before any package operations (Ubuntu)
+# Wait for cloud-init before any package operations. Subsequent apt commands
+# wait for package-manager locks through DPkg::Lock::Timeout.
 if [[ "${OS_FAMILY}" == "ubuntu" ]]; then
-    wait_for_apt
+    wait_for_cloud_init
 fi
 
 # OS-specific prerequisites
@@ -474,6 +499,7 @@ case "${OS_FAMILY}" in
         ;;
     *)
         update_rhel_packages "${OS_FAMILY}"
+        configure_dnf_versionlock
         ;;
 esac
 

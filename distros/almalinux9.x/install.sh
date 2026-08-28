@@ -111,7 +111,7 @@ $COMPONENT_DIR/trivy_scan.sh
 # add interface rules
 ./network-config.sh
 
-yum update -y
+dnf update -y
 
 # clear history
 # Uncomment the line below if you are running this on a VM

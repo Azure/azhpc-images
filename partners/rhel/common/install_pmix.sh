@@ -18,6 +18,6 @@ if [ ! -e /etc/yum.repos.d/microsoft-prod.repo ];then
 fi
 
 # dnf config-manager --set-enabled powertools
-yum -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
+dnf -y install pmix-${PMIX_VERSION}.el8 hwloc-devel libevent-devel munge-devel
 
 write_component_version "PMIX" ${PMIX_VERSION}

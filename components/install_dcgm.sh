@@ -70,14 +70,18 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Get DCGM version from versions.json
     dcgm_metadata=$(get_component_config "dcgm")
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+    # datacenter-gpu-manager-4-multinode-cuda<N> has a strict "= ${DCGM_VERSION}" dependency on the
+    # CUDA-agnostic datacenter-gpu-manager-4-multinode package, so it must be pinned and installed in
+    # the same apt transaction; otherwise apt's solver can pick the newest candidate for the unpinned
+    # base package and fail with unmet dependencies (e.g. "Depends: datacenter-gpu-manager-4-multinode
+    # (= 1:4.5.3-1) but 1:4.6.1-1 is to be installed").
     apt-get install -y \
         datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
-
-    # Multinode diagnostic plugin (mnubergemm) for multi-node/rack-level testing; requires CUDA 12+.
-    apt-get install -y datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
+        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-multinode=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
@@ -87,8 +91,8 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         apt-get install -y \
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
-        apt-get install -y datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Get DCGM version from versions.json
@@ -96,12 +100,19 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
+    # datacenter-gpu-manager-4-multinode-cuda<N> requires an exact-matching version of the
+    # CUDA-agnostic datacenter-gpu-manager-4-multinode package, so pin and install both together
+    # (see the apt equivalent above for the unmet-dependency failure this avoids).
     if [ "$1" = "V100" ]; then
-        tdnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
-        tdnf install -y datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
+        tdnf install -y \
+            datacenter-gpu-manager-4-cuda12-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
     else
-        tdnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
-        tdnf install -y datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}
+        tdnf install -y \
+            datacenter-gpu-manager-4-cuda13-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}
     fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.

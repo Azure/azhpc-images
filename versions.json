@@ -57,13 +57,6 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel810.x86_64.rpm"
             }
         },
-        "azurelinux3.0": {
-            "x86_64": {
-                "version": "3.2.1",
-                "sha256": "dbf0ee79182c6ae00c99fc9089fa1d81fc6f406f64b2215bff7da9b8cc423ad5",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_alinux32.x86_64.rpm"
-            }
-        },
         "rocky8.10": {
             "x86_64": {
                 "version": "3.2.1",
@@ -354,20 +347,20 @@
                 "baremetal_3p": {
                     "nvidia_gb200": {
                         "driver": {
-                            "version": "580.159.04",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.159.04-1"
+                            "version": "580.167.08-1"
                         }
                     },
                     "nvidia_gb300": {
                         "driver": {
-                            "version": "580.126.20",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.126.20-1"
+                            "version": "580.167.08-1"
                         }
                     }
                 },
@@ -677,8 +670,8 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "2.5.1-1",
-                    "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                    "version": "2.5.2-1",
+                    "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                     "distribution": "Ubuntu24_04"
                 },
                 "azure_vm_akshost": {
@@ -753,13 +746,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.28.9-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
             },
             "aarch64": {
-                "version": "2.28.9-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "v2.7.x"
                 }
@@ -813,17 +806,17 @@
             },
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "1:4.4.2-1"
+                    "version": "1:4.5.3-1"
                 },
                 "version": "1:4.6.1-1"
             }
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "4.5.2"
+                "version": "4.6.0"
             },
             "aarch64": {
-                "version": "4.5.2"
+                "version": "4.6.0"
             }
         }
     },
@@ -1084,9 +1077,9 @@
     },
     "nvidia_grid": {
         "common": {
-            "version": "595.58.03",
-            "sha256": "5dbfcd0998e6d3a2b4cf4f5f60587aef07401f3c7a9433c23697ec944a5c542b",
-            "url": "https://download.microsoft.com/download/51239696-ec04-4c02-a6b3-1d9c608fb57c/NVIDIA-Linux-x86_64-595.58.03-grid-azure.run"
+            "version": "595.91.07",
+            "sha256": "72056e38ee17d86606ebdb97594d01cd1fe64b1fbd7e1a888634fa959529ca0a",
+            "url": "https://download.microsoft.com/download/a7cb6d36-3bbc-43d6-9e88-e0842e6f9ab9/NVIDIA-Linux-x86_64-595.91.07-grid-azure.run"
         }
     }
 }

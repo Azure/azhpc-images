@@ -9,11 +9,9 @@ install_nmap() {
     
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y nmap
-    elif [[ $DISTRIBUTION == "azurelinux"* ]]; then
-        tdnf install -y nmap
     else
-        # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-        yum install -y nmap
+        # AzureLinux and RHEL-family(AlmaLinux, Rocky Linux, RHEL, etc.)
+        tdnf install -y nmap
     fi
 
     if ! command -v nmap >/dev/null 2>&1; then

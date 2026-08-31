@@ -103,6 +103,56 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # datacenter-gpu-manager-4-multinode-cuda<N> requires an exact-matching version of the
     # CUDA-agnostic datacenter-gpu-manager-4-multinode package, so pin and install both together
     # (see the apt equivalent above for the unmet-dependency failure this avoids).
+    #
+    # datacenter-gpu-manager-4-multinode-cuda<N> also pulls in an "openmpi" package via an
+    # "openmpi | libopenmpi40 | libopenmpi3" alternate dependency (no standalone lib-only package
+    # exists in the Azure Linux repo). Azure Linux's newest openmpi build (epoch 3, 4.1.9a1-3)
+    # bundles its own internal PMIx instead of linking against the system pmix package, so its
+    # /usr/share/pmix/help-pmix-*.txt and /usr/lib/pkgconfig/pmix.pc files conflict with the
+    # pmix/pmix-devel packages installed by install_pmix.sh, failing the tdnf transaction. HPC-X
+    # (installed earlier by install_mpis.sh) already provides Open MPI at runtime, so install a
+    # marker RPM that `Provides: openmpi` to satisfy the dependency without ever pulling in the
+    # real, file-conflicting distro package (same technique as install_doca.sh's
+    # install_hpcx_doca_ofed_deps_rpm_marker).
+    hpcx_provides_openmpi_marker=hpcx-provides-openmpi
+    if ! rpm -q "${hpcx_provides_openmpi_marker}" &>/dev/null; then
+        rpm_topdir=$(mktemp -d)
+        spec_file="${rpm_topdir}/${hpcx_provides_openmpi_marker}.spec"
+        mkdir -p "${rpm_topdir}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+        cat > "${spec_file}" <<EOF
+Name: ${hpcx_provides_openmpi_marker}
+Version: 1.0
+Release: 1
+Summary: Marker package to indicate that HPC-X provides Open MPI
+License: MIT
+BuildArch: noarch
+Provides: openmpi
+
+%description
+HPC-X, installed earlier by install_mpis.sh into /opt, provides Open MPI at
+runtime for this image. This marker package satisfies the "openmpi"
+dependency of datacenter-gpu-manager-4-multinode-cuda<N> so tdnf does not
+install the Azure Linux openmpi RPM, whose newest build bundles PMIx files
+that conflict with the separately-installed pmix package.
+
+%install
+mkdir -p %{buildroot}/usr/share/doc/%{name}
+cat > %{buildroot}/usr/share/doc/%{name}/README <<'README'
+HPC-X provides Open MPI for this image; see install_mpis.sh.
+README
+
+%files
+/usr/share/doc/%{name}/README
+EOF
+        rpmbuild --define "_topdir ${rpm_topdir}" -bb "${spec_file}"
+        marker_rpm=$(find "${rpm_topdir}/RPMS" -type f -name "${hpcx_provides_openmpi_marker}-*.rpm" | head -n1)
+        if [[ -z "${marker_rpm}" ]]; then
+            echo "ERROR: failed to build ${hpcx_provides_openmpi_marker} marker RPM" >&2
+            exit 1
+        fi
+        rpm -Uvh --replacepkgs "${marker_rpm}"
+        rm -rf "${rpm_topdir}"
+    fi
     if [ "$1" = "V100" ]; then
         tdnf install -y \
             datacenter-gpu-manager-4-cuda12-${DCGM_VERSION} \

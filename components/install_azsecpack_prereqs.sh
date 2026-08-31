@@ -11,7 +11,7 @@ install_nmap() {
         apt-get install -y nmap
     else
         # AzureLinux and RHEL-family(AlmaLinux, Rocky Linux, RHEL, etc.)
-        tdnf install -y nmap
+        dnf install -y nmap
     fi
 
     if ! command -v nmap >/dev/null 2>&1; then

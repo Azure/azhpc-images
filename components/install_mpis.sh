@@ -51,16 +51,27 @@ if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
     HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
 fi
 
+HPCX_REBUILD_CUDA_ARGS=()
+if [[ "$GPU" == "NVIDIA" ]]; then
+    HPCX_REBUILD_CUDA_ARGS=(--cuda)
+fi
+
+# Supplying --ompi-extra-config replaces the original HPC-X configure options.
+# Restore the compatible vendor options here. Internal libevent conflicts with
+# external PMIx, so it is the only original option deliberately omitted.
+HPCX_REBUILD_OMPI_COMMON_ARGS="--enable-mpi1-compatibility --without-xpmem --with-slurm --enable-orterun-prefix-by-default"
+HPCX_REBUILD_OMPI_UCX_ARGS="${HPCX_REBUILD_OMPI_COMMON_ARGS} --with-platform=contrib/platform/mellanox/optimized"
+
 # rebuild HPCX with PMIx
 # Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
 # conflicts with the Mellanox OpenMPI package on Nebius nodes.
 # Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
 if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix ${HPCX_REBUILD_OMPI_UCX_ARGS}"
 elif ! sku_uses_ucx; then
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} ${HPCX_REBUILD_OMPI_COMMON_ARGS} --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} ${HPCX_REBUILD_OMPI_UCX_ARGS}"
 fi
 cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 

@@ -115,6 +115,8 @@ $COMPONENT_DIR/install_health_checks.sh "$GPU"
 # write kernel and OS version metadata
 $COMPONENT_DIR/write_kernel_os_version.sh
 
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh
 

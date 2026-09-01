@@ -70,11 +70,6 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Get DCGM version from versions.json
     dcgm_metadata=$(get_component_config "dcgm")
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-    # datacenter-gpu-manager-4-multinode-cuda<N> has a strict "= ${DCGM_VERSION}" dependency on the
-    # CUDA-agnostic datacenter-gpu-manager-4-multinode package, so it must be pinned and installed in
-    # the same apt transaction; otherwise apt's solver can pick the newest candidate for the unpinned
-    # base package and fail with unmet dependencies (e.g. "Depends: datacenter-gpu-manager-4-multinode
-    # (= 1:4.5.3-1) but 1:4.6.1-1 is to be installed").
     apt-get install -y \
         datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
@@ -100,20 +95,6 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
-    # datacenter-gpu-manager-4-multinode-cuda<N> requires an exact-matching version of the
-    # CUDA-agnostic datacenter-gpu-manager-4-multinode package, so pin and install both together
-    # (see the apt equivalent above for the unmet-dependency failure this avoids).
-    #
-    # datacenter-gpu-manager-4-multinode-cuda<N> also pulls in an "openmpi" package via an
-    # "openmpi | libopenmpi40 | libopenmpi3" alternate dependency (no standalone lib-only package
-    # exists in the Azure Linux repo). Azure Linux's newest openmpi build (epoch 3, 4.1.9a1-3)
-    # bundles its own internal PMIx instead of linking against the system pmix package, so its
-    # /usr/share/pmix/help-pmix-*.txt and /usr/lib/pkgconfig/pmix.pc files conflict with the
-    # pmix/pmix-devel packages installed by install_pmix.sh, failing the tdnf transaction. HPC-X
-    # (installed earlier by install_mpis.sh) already provides Open MPI at runtime, so install a
-    # marker RPM that `Provides: openmpi` to satisfy the dependency without ever pulling in the
-    # real, file-conflicting distro package (same technique as install_doca.sh's
-    # install_hpcx_doca_ofed_deps_rpm_marker).
     hpcx_provides_openmpi_marker=hpcx-provides-openmpi
     if ! rpm -q "${hpcx_provides_openmpi_marker}" &>/dev/null; then
         rpm_topdir=$(mktemp -d)
@@ -131,7 +112,7 @@ Provides: openmpi
 %description
 HPC-X, installed earlier by install_mpis.sh into /opt, provides Open MPI at
 runtime for this image. This marker package satisfies the "openmpi"
-dependency of datacenter-gpu-manager-4-multinode-cuda<N> so tdnf does not
+dependency of datacenter-gpu-manager-4-multinode-cuda<N> so dnf does not
 install the Azure Linux openmpi RPM, whose newest build bundles PMIx files
 that conflict with the separately-installed pmix package.
 

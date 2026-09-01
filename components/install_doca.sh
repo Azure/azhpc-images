@@ -39,6 +39,7 @@ EOF
 install_hpcx_doca_ofed_deps_apt_marker() {
     local marker_control=/tmp/${HPCX_DOCA_OFED_DEPS_MARKER}
     local openmpi_version=""
+    local sharp_provides=""
     local sharp_version=""
     local ucx_version=""
 
@@ -65,10 +66,11 @@ install_hpcx_doca_ofed_deps_apt_marker() {
     # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
     # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
     # already-installed Canonical Open MPI is removed when the marker is installed.
-    # The same marker also provides DOCA's strict `ucx` and `sharp` dependencies so
-    # apt does not install the DOCA-bundled copies. HPC-X is installed later by
-    # install_mpis.sh; on AMD builds, install_mpis.sh rebuilds HPC-X UCX with ROCm
-    # support before ROCm components use it.
+    # The same marker also provides DOCA's strict `ucx` dependency and, before
+    # DOCA 3.3.0, its `sharp` dependency so apt does not install the DOCA-bundled
+    # copies. HPC-X is installed later by install_mpis.sh; on AMD builds,
+    # install_mpis.sh rebuilds HPC-X UCX with ROCm support before ROCm components
+    # use it.
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$openmpi_version" ]]; then
@@ -80,10 +82,13 @@ install_hpcx_doca_ofed_deps_apt_marker() {
         echo "ERROR: could not read ucx version from DOCA repo" >&2
         exit 1
     fi
-    sharp_version=$(apt-cache show sharp 2>/dev/null | awk '/^Version:/ {print $2; exit}')
-    if [[ -z "$sharp_version" ]]; then
-        echo "ERROR: could not read sharp version from DOCA repo" >&2
-        exit 1
+    if dpkg --compare-versions "${DOCA_VERSION}" lt 3.3.0; then
+        sharp_version=$(apt-cache show sharp 2>/dev/null | awk '/^Version:/ {print $2; exit}')
+        if [[ -z "$sharp_version" ]]; then
+            echo "ERROR: could not read sharp version from DOCA repo" >&2
+            exit 1
+        fi
+        sharp_provides=", sharp (= ${sharp_version})"
     fi
     cat > "${marker_control}" <<EOF
 Section: misc
@@ -92,18 +97,19 @@ Homepage: https://github.com/Azure/azhpc-images
 Standards-Version: 3.9.2
 
 Package: ${HPCX_DOCA_OFED_DEPS_MARKER}
-Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common, ucx (= ${ucx_version}), libucx0, sharp (= ${sharp_version})
+Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common, ucx (= ${ucx_version}), libucx0${sharp_provides}
 Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
 Version: ${DOCA_VERSION}
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
 Description: marker package to indicate that HPC-X provides DOCA OFED dependencies
  HPC-X (installed by install_mpis.sh into /opt) provides Open MPI, UCX, and
- SHARP at runtime, so the DOCA-bundled openmpi, ucx, and sharp packages are
- redundant. The DOCA openmpi collides with /etc/pmix-mca-params.conf from the
- separately-installed pmix package, Canonical's Open MPI can pull unsuitable
- PMIx dependencies, and DOCA SHARP can inject stale libtool dependencies on
- DOCA UCX paths under /usr/lib. The libucx0 virtual provide also satisfies
- later Ubuntu/ROCm dependency chains that require libucx0.
+ SHARP at runtime, so the DOCA-bundled openmpi and ucx packages are redundant.
+ Before DOCA 3.3.0, the bundled sharp package is redundant too. The DOCA
+ openmpi collides with /etc/pmix-mca-params.conf from the separately-installed
+ pmix package, Canonical's Open MPI can pull unsuitable PMIx dependencies, and
+ older DOCA SHARP packages can inject stale libtool dependencies on DOCA UCX
+ paths under /usr/lib. The libucx0 virtual provide also satisfies later
+ Ubuntu/ROCm dependency chains that require libucx0.
 EOF
     (
         cd /tmp
@@ -227,7 +233,7 @@ else
     # split out a brand-new RDMA-core stack with a separate libhns
     # provider and ABI-bumped libibverbs/perftest (IBVERBS_1.15 / HNS_1.0
     # symbols) incompatible with DOCA's libibverbs-2510.0.11-1.el9.
-    # Without this exclude, install_pmix.sh's 'yum update -y' aborts with:
+    # Without this exclude, install_pmix.sh's 'dnf update -y' aborts with:
     #   cannot install both libibverbs-61.0-2.el9 from baseos and
     #   libibverbs-2510.0.11-1.el9 from @System
     # DOCA's 'doca' (userland) repo provides the only rdma-core stack

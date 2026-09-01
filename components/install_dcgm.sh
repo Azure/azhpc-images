@@ -154,12 +154,12 @@ EOF
         rm -rf "${rpm_topdir}"
     fi
     if [ "$1" = "V100" ]; then
-        tdnf install -y \
+        dnf install -y \
             datacenter-gpu-manager-4-cuda12-${DCGM_VERSION} \
             datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
             datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
     else
-        tdnf install -y \
+        dnf install -y \
             datacenter-gpu-manager-4-cuda13-${DCGM_VERSION} \
             datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
             datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}

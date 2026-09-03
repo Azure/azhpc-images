@@ -98,7 +98,8 @@ def main():
         status = run.get("status")
         result = run.get("result")
         print(
-            f"Scanner run {active_run_id}: status={status} result={result}",
+            f"Scanner run {active_run_id}: status={status} result={result} "
+            f"url={run_web_url(run)}",
             flush=True,
         )
         if status == "completed":

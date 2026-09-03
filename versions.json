@@ -11,31 +11,12 @@
             "_comment": "decouple AL3 kernel package installing scripts with versions.json, since we no longer need to specify specific kernel package versions due to enforced driver version update by monthly AL3 releases"
         }
     },
-    "cmake": {
-        "common": {
-            "version": "4.3.3",
-            "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-linux-x86_64.tar.gz",
-            "sha256": "927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802"
-        },
-        "ubuntu24.04": {
-            "aarch64": {
-                "baremetal_3p": {
-                    "version": "4.1.1",
-                    "url": "https://github.com/Kitware/CMake/releases/download/v4.1.1/cmake-4.1.1-linux-x86_64.tar.gz",
-                    "sha256": "5a6c61cb62b38e153148a2c8d4af7b3d387f0c8c32b6dbceb5eb4af113efd65a"
-                },
-                "version": "4.3.1",
-                "url": "https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz",
-                "sha256": "208d76804009cbe8ec9aea0aa052c857c6e59bd289b43b9941c99324dc78b1d8"
-            }
-        }
-    },
     "doca": {
         "ubuntu22.04": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "75b8d4258b7239ef5021abaa25e7eeb4fcbc0c8117cab89ce1a766d2d218c8a0",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host_3.2.1-044000-25.10-ubuntu2204_amd64.deb"
+                "version": "3.2.3",
+                "sha256": "f450b5eba37bfba96fcdd35c39bf1c17b88918bd4bc47e8d8bb2ecae18a2f24b",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host_3.2.3-019000-25.10-ubuntu2204_amd64.deb"
             }
         },
         "ubuntu24.04": {
@@ -50,9 +31,9 @@
                     "file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
                     "source": "private"
                 },
-                "version": "3.2.2",
-                "sha256": "0343656f130b79b7392742f9f7890fb59d6a1489fa020ccab26adc714e727b04",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host_3.2.2-035000-25.10-ubuntu2404_arm64.deb"
+                "version": "3.3.0",
+                "sha256": "ef4a16860fe1bf765f50605b331b5f4db35144b6d9dc914535261e1f68882636",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.3.0/host/doca-host_3.3.0-088000-26.01-ubuntu2404_arm64.deb"
             }
         },
         "ubuntu26.04": {
@@ -81,13 +62,6 @@
                 "version": "2.8.0",
                 "sha256": "387d0b20311353a5833a029b3f8e7d64bf511ce88107be53f594f5c03e0ce26b",
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v2.8.0/host/doca-host-2.8.0-204000_24.07_rhel810.x86_64.rpm"
-            }
-        },
-        "azurelinux3.0": {
-            "x86_64": {
-                "version": "3.2.1",
-                "sha256": "dbf0ee79182c6ae00c99fc9089fa1d81fc6f406f64b2215bff7da9b8cc423ad5",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_alinux32.x86_64.rpm"
             }
         },
         "rocky8.10": {
@@ -146,10 +120,12 @@
         },
         "ubuntu26.04": {
             "x86_64": {
-                "nvidia_v100": {
-                    "version": "2.25.1",
-                    "sha256": "12dced766fee0946210693ab7ee8b7a7491082a775db837bcfd73323f155e4a7",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.25.1",
+                        "sha256": "12dced766fee0946210693ab7ee8b7a7491082a775db837bcfd73323f155e4a7",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda12/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+                    }
                 },
                 "version": "2.25.1",
                 "sha256": "8767bea4f0967a6b0f5e1b31395a431bf5624eaf34c928f109bc2db985f26887",
@@ -385,36 +361,36 @@
                     }
                 },
                 "driver": {
-                    "version": "580.173.02"
+                    "version": "580.178.04"
                 }
             },
             "aarch64": {
                 "baremetal_3p": {
                     "nvidia_gb200": {
                         "driver": {
-                            "version": "580.159.04",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.159.04-1"
+                            "version": "580.167.08-1"
                         }
                     },
                     "nvidia_gb300": {
                         "driver": {
-                            "version": "580.126.20",
+                            "version": "580.167.08",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.126.20-1"
+                            "version": "580.167.08-1"
                         }
                     }
                 },
                 "driver": {
-                    "version": "580.126.20",
+                    "version": "580.167.08",
                     "major_version": "580"
                 },
                 "imex": {
-                    "version": "580.126.20-1"
+                    "version": "580.167.08-1"
                 }
             }
         },
@@ -570,6 +546,18 @@
         "ubuntu26.04": {
             "_comment": "distribution intentionally pinned to ubuntu2404: NVIDIA's compute/cuda/repos/ubuntu2604 pool currently ships only the driver/firmware/imex/fabricmanager packages and does NOT yet include cuda-toolkit-13-X. The ubuntu2404 pool ships the full set; .deb packages are not tied to the Ubuntu codename and DKMS rebuilds kernel modules against the running kernel (linux-azure-7.0). Revisit once compute/cuda/repos/ubuntu2604 carries cuda-toolkit packages.",
             "x86_64": {
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "ubuntu2404"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
+                    }
+                },
                 "driver": {
                     "version": "13.2",
                     "distribution": "ubuntu2404"
@@ -735,8 +723,8 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "2.5.1-1",
-                    "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
+                    "version": "2.5.2-1",
+                    "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
                     "distribution": "Ubuntu24_04"
                 },
                 "azure_vm_akshost": {
@@ -744,8 +732,8 @@
                     "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                     "distribution": "Ubuntu24_04"
                 },
-                "version": "2.5.2-1",
-                "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
                 "distribution": "Ubuntu24_04"
             },
             "x86_64": {
@@ -819,13 +807,13 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "2.28.9-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
             },
             "aarch64": {
-                "version": "2.28.9-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "v2.7.x"
                 }
@@ -839,7 +827,7 @@
                         "commit": "v2.7.x"
                     }
                 },
-                "version": "2.29.7-1",
+                "version": "2.30.4-1",
                 "rdmasharpplugins": {
                     "commit": "master"
                 }
@@ -879,9 +867,9 @@
             },
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "1:4.4.2-1"
+                    "version": "1:4.5.3-1"
                 },
-                "version": "1:4.5.3-1"
+                "version": "1:4.6.1-1"
             }
         },
         "ubuntu26.04": {
@@ -891,10 +879,10 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "4.5.2"
+                "version": "4.6.0"
             },
             "aarch64": {
-                "version": "4.5.2"
+                "version": "4.6.0"
             }
         }
     },
@@ -960,12 +948,12 @@
     "amd": {
         "common": {
             "aocl": {
-                "version": "5.2.0",
-                "sha256": "89084b49f7706ed8fa393bbaac501b2dfc74665f3a6ec6173aafe34a1bd23f32"
+                "version": "5.3.0",
+                "sha256": "e23282a94fbeded5bda38a099b61d044d082efc33a06f7b1ab835b36996c089c"
             },
             "aocc": {
-                "version": "5.0.0",
-                "sha256": "966fac2d2c759e9de6e969c10ada7a7b306c113f7f1e07ea376829ec86380daa"
+                "version": "5.2.0",
+                "sha256": "f98af7e2ae8801dd4ba443520653acb739536a86c2a1caf096310c3cfd554ca0"
             }
         }
     },
@@ -1155,9 +1143,9 @@
     },
     "nvidia_grid": {
         "common": {
-            "version": "595.58.03",
-            "sha256": "5dbfcd0998e6d3a2b4cf4f5f60587aef07401f3c7a9433c23697ec944a5c542b",
-            "url": "https://download.microsoft.com/download/51239696-ec04-4c02-a6b3-1d9c608fb57c/NVIDIA-Linux-x86_64-595.58.03-grid-azure.run"
+            "version": "595.91.07",
+            "sha256": "72056e38ee17d86606ebdb97594d01cd1fe64b1fbd7e1a888634fa959529ca0a",
+            "url": "https://download.microsoft.com/download/a7cb6d36-3bbc-43d6-9e88-e0842e6f9ab9/NVIDIA-Linux-x86_64-595.91.07-grid-azure.run"
         }
     }
 }

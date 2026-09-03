@@ -25,9 +25,6 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# update cmake
-$COMPONENT_DIR/install_cmake.sh
-
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
@@ -102,6 +99,8 @@ $COMPONENT_DIR/install_health_checks.sh "$GPU"
 # write kernel and OS version metadata
 $COMPONENT_DIR/write_kernel_os_version.sh
 
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
 # disable cloud-init
 $COMPONENT_DIR/disable_cloudinit.sh
 
@@ -114,7 +113,7 @@ $COMPONENT_DIR/trivy_scan.sh
 # add interface rules
 ./network-config.sh
 
-yum update -y
+dnf update -y
 
 # clear history
 # Uncomment the line below if you are running this on a VM

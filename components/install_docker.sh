@@ -3,6 +3,11 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+INSTALL_NVIDIA_CONTAINER_TOOLKIT=false
+if [[ "${GPU:-NVIDIA}" == "NVIDIA" ]]; then
+    INSTALL_NVIDIA_CONTAINER_TOOLKIT=true
+fi
+
 # Install Moby Engine and CLI
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Ubuntu 26.04 no longer ships Microsoft's moby-* packages; switch to
@@ -21,9 +26,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y moby-buildx
     fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y moby-engine
-    tdnf install -y moby-cli
-    tdnf install -y docker-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y docker-buildx
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     # NOTE: on el8 the MS repo is marked with `module_hotfixes=1` by the
@@ -31,29 +36,33 @@ else
     # [distros/rocky8.10/install_utils.sh]). That bypasses dnf modular
     # filtering for moby-runc (which `Provides: runc`, a name claimed by
     # the AppStream `container-tools` module) without disabling the module.
-    yum install -y moby-engine
-    yum install -y moby-cli
-    yum install -y moby-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y moby-buildx
 fi
 
-$COMPONENT_DIR/install_nvidia_container_toolkit.sh
+if [[ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" == true ]]; then
+    $COMPONENT_DIR/install_nvidia_container_toolkit.sh
+fi
 
 # enable and restart the docker daemon to complete the installation
 systemctl enable docker
 systemctl restart docker
 
-# restart containerd service and wait for socket to be ready
-systemctl restart containerd
-for i in $(seq 1 30); do
-    if [ -S /run/containerd/containerd.sock ]; then
-        break
-    fi
-    echo "Waiting for containerd socket... ($i/30)"
-    sleep 1
-done
+if [[ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" == true ]]; then
+    # restart containerd service and wait for socket to be ready
+    systemctl restart containerd
+    for i in $(seq 1 30); do
+        if [ -S /run/containerd/containerd.sock ]; then
+            break
+        fi
+        echo "Waiting for containerd socket... ($i/30)"
+        sleep 1
+    done
 
-# status of containerd snapshotter plugins
-ctr plugin ls
+    # status of containerd snapshotter plugins
+    ctr plugin ls
+fi
 
 # Write the docker version to components file
 docker_version=$(docker --version | awk -F' ' '{print $3}')
@@ -69,6 +78,6 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     moby_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
+    moby_version=$(dnf list installed | grep moby-engine | awk -F' ' '{print $2}')
 fi
 write_component_version "MOBY_ENGINE" ${moby_version}

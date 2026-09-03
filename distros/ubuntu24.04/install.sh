@@ -25,11 +25,6 @@ source ${UTILS_DIR}/utilities.sh
 
 ./install_utils.sh
 
-if [ "$SKU" != "GB200" ]; then
-    # update cmake
-    $COMPONENT_DIR/install_cmake.sh
-fi
-
 # install DOCA OFED. Skip for non-IB SKUs. DOCA's ib_core breaks mana_ib on MANA-only hardware
 if [[ "$(sku_network_mode)" != "no_rdma" ]]; then
     $COMPONENT_DIR/install_doca.sh
@@ -43,6 +38,11 @@ else
     # The mana ethernet driver (eth0/eth1) is unaffected.
     # Customers can re-enable: sudo rm /etc/modprobe.d/blacklist-mana-ib.conf && sudo modprobe mana_ib
     echo "blacklist mana_ib" | tee /etc/modprobe.d/blacklist-mana-ib.conf
+fi
+
+if [ "$GPU" = "AMD" ]; then
+    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
+    $COMPONENT_DIR/install_rocm.sh
 fi
 
 # install PMIX
@@ -75,21 +75,17 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
     
-    # Install NVIDIA docker container
-    $COMPONENT_DIR/install_docker.sh
+fi
 
+# Install Docker container runtime
+$COMPONENT_DIR/install_docker.sh
+
+if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
-    # Set up docker
-    apt-get install -y moby-engine
-    systemctl enable docker
-    systemctl restart docker
-
-    #install rocm software stack
-    $COMPONENT_DIR/install_rocm.sh    
     #install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi
@@ -150,6 +146,9 @@ if [[ "$SKU" != "GB200" ]]; then
 fi 
 # write kernel and OS version metadata
 $COMPONENT_DIR/write_kernel_os_version.sh
+
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

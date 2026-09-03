@@ -66,57 +66,9 @@ build {
     ]
   }
 
-  provisioner "shell-local" {
-    name           = "(1P specific) download mdatp onboarding package"
-    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline = [
-      "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
-      "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
-      "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    ]
-  }
-
-  provisioner "file" {
-    name        = "(1P specific) upload mdatp onboarding package"
-    except      = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    source      = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    destination = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
-    generated   = true
-  }
-
-  provisioner "shell" {
-    name           = "(1P specific) install mdatp with onboarding script"
-    except         = var.enable_first_party_specifics ? [] : ["azure-arm.hpc"]
-    inline_shebang = var.default_inline_shebang
-    inline = [
-      <<-EOF
-        set -o pipefail
-
-        curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh -o /tmp/mde_installer.sh
-        chmod +x /tmp/mde_installer.sh
-
-        installer_channel=prod
-        if [[ -r /etc/os-release ]]; then
-          # shellcheck disable=SC1091
-          . /etc/os-release
-          if [[ "$${ID:-}" == "ubuntu" && "$${VERSION_ID:-}" == "26.04" ]]; then
-            echo "[mdatp] Ubuntu 26.04 detected; patching mde_installer.sh and using prod channel."
-            sed -i 's#\^(20\.04|22\.04|24\.04)\$#^(20.04|22.04|24.04|26.04)$#' /tmp/mde_installer.sh
-            sed -i 's#elif { \[ "$DISTRO" = "debian" \] && \[ "$VERSION" = "13" \]; }; then#elif { [ "$DISTRO" = "debian" ] \&\& [ "$VERSION" = "13" ]; } || { [ "$DISTRO" = "ubuntu" ] \&\& [ "$VERSION" = "26.04" ]; }; then#' /tmp/mde_installer.sh
-            sed -i 's#\[\[ $VERSION != "24\.04" \]\]; then#[[ $VERSION != "24.04" ]] \&\& [[ $VERSION != "26.04" ]]; then#' /tmp/mde_installer.sh
-          fi
-        fi
-
-        sudo bash /tmp/mde_installer.sh --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel "$${installer_channel}"
-        sudo mdatp threat policy set --type potentially_unwanted_application --action off
-        rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py /tmp/mde_installer.sh
-      EOF
-    ]
-  }
-
   provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
+    except          = local.skip_prerequisites ? ["azure-arm.hpc"] : []
     script          = "scripts/prerequisites.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     environment_vars = [
@@ -237,6 +189,7 @@ build {
     environment_vars = [
       "TARGET_NODE_TYPE=${local.target_node_type}",
       "NVLINK_RACKSCALE=${local.nvlink_rackscale}",
+      "KERNEL_VERSION=${local.kernel_version}",
       "REFRESH_MODE=${local.refresh_mode}",
     ]
     inline = [
@@ -258,10 +211,51 @@ build {
 
   provisioner "shell" {
     name            = "(Refresh mode) Regenerate component_versions.txt from installed packages"
-    except          = (local.refresh_mode && !var.skip_hpc) ? [] : ["azure-arm.hpc"]
+    except          = (local.refresh_mode && !var.skip_hpc && !local.skip_prerequisites) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline = [
       "cd /home/${local.ssh_username}/azhpc-images/components; bash refresh_component_versions.sh ${local.gpu_platform}",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "Run extra fix-up script"
+    except          = local.run_extra_provision_script ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "GPU=${local.gpu_platform}",
+      "GPU_SKU=${local.gpu_sku}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "REFRESH_MODE=${local.refresh_mode}",
+    ]
+    # Generic hook for one-off in-place-refresh fix-ups (e.g. disabling a
+    # service). The specific script is provided via extra_provision_script and
+    # should live on a temporary branch, not on main.
+    inline = [
+      "REPO_DIR=/home/${local.ssh_username}/azhpc-images",
+      "SCRIPT='${local.extra_provision_script}'",
+      "case \"$SCRIPT\" in /*) SCRIPT_PATH=\"$SCRIPT\";; *) SCRIPT_PATH=\"$REPO_DIR/$SCRIPT\";; esac",
+      "echo \"Running extra fix-up script: $SCRIPT_PATH\"",
+      "if [[ ! -f \"$SCRIPT_PATH\" ]]; then echo \"ERROR: extra provisioning script not found: $SCRIPT_PATH\"; exit 1; fi",
+      "bash \"$SCRIPT_PATH\"",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "(In-place refresh) Refresh test definitions from latest repo"
+    except          = local.refresh_mode ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "AZHPC_IMAGES_TEST_DIR=/home/${local.ssh_username}/azhpc-images/tests",
+    ]
+    # In-place refresh boots from a published base image that may carry stale
+    # tests under /opt/azurehpc/test. Re-run the canonical copy so the run-tests
+    # step uses the latest definitions. Remove the existing health_checks dir
+    # first so copy_test_file.sh's `cp -r` replaces it cleanly instead of nesting
+    # into the pre-existing directory.
+    inline = [
+      "sudo rm -rf /opt/azurehpc/test/health_checks",
+      "bash /home/${local.ssh_username}/azhpc-images/components/copy_test_file.sh",
     ]
   }
 
@@ -277,7 +271,7 @@ build {
 
   provisioner "shell" {
     name            = "Trivy vulnerability scanning (standalone step for testing purposes)"
-    except          = var.skip_hpc ? [] : ["azure-arm.hpc"]
+    except          = (var.skip_hpc || local.refresh_mode) ? [] : ["azure-arm.hpc"]
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
     inline = [
       "cd /home/${local.ssh_username}/azhpc-images/distros/${local.os_script_folder_name}/; ARCHITECTURE=$(uname -m) bash ../../components/trivy_scan.sh",

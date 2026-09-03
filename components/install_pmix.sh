@@ -9,15 +9,15 @@ PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
 
+    # TODO(ubuntu26.04): replace this cross-release package workaround with
+    # HPC-X 2.51's bundled Open MPI 5 / PMIx 5 stack after validation.
     # Ubuntu 26.04 (Resolute Raccoon): PMC does not yet publish a
     # `slurm-ubuntu-resolute` pool. Rather than fall back to Ubuntu universe
-    # (which ships PMIx 5.x as `libpmix-dev`), we install the PMC `pmix_4.2.9-1`
-    # .deb out of the noble pool. This keeps U26 nodes wire-compatible at the
-    # PMIx layer with the rest of the matrix (RHEL family, Azure Linux, U22,
-    # U24 — all on PMC's PMIx 4.2.9), and preserves the /opt/pmix/<version>/
-    # install layout that install_mpis.sh expects.
+    # (which ships PMIx 5.x as `libpmix-dev`), we install PMC's PMIx 4.2.9
+    # .deb out of the noble pool and preserve the /opt/pmix/<version>/ install
+    # layout that install_mpis.sh expects.
     #
-    # All Depends: of pmix_4.2.9-1 are satisfiable from resolute repos:
+    # PMIx 4.2.9 dependencies are satisfiable from Resolute repositories:
     #   zlib1g-dev, libc6 (>=2.38), libevent-core-2.1-7t64,
     #   libevent-pthreads-2.1-7t64, libhwloc15, zlib1g
     #
@@ -28,10 +28,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # packages.microsoft.com/keys/microsoft.asc and place it in a separate
     # keyring referenced only by the noble sources file.
     #
-    # The repo is then pinned so it can ONLY supply the `pmix` package; every
-    # other package from packages.microsoft.com via this entry is held at
-    # priority -1 (never install). This prevents apt from accidentally pulling
-    # noble-built dependencies onto a resolute host.
+    # The noble insiders suite is then pinned so it can ONLY supply the `pmix`
+    # package. This prevents apt from accidentally pulling noble-built
+    # dependencies onto a resolute host while leaving the normal Microsoft
+    # Resolute production repository eligible.
     #
     # TODO(ubuntu26.04): once PMC publishes slurm-ubuntu-resolute, switch this
     # branch to that pool and drop the legacy-key bootstrap.
@@ -52,15 +52,15 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 deb [arch=${ARCHITECTURE_DISTRO} signed-by=${legacy_keyring}] https://packages.microsoft.com/repos/slurm-ubuntu-noble/ insiders main
 EOF
 
-        # Hard pin: the noble pool is allowed to supply ONLY `pmix`.
+        # Hard pin: the noble insiders suite is allowed to supply ONLY `pmix`.
         cat > /etc/apt/preferences.d/azhpc-pmc-slurm-noble.pref <<'EOF'
 Package: *
-Pin: origin packages.microsoft.com
+Pin: release a=insiders,n=insiders,c=main
 Pin-Priority: -1
 
 Package: pmix
-Pin: origin packages.microsoft.com
-Pin-Priority: 1001
+Pin: release a=insiders,n=insiders,c=main
+Pin-Priority: 990
 EOF
 
         apt-get update
@@ -98,14 +98,14 @@ EOF
     # '--allow-change-held-packages' flag.
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf -y install pmix pmix-devel pmix-tools
-    tdnf -y install hwloc-devel libevent-devel munge-devel
+    dnf -y install pmix pmix-devel pmix-tools
+    dnf -y install hwloc-devel libevent-devel munge-devel
     if [ "$ARCHITECTURE" = "aarch64" ]; then
         postfix="aarch64"
     else
         postfix="x86_64"
     fi
-    PMIX_VERSION=$(tdnf list installed | grep -i pmix.${postfix} | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
+    PMIX_VERSION=$(dnf list installed | grep -i pmix.${postfix} | sed 's/.*[[:space:]]\([0-9.]*-[0-9]*\)\..*/\1/')
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
@@ -122,8 +122,8 @@ else
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
         dnf config-manager --set-enabled powertools
     fi
-    yum update -y
-    yum -y install pmix-${PMIX_VERSION}.el${OS_MAJOR_VERSION} hwloc-devel libevent-devel munge-devel
+    dnf update -y
+    dnf -y install pmix-${PMIX_VERSION}.el${OS_MAJOR_VERSION} hwloc-devel libevent-devel munge-devel
 fi
 
 write_component_version "PMIX" ${PMIX_VERSION}

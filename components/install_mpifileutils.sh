@@ -14,10 +14,10 @@ MPIFILEUTILS_SHA256=$(jq -r '.sha256' <<< $mpifileutils_metadata)
 INSTALL_PREFIX="/opt/mpifileutils"
 BUILD_DIR="/tmp/mpifileutils-build"
 SRC_DIR="/tmp/mpifileutils-src"
-LUSTRE_CMAKE_FLAG="ON"
+LUSTRE_CMAKE_FLAG="OFF"
 
-if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    LUSTRE_CMAKE_FLAG="OFF"
+if [[ -f /usr/include/lustre/lustre_user.h ]]; then
+    LUSTRE_CMAKE_FLAG="ON"
 fi
 
 echo "=== Installing mpifileutils ${MPIFILEUTILS_VERSION} ==="
@@ -26,10 +26,10 @@ echo "=== Installing mpifileutils ${MPIFILEUTILS_VERSION} ==="
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt-get install -y libbz2-dev libattr1-dev libarchive-dev libssl-dev libcap-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y bzip2-devel libattr-devel libarchive-devel
+    dnf install -y bzip2-devel libattr-devel libarchive-devel
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    yum install -y bzip2-devel libattr-devel libarchive-devel
+    dnf install -y bzip2-devel libattr-devel libarchive-devel
 fi
 
 # Create directories

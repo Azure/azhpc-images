@@ -24,10 +24,7 @@ else
     AZNFS_DOWNLOAD_URL=https://github.com/Azure/AZNFS-mount/releases/download/${AZNFS_VERSION}/aznfs_install.sh
 
     download_and_verify $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
-    # Azure Linux uses tdnf, not yum/dnf; the upstream installer hardcodes yum.
-    if [[ $DISTRIBUTION == *"azurelinux"* ]]; then
-        sed -i 's/yum/tdnf/' aznfs_install.sh
-    fi
+    sed -i 's/yum/dnf/' aznfs_install.sh
     bash aznfs_install.sh
     rm -f aznfs_install.sh
 fi

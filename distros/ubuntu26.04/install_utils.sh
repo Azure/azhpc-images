@@ -1,8 +1,14 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
+# Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
+# calls to Microsoft endpoints.
+$COMPONENT_DIR/install_microsoft_tls_root_g2.sh
+
 # Setup microsoft packages repository (PMC publishes packages-microsoft-prod.deb
-# for ubuntu/26.04, verified Apr 2026).
+# for ubuntu/26.04, verified Sep 2026).
 curl -fsSL -o packages-microsoft-prod.deb https://packages.microsoft.com/config/ubuntu/26.04/packages-microsoft-prod.deb
 dpkg -i packages-microsoft-prod.deb
 rm -f packages-microsoft-prod.deb
@@ -55,7 +61,7 @@ apt-get -y install numactl \
                    dos2unix
 
 # azcopy: Microsoft's PMC ubuntu/26.04/prod pool does not yet ship azcopy
-# (verified Apr 2026 — only intune-portal / microsoft-identity-* are present).
+# (verified Sep 2026).
 # Install the upstream .deb from the official GitHub releases instead, pinned
 # and sha256-verified for reproducibility.
 # TODO(ubuntu26.04): once PMC publishes azcopy for 26.04, switch back to
@@ -68,7 +74,9 @@ echo "${AZCOPY_DEB_SHA256}  azcopy.deb" | sha256sum --check --strict
 apt-get -y install ./azcopy.deb
 rm -f azcopy.deb
 
-echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+if sku_uses_ipoib; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
 echo ib_umad | sudo tee /etc/modules-load.d/ib_umad.conf
 
 # copy kvp client file
@@ -77,5 +85,5 @@ $COMPONENT_DIR/copy_kvp_client.sh
 # copy torset tool
 $COMPONENT_DIR/copy_torset_tool.sh
 
-# Set default shell for newly created users (somehow bash is no longer the default in Canonical's image for Azure)
+# Set default shell for newly created users (bash is no longer the default in Canonical's Resolute image for Azure)
 sed -i 's|^SHELL=.*|SHELL=/bin/bash|' /etc/default/useradd

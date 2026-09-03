@@ -80,21 +80,17 @@ OS_VERSION=$(. /etc/os-release 2>/dev/null && echo "${ID}${VERSION_ID}" || true)
 write_version "OS" "${OS_VERSION}"
 
 # ---- CMAKE ----
-# install_cmake.sh drops the upstream tarball at /usr/local/bin/cmake.
-# Pin the lookup there: sudo's secure_path puts /usr/bin first on RHEL,
-# so any distro/EPEL cmake rpm would shadow the tarball and downgrade
-# the manifest. Fall back to PATH only if the install path is missing.
+# CMake now comes from the distro package manager, so resolve it through
+# PATH rather than a fixed prefix: that reports the same binary the
+# component builds actually invoke, including on older images that still
+# carry the retired /usr/local/bin tarball.
 echo "[CMake]"
 CMAKE_VERSION=""
 CMAKE_BIN=""
-for candidate in /usr/local/bin/cmake /usr/bin/cmake; do
-    if [ -x "${candidate}" ]; then
-        CMAKE_BIN="${candidate}"
-        break
-    fi
-done
-if [[ -z "${CMAKE_BIN}" ]] && command -v cmake &>/dev/null; then
+if command -v cmake &>/dev/null; then
     CMAKE_BIN="$(command -v cmake)"
+elif [ -x /usr/bin/cmake ]; then
+    CMAKE_BIN="/usr/bin/cmake"
 fi
 if [[ -n "${CMAKE_BIN}" ]]; then
     CMAKE_VERSION=$("${CMAKE_BIN}" --version 2>/dev/null | head -1 | awk '{print $3}' || true)
@@ -419,7 +415,7 @@ if [[ "${GPU_PLATFORM}" == "NVIDIA" ]]; then
     fi
     write_version "NVBANDWIDTH" "${NVBANDWIDTH_VERSION}" best-effort
 
-    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/tdnf); no /opt path.
+    # NVSHMEM: installed as libnvshmem3-cuda-<MAJOR> (apt/dnf); no /opt path.
     echo "[NVSHMEM]"
     NVSHMEM_VERSION=""
     if command -v dpkg-query &>/dev/null; then

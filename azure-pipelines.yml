@@ -14,8 +14,9 @@ parameters:
   default: 90
 - name: scanner_branch
   displayName: hpc-image-val scanner branch
+  # TEMPORARY: testing nguyenvuong/auth_fix before merge; revert to master before merging this PR.
   type: string
-  default: master
+  default: nguyenvuong/auth_fix
 - name: poll_interval_seconds
   displayName: Scanner poll interval in seconds
   type: number

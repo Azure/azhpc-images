@@ -48,6 +48,7 @@ apt-get -y install numactl \
                    python3 \
                    python3-pip \
                    python3-setuptools \
+                   pkg-config \
                    dkms \
                    jq \
                    curl \

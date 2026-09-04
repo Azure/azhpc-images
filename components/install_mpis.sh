@@ -9,9 +9,14 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-pmix_metadata=$(get_component_config "pmix")
-PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
-PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+USE_HPCX_BUNDLED_PMIX=false
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+    USE_HPCX_BUNDLED_PMIX=true
+else
+    pmix_metadata=$(get_component_config "pmix")
+    PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
+    PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+fi
 
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
@@ -51,18 +56,24 @@ if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
     HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
 fi
 
-# rebuild HPCX with PMIx
-# Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
-# conflicts with the Mellanox OpenMPI package on Nebius nodes.
-# Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
-if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+# HPC-X 2.51 defaults to its prebuilt Open MPI 5 stack, which includes PMIx 5,
+# hwloc, and libevent. Keep that tested stack intact on Ubuntu 26.04.
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    PMIX_PATH=${HPCX_PATH}/ompi5
+    HPCX_OMPI5_PKG_CONFIG_PATH=${PMIX_PATH}/lib/pkgconfig
+    PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --exists 'pmix >= 5' hwloc libevent
+    PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --modversion pmix)
+    write_component_version "PMIX" "${PMIX_VERSION}"
+elif [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 elif ! sku_uses_ucx; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 fi
-cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+if [[ "$USE_HPCX_BUNDLED_PMIX" != true ]]; then
+    cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+fi
 
 if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
     UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
@@ -160,7 +171,11 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+OMPI_PMIX_LIB_PATH=""
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    PMIX_FLAG="--with-pmix=${PMIX_PATH} --with-hwloc=${PMIX_PATH} --with-libevent=${PMIX_PATH}"
+    OMPI_PMIX_LIB_PATH=":${PMIX_PATH}/lib"
+elif [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     PMIX_FLAG="--with-pmix"
 else
     PMIX_FLAG="--with-pmix=${PMIX_PATH}"
@@ -168,7 +183,7 @@ fi
 # OMPI_TRANSPORT_LIB_PATH: see MVAPICH_TRANSPORT_LIB_PATH above. Same rationale —
 # pin runtime UCX/libfabric to the install Open MPI was linked against.
 if sku_uses_ucx; then
-    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib${OMPI_PMIX_LIB_PATH} --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
     OMPI_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
 else
     # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
@@ -206,10 +221,15 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# mpi/hpcx is the public HPC-X entrypoint. Always route it through our rebuilt
-# HPC-X so customers and validation use the same stack we rebuilt above (PMIx,
-# non-UCX OFI, and ROCm-enabled UCX where applicable).
-HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+# mpi/hpcx is the public HPC-X entrypoint. Resolute uses HPC-X 2.51's vendor
+# Open MPI 5 / PMIx 5 stack; other targets use the locally rebuilt stack.
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+    HPCX_PMIX_MODULE=${HPCX_MODULE}
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+    HPCX_PMIX_MODULE=${HPCX_MODULE}
+fi
 HPCX_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
     # On non-UCX SKUs:
@@ -241,7 +261,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
+module load ${HPCX_PMIX_MODULE}
 ${HPCX_NON_UCX_EXTRAS}
 EOF
 
@@ -295,7 +315,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #
 conflict        mpi
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}
+prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}${OMPI_PMIX_LIB_PATH}
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_BIN         /opt/openmpi-${OMPI_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include

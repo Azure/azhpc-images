@@ -3,76 +3,16 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+    echo "Ubuntu 26.04 uses the PMIx 5 stack bundled with HPC-X."
+    exit 0
+fi
+
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
-
-    # TODO(ubuntu26.04): replace this cross-release package workaround with
-    # HPC-X 2.51's bundled Open MPI 5 / PMIx 5 stack after validation.
-    # Ubuntu 26.04 (Resolute Raccoon): PMC does not yet publish a
-    # `slurm-ubuntu-resolute` pool. Rather than fall back to Ubuntu universe
-    # (which ships PMIx 5.x as `libpmix-dev`), we install PMC's PMIx 4.2.9
-    # .deb out of the noble pool and preserve the /opt/pmix/<version>/ install
-    # layout that install_mpis.sh expects.
-    #
-    # PMIx 4.2.9 dependencies are satisfiable from Resolute repositories:
-    #   zlib1g-dev, libc6 (>=2.38), libevent-core-2.1-7t64,
-    #   libevent-pthreads-2.1-7t64, libhwloc15, zlib1g
-    #
-    # The PMC slurm-ubuntu-noble pool is signed with the older Microsoft
-    # release-signing key (gpgsecurity@microsoft.com, fingerprint
-    # ...EB3E94ADBE1229CF), which is NOT in the keyring shipped with the
-    # resolute packages-microsoft-prod.deb. We fetch it from
-    # packages.microsoft.com/keys/microsoft.asc and place it in a separate
-    # keyring referenced only by the noble sources file.
-    #
-    # The noble insiders suite is then pinned so it can ONLY supply the `pmix`
-    # package. This prevents apt from accidentally pulling noble-built
-    # dependencies onto a resolute host while leaving the normal Microsoft
-    # Resolute production repository eligible.
-    #
-    # TODO(ubuntu26.04): once PMC publishes slurm-ubuntu-resolute, switch this
-    # branch to that pool and drop the legacy-key bootstrap.
-    if [ "$UBUNTU_VERSION" == "26.04" ]; then
-        apt-get install -y curl gnupg ca-certificates
-
-        # Install legacy MS release-signing key into a dedicated keyring.
-        legacy_keyring=/usr/share/keyrings/azhpc-microsoft-legacy.gpg
-        if [ ! -f "${legacy_keyring}" ]; then
-            tmp_asc=$(mktemp --suffix=.asc)
-            curl -fsSL https://packages.microsoft.com/keys/microsoft.asc -o "${tmp_asc}"
-            gpg --dearmor --yes -o "${legacy_keyring}" "${tmp_asc}"
-            chmod 0644 "${legacy_keyring}"
-            rm -f "${tmp_asc}"
-        fi
-
-        cat > /etc/apt/sources.list.d/azhpc-pmc-slurm-noble.list <<EOF
-deb [arch=${ARCHITECTURE_DISTRO} signed-by=${legacy_keyring}] https://packages.microsoft.com/repos/slurm-ubuntu-noble/ insiders main
-EOF
-
-        # Hard pin: the noble insiders suite is allowed to supply ONLY `pmix`.
-        cat > /etc/apt/preferences.d/azhpc-pmc-slurm-noble.pref <<'EOF'
-Package: *
-Pin: release a=insiders,n=insiders,c=main
-Pin-Priority: -1
-
-Package: pmix
-Pin: release a=insiders,n=insiders,c=main
-Pin-Priority: 990
-EOF
-
-        apt-get update
-        # libevent-dev / libhwloc-dev still come from resolute main/universe;
-        # only `pmix` is sourced from the pinned noble pool.
-        apt-get install -y pmix libevent-dev libhwloc-dev
-        apt-mark hold pmix libevent-dev libhwloc-dev
-
-        PMIX_VERSION=$(dpkg-query -W -f='${Version}' pmix 2>/dev/null || echo "${PMIX_VERSION}")
-        write_component_version "PMIX" "${PMIX_VERSION}"
-        exit 0
-    fi
 
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble

@@ -39,12 +39,8 @@ source ${UTILS_DIR}/utilities.sh
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
-# install PMIX
-# TODO(ubuntu26.04): move to HPC-X 2.51 and its bundled Open MPI 5 / PMIx 5
-# stack after that combination is validated on Resolute.
-$COMPONENT_DIR/install_pmix.sh
-
-# install mpi libraries
+# Install MPI libraries. HPC-X 2.51 supplies the Open MPI 5, PMIx 5, hwloc,
+# and libevent stack used on Ubuntu 26.04.
 $COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then

@@ -192,10 +192,15 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# mpi/hpcx is the public HPC-X entrypoint. Always route it through our rebuilt
-# HPC-X so customers and validation use the same stack we rebuilt above (PMIx,
-# non-UCX OFI, and ROCm-enabled UCX where applicable).
-HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+# On UCX SKUs, mpi/hpcx points to NVIDIA's original pre-built binary while
+# mpi/hpcx-pmix points to our local rebuild (with PMIx added). On non-UCX SKUs
+# (e.g. NCv6), the original binary is broken and only the rebuild (built
+# --without-ucx --with-ofi) works, so both modules point to it.
+if sku_uses_ucx; then
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+fi
 HPCX_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
     # On non-UCX SKUs:

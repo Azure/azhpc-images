@@ -74,7 +74,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
         datacenter-gpu-manager-4-core=${DCGM_VERSION} \
         datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
+        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-multinode=${DCGM_VERSION} \
+        datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
@@ -84,7 +86,8 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         apt-get install -y \
             datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Get DCGM version from versions.json
@@ -92,19 +95,67 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
+    hpcx_provides_openmpi_marker=hpcx-provides-openmpi
+    if ! rpm -q "${hpcx_provides_openmpi_marker}" &>/dev/null; then
+        rpm_topdir=$(mktemp -d)
+        spec_file="${rpm_topdir}/${hpcx_provides_openmpi_marker}.spec"
+        mkdir -p "${rpm_topdir}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+        cat > "${spec_file}" <<EOF
+Name: ${hpcx_provides_openmpi_marker}
+Version: 1.0
+Release: 1
+Summary: Marker package to indicate that HPC-X provides Open MPI
+License: MIT
+BuildArch: noarch
+Provides: openmpi
+
+%description
+HPC-X, installed earlier by install_mpis.sh into /opt, provides Open MPI at
+runtime for this image. This marker package satisfies the "openmpi"
+dependency of datacenter-gpu-manager-4-multinode-cuda<N> so dnf does not
+install the Azure Linux openmpi RPM, whose newest build bundles PMIx files
+that conflict with the separately-installed pmix package.
+
+%install
+mkdir -p %{buildroot}/usr/share/doc/%{name}
+cat > %{buildroot}/usr/share/doc/%{name}/README <<'README'
+HPC-X provides Open MPI for this image; see install_mpis.sh.
+README
+
+%files
+/usr/share/doc/%{name}/README
+EOF
+        rpmbuild --define "_topdir ${rpm_topdir}" -bb "${spec_file}"
+        marker_rpm=$(find "${rpm_topdir}/RPMS" -type f -name "${hpcx_provides_openmpi_marker}-*.rpm" | head -n1)
+        if [[ -z "${marker_rpm}" ]]; then
+            echo "ERROR: failed to build ${hpcx_provides_openmpi_marker} marker RPM" >&2
+            exit 1
+        fi
+        rpm -Uvh --replacepkgs "${marker_rpm}"
+        rm -rf "${rpm_topdir}"
+    fi
     if [ "$1" = "V100" ]; then
-        dnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
+        dnf install -y \
+            datacenter-gpu-manager-4-cuda12-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
     else
-        dnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
+        dnf install -y \
+            datacenter-gpu-manager-4-cuda13-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}
     fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+    # Multinode diagnostic plugin (mnubergemm) for multi-node/rack-level testing; requires CUDA 12+.
+    dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}
     # V100 needs cuda12 DCGM packages in addition to cuda13 (same as Ubuntu logic above)
     if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}
+        dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
     fi
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 fi

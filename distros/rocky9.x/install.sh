@@ -32,11 +32,6 @@ $COMPONENT_DIR/fix_setools_cyclecloud.sh
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
-if [ "$GPU" = "AMD" ]; then
-    # Install ROCm before MPI so HPC-X can rebuild UCX with ROCm support.
-    $COMPONENT_DIR/install_rocm.sh "$SKU"
-fi
-
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -57,17 +52,22 @@ if [ "$GPU" = "NVIDIA" ]; then
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 
-fi
+    # Install NVIDIA docker container
+    $COMPONENT_DIR/install_docker.sh
 
-# Install Docker container runtime
-$COMPONENT_DIR/install_docker.sh
-
-if [ "$GPU" = "NVIDIA" ]; then
     # Install DCGM
     $COMPONENT_DIR/install_dcgm.sh
 fi
 
 if [ "$GPU" = "AMD" ]; then
+    # Set up docker for AMD
+    dnf install -y moby-engine moby-cli
+    systemctl enable docker
+    systemctl restart docker
+
+    # install rocm software stack
+    $COMPONENT_DIR/install_rocm.sh "$SKU"
+
     # install rccl and rccl-tests
     $COMPONENT_DIR/install_rccl.sh
 fi

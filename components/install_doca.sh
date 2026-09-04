@@ -35,17 +35,12 @@ PATCH[0]="dpll-ffo-param.patch"
 EOF
 }
 
-<<<<<<< HEAD
 install_hpcx_doca_ofed_deps_apt_marker() {
     local marker_control=/tmp/${HPCX_DOCA_OFED_DEPS_MARKER}
     local openmpi_version=""
     local sharp_provides=""
     local sharp_version=""
     local ucx_version=""
-=======
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    dpkg -i $DOCA_FILE
->>>>>>> parent of 85b73f7 (Fix various *CCL and MPI issues and add RCCL RDMA SHARP plugin (#558))
 
     # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
     cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
@@ -78,24 +73,17 @@ PIN
     # and the unversioned Canonical names with `Provides: openmpi-bin, libopenmpi-dev,
     # openmpi-common`. We additionally `Conflicts:` the Canonical names so any
     # already-installed Canonical Open MPI is removed when the marker is installed.
-<<<<<<< HEAD
     # The same marker also provides DOCA's strict `ucx` dependency and, before
     # DOCA 3.3.0, its `sharp` dependency so apt does not install the DOCA-bundled
     # copies. HPC-X is installed later by install_mpis.sh; on AMD builds,
     # install_mpis.sh rebuilds HPC-X UCX with ROCm support before ROCm components
     # use it.
-=======
-    # We deliberately do not touch `libopenmpi3` at all: on AMD/ROCm builds,
-    # `libopenmpi3t64` is already installed (indirect dep of mivisionx-dev) and
-    # provides it. Same pattern as ucx-provides-libucx0 in install_rocm.sh.
->>>>>>> parent of 85b73f7 (Fix various *CCL and MPI issues and add RCCL RDMA SHARP plugin (#558))
     apt-get install -y equivs
     openmpi_version=$(apt-cache show openmpi 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$openmpi_version" ]]; then
         echo "ERROR: could not read openmpi version from DOCA repo" >&2
         exit 1
     fi
-<<<<<<< HEAD
     ucx_version=$(apt-cache show ucx 2>/dev/null | awk '/^Version:/ {print $2; exit}')
     if [[ -z "$ucx_version" ]]; then
         echo "ERROR: could not read ucx version from DOCA repo" >&2
@@ -110,25 +98,16 @@ PIN
         sharp_provides=", sharp (= ${sharp_version})"
     fi
     cat > "${marker_control}" <<EOF
-=======
-    cat > /tmp/hpcx-provides-openmpi <<EOF
->>>>>>> parent of 85b73f7 (Fix various *CCL and MPI issues and add RCCL RDMA SHARP plugin (#558))
 Section: misc
 Priority: optional
 Homepage: https://github.com/Azure/azhpc-images
 Standards-Version: 3.9.2
 
-<<<<<<< HEAD
 Package: ${HPCX_DOCA_OFED_DEPS_MARKER}
 Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common, ucx (= ${ucx_version}), libucx0${sharp_provides}
-=======
-Package: hpcx-provides-openmpi
-Provides: openmpi (= ${openmpi_version}), openmpi-bin, libopenmpi-dev, openmpi-common
->>>>>>> parent of 85b73f7 (Fix various *CCL and MPI issues and add RCCL RDMA SHARP plugin (#558))
 Conflicts: openmpi-bin, libopenmpi-dev, openmpi-common
 Version: ${openmpi_version}
 Maintainer: Azure HPC Platform team <hpcplat@microsoft.com>
-<<<<<<< HEAD
 Description: marker package to indicate that HPC-X provides DOCA OFED dependencies
  HPC-X (installed by install_mpis.sh into /opt) provides Open MPI, UCX, and
  SHARP at runtime, so the DOCA-bundled openmpi and ucx packages are redundant.
@@ -138,15 +117,6 @@ Description: marker package to indicate that HPC-X provides DOCA OFED dependenci
  older DOCA SHARP packages can inject stale libtool dependencies on DOCA UCX
  paths under /usr/lib. The libucx0 virtual provide also satisfies later
  Ubuntu/ROCm dependency chains that require libucx0.
-=======
-Description: marker package to indicate that HPC-X provides Open MPI
- HPC-X (installed by install_mpis.sh into /opt) provides Open MPI at runtime,
- so both the DOCA-bundled openmpi .deb and Canonical's upstream openmpi
- packages are redundant. The DOCA openmpi additionally collides with
- /etc/pmix-mca-params.conf from the separately-installed pmix package, and
- Canonical's openmpi on Jammy depends on a vulnerable PMIx with fixes behind
- the Ubuntu Pro paywall.
->>>>>>> parent of 85b73f7 (Fix various *CCL and MPI issues and add RCCL RDMA SHARP plugin (#558))
 EOF
     (
         cd /tmp

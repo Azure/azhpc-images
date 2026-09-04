@@ -127,6 +127,16 @@ function verify_hpcx_installation {
     fi
     
     module load mpi/hpcx
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        [[ "${HPCX_MPI_DIR}" == */ompi5 ]]
+        check_exit_code "HPC-X selected its Open MPI 5 stack" "HPC-X did not select its Open MPI 5 stack"
+
+        ompi_info --version | grep -qE '^Open MPI v5\.'
+        check_exit_code "HPC-X uses Open MPI 5" "HPC-X did not report Open MPI 5"
+
+        pkg-config --atleast-version=5 pmix
+        check_exit_code "HPC-X uses PMIx 5" "HPC-X did not provide PMIx 5"
+    fi
     mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
@@ -607,9 +617,11 @@ function verify_sunrpc_tcp_settings_service {
 }
 
 function verify_azure_persistent_rdma_naming_service {
-    # Check if the azure persistent rdma naming service is active
-    systemctl is-active --quiet azure_persistent_rdma_naming
-    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
+    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
+
+    systemctl is-active --quiet azure_persistent_rdma_naming.timer
+    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
 }
 
 function verify_nvbandwidth_setup {

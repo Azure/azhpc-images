@@ -36,6 +36,13 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.3.0/host/doca-host_3.3.0-088000-26.01-ubuntu2404_arm64.deb"
             }
         },
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "3.4.0",
+                "sha256": "60789bbbfc9b283a87a64589a0d4bd5d08d1b746494c24ce05e10bbd694de6bb",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.4.0/host/doca-host_3.4.0-085000-26.04-ubuntu2604_amd64.deb"
+            }
+        },
         "almalinux8.10": {
             "x86_64": {
                 "version": "3.2.1",
@@ -109,6 +116,20 @@
                 "version": "2.25.1",
                 "sha256": "8767bea4f0967a6b0f5e1b31395a431bf5624eaf34c928f109bc2db985f26887",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-x86_64.tbz"
+            }
+        },
+        "ubuntu26.04": {
+            "x86_64": {
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "version": "2.51",
+                        "sha256": "26f9e53c6641711049a3aa8b556e7abeddee9cc6eafca60a98a1681a5f8d4742",
+                        "url": "https://content.mellanox.com/hpc/hpc-x/v2.51_cuda12/hpcx-v2.51-gcc-doca_ofed-ubuntu24.04-cuda12-x86_64.tbz"
+                    }
+                },
+                "version": "2.51",
+                "sha256": "550e5a14c9cf22478ff7db76533afd9e17102dd2a252471d712b950897c915ec",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.51_cuda13/hpcx-v2.51-gcc-doca_ofed-ubuntu24.04-cuda13-x86_64.tbz"
             }
         },
         "almalinux8.10": {
@@ -373,6 +394,13 @@
                 }
             }
         },
+        "ubuntu26.04": {
+            "x86_64": {
+                "driver": {
+                    "version": "595.58.03"
+                }
+            }
+        },
         "almalinux8.10": {
             "x86_64": {
                 "driver": {
@@ -512,6 +540,31 @@
                 "samples": {
                     "version": "13.0",
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
+        },
+        "ubuntu26.04": {
+            "_comment": "distribution intentionally pinned to ubuntu2404: NVIDIA's compute/cuda/repos/ubuntu2604 pool currently ships only the driver/firmware/imex/fabricmanager packages and does NOT yet include cuda-toolkit-13-X. The ubuntu2404 pool ships the full set; .deb packages are not tied to the Ubuntu codename and DKMS rebuilds kernel modules against the running kernel (linux-azure-7.0). Revisit once compute/cuda/repos/ubuntu2604 carries cuda-toolkit packages.",
+            "x86_64": {
+                "azure_vm_regular": {
+                    "nvidia_v100": {
+                        "driver": {
+                            "version": "12.9",
+                            "distribution": "ubuntu2404"
+                        },
+                        "samples": {
+                            "version": "12.9",
+                            "sha256": "2e67e1f6bdb15bf11b21e07e988e2f9f60fb054eff51ef01cebdd47229788015"
+                        }
+                    }
+                },
+                "driver": {
+                    "version": "13.2",
+                    "distribution": "ubuntu2404"
+                },
+                "samples": {
+                    "version": "13.2",
+                    "sha256": "c7d8da987a43fd6ed7c2641df204dfc639768adbae070bc22f9df0e03005f7de"
                 }
             }
         },
@@ -689,6 +742,14 @@
                 "distribution": "Ubuntu24_04"
             }
         },
+        "ubuntu26.04": {
+            "_comment": "Best-effort: gdrcopy is built from source, so the same upstream commit should work. The 'distribution' value MUST match what build-deb-packages.sh embeds in the produced .deb filename suffix (derived via lsb_release: '${ID}${VERSION_ID//./_}'), since install_gdrcopy.sh does dpkg -i on that exact filename.",
+            "x86_64": {
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
+                "distribution": "Ubuntu26_04"
+            }
+        },
         "almalinux8.10": {
             "x86_64": {
                 "version": "2.5.1-1",
@@ -809,6 +870,11 @@
                     "version": "1:4.5.3-1"
                 },
                 "version": "1:4.6.1-1"
+            }
+        },
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "1:4.5.2-1"
             }
         },
         "azurelinux3.0": {

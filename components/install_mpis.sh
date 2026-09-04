@@ -9,9 +9,14 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-pmix_metadata=$(get_component_config "pmix")
-PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
-PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+USE_HPCX_BUNDLED_PMIX=false
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+    USE_HPCX_BUNDLED_PMIX=true
+else
+    pmix_metadata=$(get_component_config "pmix")
+    PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
+    PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
+fi
 
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
@@ -51,18 +56,24 @@ if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
     HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
 fi
 
-# rebuild HPCX with PMIx
-# Baremetal nodes use PMIx bundled inside HPC-X because standalone PMIx
-# conflicts with the Mellanox OpenMPI package on Nebius nodes.
-# Azure VMs (and azurelinux3.0) use the separately installed PMIx package.
-if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+# HPC-X 2.51 defaults to its prebuilt Open MPI 5 stack, which includes PMIx 5,
+# hwloc, and libevent. Keep that tested stack intact on Ubuntu 26.04.
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    PMIX_PATH=${HPCX_PATH}/ompi5
+    HPCX_OMPI5_PKG_CONFIG_PATH=${PMIX_PATH}/lib/pkgconfig
+    PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --exists 'pmix >= 5' hwloc libevent
+    PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --modversion pmix)
+    write_component_version "PMIX" "${PMIX_VERSION}"
+elif [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix --enable-orterun-prefix-by-default"
 elif ! sku_uses_ucx; then
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default --without-ucx --with-ofi=${LIBFABRIC_PATH}"
 else
     ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} --enable-orterun-prefix-by-default"
 fi
-cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+if [[ "$USE_HPCX_BUNDLED_PMIX" != true ]]; then
+    cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
+fi
 
 if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
     UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
@@ -99,9 +110,19 @@ if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DIS
 fi
 
 # Install MVAPICH
-# Skip on GB-family nodes (ubuntu24.04 and azurelinux3.0) — MVAPICH is not supported
-# on those distribution/SKU-family combinations.
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
+# Skips:
+#   * GB-family nodes (ubuntu24.04 and azurelinux3.0) — MVAPICH is not
+#     supported on those distribution/SKU-family combinations.
+#   * Ubuntu 26.04 — MVAPICH 4.1's bundled libfabric does not build with
+#     resolute's gcc 15 (the OPX provider's OPX_COMPILE_TIME_ASSERT macro
+#     parses as a bare `if(0){...}` outside of a function and is rejected),
+#     and its UCR provider uses an old gdrcopy API incompatible with
+#     gdrcopy 2.5.x. Disabling those two providers (--enable-opx=no
+#     --enable-ucr=no) unblocks libfabric, but resolute's gcc 15 then
+#     hangs/OOMs on MVAPICH's collectives source. Skip until MVAPICH
+#     publishes a release that builds cleanly against gcc 15.
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]] && \
+   [[ "${DISTRIBUTION}" != "ubuntu26.04" ]]; then
     mvapich_metadata=$(get_component_config "mvapich")
     MVAPICH_VERSION=$(jq -r '.version' <<< $mvapich_metadata)
     MVAPICH_SHA256=$(jq -r '.sha256' <<< $mvapich_metadata)
@@ -115,6 +136,10 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     # Error exclusive to Ubuntu 22.04
     # configure: error: The Fortran compiler gfortran will not compile files that call
     # the same routine with arguments of different types.
+    # Each step on its own line so set -e catches a configure or make failure
+    # — the original `cmd && cmd && cmd` form only triggered set -e on the
+    # last command, masking earlier breakage on new distros (caught when
+    # adding ubuntu26.04 support).
     mvapich_transport_args=""
     # MVAPICH_TRANSPORT_LIB_PATH captures the lib dir of the transport (UCX or libfabric)
     # that MVAPICH is linked against. It is surfaced via the modulefile so the dynamic
@@ -146,7 +171,11 @@ OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
 tar -xvf $TARBALL
 cd $OMPI_FOLDER
-if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+OMPI_PMIX_LIB_PATH=""
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    PMIX_FLAG="--with-pmix=${PMIX_PATH} --with-hwloc=${PMIX_PATH} --with-libevent=${PMIX_PATH}"
+    OMPI_PMIX_LIB_PATH=":${PMIX_PATH}/lib"
+elif [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     PMIX_FLAG="--with-pmix"
 else
     PMIX_FLAG="--with-pmix=${PMIX_PATH}"
@@ -154,7 +183,7 @@ fi
 # OMPI_TRANSPORT_LIB_PATH: see MVAPICH_TRANSPORT_LIB_PATH above. Same rationale —
 # pin runtime UCX/libfabric to the install Open MPI was linked against.
 if sku_uses_ucx; then
-    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib${OMPI_PMIX_LIB_PATH} --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
     OMPI_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
 else
     # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
@@ -192,10 +221,15 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# mpi/hpcx is the public HPC-X entrypoint. Always route it through our rebuilt
-# HPC-X so customers and validation use the same stack we rebuilt above (PMIx,
-# non-UCX OFI, and ROCm-enabled UCX where applicable).
-HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+# mpi/hpcx is the public HPC-X entrypoint. Resolute uses HPC-X 2.51's vendor
+# Open MPI 5 / PMIx 5 stack; other targets use the locally rebuilt stack.
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
+    HPCX_PMIX_MODULE=${HPCX_MODULE}
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
+    HPCX_PMIX_MODULE=${HPCX_MODULE}
+fi
 HPCX_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
     # On non-UCX SKUs:
@@ -227,11 +261,11 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 #  HPCx ${HPCX_VERSION}
 #
 conflict        mpi
-module load ${HPCX_PATH}/modulefiles/hpcx-rebuild
+module load ${HPCX_PMIX_MODULE}
 ${HPCX_NON_UCX_EXTRAS}
 EOF
 
-# MVAPICH
+# MVAPICH (skipped on the same distros/SKU combos as the build above)
 # On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
 # the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks)
 # and disable CMA (process_vm_readv fails with ptrace_scope=1 on sibling processes).
@@ -242,7 +276,8 @@ setenv          FI_PROVIDER tcp
 setenv          MPIR_CVAR_CH4_CMA_ENABLE 0
 EXTRAS
 fi
-if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]]; then
+if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3.0") && "${SKU_FAMILY}" == "gb-family" ]] && \
+    [[ "${DISTRIBUTION}" != "ubuntu26.04" ]]; then
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
@@ -280,7 +315,7 @@ cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #
 conflict        mpi
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}
+prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}${OMPI_PMIX_LIB_PATH}
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_BIN         /opt/openmpi-${OMPI_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include

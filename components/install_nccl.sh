@@ -21,10 +21,10 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # For VM it has been installed via the install_utils.sh or install_doca.sh
     apt install -y zlib1g-dev # libibverbs-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y rpm-build rpmdevtools autoconf automake git libtool patchelf
+    dnf install -y rpm-build rpmdevtools autoconf automake git libtool patchelf
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    yum install -y rpm-build rpmdevtools patchelf
+    dnf install -y rpm-build rpmdevtools patchelf
 fi
 
 pushd /tmp
@@ -44,13 +44,13 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     make pkg.redhat.build
     if [ "$ARCHITECTURE" = "aarch64" ]; then
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
-        tdnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
+        dnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
     else
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
-        tdnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
+        dnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
     fi
 
     dnf_pin_packages "libnccl*"

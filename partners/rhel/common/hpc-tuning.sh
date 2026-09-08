@@ -5,7 +5,7 @@ set -ex
 systemctl disable firewalld
 
 # Remove auoms if exists - Prevent CPU utilization by auoms
-if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
+if dnf list installed azsec-monitor >/dev/null 2>&1; then dnf remove -y azsec-monitor; fi
 
 $COMMON_DIR/hpc-tuning.sh
 

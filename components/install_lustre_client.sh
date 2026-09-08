@@ -7,6 +7,12 @@ source ${UTILS_DIR}/utilities.sh
 lustre_metadata=$(get_component_config "lustre")
 LUSTRE_VERSION=$(jq -r '.version' <<< $lustre_metadata)
 
+CURRENT_KERNEL_VERSION=${KERNEL_VERSION:-$(uname -r)}
+if [[ "${CURRENT_KERNEL_VERSION}" == "7.0" || "${CURRENT_KERNEL_VERSION}" == 7.0.* || "${CURRENT_KERNEL_VERSION}" == 7.0-* ]]; then
+    echo "Skipping Lustre client installation for kernel version ${CURRENT_KERNEL_VERSION}"
+    exit 0
+fi
+
 configure_lustre_dkms_no_o2ib() {
     local config_file=$1
 

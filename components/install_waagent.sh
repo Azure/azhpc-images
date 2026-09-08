@@ -19,7 +19,7 @@ function update_waagent_conf {
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Update WALinuxAgent - for IPoIB
-    tdnf update -y WALinuxAgent
+    dnf update -y WALinuxAgent
 
     update_waagent_conf "OS.EnableRDMA" "y"
     update_waagent_conf "Extensions.GoalStatePeriod" "300"

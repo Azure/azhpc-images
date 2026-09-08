@@ -1,25 +1,56 @@
+# Phase 0 of the PR gate (docs/pr-gate-orchestrator-design.md §9): a cheap check whose purpose is to
+# establish the required GitHub status check. Phase 2 swaps in the orchestrator-backed content
+# without renaming the pipeline, so the branch policy never needs editing again.
+
 trigger: none
 
+# Deliberately no path filters: a required check has to report on every PR to master.
 pr:
-- master
+  autoCancel: true
+  branches:
+    include:
+    - master
 
-pool: 
+pool:
   name: 1ES-hosted-pool-scrub1
 
 jobs:
-- job: queue_azdo
-  timeoutInMinutes: 360
+- job: pr_gate
+  displayName: PR gate
+  timeoutInMinutes: 15
   steps:
-  - bash: |
-      echo $(System.PullRequest.PullRequestNumber)
-    displayName: Print PR Num
+  - checkout: self
 
-  - task: Bash@3
-    inputs:
-      targetType: 'filePath'
-      filePath: './azure-pipelines/queue_ado.sh'
-      failOnStderr: true
+  - bash: |
+      set -euo pipefail
+      mapfile -t scripts < <(git ls-files '*.sh')
+      echo "Checking ${#scripts[@]} shell scripts"
+      status=0
+      for script in "${scripts[@]}"; do
+        bash -n "$script" || status=1
+      done
+      exit $status
+    displayName: Shell syntax check
+
+  - bash: |
+      set -euo pipefail
+      if [ -z "${PR_NUM:-}" ]; then
+        echo "Not a pull request run; skipping merge ref check."
+        exit 0
+      fi
+      ref="refs/pull/${PR_NUM}/merge"
+      work="$(mktemp -d)"
+      # Same sequence the image build will use to check out PR code (design doc, work item A).
+      git clone --no-checkout --depth 1 "$REPO_URL" "$work"
+      git -C "$work" fetch --depth 1 origin "$ref"
+      git -C "$work" checkout --detach FETCH_HEAD
+      fetched="$(git -C "$work" rev-parse HEAD)"
+      echo "Fetched $ref at $fetched"
+      if [ "$fetched" != "$MERGE_SHA" ]; then
+        echo "##vso[task.logissue type=warning]Merge ref is now $fetched but this run built $MERGE_SHA; GitHub regenerated the ref after a base-branch update."
+      fi
+    displayName: PR merge ref smoke test
     env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       PR_NUM: $(System.PullRequest.PullRequestNumber)
-    displayName: Queue Validation Build and Monitor Status
+      MERGE_SHA: $(Build.SourceVersion)
+      REPO_URL: https://github.com/Azure/azhpc-images.git

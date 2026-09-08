@@ -32,8 +32,8 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # '--allow-change-held-packages' flag.
     apt-mark hold pmix=${PMIX_VERSION} libevent-dev libhwloc-dev # libmunge-dev
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf -y install pmix pmix-devel pmix-tools
-    tdnf -y install hwloc-devel libevent-devel munge-devel
+    dnf -y install pmix pmix-devel pmix-tools
+    dnf -y install hwloc-devel libevent-devel munge-devel
     if [ "$ARCHITECTURE" = "aarch64" ]; then
         postfix="aarch64"
     else

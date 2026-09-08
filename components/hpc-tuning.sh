@@ -20,9 +20,9 @@ elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $D
         systemctl disable firewalld
     fi
     # Remove auoms if exists - Prevent CPU utilization by auoms
-    if yum list installed azsec-monitor >/dev/null 2>&1; then yum remove -y azsec-monitor; fi
+    if dnf list installed azsec-monitor >/dev/null 2>&1; then dnf remove -y azsec-monitor; fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    if tdnf list installed azsec-monitor >/dev/null 2>&1; then tdnf remove -y azsec-monitor; fi
+    if dnf list installed azsec-monitor >/dev/null 2>&1; then dnf remove -y azsec-monitor; fi
 fi
 
 if [[ "${NVLINK_RACKSCALE,,}" == "true" ]]; then

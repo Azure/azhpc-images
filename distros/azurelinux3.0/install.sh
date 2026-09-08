@@ -111,6 +111,8 @@ fi
 # write kernel and OS version metadata
 $COMPONENT_DIR/write_kernel_os_version.sh
 
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
 # install diagnostic script
 $COMPONENT_DIR/install_hpcdiag.sh
 

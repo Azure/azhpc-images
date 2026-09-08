@@ -5,4 +5,4 @@ set -ex
 #rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
 
 # jq is needed to parse the component versions from the versions.json file
-yum install -y jq
+dnf install -y jq

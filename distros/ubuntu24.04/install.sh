@@ -146,6 +146,9 @@ if [[ "$SKU" != "GB200" ]]; then
 fi 
 # write kernel and OS version metadata
 $COMPONENT_DIR/write_kernel_os_version.sh
+
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

@@ -40,9 +40,9 @@ else
     # [distros/rocky8.10/install_utils.sh]). That bypasses dnf modular
     # filtering for moby-runc (which `Provides: runc`, a name claimed by
     # the AppStream `container-tools` module) without disabling the module.
-    yum install -y moby-engine
-    yum install -y moby-cli
-    yum install -y moby-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y moby-buildx
 fi
 
 if [[ "$INSTALL_NVIDIA_CONTAINER_TOOLKIT" == true ]]; then
@@ -78,6 +78,6 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     moby_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    moby_version=$(yum list installed | grep moby-engine | awk -F' ' '{print $2}')
+    moby_version=$(dnf list installed | grep moby-engine | awk -F' ' '{print $2}')
 fi
 write_component_version "MOBY_ENGINE" ${moby_version}

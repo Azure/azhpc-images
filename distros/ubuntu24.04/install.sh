@@ -45,6 +45,18 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rocm.sh
 fi
 
+if [ "$GPU" = "NVIDIA" ]; then
+    # Install CUDA before MPI so HPC-X can rebuild Open MPI with CUDA support.
+    if [ "$SKU" = "GB200" ]; then
+        # For GB200, pass SKU to install the correct driver.
+        $COMPONENT_DIR/install_nvidiagpudriver.sh
+    elif [ "$SKU" = "NCv6" ]; then
+        $COMPONENT_DIR/install_nvidiagriddriver.sh
+    else
+        $COMPONENT_DIR/install_nvidiagpudriver.sh
+    fi
+fi
+
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -52,11 +64,7 @@ $COMPONENT_DIR/install_pmix.sh
 $COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
-    # install nvidia gpu driver
-
     if [ "$SKU" = "GB200" ]; then
-        # For GB200, pass SKU to install the correct driver
-        $COMPONENT_DIR/install_nvidiagpudriver.sh
         # Install NVSHMEM
         $COMPONENT_DIR/install_nvshmem.sh
 
@@ -66,10 +74,6 @@ if [ "$GPU" = "NVIDIA" ]; then
         # Install NVBandwidth tool
         $COMPONENT_DIR/install_nvbandwidth_tool.sh
 
-    elif [ "$SKU" = "NCv6" ]; then
-        $COMPONENT_DIR/install_nvidiagriddriver.sh
-    else
-        $COMPONENT_DIR/install_nvidiagpudriver.sh
     fi
     
     # Install NCCL

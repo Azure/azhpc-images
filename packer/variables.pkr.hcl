@@ -332,6 +332,10 @@ locals {
     },
     (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? { "TipNode.SessionId" = local.tip_session_id } : {}
   ) : {}
+  # TODO(ubuntu26.04): Remove this exclusion once MDE officially supports
+  # Ubuntu 26.04. The current installer falls back to the Ubuntu 18.04
+  # repository and overwrites the valid microsoft-prod.list.
+  mde_exclusion_tag = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
   owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
   buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(
@@ -339,6 +343,7 @@ locals {
     local.owner_tag,
     local.buildid_tag,
     var.extra_tags,
+    local.mde_exclusion_tag,
   )
 }
 

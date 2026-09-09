@@ -16,7 +16,17 @@ download_and_verify ${CUDA_SAMPLES_DOWNLOAD_URL} ${CUDA_SAMPLES_SHA256}
 tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 mkdir build && cd build
-cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
+CMAKE_OPTIONS=(-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc)
+if [[ "$DISTRIBUTION" == "ubuntu26.04" && "$CUDA_DRIVER_VERSION" == 12.* ]]; then
+	# CUDA 12.9 is the final toolkit with Volta code generation, but it rejects GCC 15.
+	apt-get install -y gcc-14 g++-14
+	CMAKE_OPTIONS+=(
+		-DCMAKE_C_COMPILER=/usr/bin/gcc-14
+		-DCMAKE_CXX_COMPILER=/usr/bin/g++-14
+		-DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-14
+	)
+fi
+cmake "${CMAKE_OPTIONS[@]}" ..
 make -j $(nproc)
 mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples
 popd

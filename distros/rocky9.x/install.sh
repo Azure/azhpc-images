@@ -37,6 +37,11 @@ if [ "$GPU" = "AMD" ]; then
     $COMPONENT_DIR/install_rocm.sh "$SKU"
 fi
 
+if [ "$GPU" = "NVIDIA" ]; then
+    # Install CUDA before MPI so HPC-X can rebuild Open MPI with CUDA support.
+    $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+fi
+
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -51,9 +56,6 @@ $COMPONENT_DIR/install_lustre_client.sh
 $COMPONENT_DIR/install_mpifileutils.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
-    # install nvidia gpu driver
-    $COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
-
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 

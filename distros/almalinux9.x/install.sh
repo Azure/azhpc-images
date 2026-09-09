@@ -28,6 +28,9 @@ source ../../utils/set_properties.sh
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
+# Install CUDA before MPI so HPC-X can rebuild Open MPI with CUDA support.
+$COMPONENT_DIR/install_nvidiagpudriver.sh
+
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
 
@@ -40,9 +43,6 @@ $COMPONENT_DIR/install_lustre_client.sh
 
 # install mpifileutils
 $COMPONENT_DIR/install_mpifileutils.sh
-
-# install nvidia gpu driver
-$COMPONENT_DIR/install_nvidiagpudriver.sh
 
 # Install NCCL
 $COMPONENT_DIR/install_nccl.sh

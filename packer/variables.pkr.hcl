@@ -40,10 +40,10 @@ locals {
   os_version_regex = "^(?P<os_family>[a-zA-Z]+)[-_]?(?P<distro_version>[0-9]+(?:\\.[0-9]+)?)$"
   os_family        = regex(local.os_version_regex, local.os_version)["os_family"]
   distro_version   = regex(local.os_version_regex, local.os_version)["distro_version"]
-  # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux 9.*, Rocky 9.*)
-  # share a single `9.x` folder since their install scripts are not minor-specific.
-  # All other distros pin to the minor.
-  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  # Folder suffix for distros/ scripts. EL9 and EL10 distros (AlmaLinux/Rocky
+  # 9.* and 10.*) share a single `<major>.x` folder since their install scripts
+  # are not minor-specific. All other distros pin to the minor.
+  _os_script_folder_distro_version = ((local.os_family == "alma" || local.os_family == "rocky") && can(regex("^(9|10)\\.", local.distro_version))) ? "${split(".", local.distro_version)[0]}.x" : local.distro_version
   os_script_folder_name            = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
@@ -62,10 +62,12 @@ locals {
     "alma" = {
       "8.10" = "4.18"
       "9.8"  = "5.14"
+      "10.2"  = "6.12"
     }
     "rocky" = {
       "8.10" = "4.18"
       "9.8"  = "5.14"
+      "10.2"  = "6.12"
     }
     "azurelinux" = {
       "3.0" = "6.6"
@@ -758,7 +760,8 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"],
+          "10.2"  = ["almalinux", "almalinux-x86_64", "10-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
@@ -834,6 +837,7 @@ locals {
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
         "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "10.2"  = "AlmaLinuxHPC-10.2-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
         "3.0" = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"

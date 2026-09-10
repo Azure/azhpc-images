@@ -38,16 +38,23 @@
         },
         "almalinux8.10": {
             "x86_64": {
-                "version": "3.2.1",
-                "sha256": "ce630bb2e98f4202ed041d8607c72caf9db2ea8a9d795b982823af5493e4cb4b",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel8.x86_64.rpm"
+                "version": "3.2.3",
+                "sha256": "613909dd0d1bdc3abd99112ff8cd59c62604d3edc2dd0b51a7b8fdaf30ca50c1",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel8.x86_64.rpm"
             }
         },
         "almalinux9.8": {
             "x86_64": {
-                "version": "3.2.2",
-                "sha256": "97d2ff3f271bd7e324e2c25b17ac12fb22e91be3e8a4bdf50a399ced1e5a7bc9",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.2/host/doca-host-3.2.2-035000_25.10_rhel9.x86_64.rpm"
+                "version": "3.2.3",
+                "sha256": "59150518897d998d19c87c814550d8b2c70c344053201d24f393f3df165e7825",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel9.x86_64.rpm"
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "3.2.3",
+                "sha256": "cfd9b61c768e3a64243e7ef09f92b48c7034f72449269f402a99907f66abc5c9",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel10.x86_64.rpm"
             }
         },
         "rhel8.10": {
@@ -137,6 +144,13 @@
                 "version": "2.25.1",
                 "sha256": "32d26857bd9c6aa47795b0eb354773b465d44e30784587258da0c91a8081df63",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "2.25.3",
+                "sha256": "a32dad0528750b3cd99dd3f5d9f07bb43f9abe1373a8d58b6f24a62675ce77c7",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.3_cuda13/hpcx-v2.25.3-gcc-doca_ofed-redhat10-cuda13-x86_64.tbz"
             }
         },
         "rhel8.10": {
@@ -267,6 +281,13 @@
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "4.1",
+                "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
+                "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
+            }
+        },
         "azurelinux3.0": {
             "x86_64": {
                 "version": "2.3.7-2",
@@ -376,26 +397,39 @@
         "almalinux8.10": {
             "x86_64": {
                 "driver": {
-                    "version": "580.126.20",
-                    "sha256": "a055dbeae72438f20335b41929a060148c82c69d2147c0d922660e8c5a265eb1"
+                    "version": "580.178.04",
+                    "sha256": "5975a86ee45bffcb626f51ae33d1169b108186a2ea47ad651e72f13fa4b6d6f9"
                 },
                 "fabricmanager": {
                     "distribution": "rhel8",
-                    "version": "580.126.20-1",
-                    "sha256": "00a82a6b937cdb3fc306f3d081b050eed8fd5ebec1436cba15ab86771efd92a0"
+                    "version": "580.178.04-1",
+                    "sha256": "04732cd1becd3478cdf9a712fedf5d3237dc63bbf3d3c8825b31cbb532e15eb3"
                 }
             }
         },
         "almalinux9.8": {
             "x86_64": {
                 "driver": {
-                    "version": "580.126.20",
-                    "sha256": "a055dbeae72438f20335b41929a060148c82c69d2147c0d922660e8c5a265eb1"
+                    "version": "580.178.04",
+                    "sha256": "5975a86ee45bffcb626f51ae33d1169b108186a2ea47ad651e72f13fa4b6d6f9"
                 },
                 "fabricmanager": {
                     "distribution": "rhel9",
-                    "version": "580.126.20-1",
-                    "sha256": "00a82a6b937cdb3fc306f3d081b050eed8fd5ebec1436cba15ab86771efd92a0"
+                    "version": "580.178.04-1",
+                    "sha256": "b7ec6deac2e37e8301ededbf043112bc3c23c1a01da61fcfddf269770319420b"
+                }
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "driver": {
+                    "version": "580.178.04",
+                    "sha256": "5975a86ee45bffcb626f51ae33d1169b108186a2ea47ad651e72f13fa4b6d6f9"
+                },
+                "fabricmanager": {
+                    "distribution": "rhel10",
+                    "version": "580.178.04-1",
+                    "sha256": "1864cb7a194d56afddec40431178de8759272ebf8506a5131fb47cca7d368921"
                 }
             }
         },
@@ -564,6 +598,18 @@
                 }
             }
         },
+        "almalinux10.2": {
+            "x86_64": {
+                "driver": {
+                    "version": "13.0",
+                    "distribution": "rhel10"
+                },
+                "samples": {
+                    "version": "13.0",
+                    "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
+        },
         "rhel8.10": {
             "x86_64": {
                 "driver": {
@@ -701,6 +747,13 @@
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
                 "distribution": "el9"
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
+                "distribution": "el10"
             }
         },
         "rhel8.10": {
@@ -902,6 +955,11 @@
                 "version": "2.15.8_35_gdf4872c"
             }
         },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "2.17.0_25_g48fb0ca"
+            }
+        },
         "ubuntu22.04": {
             "x86_64": {
                 "version": "2.15.8-35-gdf4872c"
@@ -954,6 +1012,11 @@
             },
             "aarch64": {
                 "version": "5.0.1-1"
+            }
+        },
+        "almalinux10.2": {
+            "x86_64": {
+                "version": "5.0.11-1"
             }
         }
     },

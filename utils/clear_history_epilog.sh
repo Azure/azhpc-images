@@ -84,14 +84,30 @@ if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]]; then
 
     # Disable root account
     usermod root -p '!!'
+    
+    legacy_ifcfg_created=false
+    if [[ "$distro" == *"AlmaLinux"* ]] || [[ "$distro" == *"Rocky"* ]] || [[ "$distro" == *"Red Hat"* ]]; then
+        if [[ ! -e /etc/sysconfig/network-scripts/ifcfg-eth0 ]]; then
+            mkdir -p /etc/sysconfig/network-scripts
+            touch /etc/sysconfig/network-scripts/ifcfg-eth0
+            legacy_ifcfg_created=true
+        fi
+    fi
+
     # Deprovision the user
     waagent -deprovision+user -force
+
+    if [[ "\${legacy_ifcfg_created}" == true ]]; then
+        rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
+        rmdir /etc/sysconfig/network-scripts 2>/dev/null || true
+    fi
 else
     apt -y remove walinuxagent 2>/dev/null || true
 fi
 
 # Delete the last line of the file /etc/sysconfig/network-scripts/ifcfg-eth0 -> cloud-init issue on alma distros
-if [[ "$distro" == *"AlmaLinux"* ]] || [[ "$distro" == *"Rocky"* ]] || [[ "$distro" == *"Red Hat"* ]]
+if [[ -f /etc/sysconfig/network-scripts/ifcfg-eth0 ]] &&
+   { [[ "$distro" == *"AlmaLinux"* ]] || [[ "$distro" == *"Rocky"* ]] || [[ "$distro" == *"Red Hat"* ]]; }
 then
     sed -i '$ d' /etc/sysconfig/network-scripts/ifcfg-eth0
 fi

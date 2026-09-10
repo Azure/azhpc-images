@@ -17,7 +17,14 @@ tar -xvf ${TARBALL}
 pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 mkdir build && cd build
 CMAKE_OPTIONS=(-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc)
+if [[ -f ../cmake/InstallSamples.cmake ]]; then
+	CMAKE_OPTIONS+=(-DCUDA_SAMPLES_INSTALL_DIR=/usr/local/cuda-${CUDA_DRIVER_VERSION}/samples)
+fi
 cmake "${CMAKE_OPTIONS[@]}" ..
 make -j $(nproc)
-mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples
+if [[ -f ../cmake/InstallSamples.cmake ]]; then
+	cmake --install .
+else
+	mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples
+fi
 popd

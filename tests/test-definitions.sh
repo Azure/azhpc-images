@@ -217,7 +217,11 @@ function verify_cuda_installation {
     fi
 
     # Verify the compilation of CUDA samples
-    /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    if [[ -x /usr/local/cuda/samples/mergeSort ]]; then
+        /usr/local/cuda/samples/mergeSort
+    else
+        /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    fi
     check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 

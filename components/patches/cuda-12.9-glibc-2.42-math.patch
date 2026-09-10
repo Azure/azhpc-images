@@ -1,0 +1,108 @@
+--- a/crt/math_functions.h
++++ b/crt/math_functions.h
+@@ -114,6 +114,32 @@
+ #include "builtin_types.h"
+ #include "host_defines.h"
+ 
++#if defined(__GNUC__) && !defined(__ANDROID__) && !defined(__QNX__) && !defined(__APPLE__) && !defined(__HORIZON__)
++#  include <features.h>
++#  if __GNUC_PREREQ(2,41) && (__GLIBC_USE_ISOC23 || defined(__STDC_WANT_IEC_60559_FUNCS_EXT__))
++#    define __NV_GLIBC_PROVIDES_IEC_60559_FUNCS 1
++#  else
++#    define __NV_GLIBC_PROVIDES_IEC_60559_FUNCS 0
++#  endif
++#  if __GLIBC_PREREQ(2,42)
++#    define _NV_GLIBC_VERSION_GE_2_42 1
++#  endif
++#else
++#  define __NV_GLIBC_PROVIDES_IEC_60559_FUNCS 0
++#endif
++
++#if defined(_NV_GLIBC_VERSION_GE_2_42)
++#  define _NV_RSQRT_SPECIFIER noexcept(true)
++#else
++#  define _NV_RSQRT_SPECIFIER
++#endif
++
++#if __NV_GLIBC_PROVIDES_IEC_60559_FUNCS
++#  define __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER __THROW
++#else
++#  define __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER
++#endif
++
+ //NOTE: For NVRTC, these declarations have been moved into the compiler (to reduce compile time)
+ #define EXCLUDE_FROM_RTC
+ 
+@@ -594,7 +620,7 @@
+  *
+  * \note_accuracy_double
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 rsqrt(double x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 rsqrt(double x) _NV_RSQRT_SPECIFIER;
+ 
+ /**
+  * \ingroup CUDA_MATH_SINGLE
+@@ -618,7 +644,7 @@
+  *
+  * \note_accuracy_single
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  rsqrtf(float x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  rsqrtf(float x) _NV_RSQRT_SPECIFIER;
+ 
+ #if defined(__QNX__) && !defined(_LIBCPP_VERSION)
+ namespace std {
+@@ -2553,7 +2579,7 @@
+  *
+  * \note_accuracy_double
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 sinpi(double x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 sinpi(double x) __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER;
+ /**
+  * \ingroup CUDA_MATH_SINGLE
+  * \brief Calculate the sine of the input argument 
+@@ -2576,7 +2602,7 @@
+  *
+  * \note_accuracy_single
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  sinpif(float x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  sinpif(float x) __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER;
+ /**
+  * \ingroup CUDA_MATH_DOUBLE
+  * \brief Calculate the cosine of the input argument 
+@@ -2598,7 +2624,7 @@
+  *
+  * \note_accuracy_double
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 cospi(double x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ double                 cospi(double x) __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER;
+ /**
+  * \ingroup CUDA_MATH_SINGLE
+  * \brief Calculate the cosine of the input argument 
+@@ -2620,7 +2646,8 @@
+  *
+  * \note_accuracy_single
+  */
+-extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  cospif(float x);
++extern __DEVICE_FUNCTIONS_DECL__ __device_builtin__ float                  cospif(float x) __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER;
++#undef __NV_IEC_60559_FUNCS_EXCEPTION_SPECIFIER
+ /**
+  * \ingroup CUDA_MATH_DOUBLE
+  * \brief  Calculate the sine and cosine of the first input argument 
+@@ -5983,7 +6009,7 @@
+ 
+ #endif /* _WIN32 */
+ 
+-__func__(double rsqrt(double a));
++__func__(double rsqrt(double a) noexcept(true));
+ 
+ __func__(double rcbrt(double a));
+ 
+@@ -6003,7 +6029,7 @@
+ 
+ __func__(double erfcx(double a));
+ 
+-__func__(float rsqrtf(float a));
++__func__(float rsqrtf(float a) noexcept(true));
+ 
+ __func__(float rcbrtf(float a));
+ 

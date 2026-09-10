@@ -172,6 +172,11 @@ if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
     # Ensure proper permissions
     chmod 644 /etc/profile.d/cuda.sh
 
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" && "$SKU" == "V100" && "$CUDA_DRIVER_VERSION" == "12.9" ]]; then
+        $COMPONENT_DIR/install_cuda_compat_headers.sh
+        source /etc/profile.d/cuda-v100-compat.sh
+    fi
+
     cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
     write_component_version "CUDA" ${cuda_version}
 

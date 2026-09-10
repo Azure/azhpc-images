@@ -28,6 +28,9 @@ if [[ "$GPU" == "NVIDIA" ]]; then
 
     if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         dnf install -y cmake rust cargo ninja-build build-essential
+    elif [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        apt-get install -y cmake rustc cargo ninja-build build-essential
+        apt-get install -y g++ pkg-config uuid-dev libssl-dev
     elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y cmake rustc-1.82 cargo-1.82 ninja-build build-essential
         apt-get install -y g++ pkg-config uuid-dev libssl-dev

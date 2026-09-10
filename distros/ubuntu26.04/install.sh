@@ -24,6 +24,11 @@ if [[ "$GPU" == "AMD" ]]; then
     exit 1
 fi
 
+if [[ "$SKU" == "V100" ]]; then
+    echo "##[error]V100 is not supported on Ubuntu 26.04 because NVIDIA does not provide a compatible CUDA toolkit."
+    exit 1
+fi
+
 # These SKUs need driver, architecture, or network paths that have not been
 # validated on Ubuntu 26.04 yet.
 if [[ "$SKU" == "GB200" || "$SKU" == "VR200" || "$SKU" == "NCv6" ]]; then

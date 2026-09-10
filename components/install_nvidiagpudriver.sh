@@ -80,6 +80,10 @@ EOF
         apt install nvidia-open -y
     fi
 
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        NVIDIA_DRIVER_VERSION=$(dpkg-query -W -f='${Version}' nvidia-open | sed 's/-.*//')
+    fi
+
     # Remove unused configuration file if created by the NVIDIA driver package
     rm -f /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
 
@@ -171,11 +175,6 @@ if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
 
     # Ensure proper permissions
     chmod 644 /etc/profile.d/cuda.sh
-
-    if [[ "$DISTRIBUTION" == "ubuntu26.04" && "$SKU" == "V100" ]]; then
-        $COMPONENT_DIR/install_cuda_compat_headers.sh
-        source /etc/profile.d/cuda-v100-compat.sh
-    fi
 
     cuda_version=$(source /etc/profile; nvcc --version | grep release | awk '{print $6}' | cut -c2-)
     write_component_version "CUDA" ${cuda_version}

@@ -57,11 +57,7 @@ else
             cuda_metadata=$(get_component_config "cuda")
             CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
-            if [[ "$DISTRIBUTION" == "ubuntu26.04" && "$SKU" == "V100" ]]; then
-                CC=/usr/bin/gcc-14 CXX=/usr/bin/g++-14 CUDA=/usr/local/cuda ./build-deb-packages.sh -d
-            else
-                CUDA=/usr/local/cuda ./build-deb-packages.sh
-            fi
+            CUDA=/usr/local/cuda ./build-deb-packages.sh
             dpkg -i gdrdrv-dkms_${GDRCOPY_VERSION}_${ARCHITECTURE_DISTRO}.${GDRCOPY_DISTRIBUTION}.deb
             apt-mark hold gdrdrv-dkms
             dpkg -i libgdrapi_${GDRCOPY_VERSION}_${ARCHITECTURE_DISTRO}.${GDRCOPY_DISTRIBUTION}.deb

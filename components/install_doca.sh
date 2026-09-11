@@ -48,8 +48,8 @@ install_hpcx_doca_ofed_deps_apt_marker() {
     # This blocks two separate attempts to install an upstream Open MPI .deb:
     #
     #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
-    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
-    #     (installed later by install_mpis.sh) provides Open MPI at /opt — and the
+    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime -- HPC-X
+    #     (installed later by install_mpis.sh) provides Open MPI at /opt -- and the
     #     .deb ships /etc/pmix-mca-params.conf, colliding with the pmix package
     #     installed by install_pmix.sh (pmix >=4.2.9-2 dropped its
     #     `Conflicts: openmpi`, so dpkg now aborts with "trying to overwrite
@@ -204,11 +204,13 @@ PIN
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    download_and_verify $DOCA_URL $DOCA_SHA256
     rpm -i $DOCA_FILE
     dnf clean all
     install_hpcx_doca_ofed_deps_rpm_marker
     dnf -y install doca-ofed
 else
+    download_and_verify $DOCA_URL $DOCA_SHA256
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all

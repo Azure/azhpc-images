@@ -67,16 +67,26 @@ SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 # the repo is already added during nvidia/ cuda installations
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Get DCGM version from versions.json
-    dcgm_metadata=$(get_component_config "dcgm")
-    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-    apt-get install -y \
-        datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-core=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-multinode=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        apt-get install -y \
+            datacenter-gpu-manager-4-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-core \
+            datacenter-gpu-manager-4-proprietary \
+            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-multinode \
+            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}
+    else
+        # Get DCGM version from versions.json
+        dcgm_metadata=$(get_component_config "dcgm")
+        DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+        apt-get install -y \
+            datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-core=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode=${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
+    fi
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
@@ -84,10 +94,20 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # In practice though, DCGM requires both cuda12 and cuda13 support packages (https://github.com/NVIDIA/DCGM/issues/254).
     if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
-        apt-get install -y \
-            datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+        if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+            apt-get install -y \
+                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
+        else
+            apt-get install -y \
+                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
+                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
+                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+        fi
+    fi
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        DCGM_VERSION=$(dpkg-query -W -f='${Version}' datacenter-gpu-manager-4-core)
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Get DCGM version from versions.json

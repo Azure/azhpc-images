@@ -6,7 +6,7 @@ install_nmap() {
         echo "nmap already installed: $(nmap --version 2>/dev/null | head -1 || true)"
         return 0
     fi
-    
+
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y nmap
     else

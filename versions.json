@@ -36,6 +36,13 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.3.0/host/doca-host_3.3.0-088000-26.01-ubuntu2404_arm64.deb"
             }
         },
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "3.4.0",
+                "sha256": "60789bbbfc9b283a87a64589a0d4bd5d08d1b746494c24ce05e10bbd694de6bb",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.4.0/host/doca-host_3.4.0-085000-26.04-ubuntu2604_amd64.deb"
+            }
+        },
         "almalinux8.10": {
             "x86_64": {
                 "version": "3.2.1",
@@ -109,6 +116,13 @@
                 "version": "2.25.1",
                 "sha256": "8767bea4f0967a6b0f5e1b31395a431bf5624eaf34c928f109bc2db985f26887",
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-x86_64.tbz"
+            }
+        },
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "2.51",
+                "sha256": "550e5a14c9cf22478ff7db76533afd9e17102dd2a252471d712b950897c915ec",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.51_cuda13/hpcx-v2.51-gcc-doca_ofed-ubuntu24.04-cuda13-x86_64.tbz"
             }
         },
         "almalinux8.10": {
@@ -373,6 +387,13 @@
                 }
             }
         },
+        "ubuntu26.04": {
+            "x86_64": {
+                "driver": {
+                    "version": "610"
+                }
+            }
+        },
         "almalinux8.10": {
             "x86_64": {
                 "driver": {
@@ -512,6 +533,18 @@
                 "samples": {
                     "version": "13.0",
                     "sha256": "63cc9d5d8280c87df3c1f4e2276234a0f42cc497c52b40dd5bdda2836607db79"
+                }
+            }
+        },
+        "ubuntu26.04": {
+            "x86_64": {
+                "driver": {
+                    "version": "13.3",
+                    "distribution": "ubuntu2604"
+                },
+                "samples": {
+                    "version": "13.3",
+                    "sha256": "fab59f405d6c0b87395ce6fc1d46d3f559c380c9a2704ab14d6dc0d3ce1cff16"
                 }
             }
         },
@@ -687,6 +720,14 @@
                 "version": "2.6-1",
                 "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
                 "distribution": "Ubuntu24_04"
+            }
+        },
+        "ubuntu26.04": {
+            "_comment": "Best-effort: gdrcopy is built from source, so the same upstream commit should work. The 'distribution' value MUST match what build-deb-packages.sh embeds in the produced .deb filename suffix (derived via lsb_release: '${ID}${VERSION_ID//./_}'), since install_gdrcopy.sh does dpkg -i on that exact filename.",
+            "x86_64": {
+                "version": "2.6-1",
+                "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
+                "distribution": "Ubuntu26_04"
             }
         },
         "almalinux8.10": {

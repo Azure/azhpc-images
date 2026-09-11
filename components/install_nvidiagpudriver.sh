@@ -80,6 +80,10 @@ EOF
         apt install nvidia-open -y
     fi
 
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        NVIDIA_DRIVER_VERSION=$(dpkg-query -W -f='${Version}' nvidia-open | sed 's/-.*//')
+    fi
+
     # Remove unused configuration file if created by the NVIDIA driver package
     rm -f /etc/modprobe.d/nvidia-graphics-drivers-kms.conf
 

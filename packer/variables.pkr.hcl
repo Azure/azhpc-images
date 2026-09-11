@@ -24,13 +24,13 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 8.10, 9.8, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 26.04, 8.10, 9.8, 3.0)"
   default     = "24.04"
 }
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_26.04, ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
@@ -58,6 +58,7 @@ locals {
     "ubuntu" = {
       "22.04" = "5.15"
       "24.04" = "6.8"
+      "26.04" = "7.0"
     }
     "alma" = {
       "8.10" = "4.18"
@@ -331,6 +332,10 @@ locals {
     },
     (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? { "TipNode.SessionId" = local.tip_session_id } : {}
   ) : {}
+  # TODO(ubuntu26.04): Remove this exclusion once MDE officially supports
+  # Ubuntu 26.04. The current installer falls back to the Ubuntu 18.04
+  # repository and overwrites the valid microsoft-prod.list.
+  mde_exclusion_tag = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
   owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
   buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(
@@ -338,6 +343,7 @@ locals {
     local.owner_tag,
     local.buildid_tag,
     var.extra_tags,
+    local.mde_exclusion_tag,
   )
 }
 
@@ -754,7 +760,8 @@ locals {
       "Marketplace-Non-FIPS" = {
         "ubuntu" = {
           "22.04" = ["Canonical", "0001-com-ubuntu-server-jammy", "22_04-lts-gen2"],
-          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server"]
+          "24.04" = ["Canonical", "ubuntu-24_04-lts", "server"],
+          "26.04" = ["Canonical", "ubuntu-26_04-lts", "server"]
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
@@ -829,7 +836,8 @@ locals {
     "Marketplace-Non-FIPS" = {
       "ubuntu" = {
         "22.04" = "UbuntuHPC-22.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "24.04" = "UbuntuHPC-24.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
+        "26.04" = "UbuntuHPC-26.04-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",

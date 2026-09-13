@@ -77,6 +77,14 @@ same_fs() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
+# Stop extension auto-provisioning before the first mdatp purge. The filesystem
+# cleanup below can take several minutes, which otherwise gives the Azure guest
+# agent enough time to install MDE again before the epilog runs.
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]] && command -v systemctl >/dev/null 2>&1; then
+    systemctl stop walinuxagent.service 2>/dev/null || true
+    systemctl stop waagent.service 2>/dev/null || true
+fi
+
 if [[ $distro == *"AlmaLinux"* ]] || [[ $distro == *"Rocky"* ]] || [[ $distro == *"Red Hat"* ]]
 then
     # Sync dnf and rpmdb after installing RPMs outside dnf.

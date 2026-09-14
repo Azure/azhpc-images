@@ -114,7 +114,7 @@ EOF
     (
         cd /tmp
         equivs-build "${marker_control}"
-        dpkg -i /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb
+        dpkg_install_with_lock_wait /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb
     )
     rm -f /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb "${marker_control}"
 }
@@ -190,7 +190,7 @@ EOF
 }
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    dpkg -i $DOCA_FILE
+    dpkg_install_with_lock_wait "$DOCA_FILE"
 
     # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
     cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN

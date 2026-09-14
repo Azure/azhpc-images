@@ -29,7 +29,7 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         dnf install -y cmake rust cargo ninja-build build-essential
     elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-        RUST_VERSION=1.88
+        RUST_VERSION=1.89
         apt-get install -y cmake rustc-${RUST_VERSION} cargo-${RUST_VERSION} ninja-build build-essential
         apt-get install -y g++ pkg-config uuid-dev libssl-dev
         export PATH="/usr/lib/rust-${RUST_VERSION}/bin:$PATH"

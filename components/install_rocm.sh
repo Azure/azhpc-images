@@ -20,7 +20,15 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # apt install -y amdgpu-dkms rocm
         # # ROCm bundles RCCL
         # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
-        amdgpu-install -y --usecase=graphics,rocm
+        amdgpu-install -y --usecase=graphics
+        apt-get install -y \
+            rocm-utils \
+            rocm-developer-tools \
+            rocm-openmp-sdk \
+            rocm-opencl-sdk \
+            rocm-ml-sdk \
+            migraphx migraphx-dev \
+            rpp rpp-dev
     else
         amdgpu-install -y --usecase=graphics,rocm
     fi

@@ -175,39 +175,37 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
 fi
 
 # Install Open MPI
-ompi_metadata=$(get_component_config "ompi")
-OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata)
-OMPI_SHA256=$(jq -r '.sha256' <<< $ompi_metadata)
-OMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $ompi_metadata)
-TARBALL=$(basename $OMPI_DOWNLOAD_URL)
-OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
+if [[ "$DISTRIBUTION" != "ubuntu26.04" ]]; then
+    ompi_metadata=$(get_component_config "ompi")
+    OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata)
+    OMPI_SHA256=$(jq -r '.sha256' <<< $ompi_metadata)
+    OMPI_DOWNLOAD_URL=$(jq -r '.url' <<< $ompi_metadata)
+    TARBALL=$(basename $OMPI_DOWNLOAD_URL)
+    OMPI_FOLDER=$(basename $OMPI_DOWNLOAD_URL .tar.gz)
 
-download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
-tar -xvf $TARBALL
-cd $OMPI_FOLDER
-OMPI_PMIX_LIB_PATH=""
-if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
-    PMIX_FLAG="--with-pmix=${PMIX_PATH} --with-hwloc=${PMIX_PATH} --with-libevent=${PMIX_PATH}"
-    OMPI_PMIX_LIB_PATH=":${PMIX_PATH}/lib"
-elif [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
-    PMIX_FLAG="--with-pmix"
-else
-    PMIX_FLAG="--with-pmix=${PMIX_PATH}"
+    download_and_verify $OMPI_DOWNLOAD_URL $OMPI_SHA256
+    tar -xvf $TARBALL
+    cd $OMPI_FOLDER
+    if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+        PMIX_FLAG="--with-pmix"
+    else
+        PMIX_FLAG="--with-pmix=${PMIX_PATH}"
+    fi
+    # OMPI_TRANSPORT_LIB_PATH: see MVAPICH_TRANSPORT_LIB_PATH above. Same rationale —
+    # pin runtime UCX/libfabric to the install Open MPI was linked against.
+    if sku_uses_ucx; then
+        ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
+        OMPI_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
+    else
+        # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
+        ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --without-ucx --with-ofi=${LIBFABRIC_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default
+        OMPI_TRANSPORT_LIB_PATH="${LIBFABRIC_PATH}/lib"
+    fi
+    make -j$(nproc)
+    make install
+    cd ..
+    write_component_version "OMPI" ${OMPI_VERSION}
 fi
-# OMPI_TRANSPORT_LIB_PATH: see MVAPICH_TRANSPORT_LIB_PATH above. Same rationale —
-# pin runtime UCX/libfabric to the install Open MPI was linked against.
-if sku_uses_ucx; then
-    ./configure LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${HCOLL_PATH}/lib${OMPI_PMIX_LIB_PATH} --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --with-ucx=${UCX_PATH} --with-hcoll=${HCOLL_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default --with-platform=contrib/platform/mellanox/optimized
-    OMPI_TRANSPORT_LIB_PATH="${UCX_PATH}/lib"
-else
-    # Drop --with-ucx, --with-hcoll (uses UCX internally), --with-platform (Mellanox-specific).
-    ./configure --prefix=${INSTALL_PREFIX}/openmpi-${OMPI_VERSION} --without-ucx --with-ofi=${LIBFABRIC_PATH} ${PMIX_FLAG} --enable-mpirun-prefix-by-default
-    OMPI_TRANSPORT_LIB_PATH="${LIBFABRIC_PATH}/lib"
-fi
-make -j$(nproc) 
-make install
-cd ..
-write_component_version "OMPI" ${OMPI_VERSION}
 
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # exclude openmpi, perftest from updates
@@ -279,6 +277,9 @@ module load ${HPCX_PMIX_MODULE}
 ${HPCX_NON_UCX_EXTRAS}
 EOF
 
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
+
 # MVAPICH (skipped on the same distros/SKU combos as the build above)
 # On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks
 # the legacy sockets provider because MPICH4 requests shared-AV which tcp lacks)
@@ -315,21 +316,22 @@ fi
 # On non-UCX SKUs, Open MPI standalone (built --without-ucx --with-ofi) has the same
 # PML auto-selection issue as HPC-X: ob1 wins over cm, but ob1's BTL tcp is confused
 # by the docker bridge (172.17.0.1 on all nodes). Fix with pml=cm + tcp provider.
-OMPI_NON_UCX_EXTRAS=""
-if ! sku_uses_ucx; then
-    read -r -d '' OMPI_NON_UCX_EXTRAS << 'EXTRAS' || true
+if [[ "$DISTRIBUTION" != "ubuntu26.04" ]]; then
+    OMPI_NON_UCX_EXTRAS=""
+    if ! sku_uses_ucx; then
+        read -r -d '' OMPI_NON_UCX_EXTRAS << 'EXTRAS' || true
 setenv          OMPI_MCA_pml cm
 setenv          OMPI_MCA_mtl_ofi_provider_include tcp
 EXTRAS
-fi
-cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
+    fi
+    cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION}
 #%Module 1.0
 #
 #  OpenMPI ${OMPI_VERSION}
 #
 conflict        mpi
 prepend-path    PATH            /opt/openmpi-${OMPI_VERSION}/bin
-prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}${OMPI_PMIX_LIB_PATH}
+prepend-path    LD_LIBRARY_PATH /opt/openmpi-${OMPI_VERSION}/lib:${HCOLL_PATH}/lib:${OMPI_TRANSPORT_LIB_PATH}
 prepend-path    MANPATH         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_BIN         /opt/openmpi-${OMPI_VERSION}/bin
 setenv          MPI_INCLUDE     /opt/openmpi-${OMPI_VERSION}/include
@@ -338,6 +340,8 @@ setenv          MPI_MAN         /opt/openmpi-${OMPI_VERSION}/share/man
 setenv          MPI_HOME        /opt/openmpi-${OMPI_VERSION}
 ${OMPI_NON_UCX_EXTRAS}
 EOF
+    ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
+fi
 
 #IntelMPI-v2021
 if [[ "$ARCHITECTURE" != "aarch64" ]]; then
@@ -373,10 +377,6 @@ fi
 
 
 
-# Create symlinks for modulefiles
-ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx
-ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix
-ln -s ${MPI_MODULE_FILES_DIRECTORY}/openmpi-${OMPI_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/openmpi
 # cleanup downloaded tarballs and other installation files/folders
 rm -rf *.tbz *.tar.gz *offline.sh
 (

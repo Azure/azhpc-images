@@ -40,7 +40,7 @@ function verify_network_components_hook {
 }
 
 function should_verify_ompi_installation {
-    return 0
+    [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]
 }
 
 function test_service {

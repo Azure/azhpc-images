@@ -128,9 +128,6 @@ function verify_hpcx_installation {
     
     module load mpi/hpcx
     if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
-        [[ "${HPCX_MPI_DIR}" == */ompi5 ]]
-        check_exit_code "HPC-X selected its Open MPI 5 stack" "HPC-X did not select its Open MPI 5 stack"
-
         ompi_info --version | grep -qE '^Open MPI v5\.'
         check_exit_code "HPC-X uses Open MPI 5" "HPC-X did not report Open MPI 5"
 

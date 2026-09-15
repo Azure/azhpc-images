@@ -20,7 +20,20 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # apt install -y amdgpu-dkms rocm
         # # ROCm bundles RCCL
         # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
-        amdgpu-install -y --usecase=graphics,rocm
+        amdgpu-install -y --usecase=graphics
+        # TODO: Revisit this explicit package list when upgrading back to ROCm 7.0.
+        # Exclude MIVisionX, which pulls FFmpeg, Qt, cJSON, and mbedTLS packages
+        # with publishing-blocking CVEs whose Ubuntu fixes require Pro/ESM.
+        # Restore the full rocm install only after verifying its dependencies
+        # pass security scanning without Ubuntu Pro; the version bump alone is not enough.
+        apt-get install -y \
+            rocm-utils \
+            rocm-developer-tools \
+            rocm-openmp-sdk \
+            rocm-opencl-sdk \
+            rocm-ml-sdk \
+            migraphx migraphx-dev \
+            rpp rpp-dev
     else
         amdgpu-install -y --usecase=graphics,rocm
     fi

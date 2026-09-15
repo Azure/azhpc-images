@@ -49,9 +49,6 @@ if [[ "$GPU" == "NVIDIA" ]]; then
     pushd /tmp/dynolog
     git checkout ${DYNOLOG_COMMIT}
     git submodule update --init --recursive
-    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-        cargo update --manifest-path cli/Cargo.toml -p textwrap --precise 0.16.2
-    fi
     ./scripts/build.sh -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     mv build/dynolog/src/dynolog $DYNOLOG_INSTALL_DIR
     mv build/release/dyno $DYNOLOG_INSTALL_DIR

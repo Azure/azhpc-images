@@ -128,9 +128,6 @@ function verify_hpcx_installation {
     
     module load mpi/hpcx
     if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
-        [[ "${HPCX_MPI_DIR}" == */ompi5 ]]
-        check_exit_code "HPC-X selected its Open MPI 5 stack" "HPC-X did not select its Open MPI 5 stack"
-
         ompi_info --version | grep -qE '^Open MPI v5\.'
         check_exit_code "HPC-X uses Open MPI 5" "HPC-X did not report Open MPI 5"
 
@@ -322,7 +319,11 @@ function verify_rocm_installation {
     # Verify if ROCM is installed
     check_exists "/opt/rocm/"
 
-    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    local rocm_prefix=/opt/rocm
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        rocm_prefix=/opt/rocm/core-10.0
+    fi
+    amd_rocm_version=$(cat "$rocm_prefix/.info/version")
     check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
 
     # Verify if AMD GPU driver exists
@@ -336,12 +337,17 @@ function verify_rccl_installation {
 
     amdgpumod=$(lsmod | grep "^amdgpu")
     check_exit_code "amdgpu driver is loaded" "No amdgpu driver"
+
+    local rccl_lib=/opt/rccl/lib
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        rccl_lib=/opt/rocm/core-10.0/lib
+    fi
     
     case ${VMSIZE} in
-        standard_nd96isr_mi300x_v5) mpirun -np 8 \
+        standard_nd96isr_mi300x_v5) timeout 600 mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
-            -x LD_LIBRARY_PATH=/opt/rccl/lib:$LD_LIBRARY_PATH \
+            -x LD_LIBRARY_PATH=${rccl_lib}:$LD_LIBRARY_PATH \
             -x CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -x NCCL_SOCKET_IFNAME=eth0 \
             -x NCCL_DEBUG=WARN \

@@ -135,14 +135,13 @@ dpkg_install_with_lock_wait() {
     stderr_file=$(mktemp)
 
     while true; do
-        if dpkg -i "$@" 2> >(tee "${stderr_file}" >&2); then
-            rm -f "${stderr_file}"
-            return 0
+        if dpkg -i "$@" 2> "${stderr_file}"; then
+            status=0
         else
             status=$?
         fi
 
-        if ! grep -Eq '(dpkg frontend lock was locked|dpkg database lock was locked|unable to lock the dpkg frontend lock|unable to lock the administration directory|Resource temporarily unavailable|is another process using it)' "${stderr_file}"; then
+        if [[ "${status}" -eq 0 ]] || ! grep -Eq '...' "${stderr_file}"; then
             rm -f "${stderr_file}"
             return "${status}"
         fi

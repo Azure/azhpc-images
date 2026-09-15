@@ -159,17 +159,17 @@ fi
 # Purge mdatp again immediately before image capture. The first purge happens
 # in clear_history.sh, but MDE may have been auto-provisioned again afterwards.
 if [[ ${distro} == *"Ubuntu"* ]]; then
-    if dpkg -l | grep -qw mdatp; then
-        DEBIAN_FRONTEND=noninteractive apt-get purge -y mdatp
-    fi
-elif [[ ${distro} == *"Azure Linux"* ]]; then
-    if rpm -q mdatp >/dev/null 2>&1; then
-        dnf remove -y mdatp
-    fi
+    for package in mdatp microsoft-mdatp; do
+        if dpkg -l 2>/dev/null | grep -qE "^(ii|rc|hi|ri|pi|ip|in)[[:space:]]+${package}(:|[[:space:]])"; then
+            DEBIAN_FRONTEND=noninteractive apt-get purge -y "${package}"
+        fi
+    done
 else
-    if rpm -q mdatp >/dev/null 2>&1; then
-        dnf remove -y mdatp
-    fi
+    for package in mdatp microsoft-mdatp; do
+        if rpm -q "${package}" >/dev/null 2>&1; then
+            dnf remove -y "${package}"
+        fi
+    done
 fi
 
 # Remove the AzNHC log

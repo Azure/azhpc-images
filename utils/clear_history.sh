@@ -77,6 +77,14 @@ same_fs() {
 distro=`find_distro`
 echo "Detected distro: ${distro}"
 
+# Stop extension auto-provisioning before the first mdatp purge. The filesystem
+# cleanup below can take several minutes, which otherwise gives the Azure guest
+# agent enough time to install MDE again before the epilog runs.
+if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]] && command -v systemctl >/dev/null 2>&1; then
+    systemctl stop walinuxagent.service 2>/dev/null || true
+    systemctl stop waagent.service 2>/dev/null || true
+fi
+
 if [[ $distro == *"AlmaLinux"* ]] || [[ $distro == *"Rocky"* ]] || [[ $distro == *"Red Hat"* ]]
 then
     # Sync dnf and rpmdb after installing RPMs outside dnf.
@@ -86,9 +94,11 @@ fi
 if [[ $distro == *"Ubuntu"* ]]
 then
     # Remove Defender
-    if dpkg -l | grep -qw mdatp; then
-        apt-get purge -y mdatp
-    fi
+    for package in mdatp microsoft-mdatp; do
+        if dpkg -l 2>/dev/null | grep -qE "^(ii|rc|hi|ri|pi|ip|in)[[:space:]]+${package}(:|[[:space:]])"; then
+            apt-get purge -y "${package}"
+        fi
+    done
 
     # Remove Azure Proxy Agent
     # Azure Proxy Agent is introduced in from 24.04.202512100 of Ubuntu images. It provides process-level authentication and authorization 
@@ -99,15 +109,12 @@ then
         apt-get purge -y azure-proxy-agent
     fi
 
-elif [[ $distro == *"AzureLinux"* ]]
-then
-    if dnf list installed | grep -qw mdatp; then
-        dnf remove -y mdatp
-    fi
 else
-    if dnf list installed | grep -qw mdatp; then
-        dnf remove -y mdatp
-    fi
+    for package in mdatp microsoft-mdatp; do
+        if rpm -q "${package}" >/dev/null 2>&1; then
+            dnf remove -y "${package}"
+        fi
+    done
 fi
 
 # Switch journald to volatile (memory-only) storage so it stops persisting to disk,
@@ -187,9 +194,6 @@ fi
 if [[ $distro == *"Ubuntu"* ]]
 then
     apt-get clean
-elif [[ $distro == *"AzureLinux"* ]]
-then
-    dnf clean all
 else
     dnf clean all
 fi

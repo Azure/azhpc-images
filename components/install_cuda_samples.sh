@@ -18,5 +18,25 @@ pushd ./cuda-samples-${CUDA_SAMPLES_VERSION}
 mkdir build && cd build
 cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc ..
 make -j $(nproc)
-mv -vT ./Samples /usr/local/cuda-${CUDA_DRIVER_VERSION}/samples
+
+CUDA_DIR=$(readlink -f /usr/local/cuda)
+
+# Locate the built samples tree. The layout changed across CUDA releases:
+#   - CUDA 13.4 (CMake reorg): sources under cpp/, Linux executables built into
+#     build/cpp/<category>/<name>/ ; there is no top-level Samples/ (the repo's
+#     bin/ holds only Windows DLLs).
+SAMPLES_SRC=""
+for cand in ./Samples ./cpp; do
+    if [[ -d "${cand}" ]]; then
+        SAMPLES_SRC="${cand}"
+        break
+    fi
+done
+if [[ -z "${SAMPLES_SRC}" ]]; then
+    echo "ERROR: could not locate built CUDA samples (checked ./cpp and ./Samples) under $(pwd)" >&2
+    exit 1
+fi
+
+mkdir -p "${CUDA_DIR}/samples"
+mv -vT "${SAMPLES_SRC}" "${CUDA_DIR}/samples"
 popd

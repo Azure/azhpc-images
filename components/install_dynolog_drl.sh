@@ -34,13 +34,21 @@ if [[ "$GPU" == "NVIDIA" ]]; then
         apt-get install -y g++ pkg-config uuid-dev libssl-dev
         export PATH="/usr/lib/rust-${RUST_VERSION}/bin:$PATH"
     elif [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]]; then
-        dnf install -y cmake rust cargo ninja-build libuuid-devel gcc-toolset-12
+        yum install -y cmake rust cargo ninja-build libuuid-devel
+
         if [[ $DISTRIBUTION == almalinux8.10 ]] || [[ $DISTRIBUTION == rocky8.10 ]]; then
             dnf install -y openssl3-devel
         else
             dnf install -y openssl-devel
         fi
-        source /opt/rh/gcc-toolset-12/enable
+
+        # gcc-toolset-* provides a newer compiler than base on EL8/EL9. EL10's
+        # base GCC (14+) is already new enough and Red Hat no longer ships
+        # gcc-toolset, so use the base toolchain there.
+        if [[ $DISTRIBUTION != almalinux10* ]] && [[ $DISTRIBUTION != rocky10* ]]; then
+            yum install -y gcc-toolset-12
+            source /opt/rh/gcc-toolset-12/enable
+        fi
     fi
 
     ##########################################################################

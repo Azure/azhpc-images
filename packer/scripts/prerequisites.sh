@@ -20,7 +20,7 @@ set -euox pipefail
 # =============================================================================
 
 ####
-# @Brief        : Configure apt to wait for package-manager locks
+# @Brief        : Configure apt/dpkg to wait for package-manager locks
 # @Param        : None
 # @RetVal       : 0 on success
 ####

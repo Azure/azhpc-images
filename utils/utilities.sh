@@ -117,52 +117,6 @@ verify_checksum() {
 }
 
 ############################################################################
-# @Brief    : Install local deb packages with dpkg, waiting for dpkg/apt locks.
-#             DPKG_LOCK_TIMEOUT_SECONDS=-1 waits indefinitely.
-#
-# @Args     : One or more .deb files or dpkg -i compatible package arguments
-############################################################################
-dpkg_install_with_lock_wait() {
-    local timeout_seconds="${DPKG_LOCK_TIMEOUT_SECONDS:--1}"
-    local retry_interval_seconds="${DPKG_LOCK_RETRY_INTERVAL_SECONDS:-5}"
-    local start_time
-    local now
-    local elapsed
-    local status
-    local stderr_file
-
-    start_time=$(date +%s)
-    stderr_file=$(mktemp)
-
-    while true; do
-        if dpkg -i "$@" 2> "${stderr_file}"; then
-            status=0
-        else
-            status=$?
-        fi
-
-        if [[ "${status}" -eq 0 ]] || ! grep -Eq '...' "${stderr_file}"; then
-            rm -f "${stderr_file}"
-            return "${status}"
-        fi
-
-        if [[ "${timeout_seconds}" != "-1" ]]; then
-            now=$(date +%s)
-            elapsed=$((now - start_time))
-            if (( elapsed >= timeout_seconds )); then
-                echo "ERROR: timed out waiting for dpkg lock after ${elapsed}s" >&2
-                rm -f "${stderr_file}"
-                return "${status}"
-            fi
-        fi
-
-        echo "Waiting for dpkg lock; retrying dpkg -i in ${retry_interval_seconds}s" >&2
-        : > "${stderr_file}"
-        sleep "${retry_interval_seconds}"
-    done
-}
-
-############################################################################
 # @Brief    : Fail if any matching DKMS module did not build/install for the
 #             running kernel. Some vendor packages mask DKMS build failures in
 #             their package scripts, so check immediately after installation.

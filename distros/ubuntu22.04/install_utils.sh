@@ -1,15 +1,13 @@
 #!/bin/bash
 set -ex
 
-source ${UTILS_DIR}/utilities.sh
-
 # Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
 # Setup microsoft packages repository
 curl -sSL -O https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
-dpkg_install_with_lock_wait packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
 
 apt-get update

@@ -148,12 +148,6 @@ locals {
   gpu_platform = (
     local.gpu_sku == "MI300X" ? "AMD" : "NVIDIA"
   )
-  _rhel_supported = local.os_family != "rhel" || (
-    contains(["8.10", "9.8"], local.distro_version) &&
-    contains(["A100", "V100"], local.gpu_sku) &&
-    local.target_node_type == "azure_vm_regular"
-  )
-  _rhel_support_check = local._rhel_supported ? true : file("ERROR: RHEL supports only 8.10 and 9.8 on x86_64 NVIDIA Azure VMs (excluding NCv6)")
 }
 
 variable "use_spot_instances" {

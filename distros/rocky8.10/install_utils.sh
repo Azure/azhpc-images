@@ -90,6 +90,7 @@ dnf install -y numactl \
     gcc-gfortran \
     perl \
     libdrm-devel \
+    json-c-devel \
     dos2unix \
     azcopy \
     lvm2
@@ -104,6 +105,15 @@ dnf install -y kernel-abi-stablelists
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel
+
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake -DENABLE_TESTS=0 ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
 

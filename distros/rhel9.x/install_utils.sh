@@ -58,6 +58,7 @@ dnf install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    azure-vm-utils \
     json-c-devel \
     dos2unix \
     azcopy \
@@ -70,14 +71,6 @@ dnf install -y kernel-abi-stablelists
 
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel
-
-git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
-pushd /tmp/azure-vm-utils
-cmake -S . -B build -DENABLE_TESTS=0
-cmake --build build
-cmake --install build
-popd
-rm -rf /tmp/azure-vm-utils
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

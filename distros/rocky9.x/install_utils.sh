@@ -136,6 +136,7 @@ dnf install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    azure-vm-utils \
     libdrm-devel \
     dos2unix \
     azcopy \

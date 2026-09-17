@@ -81,8 +81,6 @@ run is still required. Image publication is disabled by default; to publish
 to your gallery, set `create_image=true`, the gallery variables, and an
 explicit `sig_image_name` for an existing RHEL image definition.
 
-Local regression checks: `python3 -m unittest discover -s tests -p test_rhel_support.py -v`.
-
 # Kernel Update/Patching
 
 Historically, OS kernel updates broke compatibility of HPC components we install (e.g., Lustre), so the kernel was excluded from updates. Lustre was the last component tightly coupled to a specific kernel version, and it has since been switched to DKMS. As a result, the kernel is **no longer locked by default** in our HPC images, and kernel updates are now allowed.

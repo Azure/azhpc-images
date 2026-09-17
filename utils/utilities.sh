@@ -1,4 +1,17 @@
 #!/bin/bash
+get_rhel_rhui_repo() {
+    local repository_kind=$1
+    local repository_output
+    local repositories=()
+    repository_output=$(dnf -q repolist --all) || return
+    mapfile -t repositories < <(awk -v kind="${repository_kind}" '$1 ~ kind && $1 ~ /rhui/ && $1 !~ /debug|source|eus|e4s/ {print $1}' <<< "${repository_output}")
+    if [[ ${#repositories[@]} -ne 1 ]]; then
+        echo "ERROR: expected one non-EUS RHUI ${repository_kind} repository" >&2
+        return 1
+    fi
+    printf '%s\n' "${repositories[0]}"
+}
+
 ############################################################################
 # @Brief        : Function to extract component version from the versions.json file
 # @Args        : (1) #Component name

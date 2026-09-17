@@ -51,7 +51,10 @@ else
         rm packages-microsoft-prod.rpm
     fi
 
-    if [[ $OS_MAJOR_VERSION == "9" ]]; then 
+    if [[ $DISTRIBUTION == rhel* ]]; then
+        CODEREADY_REPO=$(get_rhel_rhui_repo codeready-builder)
+        dnf config-manager --set-enabled "${CODEREADY_REPO}"
+    elif [[ $OS_MAJOR_VERSION == "9" ]]; then
         dnf config-manager --set-enabled crb
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
         dnf config-manager --set-enabled powertools

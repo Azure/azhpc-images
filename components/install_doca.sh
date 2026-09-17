@@ -246,8 +246,12 @@ else
         echo "ERROR: no packages found from doca* repos after doca-ofed install" >&2
         exit 1
     fi
+    baseos_repo=baseos
+    if [[ $DISTRIBUTION == rhel* ]]; then
+        baseos_repo=$(get_rhel_rhui_repo baseos)
+    fi
     mapfile -t baseos_pkgs < <(
-        dnf repoquery --quiet --repo=baseos --qf '%{name}\n' '*' | sort -u
+        dnf repoquery --quiet --repo="${baseos_repo}" --qf '%{name}\n' '*' | sort -u
     )
     mapfile -t baseos_conflicts < <(
         comm -12 \
@@ -257,7 +261,7 @@ else
     if [[ ${#baseos_conflicts[@]} -gt 0 ]]; then
         echo "Pinning ${#baseos_conflicts[@]} baseos package(s) shadowed by DOCA: ${baseos_conflicts[*]}"
         dnf config-manager --save \
-            --setopt="baseos.excludepkgs=${baseos_conflicts[*]}" \
+            --setopt="${baseos_repo}.excludepkgs=${baseos_conflicts[*]}" \
             >/dev/null
     fi
 fi

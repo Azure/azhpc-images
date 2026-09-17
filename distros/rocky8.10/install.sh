@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-sed -i '/^exclude.*/d' /etc/dnf/dnf.conf
-
 # Check if arguments are passed
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Error: Missing arguments. Please provide both GPU type (NVIDIA/AMD) and SKU."

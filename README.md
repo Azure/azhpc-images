@@ -46,41 +46,6 @@ packer init .
 packer build --var 'target_vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --var 'azure_location=southcentralus' --on-error=run-cleanup-provisioner .
 ```
 
-## RHEL 8 and 9
-
-Packer build scripts are available for RHEL 8.10 and 9.8 on x86-64 NVIDIA
-Azure VMs (A100-class and V100 targets). AMD GPUs, Arm, NCv6, AKS host OS,
-and bare-metal builds are not supported by the RHEL path. This does not add
-a published RHEL HPC Marketplace image.
-
-The base images are `RedHat:RHEL:8-lvm-gen2:latest` and
-`RedHat:RHEL:9-lvm-gen2:latest`. Fresh builds require their standard `rootvg`
-LVM/XFS layout. Before package updates, provisioning waits for cloud-init,
-grows `/home`, `/tmp`, `/`, and `/var` to at least 10, 11, 14, and 12 GiB,
-respectively, and allocates the remaining volume-group space to `/usr`.
-This uses free space already in `rootvg`; it does not resize disk partitions
-or physical volumes. In-place refresh skips this allocation step.
-
-RHEL uses Azure RHUI for OS and CodeReady Builder packages, Fedora EPEL for
-additional dependencies, and the shared HPC component installers and
-version inventory. The old partner-specific Image Builder workflow has
-been replaced by this Packer path.
-
-From the `packer` directory after `az login` and `packer init .`:
-
-```bash
-packer build -var 'os_version=rhel8.10' -var 'target_vm_size=Standard_ND96asr_v4' .
-packer build -var 'os_version=rhel9.8' -var 'target_vm_size=Standard_ND96asr_v4' .
-```
-
-For a prerequisites-only smoke test, add `-var 'skip_hpc=true'` and
-`-var 'build_vm_size=Standard_D8s_v5'`. For a full software build on a
-general-purpose VM, set only `build_vm_size`; hardware validation is skipped
-when it differs from `target_vm_size`. A subsequent GPU/InfiniBand validation
-run is still required. Image publication is disabled by default; to publish
-to your gallery, set `create_image=true`, the gallery variables, and an
-explicit `sig_image_name` for an existing RHEL image definition.
-
 # Kernel Update/Patching
 
 Historically, OS kernel updates broke compatibility of HPC components we install (e.g., Lustre), so the kernel was excluded from updates. Lustre was the last component tightly coupled to a specific kernel version, and it has since been switched to DKMS. As a result, the kernel is **no longer locked by default** in our HPC images, and kernel updates are now allowed.

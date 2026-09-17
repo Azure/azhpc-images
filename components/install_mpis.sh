@@ -48,7 +48,7 @@ LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
 HPCX_REBUILD_UCX_ARGS=()
-if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
+if [[ "$GPU" == "AMD" && "$USE_HPCX_BUNDLED_PMIX" != true ]] && sku_uses_ucx; then
     if [[ ! -d /opt/rocm ]]; then
         echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
         exit 1

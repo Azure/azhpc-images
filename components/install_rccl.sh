@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-GPU_TARGETS="gfx90a;gfx942"
-
 source ${UTILS_DIR}/utilities.sh
 
 rccl_metadata=$(get_component_config "rccl")
@@ -10,9 +8,11 @@ ROCM_PREFIX=/opt/rocm
 RCCL_TEST_CMAKE_ARGS=()
 RCCL_TEST_GIT_ARGS=()
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
-    ROCM_PREFIX=/opt/rocm/core-10.0
-    RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="$GPU_TARGETS" -DCMAKE_INSTALL_RPATH="$ROCM_PREFIX/lib" -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
-    RCCL_TEST_GIT_ARGS=(--branch therock-10.0)
+    rocm_metadata=$(get_component_config "rocm")
+    rocm_version=$(jq -r '.version' <<< "$rocm_metadata")
+    ROCM_PREFIX="/opt/rocm/core-${rocm_version}"
+    RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH="$ROCM_PREFIX/lib" -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
+    RCCL_TEST_GIT_ARGS=(--branch "therock-${rocm_version}")
 fi
 
 # Ubuntu 26.04 and Azure Linux 3 use packaged RCCL; build from source on other distros.
@@ -96,7 +96,18 @@ mkdir -p $DEST_TEST_DIR
 
 # Sparse-clone only the rccl-tests subproject of rocm-systems to keep the
 # clone small.
-git clone --depth=1 --filter=blob:none --sparse "${RCCL_TEST_GIT_ARGS[@]}" https://github.com/ROCm/rocm-systems.git
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    git clone --depth=1 --filter=blob:none --sparse "${RCCL_TEST_GIT_ARGS[@]}" https://github.com/ROCm/TheRock.git
+    rccl_tests_commit=$(git -C TheRock rev-parse HEAD:rocm-systems)
+    git init rocm-systems
+    git -C rocm-systems remote add origin https://github.com/ROCm/rocm-systems.git
+    git -C rocm-systems sparse-checkout set projects/rccl-tests
+    git -C rocm-systems fetch --depth=1 --filter=blob:none origin "$rccl_tests_commit"
+    git -C rocm-systems checkout --detach FETCH_HEAD
+    rm -rf TheRock
+else
+    git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
+fi
 pushd ./rocm-systems
 git sparse-checkout set projects/rccl-tests
 pushd projects/rccl-tests

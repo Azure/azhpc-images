@@ -11,7 +11,7 @@ if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     driver_metadata=$(get_component_config "amdgpu")
     driver_version=$(jq -er '.version' <<< "$driver_metadata")
     driver_url="https://repo.radeon.com/amdgpu/${driver_version}/ubuntu"
-    rocm_package="amdrocm-core-sdk${rocm_version}-gfx942"
+    rocm_package="amdrocm-core-sdk${rocm_version}"
     rocm_prefix="/opt/rocm/core-${rocm_version}"
 
     apt install -y ca-certificates wget gnupg dkms "linux-headers-$(uname -r)"

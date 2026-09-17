@@ -52,8 +52,7 @@ else
     fi
 
     if [[ $DISTRIBUTION == rhel* ]]; then
-        CODEREADY_REPO=$(get_rhel_rhui_repo codeready-builder)
-        dnf config-manager --set-enabled "${CODEREADY_REPO}"
+        dnf config-manager --set-enabled codeready-builder-for-rhel-${OS_MAJOR_VERSION}-${ARCHITECTURE}-rhui-rpms
     elif [[ $OS_MAJOR_VERSION == "9" ]]; then
         dnf config-manager --set-enabled crb
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then

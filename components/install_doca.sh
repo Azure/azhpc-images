@@ -248,7 +248,8 @@ else
     fi
     baseos_repo=baseos
     if [[ $DISTRIBUTION == rhel* ]]; then
-        baseos_repo=$(get_rhel_rhui_repo baseos)
+        rhel_version=${DISTRIBUTION#rhel}
+        baseos_repo=rhel-${rhel_version%%.*}-for-${ARCHITECTURE}-baseos-rhui-rpms
     fi
     mapfile -t baseos_pkgs < <(
         dnf repoquery --quiet --repo="${baseos_repo}" --qf '%{name}\n' '*' | sort -u

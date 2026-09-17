@@ -11,8 +11,7 @@ curl -fsSL https://packages.microsoft.com/config/rhel/9/prod.repo > ./microsoft-
 cp ./microsoft-prod.repo /etc/yum.repos.d/
 
 dnf install -y dnf-plugins-core
-CODEREADY_REPO=$(get_rhel_rhui_repo codeready-builder)
-dnf config-manager --set-enabled "$CODEREADY_REPO"
+dnf config-manager --set-enabled codeready-builder-for-rhel-9-x86_64-rhui-rpms
 
 # Install EPEL repository
 dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm

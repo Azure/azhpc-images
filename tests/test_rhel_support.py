@@ -62,37 +62,30 @@ configure_rhel_lvm
 
 
 class RhelRepositoryTests(unittest.TestCase):
-    def lookup(self, repository_kind, output, status=0):
-        script = f"""
-source '{ROOT / 'utils/utilities.sh'}'
-dnf() {{ printf '%s\\n' "$REPOSITORY_OUTPUT"; return {status}; }}
-get_rhel_rhui_repo '{repository_kind}'
+    def test_repository_ids_for_rhel_and_other_el_distros(self):
+        for family in ("rhel", "almalinux", "rocky"):
+            for major, minor in ((8, "8.10"), (9, "9.8")):
+                with self.subTest(family=family, major=major):
+                    script = f"""
+set -euo pipefail
+dnf() {{ printf '%s\\n' "$*"; }}
+eval "$(sed -n '/^    if \\[\\[ \\$DISTRIBUTION == rhel\\* /,/^    fi/p' '{ROOT / 'components/install_pmix.sh'}')"
+eval "$(sed -n '/^    baseos_repo=baseos/,/^    fi/p' '{ROOT / 'components/install_doca.sh'}')"
+printf '%s\\n' "$baseos_repo"
 """
-        return subprocess.run(
-            ["bash", "-c", script], text=True, capture_output=True,
-            env={**os.environ, "REPOSITORY_OUTPUT": output},
-        )
-
-    def test_finds_rhel8_and_rhel9_repositories(self):
-        for major in (8, 9):
-            for kind, name in (
-                ("baseos", f"rhel-{major}-for-x86_64-baseos-rhui-rpms"),
-                ("codeready-builder", f"codeready-builder-for-rhel-{major}-x86_64-rhui-rpms"),
-            ):
-                with self.subTest(major=major, kind=kind):
-                    output = f"repo id repo name status\n{name} RHEL disabled\n{name}-debug RHEL disabled\n{name}-source RHEL disabled\n{name}-eus RHEL disabled"
-                    result = self.lookup(kind, output)
+                    result = subprocess.run(
+                        ["bash", "-c", script], text=True, capture_output=True,
+                        env={**os.environ, "DISTRIBUTION": family + minor,
+                             "OS_MAJOR_VERSION": str(major), "ARCHITECTURE": "x86_64"},
+                    )
                     self.assertEqual(result.returncode, 0, result.stderr)
-                    self.assertEqual(result.stdout.strip(), name)
-
-    def test_missing_or_ambiguous_repository_fails(self):
-        for output in ("baseos Alma enabled", "rhui-baseos-first enabled\nrhui-baseos-second enabled"):
-            result = self.lookup("baseos", output)
-            self.assertNotEqual(result.returncode, 0)
-
-    def test_dnf_failure_propagates(self):
-        result = self.lookup("baseos", "rhui-baseos enabled", status=4)
-        self.assertEqual(result.returncode, 4)
+                    codeready = f"codeready-builder-for-rhel-{major}-x86_64-rhui-rpms" if family == "rhel" else "powertools" if major == 8 else "crb"
+                    baseos = f"rhel-{major}-for-x86_64-baseos-rhui-rpms" if family == "rhel" else "baseos"
+                    self.assertEqual(result.stdout.splitlines(), [f"config-manager --set-enabled {codeready}", baseos])
+                    if family == "rhel":
+                        folder = "rhel8.10" if major == 8 else "rhel9.x"
+                        setup = (ROOT / "distros" / folder / "install_utils.sh").read_text()
+                        self.assertIn(f"dnf config-manager --set-enabled {codeready}\n", setup)
 
 
 class RhelInstallerTests(unittest.TestCase):

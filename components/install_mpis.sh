@@ -48,7 +48,7 @@ LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
 HPCX_REBUILD_UCX_ARGS=()
-if [[ "$GPU" == "AMD" && "$USE_HPCX_BUNDLED_PMIX" != true ]] && sku_uses_ucx; then
+if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
     if [[ ! -d /opt/rocm ]]; then
         echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
         exit 1
@@ -64,6 +64,19 @@ if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
     PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --exists 'pmix >= 5' hwloc libevent
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"
+    if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
+        UCX_BUILD_DIR=$(mktemp -d)
+        tar -xzf ${HPCX_PATH}/sources/ucx-*.tar.gz -C "${UCX_BUILD_DIR}" --strip-components=1
+        pushd "${UCX_BUILD_DIR}"
+        ./contrib/configure-release --prefix=${HPCX_PATH}/ucx/hpcx-rebuild --with-rocm=/opt/rocm
+        make -j$(nproc)
+        make install
+        popd
+        rm -rf "${UCX_BUILD_DIR}"
+        # UCX configure downgrades an undetectable ROCm to a warning, so assert the transport
+        # exists rather than shipping a silently CPU-only UCX.
+        test -f ${HPCX_PATH}/ucx/hpcx-rebuild/lib/ucx/libuct_rocm.so
+    fi
 else
     HPCX_REBUILD_CUDA_ARGS=()
     if [[ "$GPU" == "NVIDIA" ]]; then
@@ -91,6 +104,12 @@ fi
 
 if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
     UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+    if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+        # Both entrypoints are symlinks (hpcx-init-ompi.sh / hpcx-ompi); without --follow-symlinks
+        # sed replaces the link with a regular file and leaves the shared target on vendor UCX.
+        sed -i --follow-symlinks 's;{HPCX_DIR}/ucx;{HPCX_DIR}/ucx/hpcx-rebuild;' "${HPCX_PATH}/hpcx-init.sh"
+        sed -i --follow-symlinks 's;hpcx_dir/ucx;hpcx_dir/ucx/hpcx-rebuild;' "${HPCX_PATH}/modulefiles/hpcx"
+    fi
 fi
 # hpcx_rebuild.sh installs fresh Open MPI and, on AMD, UCX metadata under this tree; fix those generated .la/.pc files too.
 HPCX_DIR=${HPCX_PATH} ${HPCX_PATH}/utils/hpcx_fix_ladir.sh

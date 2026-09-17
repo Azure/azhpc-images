@@ -1,56 +1,108 @@
 #!/bin/bash
 set -ex
 
-if [[ "${1:-}" != "NVIDIA" || -z "${2:-}" ]]; then
-    echo "ERROR: RHEL requires GPU type NVIDIA and a SKU argument" >&2
+# Check if arguments are passed
+if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+    echo "Error: Missing arguments. Please provide both GPU type (NVIDIA) and SKU."
     exit 1
 fi
+
 export GPU=$1
 export SKU=$2
 
+if [ "$GPU" != "NVIDIA" ]; then
+    echo "Error: Only NVIDIA GPU support is implemented for RHEL."
+    exit 1
+fi
+
 source ../../utils/set_properties.sh
 
-bash "${COMPONENT_DIR}/install_rhel_utils.sh"
-"${COMPONENT_DIR}/install_doca.sh"
-"${COMPONENT_DIR}/install_nvidiagpudriver.sh" "${SKU}"
-"${COMPONENT_DIR}/install_pmix.sh"
-"${COMPONENT_DIR}/install_mpis.sh"
-"${COMPONENT_DIR}/install_lustre_client.sh"
-"${COMPONENT_DIR}/install_mpifileutils.sh"
-"${COMPONENT_DIR}/install_nccl.sh"
-"${COMPONENT_DIR}/install_docker.sh"
-"${COMPONENT_DIR}/install_dcgm.sh"
-"${COMPONENT_DIR}/install_amd_libs.sh"
-"${COMPONENT_DIR}/install_intel_libs.sh"
+./install_utils.sh
 
+# install DOCA OFED
+$COMPONENT_DIR/install_doca.sh
+
+# Install CUDA before MPI so HPC-X can rebuild Open MPI with CUDA support.
+$COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
+
+# install PMIX
+$COMPONENT_DIR/install_pmix.sh
+
+# install mpi libraries
+$COMPONENT_DIR/install_mpis.sh
+
+# install Lustre client (must run after install_doca + install_mpis so the
+# build-from-source path can use /usr/src/ofa_kernel/default and HPC-X)
+$COMPONENT_DIR/install_lustre_client.sh
+
+# install mpifileutils
+$COMPONENT_DIR/install_mpifileutils.sh
+
+# Install NCCL
+$COMPONENT_DIR/install_nccl.sh
+
+# Install NVIDIA docker container
+$COMPONENT_DIR/install_docker.sh
+
+# Install DCGM
+$COMPONENT_DIR/install_dcgm.sh
+
+# install AMD tuned libraries
+$COMPONENT_DIR/install_amd_libs.sh
+
+# install Intel libraries
+$COMPONENT_DIR/install_intel_libs.sh
+
+# cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
 rm -rf /tmp/MLNX_OFED_LINUX* /tmp/*conf*
 rm -rf /var/intel/
 (
     shopt -s dotglob nullglob
     rm -rf -- /var/cache/* || true
-    rm -rf -- */ || true
+    rm -Rf -- */ || true
 )
 
-"${COMPONENT_DIR}/hpc-tuning.sh"
-"${COMPONENT_DIR}/install_waagent.sh"
-"${COMPONENT_DIR}/install_hpcdiag.sh"
-"${COMPONENT_DIR}/install_aznfs.sh"
-"${COMPONENT_DIR}/install_monitoring_tools.sh"
-"${COMPONENT_DIR}/install_azure_persistent_rdma_naming.sh"
-"${COMPONENT_DIR}/copy_test_file.sh"
-"${COMPONENT_DIR}/install_health_checks.sh" "${GPU}"
-"${COMPONENT_DIR}/write_kernel_os_version.sh"
-"${COMPONENT_DIR}/install_azsecpack_prereqs.sh"
-"${COMPONENT_DIR}/disable_cloudinit.sh"
-"${COMPONENT_DIR}/setup_sku_customizations.sh"
-"${COMPONENT_DIR}/trivy_scan.sh"
+# optimizations
+$COMPONENT_DIR/hpc-tuning.sh
 
-sed -i '/\[main\]/a no-auto-default=*' /etc/NetworkManager/NetworkManager.conf
-mkdir -p /lib/systemd/system/cloud-init-local.service.d/
-cat > /lib/systemd/system/cloud-init-local.service.d/50-azure-clear-persistent-obj-pkl.conf <<'EOF'
-[Service]
-ExecStartPre=-/bin/sh -xc 'if [ -e /var/lib/cloud/instance/obj.pkl ]; then echo "cleaning persistent cloud-init object"; rm /var/lib/cloud/instance/obj.pkl; fi; exit 0'
-EOF
+# install Azure Linux Agent
+$COMPONENT_DIR/install_waagent.sh
 
-"${UTILS_DIR}/clear_history.sh"
+# install diagnostic script
+$COMPONENT_DIR/install_hpcdiag.sh
+
+# Install AZNFS Mount Helper
+$COMPONENT_DIR/install_aznfs.sh
+
+# install monitor tools
+$COMPONENT_DIR/install_monitoring_tools.sh
+
+# install persistent rdma naming
+$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
+
+# copy test file
+$COMPONENT_DIR/copy_test_file.sh
+
+# install Azure/NHC Health Checks
+$COMPONENT_DIR/install_health_checks.sh "$GPU"
+
+# write kernel and OS version metadata
+$COMPONENT_DIR/write_kernel_os_version.sh
+
+$COMPONENT_DIR/install_azsecpack_prereqs.sh
+
+# disable cloud-init
+$COMPONENT_DIR/disable_cloudinit.sh
+
+# SKU Customization
+$COMPONENT_DIR/setup_sku_customizations.sh
+
+# scan vulnerabilities using Trivy
+$COMPONENT_DIR/trivy_scan.sh
+
+# add interface rules
+./network-config.sh
+
+# clear history (cleanup logs, caches, and build artifacts)
+$UTILS_DIR/clear_history.sh

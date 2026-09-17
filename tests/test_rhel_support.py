@@ -2,6 +2,7 @@ import json
 import os
 import pathlib
 import subprocess
+import tempfile
 import unittest
 
 
@@ -92,6 +93,70 @@ get_rhel_rhui_repo '{repository_kind}'
     def test_dnf_failure_propagates(self):
         result = self.lookup("baseos", "rhui-baseos enabled", status=4)
         self.assertEqual(result.returncode, 4)
+
+
+class RhelInstallerTests(unittest.TestCase):
+    stages = """
+install_utils install_doca install_nvidiagpudriver install_pmix install_mpis
+install_lustre_client install_mpifileutils install_nccl install_docker install_dcgm
+install_amd_libs install_intel_libs hpc-tuning install_waagent install_hpcdiag
+install_aznfs install_monitoring_tools install_azure_persistent_rdma_naming
+copy_test_file install_health_checks write_kernel_os_version install_azsecpack_prereqs
+disable_cloudinit setup_sku_customizations trivy_scan network-config clear_history
+""".split()
+
+    def run_installer(self, distro, arguments, failure=""):
+        with tempfile.TemporaryDirectory() as directory:
+            for stage in self.stages:
+                stub = pathlib.Path(directory) / f"{stage}.sh"
+                stub.write_text('''#!/bin/bash
+printf '%s\\n' "${0##*/} $GPU $SKU $*"
+if [[ "${0##*/}" == "$FAIL_COMPONENT.sh" ]]; then exit 42; fi
+''')
+                stub.chmod(0o755)
+            launcher = '''
+source() {
+    [[ "$1" == ../../utils/set_properties.sh ]] || exit 99
+    export COMPONENT_DIR="$PWD" UTILS_DIR="$PWD"
+}
+rm() { :; }
+export -f source rm
+bash "$@"
+'''
+            return subprocess.run(
+                ["bash", "-c", launcher, "test", str(ROOT / "distros" / distro / "install.sh"), *arguments],
+                cwd=directory, text=True, capture_output=True,
+                env={**os.environ, "FAIL_COMPONENT": failure},
+            )
+
+    def test_installer_order_and_arguments(self):
+        for distro in ("rhel8.10", "rhel9.x"):
+            for sku in ("A100", "V100"):
+                with self.subTest(distro=distro, sku=sku):
+                    result = self.run_installer(distro, ["NVIDIA", sku])
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    expected = []
+                    for stage in self.stages:
+                        argument = sku if stage == "install_nvidiagpudriver" else "NVIDIA" if stage == "install_health_checks" else ""
+                        expected.append(f"{stage}.sh NVIDIA {sku} {argument}")
+                    self.assertEqual(result.stdout.splitlines(), expected)
+
+    def test_rejects_missing_arguments_and_unsupported_gpu(self):
+        for distro in ("rhel8.10", "rhel9.x"):
+            for arguments in ([], ["NVIDIA"], ["AMD", "MI300X"]):
+                with self.subTest(distro=distro, arguments=arguments):
+                    result = self.run_installer(distro, arguments)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertNotIn("install_utils.sh", result.stdout)
+
+    def test_stops_when_local_helper_or_component_fails(self):
+        for distro in ("rhel8.10", "rhel9.x"):
+            for failure in ("install_utils", "install_doca", "network-config"):
+                with self.subTest(distro=distro, failure=failure):
+                    result = self.run_installer(distro, ["NVIDIA", "A100"], failure)
+                    self.assertEqual(result.returncode, 42, result.stderr)
+                    executed = [line.split()[0] for line in result.stdout.splitlines()]
+                    self.assertEqual(executed, [f"{stage}.sh" for stage in self.stages[:self.stages.index(failure) + 1]])
 
 
 class RhelConfigurationTests(unittest.TestCase):

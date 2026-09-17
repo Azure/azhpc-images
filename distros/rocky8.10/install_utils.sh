@@ -35,9 +35,6 @@ sudo dnf install -y wget
 # Install net-tools as Rocky Linux 8.10 does not have ifconfig by default
 sudo dnf install -y net-tools
 
-# Install jq for JSON parsing (needed by utilities.sh)
-sudo dnf install -y jq
-
 # Install Kernel dependencies
 KERNEL=$(uname -r)
 

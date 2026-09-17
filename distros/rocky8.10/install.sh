@@ -17,9 +17,6 @@ if [[ "$#" -gt 0 ]]; then
     fi
 fi
 
-# Install jq early (needed by set_properties.sh)
-sudo dnf install -y jq
-
 source ../../utils/set_properties.sh
 
 ./install_utils.sh

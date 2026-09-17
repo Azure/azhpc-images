@@ -22,11 +22,10 @@ sudo cp ./microsoft-rhel-prod.repo /etc/yum.repos.d/
 
 dnf repolist
 
-# Install wget, net-tools, python3.12, and jq early (needed for kernel downloads and utilities)
+# Install wget, net-tools, and python3.12 early (needed for kernel downloads and utilities)
 sudo dnf install -y wget \
                net-tools \
-               python3.12 \
-               jq
+               python3.12
 
 # Install Kernel dependencies
 # Rocky 9.x kernel-devel installation requires complex fallback logic due to:

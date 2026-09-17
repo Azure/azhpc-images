@@ -21,7 +21,7 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# Fix python3-setools bug for CycleCloud compatibility (Rocky 8.x only)
+# Fix legacy SETools version lookup for CycleCloud compatibility
 $COMPONENT_DIR/fix_setools_cyclecloud.sh
 
 # install DOCA OFED

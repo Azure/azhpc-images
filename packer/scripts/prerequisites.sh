@@ -415,6 +415,36 @@ install_ubuntu_lts_kernel() {
     echo "Ubuntu LTS kernel installation complete"
 }
 
+configure_rhel_lvm() {
+    local volume target_bytes current_bytes filesystem
+    local volumes=(homelv tmplv rootlv varlv usrlv)
+
+    for volume in "${volumes[@]}"; do
+        filesystem=$(findmnt -n -o FSTYPE --source "/dev/rootvg/${volume}")
+        if [[ "${filesystem}" != "xfs" ]]; then
+            echo "ERROR: expected a mounted XFS filesystem on /dev/rootvg/${volume}" >&2
+            return 1
+        fi
+    done
+
+    for volume in homelv:10 tmplv:11 rootlv:14 varlv:12; do
+        target_bytes=$(( ${volume#*:} * 1024 * 1024 * 1024 ))
+        volume=${volume%:*}
+        current_bytes=$(lvs --noheadings --units b --nosuffix -o lv_size "/dev/rootvg/${volume}")
+        if awk -v current="${current_bytes}" -v target="${target_bytes}" 'BEGIN { exit !(current < target) }'; then
+            lvextend -L "${target_bytes}B" "/dev/rootvg/${volume}"
+        fi
+    done
+
+    if [[ $(vgs --noheadings -o vg_free_count rootvg) -gt 0 ]]; then
+        lvextend -l +100%FREE /dev/rootvg/usrlv
+    fi
+    for volume in "${volumes[@]}"; do
+        xfs_growfs "/dev/rootvg/${volume}"
+    done
+    df -h
+}
+
 ####
 # @Brief        : Update packages for RHEL-based distros (Alma, Azure Linux)
 # @Param        : OS type (alma, azurelinux)
@@ -429,6 +459,14 @@ update_rhel_packages() {
     fi
     
     echo "##[section]Updating packages for ${os_family}"
+
+    if [[ "${os_family}" == "rhel" ]]; then
+        cloud-init status --wait
+        if [[ "${REFRESH_MODE:-false}" != "true" ]]; then
+            configure_rhel_lvm
+        fi
+        dnf --disablerepo='*' --enablerepo='rhui-microsoft-*' update -y 'rhui*'
+    fi
     
     dnf update -y --refresh
     dnf install -y git

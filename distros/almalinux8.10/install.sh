@@ -25,6 +25,9 @@ source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
+# Fix legacy SETools version lookup for CycleCloud compatibility
+$COMPONENT_DIR/fix_setools_cyclecloud.sh
+
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 

@@ -45,6 +45,11 @@ EOF
     write_component_version "AMDGPU" "$(dpkg-query -W -f='${Version}' amdgpu-dkms)"
     rvs_version=$(dpkg-query -W -f='${Version}' amdrocm10-rvs)
     write_component_version "RVS" "$rvs_version"
+
+    # amdrocm-core-sdk ships no ld.so.conf entry, so libamdhip64 is unresolvable
+    # for anything linking ROCm (e.g. Open MPI's accelerator component) without it.
+    echo /opt/rocm/lib > /etc/ld.so.conf.d/rocm.conf
+    ldconfig
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     rocm_url=$(jq -r '.url' <<< $rocm_metadata)
     rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)

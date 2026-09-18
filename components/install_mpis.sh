@@ -57,11 +57,34 @@ else
 fi
 
 if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
-    PMIX_PATH=${HPCX_PATH}/ompi5
-    HPCX_OMPI5_PKG_CONFIG_PATH=${PMIX_PATH}/lib/pkgconfig
+    HPCX_OMPI5_PATH=${HPCX_PATH}/ompi5
+    HPCX_OMPI5_PKG_CONFIG_PATH=${HPCX_OMPI5_PATH}/lib/pkgconfig
     PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --exists 'pmix >= 5' hwloc libevent
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"
+
+    # ompi5/lib also ships the vendor libmpi/libopen-pal. Passing that directory to
+    # --with-pmix/--with-hwloc/--with-libevent puts it ahead of hpcx-rebuild/lib in every
+    # RUNPATH, so the rebuilt Open MPI silently loads the stock non-ROCm one instead.
+    # Expose the three dependencies on their own to keep the vendor MPI off the link path.
+    PMIX_PATH=${HPCX_PATH}/ompi5-deps
+    mkdir -p ${PMIX_PATH}/lib/pkgconfig ${PMIX_PATH}/include
+    for dep in ${HPCX_OMPI5_PATH}/lib/lib{pmix,hwloc,event}*; do
+        # .la files carry libdir=<ompi5>/lib, which libtool would put back on the link line.
+        [[ -e "${dep}" && "${dep}" != *.la ]] || continue
+        ln -sf "${dep}" ${PMIX_PATH}/lib/
+    done
+    for dep in ${HPCX_OMPI5_PKG_CONFIG_PATH}/{pmix,hwloc,libevent}*.pc; do
+        [[ -e "${dep}" ]] || continue
+        # Rewritten rather than symlinked: pmix.pc puts -L${libdir} -Wl,-rpath -Wl,${libdir} in
+        # Libs:, so an unedited prefix drags ompi5/lib back onto the link line. Replacing the
+        # whole prefix line covers both the literal and the ${hpcx_home}-relative spelling.
+        sed -E "s|^prefix=.*|prefix=${PMIX_PATH}|" "${dep}" > ${PMIX_PATH}/lib/pkgconfig/$(basename "${dep}")
+    done
+    for dep in ${HPCX_OMPI5_PATH}/include/{pmix,hwloc,ev}*; do
+        [[ -e "${dep}" ]] || continue
+        ln -sf "${dep}" ${PMIX_PATH}/include/
+    done
 fi
 
 REBUILD_HPCX=true
@@ -101,6 +124,15 @@ if [[ "$REBUILD_HPCX" == true ]]; then
     fi
     HPCX_REBUILD_ARGS+=(--ompi-extra-config "${HPCX_REBUILD_OMPI_ARGS[*]}")
     ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"
+
+    # A rebuilt binary resolving libmpi outside hpcx-rebuild means the vendor Open MPI is
+    # shadowing the rebuild, which otherwise fails silently at runtime.
+    rebuilt_libmpi=$(ldd ${HPCX_PATH}/hpcx-rebuild/bin/ompi_info | awk '$1 ~ /^libmpi\.so/ {print $3}')
+    if [[ "${rebuilt_libmpi}" != "${HPCX_PATH}/hpcx-rebuild/lib/"* ]]; then
+        echo "Rebuilt HPC-X ompi_info loads ${rebuilt_libmpi:-<unresolved>} instead of the rebuilt libmpi."
+        exit 1
+    fi
+
     cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 fi
 # hpcx_rebuild.sh installs fresh Open MPI and, on AMD, UCX metadata under this tree; fix those generated .la/.pc files too.

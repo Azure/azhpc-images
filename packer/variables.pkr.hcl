@@ -515,7 +515,6 @@ locals {
 locals {
   create_image          = try(convert(lower(var.create_image), bool), false)
   skip_create_artifacts = !local.create_vhd && !local.create_image
-  _rhel_sig_check       = (local.os_family != "rhel" || !local.create_image || local.is_experimental_image || var.sig_image_name != "") ? true : file("ERROR: RHEL gallery publishing requires sig_image_name or is_experimental_image=true")
 }
 
 variable "vhd_resource_group_name" {

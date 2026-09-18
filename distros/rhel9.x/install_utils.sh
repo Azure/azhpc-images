@@ -72,6 +72,10 @@ dnf install -y kernel-abi-stablelists
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel
 
+if sku_uses_ipoib; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
+
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh
 

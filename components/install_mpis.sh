@@ -133,6 +133,18 @@ if [[ "$REBUILD_HPCX" == true ]]; then
         exit 1
     fi
 
+    # hpcx_rebuild.sh installs into hpcx-rebuild but writes module/init files that compose the
+    # MPI prefix as hpcx-rebuild$mpi_version, a directory it never creates. Only this suffix is
+    # dropped; mpi_version still has legitimate uses such as ompi5/tests.
+    for hpcx_rebuild_entrypoint in ${HPCX_PATH}/modulefiles/hpcx-rebuild ${HPCX_PATH}/hpcx-rebuild.sh; do
+        [[ -e "${hpcx_rebuild_entrypoint}" ]] || continue
+        sed -i --follow-symlinks -E \
+            -e 's|/hpcx-rebuild\$\{mpi_version\}|/hpcx-rebuild|g' \
+            -e 's|/hpcx-rebuild\$mpi_version|/hpcx-rebuild|g' \
+            -e 's|/hpcx-rebuild[0-9]+|/hpcx-rebuild|g' \
+            "${hpcx_rebuild_entrypoint}"
+    done
+
     cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 fi
 # hpcx_rebuild.sh installs fresh Open MPI and, on AMD, UCX metadata under this tree; fix those generated .la/.pc files too.

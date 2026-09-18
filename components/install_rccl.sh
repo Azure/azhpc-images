@@ -118,7 +118,7 @@ pushd build
 # hipconfig, and amdclang++ via its toolchain file.
 PATH=$ROCM_PREFIX/bin:$PATH cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;$ROCM_PREFIX;$HPCX" \
+    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;$ROCM_PREFIX;$HPCX_MPI_DIR" \
     -DROCM_PATH="$ROCM_PREFIX" \
     -DUSE_MPI=ON \
     "${RCCL_TEST_CMAKE_ARGS[@]}" \

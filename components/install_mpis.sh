@@ -9,14 +9,6 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
-USE_HPCX_BUNDLED_PMIX=false
-if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
-    USE_HPCX_BUNDLED_PMIX=true
-else
-    pmix_metadata=$(get_component_config "pmix")
-    PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
-    PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
-fi
 
 if [[ "$GPU" == "AMD" ]]; then
     # AMD has regression on higher versions of HPC-X
@@ -47,50 +39,66 @@ UCX_PATH=${HPCX_PATH}/ucx
 LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
-HPCX_REBUILD_UCX_ARGS=()
-if [[ "$GPU" == "AMD" ]] && sku_uses_ucx; then
-    if [[ ! -d /opt/rocm ]]; then
-        echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
-        exit 1
-    fi
-    HPCX_REBUILD_UCX_ARGS=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
+USE_HPCX_BUNDLED_PMIX=false
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]] || [[ "$DISTRIBUTION" == "azurelinux3.0" ]] || [[ "$DISTRIBUTION" == almalinux10* ]] || [[ "$DISTRIBUTION" == rocky10* ]] || [[ "$DISTRIBUTION" == rhel10* ]]; then
+    # AZL3 lacks PMIx package published by CycleCloud team
+    # Ubuntu 26.04 and EL10 align to using the HPC-X bundled Open MPI stack with PMIx v5
+    USE_HPCX_BUNDLED_PMIX=true
+elif [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
+    # Baremetal 3p nodes should also use the HPC-X bundled PMIx due to script-bastardization-induced package conflict
+    USE_HPCX_BUNDLED_PMIX=true
+else
+    pmix_metadata=$(get_component_config "pmix")
+    PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
+    PMIX_PATH=${INSTALL_PREFIX}/pmix/${PMIX_VERSION:0:-2}
 fi
 
-# HPC-X 2.51 defaults to its prebuilt Open MPI 5 stack, which includes PMIx 5,
-# hwloc, and libevent. Keep that tested stack intact on Ubuntu 26.04.
 if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
     PMIX_PATH=${HPCX_PATH}/ompi5
     HPCX_OMPI5_PKG_CONFIG_PATH=${PMIX_PATH}/lib/pkgconfig
     PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --exists 'pmix >= 5' hwloc libevent
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_OMPI5_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"
-else
-    HPCX_REBUILD_CUDA_ARGS=()
-    if [[ "$GPU" == "NVIDIA" ]]; then
-        HPCX_REBUILD_CUDA_ARGS=(--cuda)
-    fi
-
-    # Supplying --ompi-extra-config replaces the original HPC-X configure options.
-    # Restore the compatible vendor options here. Internal libevent conflicts with
-    # external PMIx, so it is the only original option deliberately omitted.
-    HPCX_REBUILD_OMPI_COMMON_ARGS="--enable-mpi1-compatibility --without-xpmem --with-slurm --enable-orterun-prefix-by-default"
-    HPCX_REBUILD_OMPI_UCX_ARGS="${HPCX_REBUILD_OMPI_COMMON_ARGS} --with-platform=contrib/platform/mellanox/optimized"
-
-    # Rebuild HPC-X with PMIx. Baremetal nodes use PMIx bundled inside HPC-X
-    # because standalone PMIx conflicts with the Mellanox Open MPI package on
-    # Nebius nodes. Azure VMs use the separately installed PMIx package.
-    if [[ $DISTRIBUTION == "azurelinux3.0" || "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
-        ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix ${HPCX_REBUILD_OMPI_UCX_ARGS}"
-    elif ! sku_uses_ucx; then
-        ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} ${HPCX_REBUILD_OMPI_COMMON_ARGS} --without-ucx --with-ofi=${LIBFABRIC_PATH}"
-    else
-        ${HPCX_PATH}/utils/hpcx_rebuild.sh --with-hcoll "${HPCX_REBUILD_UCX_ARGS[@]}" "${HPCX_REBUILD_CUDA_ARGS[@]}" --ompi-extra-config "--with-pmix=${PMIX_PATH} ${HPCX_REBUILD_OMPI_UCX_ARGS}"
-    fi
-    cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 fi
 
-if [[ ${#HPCX_REBUILD_UCX_ARGS[@]} -gt 0 ]]; then
-    UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+REBUILD_HPCX=true
+if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
+    REBUILD_HPCX=false
+fi
+
+if [[ "$REBUILD_HPCX" == true ]]; then
+    HPCX_REBUILD_ARGS=()
+    if [[ "$GPU" == "AMD" ]]; then
+        if [[ ! -d /opt/rocm ]]; then
+            echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
+            exit 1
+        fi
+        if sku_uses_ucx; then
+            HPCX_REBUILD_ARGS+=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
+        fi
+    elif [[ "$GPU" == "NVIDIA" ]]; then
+        HPCX_REBUILD_ARGS+=(--cuda)
+    fi
+
+    # Supplying --ompi-extra-config replaces the original HPC-X configure options. Restore the compatible vendor options here.
+    HPCX_REBUILD_OMPI_ARGS=(--enable-mpi1-compatibility --without-xpmem --with-slurm --enable-orterun-prefix-by-default "--with-pmix=${PMIX_PATH}")
+    if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
+        HPCX_REBUILD_OMPI_ARGS+=("--with-hwloc=${PMIX_PATH}" "--with-libevent=${PMIX_PATH}")
+    fi
+
+    if ! sku_uses_ucx; then
+        HPCX_REBUILD_OMPI_ARGS+=(--without-ucx "--with-ofi=${LIBFABRIC_PATH}")
+    else
+        HPCX_REBUILD_ARGS+=(--with-hcoll)
+        HPCX_REBUILD_OMPI_ARGS+=(--with-platform=contrib/platform/mellanox/optimized)
+        if [[ "$GPU" == "AMD" ]]; then
+            UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+            HPCX_REBUILD_OMPI_ARGS+=(--with-rocm=/opt/rocm)
+        fi
+    fi
+    HPCX_REBUILD_ARGS+=(--ompi-extra-config "${HPCX_REBUILD_OMPI_ARGS[*]}")
+    ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"
+    cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 fi
 # hpcx_rebuild.sh installs fresh Open MPI and, on AMD, UCX metadata under this tree; fix those generated .la/.pc files too.
 HPCX_DIR=${HPCX_PATH} ${HPCX_PATH}/utils/hpcx_fix_ladir.sh
@@ -174,7 +182,7 @@ if ! [[ ("${DISTRIBUTION}" == "ubuntu24.04" || "${DISTRIBUTION}" == "azurelinux3
     write_component_version "MVAPICH" ${MVAPICH_VERSION}
 fi
 
-# Install Open MPI
+# Install Open MPI (deprecated)
 ompi_metadata=$(get_component_config "ompi")
 OMPI_VERSION=$(jq -r '.version' <<< $ompi_metadata)
 OMPI_SHA256=$(jq -r '.sha256' <<< $ompi_metadata)
@@ -235,14 +243,11 @@ MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
 
 # HPC-X
-# mpi/hpcx is the public HPC-X entrypoint. Resolute uses HPC-X 2.51's vendor
-# Open MPI 5 / PMIx 5 stack; other targets use the locally rebuilt stack.
-if [[ "$USE_HPCX_BUNDLED_PMIX" == true ]]; then
-    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
-    HPCX_PMIX_MODULE=${HPCX_MODULE}
-else
+# mpi/hpcx is the public HPC-X entrypoint.
+if [[ "$REBUILD_HPCX" == true ]]; then
     HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx-rebuild"
-    HPCX_PMIX_MODULE=${HPCX_MODULE}
+else
+    HPCX_MODULE="${HPCX_PATH}/modulefiles/hpcx"
 fi
 HPCX_NON_UCX_EXTRAS=""
 if ! sku_uses_ucx; then
@@ -268,16 +273,7 @@ module load ${HPCX_MODULE}
 ${HPCX_NON_UCX_EXTRAS}
 EOF
 
-# HPC-X with PMIX
-cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
-#%Module 1.0
-#
-#  HPCx ${HPCX_VERSION}
-#
-conflict        mpi
-module load ${HPCX_PMIX_MODULE}
-${HPCX_NON_UCX_EXTRAS}
-EOF
+ln -s ${MPI_MODULE_FILES_DIRECTORY}/hpcx-${HPCX_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/hpcx-pmix-${HPCX_VERSION}
 
 # MVAPICH (skipped on the same distros/SKU combos as the build above)
 # On non-UCX SKUs (OFI transport), force the tcp provider (auto-detection picks

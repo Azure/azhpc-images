@@ -200,6 +200,13 @@
         }
     },
     "hpcx_amd": {
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "2.51",
+                "sha256": "550e5a14c9cf22478ff7db76533afd9e17102dd2a252471d712b950897c915ec",
+                "url": "https://content.mellanox.com/hpc/hpc-x/v2.51_cuda13/hpcx-v2.51-gcc-doca_ofed-ubuntu24.04-cuda13-x86_64.tbz"
+            }
+        },
         "ubuntu22.04": {
             "x86_64": {
                 "version": "2.18",
@@ -1011,7 +1018,19 @@
             }
         }
     },
+    "amdgpu": {
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "31.50"
+            }
+        }
+    },
     "rocm": {
+        "ubuntu26.04": {
+            "x86_64": {
+                "version": "10.0"
+            }
+        },
         "ubuntu22.04": {
             "x86_64": {
                 "version": "6.2.4",

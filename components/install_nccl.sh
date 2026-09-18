@@ -15,7 +15,9 @@ TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
 # Install NCCL
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    apt install -y build-essential patchelf zlib1g-dev
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y build-essential devscripts debhelper fakeroot patchelf
     # Comment the installation of libibverbs-dev to avoid conflicts on builds for bare metal 1P nodes
     # For VM it has been installed via the install_utils.sh or install_doca.sh
@@ -28,41 +30,48 @@ else
 fi
 
 pushd /tmp
-wget ${NCCL_DOWNLOAD_URL}
-tar -xvf ${TARBALL}
-
-pushd nccl-${NCCL_VERSION}
-make -j $(( $(nproc) - 1 )) src.build
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    make pkg.debian.build
-    pushd build/pkg/deb/
-    dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    apt-get install -y libnccl2 libnccl-dev
     apt-mark hold libnccl2
-    dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
     apt-mark hold libnccl-dev
-    popd
-elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    make pkg.redhat.build
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
-        dnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
-        dnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
-        dnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
-    else
-        dnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
-        dnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
-        dnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
-    fi
-
-    dnf_pin_packages "libnccl*"
+    NCCL_VERSION=$(dpkg-query -W -f='${Version}' libnccl2 | sed 's/+cuda.*//')
 else
-    # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    make pkg.redhat.build
-    rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
-    rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
-    rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
-    dnf_pin_packages "libnccl*"
+    wget ${NCCL_DOWNLOAD_URL}
+    tar -xvf ${TARBALL}
+
+    pushd nccl-${NCCL_VERSION}
+    make -j $(( $(nproc) - 1 )) src.build
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        make pkg.debian.build
+        pushd build/pkg/deb/
+        dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
+        apt-mark hold libnccl2
+        dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
+        apt-mark hold libnccl-dev
+        popd
+    elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+        make pkg.redhat.build
+        if [ "$ARCHITECTURE" = "aarch64" ]; then
+            dnf install -y ./build/pkg/rpm/aarch64/libnccl-${NCCL_VERSION}+cuda*.aarch64.rpm
+            dnf install -y ./build/pkg/rpm/aarch64/libnccl-devel-${NCCL_VERSION}+cuda*.aarch64.rpm
+            dnf install -y ./build/pkg/rpm/aarch64/libnccl-static-${NCCL_VERSION}+cuda*.aarch64.rpm
+        else
+            dnf install -y ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda*.x86_64.rpm
+            dnf install -y ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda*.x86_64.rpm
+            dnf install -y ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda*.x86_64.rpm
+        fi
+
+        dnf_pin_packages "libnccl*"
+    else
+        # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
+        make pkg.redhat.build
+        rpm -i ./build/pkg/rpm/x86_64/libnccl-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+        rpm -i ./build/pkg/rpm/x86_64/libnccl-devel-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+        rpm -i ./build/pkg/rpm/x86_64/libnccl-static-${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}.x86_64.rpm
+        dnf_pin_packages "libnccl*"
+    fi
+    popd
 fi
-popd
 
 # Install the nccl rdma sharp plugin. Skip for non-IB SKUs (no DOCA-OFED, no SHARP, no GPUDirect RDMA)
 if [[ "$(sku_network_mode)" == "standard_ib" ]]; then

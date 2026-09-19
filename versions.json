@@ -744,7 +744,7 @@
     },
     "nccl": {
         "common": {
-            "version": "2.30.4-1",
+            "version": "2.31.2-1",
             "rdmasharpplugins": {
                 "commit": "master"
             }
@@ -807,7 +807,7 @@
                         "version": "1:4.5.2-1"
                     }
                 },
-                "version": "1:4.6.0-1"
+                "version": "1:4.7.0-1"
             },
             "aarch64": {
                 "baremetal_3p": {
@@ -827,9 +827,9 @@
     },
     "intel_one_mkl": {
         "common": {
-            "version": "2025.3.1.11",
-            "sha256": "89753ce0be82d31669172c08c6b6b863f2e25558d775496349473b3299240a01",
-            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/6a17080f-f0de-41b9-b587-52f92512c59a/intel-onemkl-2025.3.1.11_offline.sh"
+            "version": "2026.1.0.237",
+            "sha256": "854deea4c4eec21d23cfb895b0c76ac02b5a76e3a9581a39b4c69fb7ffc69146",
+            "url": "https://registrationcenter-download.intel.com/akdlm/IRC_NAS/17f37e16-768e-40d2-bcf8-c252dc6c5499/intel-onemkl-2026.1.0.237_offline.sh"
         }
     },
     "waagent": {

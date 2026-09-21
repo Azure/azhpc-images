@@ -45,7 +45,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     fi
     # Add NVIDIA CUDA APT repo (provides both driver and toolkit packages)
     wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/${CUDA_ARCHITECTURE}/cuda-keyring_1.1-1_all.deb
-    dpkg -i ./cuda-keyring_1.1-1_all.deb
+    apt install -y ./cuda-keyring_1.1-1_all.deb
     apt-get update
 
     # MRC image uses local NVIDIA repo for nvidia driver packages
@@ -54,7 +54,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Cuda toolkit packages should be installed from the downloaded CUDA repo
     if _is_mrc_network; then
         NVIDIA_GPU_DRIVER_REPO_FILE=$(jq -r '.driver.repo_file' <<< $nvidia_metadata)
-        dpkg -i $TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE
+        apt install -y "$TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE"
         NVIDIA_GPU_DRIVER_REPO_DIR=$(echo $NVIDIA_GPU_DRIVER_REPO_FILE | awk -F'_' '{print $1}')
         cp /var/$NVIDIA_GPU_DRIVER_REPO_DIR/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
         

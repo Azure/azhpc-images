@@ -34,6 +34,36 @@ configure_apt_lock_timeout() {
 }
 
 ####
+# @Brief        : Stop background APT activity for the build and the shipped image
+# @Param        : None
+# @RetVal       : 0 on success
+####
+disable_apt_background_services() {
+    if [[ "${OS_FAMILY}" != "ubuntu" ]]; then
+        return 0
+    fi
+
+    echo "##[section]Disabling background APT services"
+
+    # Master switch for apt.systemd.daily; disabling so it neither updates nor upgrades packages, which
+    # contends for the dpkg lock during provisioning. Manually invoked apt is unaffected.
+    printf 'APT::Periodic::Enable "0";\n' > /etc/apt/apt.conf.d/20auto-upgrades
+
+    # Disable the timers that actually wake the upgrade path
+    local units=(
+        unattended-upgrades.service
+        apt-daily.timer
+        apt-daily-upgrade.timer
+    )
+
+    for unit in "${units[@]}"; do
+        systemctl stop "${unit}" 2>/dev/null || true
+        systemctl disable "${unit}" 2>/dev/null || true
+        systemctl mask "${unit}" 2>/dev/null || true
+    done
+}
+
+####
 # @Brief        : Wait for cloud-init before starting package operations
 # @Param        : None
 # @RetVal       : 0 on success
@@ -41,9 +71,6 @@ configure_apt_lock_timeout() {
 wait_for_cloud_init() {
     echo "Waiting for cloud-init to complete..."
     cloud-init status --wait || true
-
-    # Prevent unattended upgrades from racing later provisioning steps.
-    systemctl disable unattended-upgrades.service 2>/dev/null || true
 }
 
 ####
@@ -490,6 +517,7 @@ echo "Target Image Variant: ${TARGET_NODE_TYPE:-azure_vm_regular}"
 echo "=========================================="
 
 configure_apt_lock_timeout
+disable_apt_background_services
  
 if [[ "${GPU_SKU}" == "GB200" && "${DISTRO_VERSION}" == "24.04" ]]; then
     # Configure GB200 PARTUUID if specified

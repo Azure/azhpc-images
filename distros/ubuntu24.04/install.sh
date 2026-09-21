@@ -168,9 +168,6 @@ $COMPONENT_DIR/setup_sku_customizations.sh
 # scan vulnerabilities using Trivy
 $COMPONENT_DIR/trivy_scan.sh
 
-# diable auto kernel updates
-./disable_auto_upgrade.sh
-
 # Disable Predictive Network interface renaming
 ./disable_predictive_interface_renaming.sh
 

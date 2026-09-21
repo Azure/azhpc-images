@@ -7,7 +7,7 @@ $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
 # Setup microsoft packages repository
 curl -sSL -O https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
-dpkg -i packages-microsoft-prod.deb
+apt install -y ./packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
 
 apt-get update

@@ -23,7 +23,7 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     ## use generic ubuntu marketplace image then this package sets up the right gpg keys for PMC.
     if [ ! -e /etc/apt/sources.list.d/microsoft-prod.list ]; then
         curl -sSL -O https://packages.microsoft.com/config/ubuntu/$UBUNTU_VERSION/packages-microsoft-prod.deb
-        dpkg -i packages-microsoft-prod.deb
+        apt install -y ./packages-microsoft-prod.deb
         rm packages-microsoft-prod.deb
     fi
     apt update

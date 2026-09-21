@@ -36,7 +36,7 @@ CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
 # Add NVIDIA CUDA APT repo (provides toolkit packages)
 wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-keyring_1.1-1_all.deb
-dpkg -i ./cuda-keyring_1.1-1_all.deb
+apt install -y ./cuda-keyring_1.1-1_all.deb
 apt-get update
 apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
 

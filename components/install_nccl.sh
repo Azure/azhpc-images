@@ -44,9 +44,9 @@ else
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         make pkg.debian.build
         pushd build/pkg/deb/
-        dpkg -i libnccl2_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
+        apt install -y ./libnccl2_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
         apt-mark hold libnccl2
-        dpkg -i libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
+        apt install -y ./libnccl-dev_${NCCL_VERSION}+cuda${CUDA_DRIVER_VERSION}_${ARCHITECTURE_DISTRO}.deb
         apt-mark hold libnccl-dev
         popd
     elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

@@ -3,11 +3,17 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+    echo "Ubuntu 26.04 uses the PMIx 5 stack bundled with HPC-X."
+    exit 0
+fi
+
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble
         SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"

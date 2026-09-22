@@ -2,23 +2,17 @@
 set -ex
 
 # Check if arguments are passed
-if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Error: Missing arguments. Please provide both GPU type (NVIDIA/AMD) and SKU."
+if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+    echo "Error: Missing arguments. Please provide both GPU type (NVIDIA) and SKU."
     exit 1
 fi
 
 export GPU=$1
 export SKU=$2
 
-if [[ "$#" -gt 0 ]]; then
-    if [ "$GPU" == "AMD" ]; then
-        GPUi="AMD"
-        echo "Error: AMD GPU support is not implemented yet for AlmaLinux."
-        exit 1
-    elif [ "$GPU" != "NVIDIA" ]; then
-        echo "Error: Invalid GPU type. Please specify 'NVIDIA' or 'AMD'."
-	    exit 1
-    fi
+if [ "$GPU" != "NVIDIA" ]; then
+    echo "Error: Only NVIDIA GPU support is implemented for RHEL."
+    exit 1
 fi
 
 source ../../utils/set_properties.sh
@@ -32,7 +26,7 @@ $COMPONENT_DIR/fix_setools_cyclecloud.sh
 $COMPONENT_DIR/install_doca.sh
 
 # Install CUDA before MPI so HPC-X can rebuild Open MPI with CUDA support.
-$COMPONENT_DIR/install_nvidiagpudriver.sh
+$COMPONENT_DIR/install_nvidiagpudriver.sh "$SKU"
 
 # install PMIX
 $COMPONENT_DIR/install_pmix.sh
@@ -61,9 +55,6 @@ $COMPONENT_DIR/install_amd_libs.sh
 
 # install Intel libraries
 $COMPONENT_DIR/install_intel_libs.sh
-
-# install dynolog and dyno-relay-logger
-$COMPONENT_DIR/install_dynolog_drl.sh
 
 # cleanup downloaded tarballs - clear some space
 rm -rf *.tgz *.bz2 *.tbz *.tar.gz *.run *.deb *_offline.sh
@@ -116,8 +107,5 @@ $COMPONENT_DIR/trivy_scan.sh
 # add interface rules
 ./network-config.sh
 
-dnf update -y
-
-# clear history
-# Uncomment the line below if you are running this on a VM
-# $UTILS_DIR/clear_history.sh
+# clear history (cleanup logs, caches, and build artifacts)
+$UTILS_DIR/clear_history.sh

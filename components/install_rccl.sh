@@ -4,20 +4,18 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 rccl_metadata=$(get_component_config "rccl")
-ROCM_PREFIX=/opt/rocm
 RCCL_TEST_CMAKE_ARGS=()
 RCCL_TEST_GIT_ARGS=()
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     rocm_metadata=$(get_component_config "rocm")
     rocm_version=$(jq -r '.version' <<< "$rocm_metadata")
-    ROCM_PREFIX="/opt/rocm/core-${rocm_version}"
-    RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH="$ROCM_PREFIX/lib" -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
+    RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH=/opt/rocm/lib -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
     RCCL_TEST_GIT_ARGS=(--branch "therock-${rocm_version}")
 fi
 
 # Ubuntu 26.04 and Azure Linux 3 use packaged RCCL; build from source on other distros.
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
-    rccl_version=$(awk -F '"' '/^set\(PACKAGE_VERSION "/ {print $2; exit}' "${ROCM_PREFIX}/lib/cmake/rccl/rccl-config-version.cmake")
+    rccl_version=$(awk -F '"' '/^set\(PACKAGE_VERSION "/ {print $2; exit}' /opt/rocm/lib/cmake/rccl/rccl-config-version.cmake)
     [[ "$rccl_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
     write_component_version "RCCL" "$rccl_version"
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
@@ -85,7 +83,7 @@ module load mpi/hpcx
 # if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" || $DISTRIBUTION == "ubuntu26.04" ]]; then
 if [[ $DISTRIBUTION == "azurelinux3.0" || $DISTRIBUTION == "ubuntu26.04" ]]; then
     # RCCL ships via ROCm distro packages and lives in /opt/rocm
-    RCCL_PREFIX="$ROCM_PREFIX"
+    RCCL_PREFIX="/opt/rocm"
 else
     # RCCL was built from source above and installed in /opt/rccl
     RCCL_PREFIX="/opt/rccl"
@@ -116,10 +114,10 @@ mkdir build
 pushd build
 # Add /opt/rocm/bin to PATH so the CMake build can find hipify-perl,
 # hipconfig, and amdclang++ via its toolchain file.
-PATH=$ROCM_PREFIX/bin:$PATH cmake \
+PATH=/opt/rocm/bin:$PATH cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;$ROCM_PREFIX;$HPCX_MPI_DIR" \
-    -DROCM_PATH="$ROCM_PREFIX" \
+    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;/opt/rocm;$HPCX_MPI_DIR" \
+    -DROCM_PATH=/opt/rocm \
     -DUSE_MPI=ON \
     "${RCCL_TEST_CMAKE_ARGS[@]}" \
     ..
@@ -146,7 +144,7 @@ git clone https://github.com/linux-rdma/perftest.git
 mkdir -p /opt/rocm-perftest
 pushd ./perftest
 ./autogen.sh
-./configure --enable-rocm --with-rocm="$ROCM_PREFIX" --prefix=/opt/rocm-perftest/
+./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm-perftest/
 make -j$(nproc)
 make install
 

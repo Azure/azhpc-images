@@ -12,7 +12,6 @@ if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     driver_version=$(jq -er '.version' <<< "$driver_metadata")
     driver_url="https://repo.radeon.com/amdgpu/${driver_version}/ubuntu"
     rocm_package="amdrocm-core-sdk${rocm_version}"
-    rocm_prefix="/opt/rocm/core-${rocm_version}"
 
     apt install -y ca-certificates wget gnupg dkms "linux-headers-$(uname -r)"
     install -d -m 0755 /etc/apt/keyrings
@@ -41,7 +40,7 @@ EOF
     apt install -y amdgpu-dkms amdgpu-dkms-firmware
     check_dkms_status amdgpu
     apt install -y "$rocm_package" amdrocm10-rvs
-    rocm_version=$(cat "$rocm_prefix/.info/version")
+    rocm_version=$(cat /opt/rocm/core/.info/version)
     write_component_version "AMDGPU" "$(dpkg-query -W -f='${Version}' amdgpu-dkms)"
     rvs_version=$(dpkg-query -W -f='${Version}' amdrocm10-rvs)
     write_component_version "RVS" "$rvs_version"

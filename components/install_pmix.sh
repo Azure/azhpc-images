@@ -57,7 +57,9 @@ else
         rm packages-microsoft-prod.rpm
     fi
 
-    if [[ $OS_MAJOR_VERSION == "9" ]]; then 
+    if [[ $DISTRIBUTION == rhel* ]]; then
+        dnf config-manager --set-enabled codeready-builder-for-rhel-${OS_MAJOR_VERSION}-${ARCHITECTURE}-rhui-rpms
+    elif [[ $OS_MAJOR_VERSION == "9" ]]; then
         dnf config-manager --set-enabled crb
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
         dnf config-manager --set-enabled powertools

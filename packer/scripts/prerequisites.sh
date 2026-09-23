@@ -34,33 +34,29 @@ configure_apt_lock_timeout() {
 }
 
 ####
-# @Brief        : Stop background APT activity for the build and the shipped image
+# @Brief        : Turn off APT's automatic updates for the build and the shipped image
 # @Param        : None
 # @RetVal       : 0 on success
 ####
-disable_apt_background_services() {
+disable_automatic_apt_updates() {
     if [[ "${OS_FAMILY}" != "ubuntu" ]]; then
         return 0
     fi
 
-    echo "##[section]Disabling background APT services"
+    echo "##[section]Disabling automatic APT updates"
 
-    # Master switch for apt.systemd.daily; disabling so it neither updates nor upgrades packages, which
-    # contends for the dpkg lock during provisioning. Manually invoked apt is unaffected.
-    printf 'APT::Periodic::Enable "0";\n' > /etc/apt/apt.conf.d/20auto-upgrades
+    # Stop background `apt-get update` and unattended-upgrade.
+    # Disabling upgrades is important for package version control,
+    # and disabling updates prevents unnecessary waits for the dpkg lock during builds.
+    # Manually invoked apt is unaffected.
+    cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Unattended-Upgrade "0";
+EOF
 
-    # Disable the timers that actually wake the upgrade path
-    local units=(
-        unattended-upgrades.service
-        apt-daily.timer
-        apt-daily-upgrade.timer
-    )
-
-    for unit in "${units[@]}"; do
-        systemctl stop "${unit}" 2>/dev/null || true
-        systemctl disable "${unit}" 2>/dev/null || true
-        systemctl mask "${unit}" 2>/dev/null || true
-    done
+    systemctl stop unattended-upgrades.service 2>/dev/null || true
+    systemctl disable unattended-upgrades.service 2>/dev/null || true
+    systemctl mask unattended-upgrades.service 2>/dev/null || true
 }
 
 ####
@@ -517,7 +513,7 @@ echo "Target Image Variant: ${TARGET_NODE_TYPE:-azure_vm_regular}"
 echo "=========================================="
 
 configure_apt_lock_timeout
-disable_apt_background_services
+disable_automatic_apt_updates
  
 if [[ "${GPU_SKU}" == "GB200" && "${DISTRO_VERSION}" == "24.04" ]]; then
     # Configure GB200 PARTUUID if specified

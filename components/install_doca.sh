@@ -48,8 +48,8 @@ install_hpcx_doca_ofed_deps_apt_marker() {
     # This blocks two separate attempts to install an upstream Open MPI .deb:
     #
     #  1. doca-ofed strict-pins `openmpi (= <doca-version>)` which pulls in the
-    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime — HPC-X
-    #     (installed later by install_mpis.sh) provides Open MPI at /opt — and the
+    #     DOCA-bundled Open MPI .deb. We never use that binary at runtime -- HPC-X
+    #     (installed later by install_mpis.sh) provides Open MPI at /opt -- and the
     #     .deb ships /etc/pmix-mca-params.conf, colliding with the pmix package
     #     installed by install_pmix.sh (pmix >=4.2.9-2 dropped its
     #     `Conflicts: openmpi`, so dpkg now aborts with "trying to overwrite
@@ -114,7 +114,7 @@ EOF
     (
         cd /tmp
         equivs-build "${marker_control}"
-        dpkg -i /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb
+        apt install -y /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb
     )
     rm -f /tmp/${HPCX_DOCA_OFED_DEPS_MARKER}_*_all.deb "${marker_control}"
 }
@@ -190,7 +190,7 @@ EOF
 }
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    dpkg -i $DOCA_FILE
+    apt install -y "$(realpath "${DOCA_FILE}")"
 
     # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
     cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
@@ -204,11 +204,13 @@ PIN
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    download_and_verify $DOCA_URL $DOCA_SHA256
     rpm -i $DOCA_FILE
     dnf clean all
     install_hpcx_doca_ofed_deps_rpm_marker
     dnf -y install doca-ofed
 else
+    download_and_verify $DOCA_URL $DOCA_SHA256
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all
@@ -246,8 +248,13 @@ else
         echo "ERROR: no packages found from doca* repos after doca-ofed install" >&2
         exit 1
     fi
+    baseos_repo=baseos
+    if [[ $DISTRIBUTION == rhel* ]]; then
+        rhel_version=${DISTRIBUTION#rhel}
+        baseos_repo=rhel-${rhel_version%%.*}-for-${ARCHITECTURE}-baseos-rhui-rpms
+    fi
     mapfile -t baseos_pkgs < <(
-        dnf repoquery --quiet --repo=baseos --qf '%{name}\n' '*' | sort -u
+        dnf repoquery --quiet --repo="${baseos_repo}" --qf '%{name}\n' '*' | sort -u
     )
     mapfile -t baseos_conflicts < <(
         comm -12 \
@@ -257,7 +264,7 @@ else
     if [[ ${#baseos_conflicts[@]} -gt 0 ]]; then
         echo "Pinning ${#baseos_conflicts[@]} baseos package(s) shadowed by DOCA: ${baseos_conflicts[*]}"
         dnf config-manager --save \
-            --setopt="baseos.excludepkgs=${baseos_conflicts[*]}" \
+            --setopt="${baseos_repo}.excludepkgs=${baseos_conflicts[*]}" \
             >/dev/null
     fi
 fi

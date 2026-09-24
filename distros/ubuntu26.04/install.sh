@@ -17,12 +17,6 @@ if [[ "$#" -gt 0 ]]; then
     fi
 fi
 
-# TODO(ubuntu26.04): add ROCm, RCCL, HPC-X AMD metadata, and an AMD test matrix
-# before enabling this path.
-if [[ "$GPU" == "AMD" ]]; then
-    echo "##[error]AMD GPUs are not supported on Ubuntu 26.04 yet."
-    exit 1
-fi
 
 if [[ "$SKU" == "V100" ]]; then
     echo "##[error]V100 is not supported on Ubuntu 26.04 because NVIDIA does not provide a compatible CUDA toolkit."
@@ -44,6 +38,10 @@ source ${UTILS_DIR}/utilities.sh
 # install DOCA OFED
 $COMPONENT_DIR/install_doca.sh
 
+if [[ "$GPU" == "AMD" ]]; then
+    $COMPONENT_DIR/install_rocm.sh
+fi
+
 # Install MPI libraries. HPC-X 2.51 supplies the Open MPI 5, PMIx 5, hwloc,
 # and libevent stack used on Ubuntu 26.04.
 $COMPONENT_DIR/install_mpis.sh
@@ -54,6 +52,10 @@ if [ "$GPU" = "NVIDIA" ]; then
     
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
+fi
+
+if [[ "$GPU" == "AMD" ]]; then
+    $COMPONENT_DIR/install_rccl.sh
 fi
 
 # Install Docker container runtime

@@ -410,6 +410,29 @@ install_ubuntu_lts_kernel() {
 
             ;;
             
+        26.04)
+            apt update
+
+            # Ubuntu 26.04 (Resolute Raccoon) ships linux-azure-7.0 (kernel 7.0.0-*-azure)
+            # as the versioned Azure meta-package. Allow KERNEL_VERSION to override.
+            local kernel_ver="${KERNEL_VERSION:-7.0}"
+            echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 26.04"
+
+            apt install -y linux-azure-${kernel_ver}
+            # linux-modules-extra-azure-${kernel_ver} is not published for 7.0 in resolute;
+            # contents were folded into linux-modules-azure-${kernel_ver}. Install only if present.
+            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                apt install -y linux-modules-extra-azure-${kernel_ver}
+            else
+                echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+            fi
+
+            apt autoremove -y
+            apt upgrade -y
+
+            update-grub
+            ;;
+
         22.04)
             apt update
             local ubuntu_codename="jammy"
@@ -438,6 +461,56 @@ install_ubuntu_lts_kernel() {
     echo "Ubuntu LTS kernel installation complete"
 }
 
+configure_rhel_lvm() {
+    local volume target_bytes current_bytes filesystem
+    local root_pv disk partition grow_output
+    local volumes=(homelv tmplv rootlv varlv usrlv)
+
+    for volume in "${volumes[@]}"; do
+        filesystem=$(findmnt -n -o FSTYPE --source "/dev/rootvg/${volume}")
+        if [[ "${filesystem}" != "xfs" ]]; then
+            echo "ERROR: expected a mounted XFS filesystem on /dev/rootvg/${volume}" >&2
+            return 1
+        fi
+    done
+
+    root_pv=$(pvs --noheadings -o pv_name --select vg_name=rootvg | xargs)
+    if [[ ! -b "${root_pv}" ]]; then
+        echo "ERROR: expected a single physical volume for rootvg" >&2
+        return 1
+    fi
+    root_pv=$(readlink -f "${root_pv}")
+    disk=$(lsblk -ndo PKNAME "${root_pv}")
+    partition=$(cat "/sys/class/block/${root_pv##*/}/partition")
+    if [[ -z "${disk}" || ! "${partition}" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: unable to determine the rootvg disk partition" >&2
+        return 1
+    fi
+    if grow_output=$(growpart "/dev/${disk}" "${partition}" 2>&1); then
+        echo "${grow_output}"
+    elif [[ "${grow_output}" == NOCHANGE:* ]]; then
+        echo "${grow_output}"
+    else
+        echo "ERROR: unable to grow the rootvg partition: ${grow_output}" >&2
+        return 1
+    fi
+    pvresize "${root_pv}"
+
+    for volume in homelv:10 tmplv:12 rootlv:24 varlv:48 usrlv:24; do
+        target_bytes=$(( ${volume#*:} * 1024 * 1024 * 1024 ))
+        volume=${volume%:*}
+        current_bytes=$(lvs --noheadings --units b --nosuffix -o lv_size "/dev/rootvg/${volume}")
+        if awk -v current="${current_bytes}" -v target="${target_bytes}" 'BEGIN { exit !(current < target) }'; then
+            lvextend -L "${target_bytes}B" "/dev/rootvg/${volume}"
+        fi
+    done
+
+    for volume in "${volumes[@]}"; do
+        xfs_growfs "/dev/rootvg/${volume}"
+    done
+    df -h
+}
+
 ####
 # @Brief        : Update packages for RHEL-based distros (Alma, Azure Linux)
 # @Param        : OS type (alma, azurelinux)
@@ -452,6 +525,14 @@ update_rhel_packages() {
     fi
     
     echo "##[section]Updating packages for ${os_family}"
+
+    if [[ "${os_family}" == "rhel" ]]; then
+        cloud-init status --wait
+        if [[ "${REFRESH_MODE:-false}" != "true" ]]; then
+            configure_rhel_lvm
+        fi
+        dnf --disablerepo='*' --enablerepo='rhui-microsoft-*' update -y 'rhui*'
+    fi
     
     dnf update -y --refresh
     dnf install -y git

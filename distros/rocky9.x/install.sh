@@ -1,8 +1,6 @@
 #!/bin/bash
 set -ex
 
-sed -i '/^exclude.*/d' /etc/dnf/dnf.conf
-
 # Check if arguments are passed
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Error: Missing arguments. Please provide both GPU type (NVIDIA/AMD) and SKU."
@@ -19,14 +17,11 @@ if [[ "$#" -gt 0 ]]; then
     fi
 fi
 
-# Install jq early (needed by set_properties.sh)
-sudo dnf install -y jq
-
 source ../../utils/set_properties.sh
 
 ./install_utils.sh
 
-# Fix python3-setools bug for CycleCloud compatibility (Rocky 8.x only, but safe to run on 9.x)
+# Fix legacy SETools version lookup for CycleCloud compatibility
 $COMPONENT_DIR/fix_setools_cyclecloud.sh
 
 # install DOCA OFED

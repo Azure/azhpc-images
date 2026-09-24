@@ -6,11 +6,53 @@ source ${UTILS_DIR}/utilities.sh
 #move to rocm package
 rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
-rocm_url=$(jq -r '.url' <<< $rocm_metadata)
-rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
-DEBPACKAGE=$(basename ${rocm_url})
 
-if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    driver_metadata=$(get_component_config "amdgpu")
+    driver_version=$(jq -er '.version' <<< "$driver_metadata")
+    driver_url="https://repo.radeon.com/amdgpu/${driver_version}/ubuntu"
+    rocm_package="amdrocm-core-sdk${rocm_version}"
+
+    apt install -y ca-certificates wget gnupg dkms "linux-headers-$(uname -r)"
+    install -d -m 0755 /etc/apt/keyrings
+    wget -O /tmp/amdrocm-packages.key https://stable.repo.amd.com/rocm/gpg/packages.gpg
+    gpg --batch --yes --dearmor -o /etc/apt/keyrings/amdrocm.gpg /tmp/amdrocm-packages.key
+    wget -O /tmp/amdgpu-packages.key https://repo.radeon.com/rocm/rocm.gpg.key
+    gpg --batch --yes --dearmor -o /etc/apt/keyrings/amdgpu.gpg /tmp/amdgpu-packages.key
+    chmod 0644 /etc/apt/keyrings/amdrocm.gpg /etc/apt/keyrings/amdgpu.gpg
+    rm -f /tmp/amdrocm-packages.key /tmp/amdgpu-packages.key
+
+    cat > /etc/apt/sources.list.d/amdrocm-stable.sources <<EOF
+Types: deb
+URIs: https://stable.repo.amd.com/rocm/core/packages/ubuntu2604/
+Suites: stable
+Components: main
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/amdrocm.gpg
+EOF
+    cat > /etc/apt/sources.list.d/amdgpu.list <<EOF
+deb [arch=amd64 signed-by=/etc/apt/keyrings/amdgpu.gpg] ${driver_url} resolute main
+EOF
+    cat > /etc/apt/sources.list.d/rvs.list <<EOF
+deb [arch=amd64 signed-by=/etc/apt/keyrings/amdrocm.gpg] https://stable.repo.amd.com/rocm/extras/rvs/packages/ubuntu2604/ stable main
+EOF
+    apt update
+    apt install -y amdgpu-dkms amdgpu-dkms-firmware
+    check_dkms_status amdgpu
+    apt install -y "$rocm_package" amdrocm10-rvs
+    rocm_version=$(cat /opt/rocm/core/.info/version)
+    write_component_version "AMDGPU" "$(dpkg-query -W -f='${Version}' amdgpu-dkms)"
+    rvs_version=$(dpkg-query -W -f='${Version}' amdrocm10-rvs)
+    write_component_version "RVS" "$rvs_version"
+
+    # amdrocm-core-sdk ships no ld.so.conf entry, so libamdhip64 is unresolvable
+    # for anything linking ROCm (e.g. Open MPI's accelerator component) without it.
+    echo /opt/rocm/lib > /etc/ld.so.conf.d/rocm.conf
+    ldconfig
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    rocm_url=$(jq -r '.url' <<< $rocm_metadata)
+    rocm_sha256=$(jq -r '.sha256' <<< $rocm_metadata)
+    DEBPACKAGE=$(basename ${rocm_url})
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
     if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
@@ -20,7 +62,20 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # apt install -y amdgpu-dkms rocm
         # # ROCm bundles RCCL
         # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
-        amdgpu-install -y --usecase=graphics,rocm
+        amdgpu-install -y --usecase=graphics
+        # TODO: Revisit this explicit package list when upgrading back to ROCm 7.0.
+        # Exclude MIVisionX, which pulls FFmpeg, Qt, cJSON, and mbedTLS packages
+        # with publishing-blocking CVEs whose Ubuntu fixes require Pro/ESM.
+        # Restore the full rocm install only after verifying its dependencies
+        # pass security scanning without Ubuntu Pro; the version bump alone is not enough.
+        apt-get install -y \
+            rocm-utils \
+            rocm-developer-tools \
+            rocm-openmp-sdk \
+            rocm-opencl-sdk \
+            rocm-ml-sdk \
+            migraphx migraphx-dev \
+            rpp rpp-dev
     else
         amdgpu-install -y --usecase=graphics,rocm
     fi

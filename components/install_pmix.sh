@@ -3,11 +3,17 @@ set -ex
 
 source ${UTILS_DIR}/utilities.sh
 
+if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+    echo "Ubuntu 26.04 uses the PMIx 5 stack bundled with HPC-X."
+    exit 0
+fi
+
 pmix_metadata=$(get_component_config "pmix")
 PMIX_VERSION=$(jq -r '.version' <<< $pmix_metadata)
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
+
     if [ $UBUNTU_VERSION == 24.04 ]; then
         REPO=slurm-ubuntu-noble
         SIGNED_BY="/usr/share/keyrings/microsoft-prod.gpg"
@@ -51,7 +57,9 @@ else
         rm packages-microsoft-prod.rpm
     fi
 
-    if [[ $OS_MAJOR_VERSION == "9" ]]; then 
+    if [[ $DISTRIBUTION == rhel* ]]; then
+        dnf config-manager --set-enabled codeready-builder-for-rhel-${OS_MAJOR_VERSION}-${ARCHITECTURE}-rhui-rpms
+    elif [[ $OS_MAJOR_VERSION == "9" ]]; then
         dnf config-manager --set-enabled crb
     elif  [[ $OS_MAJOR_VERSION == "8" ]]; then
         dnf config-manager --set-enabled powertools

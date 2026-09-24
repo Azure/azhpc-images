@@ -22,11 +22,10 @@ sudo cp ./microsoft-rhel-prod.repo /etc/yum.repos.d/
 
 dnf repolist
 
-# Install wget, net-tools, python3.12, and jq early (needed for kernel downloads and utilities)
+# Install wget, net-tools, and python3.12 early (needed for kernel downloads and utilities)
 sudo dnf install -y wget \
                net-tools \
-               python3.12 \
-               jq
+               python3.12
 
 # Install Kernel dependencies
 # Rocky 9.x kernel-devel installation requires complex fallback logic due to:
@@ -137,6 +136,7 @@ dnf install -y numactl \
     tcsh \
     gcc-gfortran \
     perl \
+    azure-vm-utils \
     libdrm-devel \
     dos2unix \
     azcopy \
@@ -153,7 +153,9 @@ dnf install -y kernel-abi-stablelists
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel
 
-echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+if sku_uses_ipoib; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

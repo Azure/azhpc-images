@@ -127,6 +127,13 @@ function verify_hpcx_installation {
     fi
     
     module load mpi/hpcx
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        ompi_info --version | grep -qE '^Open MPI v5\.'
+        check_exit_code "HPC-X uses Open MPI 5" "HPC-X did not report Open MPI 5"
+
+        pkg-config --atleast-version=5 pmix
+        check_exit_code "HPC-X uses PMIx 5" "HPC-X did not provide PMIx 5"
+    fi
     mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
@@ -207,7 +214,11 @@ function verify_cuda_installation {
     fi
 
     # Verify the compilation of CUDA samples
-    /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    if [[ -x /usr/local/cuda/samples/mergeSort ]]; then
+        /usr/local/cuda/samples/mergeSort
+    else
+        /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    fi
     check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 
@@ -308,7 +319,11 @@ function verify_rocm_installation {
     # Verify if ROCM is installed
     check_exists "/opt/rocm/"
 
-    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    local rocm_prefix=/opt/rocm
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        rocm_prefix=/opt/rocm/core
+    fi
+    amd_rocm_version=$(cat "$rocm_prefix/.info/version")
     check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
 
     # Verify if AMD GPU driver exists
@@ -322,9 +337,9 @@ function verify_rccl_installation {
 
     amdgpumod=$(lsmod | grep "^amdgpu")
     check_exit_code "amdgpu driver is loaded" "No amdgpu driver"
-    
+
     case ${VMSIZE} in
-        standard_nd96isr_mi300x_v5) mpirun -np 8 \
+        standard_nd96isr_mi300x_v5) timeout 600 mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
             -x LD_LIBRARY_PATH=/opt/rccl/lib:$LD_LIBRARY_PATH \
@@ -607,9 +622,11 @@ function verify_sunrpc_tcp_settings_service {
 }
 
 function verify_azure_persistent_rdma_naming_service {
-    # Check if the azure persistent rdma naming service is active
-    systemctl is-active --quiet azure_persistent_rdma_naming
-    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
+    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
+
+    systemctl is-active --quiet azure_persistent_rdma_naming.timer
+    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
 }
 
 function verify_nvbandwidth_setup {

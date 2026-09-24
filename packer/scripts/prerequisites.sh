@@ -34,6 +34,32 @@ configure_apt_lock_timeout() {
 }
 
 ####
+# @Brief        : Turn off APT's automatic updates for the build and the shipped image
+# @Param        : None
+# @RetVal       : 0 on success
+####
+disable_automatic_apt_updates() {
+    if [[ "${OS_FAMILY}" != "ubuntu" ]]; then
+        return 0
+    fi
+
+    echo "##[section]Disabling automatic APT updates"
+
+    # Stop background `apt-get update` and unattended-upgrade.
+    # Disabling upgrades is important for package version control,
+    # and disabling updates prevents unnecessary waits for the dpkg lock during builds.
+    # Manually invoked apt is unaffected.
+    cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Unattended-Upgrade "0";
+EOF
+
+    systemctl stop unattended-upgrades.service 2>/dev/null || true
+    systemctl disable unattended-upgrades.service 2>/dev/null || true
+    systemctl mask unattended-upgrades.service 2>/dev/null || true
+}
+
+####
 # @Brief        : Wait for cloud-init before starting package operations
 # @Param        : None
 # @RetVal       : 0 on success
@@ -41,9 +67,6 @@ configure_apt_lock_timeout() {
 wait_for_cloud_init() {
     echo "Waiting for cloud-init to complete..."
     cloud-init status --wait || true
-
-    # Prevent unattended upgrades from racing later provisioning steps.
-    systemctl disable unattended-upgrades.service 2>/dev/null || true
 }
 
 ####
@@ -571,6 +594,7 @@ echo "Target Image Variant: ${TARGET_NODE_TYPE:-azure_vm_regular}"
 echo "=========================================="
 
 configure_apt_lock_timeout
+disable_automatic_apt_updates
  
 if [[ "${GPU_SKU}" == "GB200" && "${DISTRO_VERSION}" == "24.04" ]]; then
     # Configure GB200 PARTUUID if specified

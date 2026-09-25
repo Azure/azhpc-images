@@ -55,7 +55,9 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     DEBPACKAGE=$(basename ${rocm_url})
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
-    if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+    # TODO: Restore this if/else once we move back to ROCm 7.0. Until then, both
+    # 22.04 and 24.04 use the explicit package list below.
+    # if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
         # TODO: go back to bundled userspace once we move back to ROCm 7.0
         # apt update
         # apt install -y python3-setuptools python3-wheel
@@ -64,8 +66,9 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
         amdgpu-install -y --usecase=graphics
         # TODO: Revisit this explicit package list when upgrading back to ROCm 7.0.
-        # Exclude MIVisionX, which pulls FFmpeg, Qt, cJSON, and mbedTLS packages
-        # with publishing-blocking CVEs whose Ubuntu fixes require Pro/ESM.
+        # Install the rocm metapackage contents minus MIVisionX (and rocDecode, which
+        # only MIVisionX pulls in). They pull FFmpeg (plus Qt, cJSON, and mbedTLS on
+        # 24.04) packages with publishing-blocking CVEs whose Ubuntu fixes require Pro/ESM.
         # Restore the full rocm install only after verifying its dependencies
         # pass security scanning without Ubuntu Pro; the version bump alone is not enough.
         apt-get install -y \
@@ -76,8 +79,13 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             rocm-ml-sdk \
             migraphx migraphx-dev \
             rpp rpp-dev
-    else
-        amdgpu-install -y --usecase=graphics,rocm
+    # else
+    #     amdgpu-install -y --usecase=graphics,rocm
+    # fi
+    if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+        # rocdecode-dev used to pull this in. gcc-12 is already installed, and ROCm
+        # clang selects the newest GCC toolchain, so hipcc needs the GCC 12 C++ headers.
+        apt-get install -y libstdc++-12-dev
     fi
     apt install -y rocm-bandwidth-test
     rm -f ./${DEBPACKAGE}

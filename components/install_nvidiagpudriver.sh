@@ -7,6 +7,26 @@ source ${UTILS_DIR}/utilities.sh
 nvidia_metadata=$(get_component_config "nvidia")
 cuda_metadata=$(get_component_config "cuda")
 
+# Some configurations, such as MRC images and certain CRDs, require NVIDIA
+# driver packages from a local NVIDIA repository. This repository contains
+# driver packages but does not contain the CUDA toolkit, so install drivers
+# from the local repository and continue to install the CUDA toolkit from the
+# online CUDA repository.
+function install_from_nvidia_local_repo {
+    local repo_file=$1
+    local repo_dir=${repo_file%%_*}
+
+    apt install -y "$TOP_DIR/internal_bits/$repo_file"
+    cp /var/$repo_dir/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
+
+    cat <<EOF > /etc/apt/preferences.d/00-nvidia-prefer
+Package: *
+Pin: origin ""
+Pin-Priority: 1001
+EOF
+    apt update
+}
+
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     if [ "$SKU" = "V100" ]; then
         # V100 requires proprietary kernel modules
@@ -48,23 +68,10 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y ./cuda-keyring_1.1-1_all.deb
     apt-get update
 
-    # MRC image uses local NVIDIA repo for nvidia driver packages
-    # The local NVIDIA repo and cuda repo downloaded from online contain the nvidia driver packages: prefer NVIDIA local repo over other sources
-    # Nvidia driver packages should be installed from the local NVIDIA repo
-    # Cuda toolkit packages should be installed from the downloaded CUDA repo
-    if _is_mrc_network; then
+    NVIDIA_DRIVER_SOURCE=$(jq -r '.driver.source' <<< $nvidia_metadata)
+    if _is_mrc_network || [ "$NVIDIA_DRIVER_SOURCE" = "private" ]; then
         NVIDIA_GPU_DRIVER_REPO_FILE=$(jq -r '.driver.repo_file' <<< $nvidia_metadata)
-        apt install -y "$TOP_DIR/internal_bits/$NVIDIA_GPU_DRIVER_REPO_FILE"
-        NVIDIA_GPU_DRIVER_REPO_DIR=$(echo $NVIDIA_GPU_DRIVER_REPO_FILE | awk -F'_' '{print $1}')
-        cp /var/$NVIDIA_GPU_DRIVER_REPO_DIR/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
-        
-        # Set preference BEFORE apt update so priority rules are applied during metadata refresh
-        cat <<EOF > /etc/apt/preferences.d/00-nvidia-prefer
-Package: *
-Pin: origin ""
-Pin-Priority: 1001
-EOF
-        apt update
+        install_from_nvidia_local_repo "$NVIDIA_GPU_DRIVER_REPO_FILE"
     fi
     # Pin the driver version and install via APT packages
     apt install nvidia-driver-pinning-${NVIDIA_DRIVER_VERSION} -y

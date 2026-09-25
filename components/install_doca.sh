@@ -9,7 +9,7 @@ DOCA_SOURCE=$(jq -r '.source' <<< $doca_metadata)
 HPCX_DOCA_OFED_DEPS_MARKER=hpcx-provides-doca-ofed-deps
 
 if [[ "$DOCA_SOURCE" == "private" ]]; then
-    DOCA_FILE=$(jq -r '.file' <<< $doca_metadata)
+    DOCA_FILE=$(jq -r '.repo_file' <<< $doca_metadata)
     DOCA_FILE="$TOP_DIR/internal_bits/$DOCA_FILE"
 else
     DOCA_URL=$(jq -r '.url' <<< $doca_metadata)

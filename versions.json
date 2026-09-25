@@ -28,7 +28,7 @@
             "aarch64": {
                 "azure_vm_akshost":{
                     "version": "3.1.0-091513-25.07-ubuntu2404",
-                    "file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
+                    "repo_file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
                     "source": "private"
                 },
                 "baremetal_3p": {

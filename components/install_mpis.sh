@@ -48,7 +48,9 @@ if [[ "$DISTRIBUTION" == "ubuntu26.04" ]] || [[ "$DISTRIBUTION" == "azurelinux3.
     # AZL3 lacks PMIx package published by CycleCloud team
     # Ubuntu 26.04 and EL10 have no external PMIx v5 to align to either
     USE_INTERNAL_PMIX=true
-    CHANGE_PMIX_PREFIX=true
+    if [[ -f "${HPCX_PATH}/sources/openmpi5-gitclone.tar.gz" ]]; then
+        CHANGE_PMIX_PREFIX=true
+    fi
 elif [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     # Baremetal 3p nodes must also avoid the external PMIx due to script-bastardization-induced package conflict
     USE_INTERNAL_PMIX=true

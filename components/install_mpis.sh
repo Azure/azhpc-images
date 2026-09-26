@@ -43,10 +43,14 @@ LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
 USE_INTERNAL_PMIX=false
+CHANGE_PMIX_PREFIX=false
 if [[ "$DISTRIBUTION" == "ubuntu26.04" ]] || [[ "$DISTRIBUTION" == "azurelinux3.0" ]] || [[ "$DISTRIBUTION" == almalinux10* ]] || [[ "$DISTRIBUTION" == rocky10* ]] || [[ "$DISTRIBUTION" == rhel10* ]]; then
     # AZL3 lacks PMIx package published by CycleCloud team
     # Ubuntu 26.04 and EL10 have no external PMIx v5 to align to either
     USE_INTERNAL_PMIX=true
+    if [[ -f "${HPCX_PATH}/sources/openmpi5-gitclone.tar.gz" ]]; then
+        CHANGE_PMIX_PREFIX=true
+    fi
 elif [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_3p" ]]; then
     # Baremetal 3p nodes must also avoid the external PMIx due to script-bastardization-induced package conflict
     USE_INTERNAL_PMIX=true
@@ -57,16 +61,61 @@ else
 fi
 
 if [[ "$USE_INTERNAL_PMIX" == true ]]; then
-    # Open MPI builds PMIx, hwloc and libevent from its own 3rd-party sources into its prefix.
-    # Pointing these at HPC-X's ompi5 tree instead puts that directory, which also holds the
-    # vendor libmpi/libopen-pal, ahead of the rebuild in every RUNPATH and shadows it at runtime.
-    OMPI_DEPS_ARGS=(--with-pmix=internal --with-hwloc=internal --with-libevent=internal)
+    if [[ "$DISTRIBUTION" == ubuntu* ]]; then
+        apt-get install -y libmunge-dev
+    else
+        dnf install -y munge-devel
+    fi
+
+    if [[ "$CHANGE_PMIX_PREFIX" == true ]]; then
+        PMIX_PATH=${INSTALL_PREFIX}/pmix
+        PMIX_BUILD_DIR=$(mktemp -d)
+        tar -xf "${HPCX_PATH}/sources/openmpi5-gitclone.tar.gz" -C "$PMIX_BUILD_DIR" --strip-components=1
+        LIBEVENT_ARCHIVES=("${PMIX_BUILD_DIR}"/3rd-party/libevent-*.tar.gz)
+        HWLOC_ARCHIVES=("${PMIX_BUILD_DIR}"/3rd-party/hwloc-*.tar.gz)
+        mkdir "${PMIX_BUILD_DIR}/libevent" "${PMIX_BUILD_DIR}/hwloc"
+        tar -xf "${LIBEVENT_ARCHIVES[0]}" -C "${PMIX_BUILD_DIR}/libevent" --strip-components=1
+        tar -xf "${HWLOC_ARCHIVES[0]}" -C "${PMIX_BUILD_DIR}/hwloc" --strip-components=1
+
+        pushd "${PMIX_BUILD_DIR}/libevent"
+        ./configure --prefix="$PMIX_PATH" --libdir="$PMIX_PATH/lib" \
+            --enable-shared --disable-static --disable-openssl --disable-samples --disable-libevent-regress
+        make -j$(nproc)
+        make install
+        popd
+
+        pushd "${PMIX_BUILD_DIR}/hwloc"
+        ./configure --prefix="$PMIX_PATH" --libdir="$PMIX_PATH/lib" \
+            --enable-shared --disable-static --disable-cairo
+        make -j$(nproc)
+        make install
+        popd
+
+        pushd "${PMIX_BUILD_DIR}/3rd-party/openpmix"
+        PKG_CONFIG_PATH="$PMIX_PATH/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" \
+            LDFLAGS="${LDFLAGS:-} -Wl,-rpath,$PMIX_PATH/lib" \
+            ./configure --prefix="$PMIX_PATH" --libdir="$PMIX_PATH/lib" \
+            --enable-shared --disable-static --with-munge --disable-devel-check \
+            --with-libevent="$PMIX_PATH" --with-hwloc="$PMIX_PATH"
+        make -j$(nproc)
+        make install
+        popd
+        rm -rf "$PMIX_BUILD_DIR"
+
+        PMIX_VERSION=$(PKG_CONFIG_PATH="$PMIX_PATH/lib/pkgconfig" pkg-config --modversion pmix)
+        write_component_version "PMIX" "$PMIX_VERSION"
+        printf '%s\n' "$PMIX_PATH/lib" > /etc/ld.so.conf.d/pmix.conf
+        ldconfig
+        OMPI_DEPS_ARGS=("--with-pmix=${PMIX_PATH}" "--with-hwloc=${PMIX_PATH}" "--with-libevent=${PMIX_PATH}")
+    else
+        OMPI_DEPS_ARGS=(--with-pmix=internal --with-hwloc=internal --with-libevent=internal --with-munge)
+    fi
 else
     OMPI_DEPS_ARGS=("--with-pmix=${PMIX_PATH}")
 fi
 
 REBUILD_HPCX=true
-if [[ "$USE_INTERNAL_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
+if [[ "$USE_INTERNAL_PMIX" == true && "$CHANGE_PMIX_PREFIX" == false ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
     REBUILD_HPCX=false
 fi
 
@@ -123,13 +172,15 @@ if [[ "$REBUILD_HPCX" == true ]]; then
     cp -r ${HPCX_PATH}/ompi/tests ${HPCX_PATH}/hpcx-rebuild
 fi
 
-if [[ "$USE_INTERNAL_PMIX" == true ]]; then
-    # Report the PMIx actually shipped: the rebuild installs its internal copy, otherwise the
-    # vendor ompi5 tree is used as-is.
+if [[ "$USE_INTERNAL_PMIX" == true && "$CHANGE_PMIX_PREFIX" == false ]]; then
     if [[ "$REBUILD_HPCX" == true ]]; then
         HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/hpcx-rebuild/lib/pkgconfig
-    else
+    elif [[ "${HPCX_ENABLE_OMPI4:-0}" == "1" && -d "${HPCX_PATH}/ompi4" ]]; then
+        HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/ompi4/lib/pkgconfig
+    elif [[ -d "${HPCX_PATH}/ompi5" ]]; then
         HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/ompi5/lib/pkgconfig
+    else
+        HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/ompi/lib/pkgconfig
     fi
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_PMIX_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"
@@ -148,14 +199,18 @@ ldconfig
 
 # Make HPC-X component metadata visible to pkg-config even when mpi/hpcx is not loaded.
 # The HPC-X module still prepends these paths to PKG_CONFIG_PATH, but /usr/local
-# pkgconfig symlinks let module-free builds resolve the same HCOLL, SHARP, and UCX.
+# pkgconfig symlinks also expose the standalone PMIx stack when it is built.
 HPCX_SYSTEM_PKGCONFIG_DIRS=(/usr/local/lib/pkgconfig)
+HPCX_PKGCONFIG_FILES=("${HCOLL_PATH}"/lib/pkgconfig/*.pc "${SHARP_PATH}"/lib/pkgconfig/*.pc "${UCX_PATH}"/lib/pkgconfig/*.pc)
+if [[ "$CHANGE_PMIX_PREFIX" == true ]]; then
+    HPCX_PKGCONFIG_FILES+=("${PMIX_PATH}"/lib/pkgconfig/*.pc)
+fi
 if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]] || [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     HPCX_SYSTEM_PKGCONFIG_DIRS+=(/usr/local/lib64/pkgconfig)
 fi
 for pkgconfig_dir in "${HPCX_SYSTEM_PKGCONFIG_DIRS[@]}"; do
     mkdir -p "${pkgconfig_dir}"
-    for pc_file in ${HCOLL_PATH}/lib/pkgconfig/*.pc ${SHARP_PATH}/lib/pkgconfig/*.pc ${UCX_PATH}/lib/pkgconfig/*.pc; do
+    for pc_file in "${HPCX_PKGCONFIG_FILES[@]}"; do
         [[ -f "${pc_file}" ]] || continue
         ln -sf "${pc_file}" "${pkgconfig_dir}/$(basename "${pc_file}")"
     done

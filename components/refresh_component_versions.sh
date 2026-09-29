@@ -538,30 +538,6 @@ if [[ -z "${LUSTRE_VERSION}" ]] && command -v lfs &>/dev/null; then
 fi
 write_version "LUSTRE" "${LUSTRE_VERSION}"
 
-# ---- dynolog / dyno_relay_logger ----
-# install_dynolog_drl.sh builds from a git tag into /usr/local/bin with no
-# package and no version sidecar. CLI --version formats aren't stable.
-# Best-effort: install-time entry is source of truth; /usr/local/bin can't
-# drift via apt.
-echo "[Dynolog]"
-DYNOLOG_VERSION=""
-if command -v dynolog &>/dev/null; then
-    if command -v dpkg-query &>/dev/null; then
-        DYNOLOG_VERSION=$(dpkg-query -W -f='${Version}' dynolog 2>/dev/null | sed 's/-.*//' || true)
-    fi
-    if [[ -z "${DYNOLOG_VERSION}" ]] && command -v rpm &>/dev/null; then
-        DYNOLOG_VERSION=$(rpm -q --qf '%{VERSION}' dynolog 2>/dev/null || true)
-        [[ "${DYNOLOG_VERSION}" == *"not installed"* ]] && DYNOLOG_VERSION=""
-    fi
-fi
-write_version "dynolog" "${DYNOLOG_VERSION}" best-effort
-
-DRL_VERSION=""
-if command -v dyno_relay_logger &>/dev/null; then
-    DRL_VERSION=$(dyno_relay_logger --version 2>/dev/null | head -1 | awk '{print $NF}' || true)
-fi
-write_version "dyno_relay_logger" "${DRL_VERSION}" best-effort
-
 # ---- Monitoring Tools (Moneo) ----
 # install_monitoring_tools.sh extracts Moneo to /opt/azurehpc/tools/Moneo/
 # without a version sidecar. Best-effort soft-preserve.

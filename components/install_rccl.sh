@@ -9,7 +9,9 @@ RCCL_TEST_GIT_ARGS=()
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     rocm_metadata=$(get_component_config "rocm")
     rocm_version=$(jq -r '.version' <<< "$rocm_metadata")
-    RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH=/opt/rocm/lib -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
+    # TODO: AMD upstream needs to provide the missing /opt/rocm/.info link.
+    # Revisit the ROCM_PATH override once that compatibility link is available.
+    RCCL_TEST_CMAKE_ARGS=(-DROCM_PATH=/opt/rocm/core -DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH=/opt/rocm/lib -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
     RCCL_TEST_GIT_ARGS=(--branch "therock-${rocm_version}")
 fi
 

@@ -28,7 +28,7 @@
             "aarch64": {
                 "azure_vm_akshost":{
                     "version": "3.1.0-091513-25.07-ubuntu2404",
-                    "file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
+                    "repo_file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
                     "source": "private"
                 },
                 "baremetal_3p": {
@@ -1225,20 +1225,6 @@
                 "version": "2.0.0",
                 "url": "https://github.com/NVIDIA/nvloom.git"
             }
-        }
-    },
-    "dynolog": {
-        "common": {
-            "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dynolog.git",
-            "commit": "1f61fd5e6d7499e7bd7531830cbe1f81b43ff815"
-        }
-    },
-    "dyno_relay_logger": {
-        "common": {
-            "version": "1.0.0",
-            "url": "https://github.com/jasontmsft/dyno-relay-logger.git",
-            "commit": "97ef384edacde60cde30f76f4c1b683087c3b24c"
         }
     },
     "nvidia_grid": {

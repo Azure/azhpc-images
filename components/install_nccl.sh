@@ -121,6 +121,13 @@ popd
 
 write_component_version "NCCL" ${NCCL_VERSION}
 
+if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
+    # patchelf is only needed at build time (nccl-rdma-sharp-plugins' make install
+    # runs patchelf --set-soname). The Jammy patchelf has a publishing-blocking CVE
+    # (USN-6036-1) whose fix requires Ubuntu Pro/ESM, so drop it from the image.
+    apt-get purge -y patchelf
+fi
+
 # Remove installation files
 rm -rf /tmp/${TARBALL}
 rm -rf /tmp/nccl-${NCCL_VERSION}

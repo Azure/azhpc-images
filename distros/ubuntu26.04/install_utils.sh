@@ -14,6 +14,7 @@ dpkg -i packages-microsoft-prod.deb
 rm -f packages-microsoft-prod.deb
 
 apt-get update
+apt-get -y --allow-remove-essential install coreutils-from-gnu coreutils-from-uutils-
 apt-get -y install build-essential
 apt-get -y install numactl \
                    rpm \

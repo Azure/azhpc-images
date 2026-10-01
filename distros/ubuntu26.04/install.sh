@@ -42,14 +42,15 @@ if [[ "$GPU" == "AMD" ]]; then
     $COMPONENT_DIR/install_rocm.sh
 fi
 
+if [ "$GPU" = "NVIDIA" ]; then
+    $COMPONENT_DIR/install_nvidiagpudriver.sh
+fi
+
 # Install MPI libraries. HPC-X 2.51 supplies the Open MPI 5, PMIx 5, hwloc,
 # and libevent stack used on Ubuntu 26.04.
 $COMPONENT_DIR/install_mpis.sh
 
 if [ "$GPU" = "NVIDIA" ]; then
-    # install nvidia gpu driver
-    $COMPONENT_DIR/install_nvidiagpudriver.sh
-    
     # Install NCCL
     $COMPONENT_DIR/install_nccl.sh
 fi

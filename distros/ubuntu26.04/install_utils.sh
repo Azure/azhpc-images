@@ -14,6 +14,9 @@ dpkg -i packages-microsoft-prod.deb
 rm -f packages-microsoft-prod.deb
 
 apt-get update
+# Use GNU coreutils to minimize installer and tooling incompatibilities
+# during the transition to Ubuntu 26.04.
+apt-get -y --allow-remove-essential install coreutils-from-gnu coreutils-from-uutils-
 apt-get -y install build-essential
 apt-get -y install numactl \
                    rpm \

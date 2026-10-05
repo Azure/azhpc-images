@@ -87,9 +87,6 @@ $COMPONENT_DIR/install_aznfs.sh
 # install monitor tools
 $COMPONENT_DIR/install_monitoring_tools.sh
 
-# install persistent rdma naming
-$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
-
 # copy test file
 $COMPONENT_DIR/copy_test_file.sh
 

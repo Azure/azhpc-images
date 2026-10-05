@@ -29,6 +29,7 @@ cat << EOF >> /etc/udev/rules.d/60-rdma-persistent-naming.rules
 #   Device type = RoCE
 #   mlx5_0 -> rocex525400c0fe123455
 
+# TODO: Replace NAME_KERNEL with udev-based persistent RDMA naming using rdma_rename.
 # Suppressing/overwriting the udev rule rdma_core package. NAME_KERNEL leaves the IB devices names as provided by the kernel.
 ACTION=="add", SUBSYSTEM=="infiniband", PROGRAM="rdma_rename %k NAME_KERNEL"
 EOF

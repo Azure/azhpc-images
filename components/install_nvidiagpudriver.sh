@@ -205,7 +205,7 @@ else
     echo 'options nvidia NVreg_RestrictProfilingToAdminUsers=0' | tee /etc/modprobe.d/nvprofiling.conf
 
     # Enable CDMM mode
-    echo 'options nvidia NVreg_CoherentGPUMemoryMode=driver' | tee /etc/modprobe.d/nvidia-openrm.conf
+    echo 'options nvidia NVreg_CoherentGPUMemoryMode=numa' | tee /etc/modprobe.d/nvidia-openrm.conf
     
     # Install NVIDIA IMEX
     nvidia_imex_metadata=$(jq -r '.imex' <<< $nvidia_metadata)

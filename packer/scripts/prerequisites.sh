@@ -132,6 +132,10 @@ configure_nvlink_rackscale_kernel() {
 GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX pci=config_acs=\"xx111x0@0008:00:00.0;xx110x1@0008:02:00.0;xx101x1@0008:02:03.0;xx111x0@0009:00:00.0;xx110x1@0009:02:00.0;xx101x1@0009:02:01.0;xx111x0@0018:00:00.0;xx110x1@0018:02:00.0;xx101x1@0018:02:03.0;xx111x0@0019:00:00.0;xx110x1@0019:02:00.0;xx101x1@0019:02:01.0\""
 EOF
             chmod 644 /etc/default/grub.d/config-acs.cfg
+            cat > /etc/default/grub.d/99-azhpc-settings.cfg <<'EOF'
+GRUB_CMDLINE_LINUX="$(printf '%s\n' "$GRUB_CMDLINE_LINUX" | sed 's/initcall_blacklist=arm_pmu_acpi_init/initcall_blacklist=arm_pmu_acpi_init,mpam_msc_driver_init/')"
+EOF
+            chmod 644 /etc/default/grub.d/99-azhpc-settings.cfg
         fi
     fi
 

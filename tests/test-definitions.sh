@@ -189,11 +189,15 @@ function verify_nvidia_driver_installation {
         check_exit_code "NVIDIA Peer memory module is inserted" "NVIDIA Peer memory module is not inserted!"
     fi
 
-    # if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
-    #     # Verify if NVIDIA driver CDMM mode is enabled
-    #     cat /proc/driver/nvidia/params | grep -q  "CoherentGPUMemoryMode: \"driver\""
-    #     check_exit_code "NVIDIA CDMM mode is enabled" "NVIDIA CDMM mode is not enabled!"
-    # fi
+    if [[ "${SKU_FAMILY:-}" == "gb-family" ]]; then
+        # Verify if NVIDIA driver CDMM mode is enabled
+        local expected_cdmm_mode="driver"
+        if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "baremetal_1p" ]]; then
+            expected_cdmm_mode="numa"
+        fi
+        grep -q "CoherentGPUMemoryMode: \"${expected_cdmm_mode}\"" /proc/driver/nvidia/params
+        check_exit_code "NVIDIA CDMM mode is ${expected_cdmm_mode}" "NVIDIA CDMM mode is not ${expected_cdmm_mode}!"
+    fi
 }
 
 function verify_cuda_installation {

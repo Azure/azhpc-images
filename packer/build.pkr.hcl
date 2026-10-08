@@ -66,6 +66,33 @@ build {
     ]
   }
 
+  provisioner "shell-local" {
+    name           = "(1P Ubuntu 22.04/24.04) Download MDE onboarding package"
+    except         = local.manual_mde_install ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "az storage blob download -f /tmp/WindowsDefenderATPOnboardingPackage.zip -c atponboardingpackage -n WindowsDefenderATPOnboardingPackage.zip --account-name azhpcstoralt --auth-mode login",
+      "unzip -o /tmp/WindowsDefenderATPOnboardingPackage.zip -d /tmp",
+      "chmod +r /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py",
+      "rm -f /tmp/WindowsDefenderATPOnboardingPackage.zip",
+    ]
+  }
+
+  provisioner "file" {
+    name        = "(1P Ubuntu 22.04/24.04) Upload MDE onboarding package"
+    except      = local.manual_mde_install ? [] : ["azure-arm.hpc"]
+    source      = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    destination = "/tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"
+    generated   = true
+  }
+
+  provisioner "shell-local" {
+    name           = "(1P Ubuntu 22.04/24.04) Remove local MDE onboarding package"
+    except         = local.manual_mde_install ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline         = ["rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py"]
+  }
+
   provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
     except          = local.skip_prerequisites ? ["azure-arm.hpc"] : []
@@ -85,6 +112,18 @@ build {
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
+    ]
+  }
+
+  provisioner "shell" {
+    name           = "(1P Ubuntu 22.04/24.04) Install and enroll MDE"
+    except         = local.manual_mde_install ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "set -o pipefail",
+      "curl -sSL https://raw.githubusercontent.com/microsoft/mdatp-xplat/refs/heads/master/linux/installation/mde_installer.sh | sudo bash -s -- --install --onboard /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py --channel prod",
+      "sudo mdatp threat policy set --type potentially_unwanted_application --action off",
+      "rm -f /tmp/MicrosoftDefenderATPOnboardingLinuxServer.py",
     ]
   }
 

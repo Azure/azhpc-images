@@ -214,7 +214,7 @@ locals {
 
 variable "enable_first_party_specifics" {
   type        = bool
-  description = "Whether to enable first-party-specific operations, such as certain Azure tags and internal artifacts."
+  description = "Whether to enable first-party-specific operations, such as certain Azure tags, MDE enrollment, and internal artifacts."
   default     = false
 }
 
@@ -330,6 +330,11 @@ variable "extra_tags" {
 }
 
 locals {
+  manual_mde_install = (
+    var.enable_first_party_specifics &&
+    local.os_family == "ubuntu" &&
+    contains(["22.04", "24.04"], local.distro_version)
+  )
   first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
     "SkipASMAzSecPack"          = "true"
@@ -339,7 +344,13 @@ locals {
   # TODO(ubuntu26.04): Remove this exclusion once MDE officially supports
   # Ubuntu 26.04. The current installer falls back to the Ubuntu 18.04
   # repository and overwrites the valid microsoft-prod.list.
-  mde_exclusion_tag = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
+  # Ubuntu 22.04/24.04 first-party builds install MDE explicitly because its
+  # auto-provisioned apt update cannot wait for /var/lib/apt/lists/lock:
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1069167
+  mde_exclusion_tag = (
+    local.manual_mde_install ||
+    (local.os_family == "ubuntu" && local.distro_version == "26.04")
+  ) ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
   owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
   buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(

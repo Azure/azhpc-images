@@ -1,0 +1,52 @@
+Ubuntu 5.15.0-1123-azure backports xdp_buff.flags without the complete XDP
+fragment API. OFED uses HAVE_XDP_BUFF_HAS_FLAGS to select fragment accounting,
+so require the skb field and pfmemalloc helpers as well. Keep the shipped
+configure script in sync: DKMS does not normally regenerate it from rdma.m4.
+
+diff --git a/compat/config/rdma.m4 b/compat/config/rdma.m4
+--- a/compat/config/rdma.m4
++++ b/compat/config/rdma.m4
+@@ -5472,12 +5472,16 @@
+ 	MLNX_RDMA_TEST_CASE(HAVE_XDP_BUFF_HAS_FLAGS, [xdp_buff has flags as member], [
++		#include <linux/skbuff.h>
+ 		#include <net/xdp.h>
+ 	],[
+-		struct xdp_buff x;
++		struct xdp_buff x = {};
++		struct skb_shared_info sinfo = {};
+ 		x.flags = 0;
++		sinfo.xdp_frags_size = 0;
++		xdp_buff_set_frag_pfmemalloc(&x);
+ 
+-		return 0;
++		return xdp_buff_is_frag_pfmemalloc(&x) + sinfo.xdp_frags_size;
+ 	])
+ 
+ 	MLNX_RDMA_TEST_CASE(HAVE_XDP_BUFF_HAS_FRAME_SZ, [xdp_buff has frame_sz as member], [
+ 		#include <net/xdp.h>
+ 	],[
+diff --git a/compat/configure b/compat/configure
+--- a/compat/configure
++++ b/compat/configure
+@@ -26580,15 +26580,19 @@
+ #include <linux/kernel.h>
+ MODULE_LICENSE("GPL");
+ 
++		#include <linux/skbuff.h>
+ 		#include <net/xdp.h>
+ 
+ static int __maybe_unused test_func (void) {
+ 
+-		struct xdp_buff x;
++		struct xdp_buff x = {};
++		struct skb_shared_info sinfo = {};
+ 		x.flags = 0;
++		sinfo.xdp_frags_size = 0;
++		xdp_buff_set_frag_pfmemalloc(&x);
+ 
+-		return 0;
++		return xdp_buff_is_frag_pfmemalloc(&x) + sinfo.xdp_frags_size;
+ 
+ 	return 0;
+ }
+ EOF

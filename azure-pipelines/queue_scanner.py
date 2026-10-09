@@ -64,7 +64,27 @@ def queue_scanner(pipeline_id, branch, pr_number):
 
 
 def get_scanner(run_id):
-    return request("GET", build_api_url(run_id)).json()
+    """Return None for retryable status-read errors; permanent errors propagate."""
+    try:
+        response = request("GET", build_api_url(run_id))
+        if response.status_code == 203:
+            raise SystemExit(f"Authentication required to poll scanner run {run_id}.")
+        run = response.json()
+        if not isinstance(run, dict) or not isinstance(run.get("status"), str) or not run["status"]:
+            raise ValueError("Run response has no status")
+        if run["status"] == "completed" and not run.get("result"):
+            raise ValueError("Completed run response has no result")
+        return run
+    except Exception as error:
+        status = getattr(getattr(error, "response", None), "status_code", None)
+        if isinstance(status, int) and 400 <= status < 500 and status not in (408, 409, 425, 429):
+            raise
+        print(
+            f"Could not poll scanner run {run_id} ({type(error).__name__}); "
+            f"retrying at the next polling interval. {run_web_url({'id': run_id})}",
+            flush=True,
+        )
+        return None
 
 
 def main():
@@ -84,7 +104,7 @@ def main():
 
     if existing_run_id:
         active_run_id = int(existing_run_id)
-        run = get_scanner(active_run_id)
+        run = {"id": active_run_id}
     else:
         pr_number = required_env("PR_NUM")
         pipeline_id = int(required_env("SCANNER_PIPELINE_ID"))
@@ -92,14 +112,18 @@ def main():
         run = queue_scanner(pipeline_id, branch, pr_number)
         active_run_id = int(run["id"])
 
-    print(f"Scanner run: {run_web_url(run)}", flush=True)
+    run_url = run_web_url(run)
+    print(f"Scanner run: {run_url}", flush=True)
     while True:
         run = get_scanner(active_run_id)
+        if run is None:
+            time.sleep(poll_interval)
+            continue
         status = run.get("status")
         result = run.get("result")
         print(
             f"Scanner run {active_run_id}: status={status} result={result} "
-            f"url={run_web_url(run)}",
+            f"url={run_url}",
             flush=True,
         )
         if status == "completed":

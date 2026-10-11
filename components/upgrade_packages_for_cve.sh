@@ -27,6 +27,11 @@ packages=(
     dracut-install
     python3-requests
     python3-jwt
+    sg3-utils
+    sg3-utils-udev
+    libsgutils2-1.46-2
+    u-boot-tools
+    libxpm4
 )
 
 restore_holds() {

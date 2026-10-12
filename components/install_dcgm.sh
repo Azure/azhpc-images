@@ -62,6 +62,46 @@ CUDA_VERSION=$((CUDA_DRIVER_SUPPORTED_VERSION / 1000))
 cuda_metadata=$(get_component_config "cuda")
 SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 
+# Print "<pkg>=<version>" for each given package and, recursively, every dependency
+# it declares as "(= <version>)". DCGM 4.7+ is split into many sub-packages (libdcgm,
+# dcgmi, nv-hostengine, datacenter-gpu-manager-4-module-*, ...) that the top-level
+# packages depend on with exact versions; apt would otherwise pick the newest revision
+# for those unpinned dependencies and fail to resolve.
+resolve_exact_version_deps() {
+    local version=$1
+    shift
+    local -a queue=("$@")
+    local -A seen=()
+    local pkg dep_list
+    while (( ${#queue[@]} )); do
+        pkg=${queue[0]}
+        queue=("${queue[@]:1}")
+        [[ -n "${seen[$pkg]:-}" ]] && continue
+        seen[$pkg]=1
+        dep_list=$(apt-cache show "${pkg}=${version}" 2>/dev/null || true)
+        if [[ -z "${dep_list}" ]]; then
+            echo "ERROR: ${pkg}=${version} is not available from the configured apt repositories" >&2
+            return 1
+        fi
+        echo "${pkg}=${version}"
+        mapfile -t -O "${#queue[@]}" queue < <(awk -v ver="${version}" '
+            /^(Pre-)?Depends:/ {
+                sub(/^[^:]*:[ \t]*/, "")
+                n = split($0, deps, /[,|]/)
+                for (i = 1; i <= n; i++) {
+                    d = deps[i]
+                    gsub(/^[ \t]+|[ \t]+$/, "", d)
+                    if (d ~ /^[^ ]+ \(= [^)]+\)$/) {
+                        split(d, parts, / \(= /)
+                        sub(/\)$/, "", parts[2])
+                        sub(/:.*$/, "", parts[1])
+                        if (parts[2] == ver) print parts[1]
+                    }
+                }
+            }' <<< "${dep_list}" | sort -u)
+    done
+}
+
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
@@ -79,13 +119,14 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # Get DCGM version from versions.json
         dcgm_metadata=$(get_component_config "dcgm")
         DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-        apt-get install -y \
-            datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-core=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-multinode=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}=${DCGM_VERSION}
+        dcgm_packages=$(resolve_exact_version_deps "${DCGM_VERSION}" \
+            datacenter-gpu-manager-4-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-core \
+            datacenter-gpu-manager-4-proprietary \
+            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-multinode \
+            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION})
+        apt-get install -y ${dcgm_packages}
     fi
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
@@ -100,10 +141,11 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
                 datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION} \
                 datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
         else
-            apt-get install -y \
-                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+            dcgm_packages=$(resolve_exact_version_deps "${DCGM_VERSION}" \
+                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION})
+            apt-get install -y ${dcgm_packages}
         fi
     fi
     if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then

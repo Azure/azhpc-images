@@ -60,6 +60,8 @@ apt-get -y install numactl \
                    dos2unix \
                    azcopy
 
+install_cuda_dkms_3_4_1
+
 # Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
 if sku_uses_ipoib; then
     echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf

@@ -50,6 +50,8 @@ packer build --var 'target_vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu'
 
 Historically, OS kernel updates broke compatibility of HPC components we install (e.g., Lustre), so the kernel was excluded from updates. Lustre was the last component tightly coupled to a specific kernel version, and it has since been switched to DKMS. As a result, the kernel is **no longer locked by default** in our HPC images, and kernel updates are now allowed.
 
+On Ubuntu images, DKMS is upgraded to NVIDIA's prebuilt `dkms` (>= 3.4.1, from the CUDA repository) so that kernel updates rebuild vendor modules with any patches we stage under `/etc/dkms`. Do not downgrade it to the distro-shipped `dkms`.
+
 If you prefer to keep the kernel from updating (e.g., to avoid a kernel update potentially breaking your environment), you can lock it yourself on the running VM:
 
 - **AlmaLinux / Rocky Linux (dnf):**

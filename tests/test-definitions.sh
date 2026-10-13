@@ -513,6 +513,16 @@ function verify_gdrcopy_installation {
     check_exit_code "GDRCopy Installed" "GDRCopy not installed!"
 }
 
+function verify_dkms_version {
+    # Ubuntu images ship CUDA's prebuilt DKMS >= 3.4.1 so /etc/dkms patch
+    # overlays apply when customers upgrade the kernel.
+    [[ ${ID} == "ubuntu" ]] || return 0
+    local dkms_version
+    dkms_version=$(dkms --version 2>/dev/null)
+    dpkg --compare-versions "${dkms_version#dkms-}" ge 3.4.1
+    check_exit_code "DKMS ${dkms_version#dkms-} is at least 3.4.1" "DKMS ${dkms_version:-not found} is older than 3.4.1"
+}
+
 function verify_pssh_installation {
     # Verify PSSH package installation
     case ${ID} in

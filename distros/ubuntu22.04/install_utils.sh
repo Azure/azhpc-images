@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 # Install the "Microsoft TLS RSA Root G2" trust anchor before any HTTPS
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
@@ -57,6 +59,8 @@ apt-get -y install numactl \
                    pssh \
                    dos2unix \
                    azcopy
+
+install_cuda_dkms_3_4_1
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

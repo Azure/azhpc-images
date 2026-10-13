@@ -100,6 +100,8 @@ function verify_common_components {
         fi
     fi
 
+    verify_dkms_version;
+
     if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" == "azure_vm_akshost" ]]; then return; fi
 
     verify_gcc_installation;

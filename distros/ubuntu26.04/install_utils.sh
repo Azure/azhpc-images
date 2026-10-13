@@ -64,6 +64,8 @@ apt-get -y install numactl \
                    pssh \
                    dos2unix
 
+install_cuda_dkms_3_4_1
+
 # azcopy: Microsoft's PMC ubuntu/26.04/prod pool does not yet ship azcopy
 # (verified Sep 2026).
 # Install the upstream .deb from the official GitHub releases instead, pinned

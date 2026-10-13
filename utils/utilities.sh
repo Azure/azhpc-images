@@ -116,13 +116,34 @@ verify_checksum() {
     fi
 }
 
-install_cuda_dkms_3_4_1_for_jammy() {
-    local dkms_url=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/dkms_3.4.1-1ubuntu1_all.deb
-    local dkms_sha256=16ce508e74cbe8426fe19c1c56de5ea6e9f3dbe05d85ba5cbf5a8a271d34c2be
-    local dkms_deb=$(basename "${dkms_url}")
-    local current_version
+############################################################################
+# @Brief    : Install DKMS >= 3.4.1 on Ubuntu from NVIDIA's prebuilt CUDA repo
+#             package. Older DKMS (Jammy 2.8, Noble 3.0, Resolute 3.2, and the
+#             3.2.2 shipped in DOCA's repo) does not overlay /etc/dkms patches,
+#             which we rely on to fix vendor DKMS builds on newer kernels.
+#             The package's 1: epoch keeps distro/DOCA dkms from replacing it.
+############################################################################
+install_cuda_dkms_3_4_1() {
+    local cuda_distro dkms_sha256 cuda_arch dkms_url dkms_deb current_version
 
-    [[ "${DISTRIBUTION}" == "ubuntu22.04" ]] || return 0
+    case "${DISTRIBUTION}" in
+        ubuntu22.04)
+            cuda_distro=ubuntu2204
+            dkms_sha256=16ce508e74cbe8426fe19c1c56de5ea6e9f3dbe05d85ba5cbf5a8a271d34c2be
+            ;;
+        ubuntu24.04)
+            cuda_distro=ubuntu2404
+            dkms_sha256=8e4a1cb8692acc7b8389ab7d43d4615d655a4e283bc58a129c1e74bcf9684e7e
+            ;;
+        ubuntu26.04)
+            cuda_distro=ubuntu2604
+            dkms_sha256=f668d2e732e361faa2434d267c5c81f32ce07a2235e7ef99f1655c0e76e9f3f7
+            ;;
+        *) return 0 ;;
+    esac
+    [[ "${ARCHITECTURE:-$(uname -m)}" == "aarch64" ]] && cuda_arch=sbsa || cuda_arch=x86_64
+    dkms_url=https://developer.download.nvidia.com/compute/cuda/repos/${cuda_distro}/${cuda_arch}/dkms_3.4.1-1ubuntu1_all.deb
+    dkms_deb=$(basename "${dkms_url}")
 
     if command -v dkms >/dev/null 2>&1; then
         current_version=$(dkms --version)

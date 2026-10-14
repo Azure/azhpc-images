@@ -18,21 +18,28 @@ else
     DOCA_FILE=$(basename ${DOCA_URL})
 fi
 
-configure_mlnx_ofa_kernel_dkms_dpll_patch() {
+configure_doca_dkms_patches() {
+    local dkms_module=$1
     local kernel_header=/usr/src/kernels/$(uname -r)/include/linux/dpll.h
-    local dkms_conf=/etc/dkms/mlnx-ofa_kernel.conf
-    local patch_file=${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
-    local patch_dir=/etc/dkms/mlnx-ofa_kernel/patches
+    local dkms_conf=/etc/dkms/${dkms_module}.conf
+    local patch_dir=/etc/dkms/${dkms_module}/patches
+
+    mkdir -p "${patch_dir}"
+    # GPL-only exports let AMDGPU use runtime PeerDirect lookup when it builds before DOCA
+    cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-peer-mem-gpl.patch" "${patch_dir}/peer-mem-gpl.patch"
+    cat > "${dkms_conf}" <<'EOF'
+PATCH[0]="peer-mem-gpl.patch"
+EOF
 
     # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback
     # signature, while DOCA 3.2.x / MLNX OFED 25.10 still ships the older one.
+    [[ "${dkms_module}" == "mlnx-ofa_kernel" ]] || return 0
     [[ -f "${kernel_header}" ]] || return 0
     grep -q 'struct dpll_ffo_param \*ffo,' "${kernel_header}" || return 0
 
-    mkdir -p "${patch_dir}"
-    cp "${patch_file}" "${patch_dir}/dpll-ffo-param.patch"
-    cat > "${dkms_conf}" <<'EOF'
-PATCH[0]="dpll-ffo-param.patch"
+    cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch" "${patch_dir}/dpll-ffo-param.patch"
+    cat >> "${dkms_conf}" <<'EOF'
+PATCH[1]="dpll-ffo-param.patch"
 EOF
 }
 
@@ -47,8 +54,9 @@ configure_mlnx_ofed_kernel_dkms_xdp_patch() {
     # Install even on older kernels so subsequent DKMS rebuilds get the fix.
     mkdir -p "${patch_dir}"
     cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
+    # Preserve PATCH[0] from the module-wide PeerDirect configuration.
     cat > "${dkms_conf}" <<'EOF'
-PATCH[0]="xdp-fragments.patch"
+PATCH[1]="xdp-fragments.patch"
 EOF
     # install_cuda_repo_and_dkms.sh provides support for /etc/dkms patch overlays.
 }
@@ -218,6 +226,7 @@ PIN
 
     apt-get update
     install_hpcx_doca_ofed_deps_apt_marker
+    configure_doca_dkms_patches mlnx-ofed-kernel
     configure_mlnx_ofed_kernel_dkms_xdp_patch
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
@@ -237,7 +246,7 @@ else
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
     install_hpcx_doca_ofed_deps_rpm_marker
-    configure_mlnx_ofa_kernel_dkms_dpll_patch
+    configure_doca_dkms_patches mlnx-ofa_kernel
     dnf -y install doca-ofed
     check_dkms_status mlnx-ofa_kernel iser isert srp
     # Restore exclusion

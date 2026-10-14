@@ -50,8 +50,7 @@ configure_mlnx_ofed_kernel_dkms_xdp_patch() {
     cat > "${dkms_conf}" <<'EOF'
 PATCH[0]="xdp-fragments.patch"
 EOF
-    # Jammy's DKMS 2.8 does not overlay patches from /etc/dkms.
-    install_cuda_dkms_3_4_1_for_jammy
+    # install_cuda_repo_and_dkms.sh provides support for /etc/dkms patch overlays.
 }
 
 install_hpcx_doca_ofed_deps_apt_marker() {
@@ -210,7 +209,7 @@ EOF
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y "$(realpath "${DOCA_FILE}")"
 
-    # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
+    # Prefer CUDA repo's newer dkms and ignore the older copy from DOCA.
     cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
 Package: dkms
 Pin: release l=DOCA-HOST*

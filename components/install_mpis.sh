@@ -42,6 +42,83 @@ UCX_PATH=${HPCX_PATH}/ucx
 LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
+############################################################################
+# @Brief    : Fix UCX hanging forever in ucs_netlink_send_request() on kernels
+#             that append NLMSG_DONE to the last route-dump datagram (Ubuntu
+#             5.15.0-198, hence linux-azure 5.15.0-1123+). Any UCX endpoint
+#             that considers the TCP transport hangs, e.g. MPI over default
+#             UCX_TLS: https://github.com/openucx/ucx/issues/12070
+#             The bug is in libucs only, so patch the bundled UCX source (used
+#             by hpcx_rebuild.sh --rebuild-ucx) and replace the libucs of every
+#             prebuilt UCX variant with one rebuilt using that variant's own
+#             configure flags.
+# TODO      : Remove once HPC-X ships a UCX with the upstream fix.
+############################################################################
+patch_hpcx_ucx_netlink_dump() {
+    local patch_file=${COMPONENT_DIR}/patches/ucx-netlink-dump-done.patch
+    local ucx_tarball ucx_name work_dir ucx_src variant_dir build_dir libucs flag vendor_flags
+    local -a configure_flags
+
+    ucx_tarball=$(find "${HPCX_PATH}/sources" -maxdepth 1 -name 'ucx-*.tar.gz' | head -n1)
+    if [[ -z "${ucx_tarball}" ]]; then
+        echo "ERROR: HPC-X UCX source tarball not found under ${HPCX_PATH}/sources" >&2
+        exit 1
+    fi
+    ucx_name=$(basename "${ucx_tarball}" .tar.gz)
+    work_dir=$(mktemp -d)
+    tar -xzf "${ucx_tarball}" -C "${work_dir}"
+    ucx_src=${work_dir}/${ucx_name}
+
+    if ! grep -qF 'msg_done = ucs_netlink_is_msg_done((const struct nlmsghdr *)recv_msg);' \
+            "${ucx_src}/src/ucs/sys/netlink.c"; then
+        echo "${ucx_name} does not have the netlink dump hang; skipping UCX patch"
+        rm -rf "${work_dir}"
+        return 0
+    fi
+
+    patch -d "${ucx_src}" -p1 < "${patch_file}"
+    tar -czf "${ucx_tarball}" -C "${work_dir}" "${ucx_name}"
+
+    for variant_dir in "${HPCX_PATH}/ucx" "${HPCX_PATH}"/ucx/{mt,debug,prof}; do
+        [[ -e "${variant_dir}/lib/libucs.so.0" ]] || continue
+
+        # Keep the release/mt/debug/prof options that shape libucs. Drop the
+        # build paths and transport dependencies, which only affect UCT/UCM
+        # modules, and the debug variant's test-only options.
+        vendor_flags=$(LD_LIBRARY_PATH="${variant_dir}/lib" "${variant_dir}/bin/ucx_info" -v \
+                           | sed -n 's/^# Configured with: //p')
+        if [[ -z "${vendor_flags}" ]]; then
+            echo "ERROR: cannot read UCX configure flags from ${variant_dir}/bin/ucx_info" >&2
+            exit 1
+        fi
+        configure_flags=()
+        for flag in ${vendor_flags}; do
+            case "${flag}" in
+                --prefix=*|--with-*|--enable-gtest|--enable-examples|--enable-test-apps) ;;
+                *) configure_flags+=("${flag}") ;;
+            esac
+        done
+
+        build_dir=${work_dir}/build-$(basename "${variant_dir}")
+        mkdir -p "${build_dir}"
+        (
+            cd "${build_dir}"
+            "${ucx_src}/configure" "${configure_flags[@]}" --prefix="${variant_dir}" > configure.log 2>&1 \
+                || { tail -n 50 configure.log; exit 1; }
+            make -j"$(nproc)" -C src/ucm > make.log 2>&1 \
+                && make -j"$(nproc)" -C src/ucs libucs.la >> make.log 2>&1 \
+                || { tail -n 50 make.log; exit 1; }
+        )
+
+        libucs=$(readlink -f "${variant_dir}/lib/libucs.so.0")
+        install -m 0755 "${build_dir}/src/ucs/.libs/$(basename "${libucs}")" "${libucs}"
+        LD_LIBRARY_PATH="${variant_dir}/lib" "${variant_dir}/bin/ucx_info" -v > /dev/null
+    done
+
+    rm -rf "${work_dir}"
+}
+patch_hpcx_ucx_netlink_dump
+
 USE_INTERNAL_PMIX=false
 if [[ "$DISTRIBUTION" == "ubuntu26.04" ]] || [[ "$DISTRIBUTION" == "azurelinux3.0" ]] || [[ "$DISTRIBUTION" == almalinux10* ]] || [[ "$DISTRIBUTION" == rocky10* ]] || [[ "$DISTRIBUTION" == rhel10* ]]; then
     # AZL3 lacks PMIx package published by CycleCloud team

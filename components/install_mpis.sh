@@ -119,6 +119,7 @@ fi
 
 if [[ "$REBUILD_HPCX" == true ]]; then
     HPCX_REBUILD_ARGS=()
+    HPCX_REBUILD_ENV=()
     if [[ "$REBUILD_UCX" == true ]]; then
         patch_hpcx_ucx_source_netlink_dump
         HPCX_REBUILD_ARGS+=(--rebuild-ucx)
@@ -134,6 +135,11 @@ if [[ "$REBUILD_HPCX" == true ]]; then
         fi
     elif [[ "$GPU" == "NVIDIA" ]]; then
         HPCX_REBUILD_ARGS+=(--cuda)
+        if [[ "$REBUILD_UCX" == true ]]; then
+            # Without CUDA_HOME, hpcx_rebuild.sh passes a bare --with-cuda, which makes UCX's
+            # configure search only default include/library paths and miss /usr/local/cuda.
+            HPCX_REBUILD_ENV+=(CUDA_HOME=/usr/local/cuda)
+        fi
     fi
 
     # Supplying --ompi-extra-config replaces the original HPC-X configure options. Restore the compatible vendor options here.
@@ -149,7 +155,15 @@ if [[ "$REBUILD_HPCX" == true ]]; then
         fi
     fi
     HPCX_REBUILD_ARGS+=(--ompi-extra-config "${HPCX_REBUILD_OMPI_ARGS[*]}")
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"
+    if ! env "${HPCX_REBUILD_ENV[@]}" ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"; then
+        # hpcx_rebuild.sh only names its logs, which stay on the build VM.
+        for hpcx_rebuild_log in ${HPCX_PATH}/sources/ucx-*/ucx-*.log ${HPCX_PATH}/sources/openmpi-gitclone/ompi-*.log; do
+            [[ -f "${hpcx_rebuild_log}" ]] || continue
+            echo "===== tail of ${hpcx_rebuild_log}"
+            tail -n 40 "${hpcx_rebuild_log}"
+        done
+        exit 1
+    fi
 
     # hpcx_rebuild.sh reports but does not fail on UCX make install errors.
     if [[ "$REBUILD_UCX" == true ]] && ! LD_LIBRARY_PATH=${UCX_PATH}/lib ${UCX_PATH}/bin/ucx_info -v > /dev/null; then

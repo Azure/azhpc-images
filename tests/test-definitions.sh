@@ -420,9 +420,18 @@ function verify_mkl_installation {
     check_exit_code "Intel Oneapi MKL ${VERSION_INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
 }
 
-function verify_hpcdiag_installation {
-    local hpcdiag_path="${HPC_ENV}/diagnostics/gather_azhpc_vm_diagnostics.sh"
-    check_exists $hpcdiag_path
+function verify_diagnostics_installation {
+    local diag_script="${HPC_ENV}/diagnostics/azhpc-diagnostics.sh"
+    check_exists $diag_script
+
+    # Run a real collection so the script can't silently break on new distros/SKUs
+    local out_dir
+    out_dir=$(mktemp -d)
+    sudo $diag_script --no-bug-report --output-dir $out_dir > /dev/null
+    check_exit_code "azhpc-diagnostics collection" "azhpc-diagnostics failed to collect diagnostics"
+    sudo ls $out_dir/azhpc-diagnostics-*.tar.gz
+    check_exit_code "azhpc-diagnostics bundle created" "azhpc-diagnostics did not create a bundle"
+    sudo rm -rf $out_dir
 }
 
 # Internal/ external installation of GCC

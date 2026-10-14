@@ -111,6 +111,7 @@ function verify_common_components {
     fi
 
     verify_pssh_installation;
+    verify_diagnostics_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
         # MVAPICH is intentionally not built on Ubuntu 26.04 (libfabric +
         # MVAPICH 4.1 don't compile on resolute's gcc 15; see install_mpis.sh).
@@ -118,7 +119,6 @@ function verify_common_components {
             verify_mvapich2_installation;
         fi
         verify_mkl_installation;
-        verify_hpcdiag_installation;
         verify_aznfs_installation;
     fi
 }

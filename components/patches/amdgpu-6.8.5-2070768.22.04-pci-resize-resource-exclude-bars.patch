@@ -1,0 +1,218 @@
+diff -ruN a/amd/amdgpu/amdgpu_device.c b/amd/amdgpu/amdgpu_device.c
+--- a/amd/amdgpu/amdgpu_device.c
++++ b/amd/amdgpu/amdgpu_device.c
+@@ -1586,7 +1586,13 @@
+ 
+ 	pci_release_resource(adev->pdev, 0);
+ 
++#ifdef HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS
++	r = pci_resize_resource(adev->pdev, 0, rbar_size,
++				(adev->asic_type >= CHIP_BONAIRE) ? 1 << 5
++								  : 1 << 2);
++#else
+ 	r = pci_resize_resource(adev->pdev, 0, rbar_size);
++#endif
+ 	if (r == -ENOSPC)
+ 		DRM_INFO("Not enough PCI address space for a large BAR.");
+ 	else if (r && r != -ENOTSUPP)
+diff -ruN a/amd/dkms/aclocal.m4 b/amd/dkms/aclocal.m4
+--- a/amd/dkms/aclocal.m4
++++ b/amd/dkms/aclocal.m4
+@@ -187,6 +187,7 @@
+ m4_include([m4/pci-upstream-bridge.m4])
+ m4_include([m4/pci_pr3_present.m4])
+ m4_include([m4/pci_rebar_bytes_to_size.m4])
++m4_include([m4/pci_resize_resource.m4])
+ m4_include([m4/pcie-aspm-enabled.m4])
+ m4_include([m4/pid_type.m4])
+ m4_include([m4/pm-suspend-via-firmware.m4])
+diff -ruN a/amd/dkms/config/config.h.in b/amd/dkms/config/config.h.in
+--- a/amd/dkms/config/config.h.in
++++ b/amd/dkms/config/config.h.in
+@@ -865,6 +865,9 @@
+ /* pci_rebar_bytes_to_size() is available */
+ #undef HAVE_PCI_REBAR_BYTES_TO_SIZE
+ 
++/* pci_resize_resource() has an exclude_bars argument */
++#undef HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS
++
+ /* pci_upstream_bridge() is available */
+ #undef HAVE_PCI_UPSTREAM_BRIDGE
+ 
+diff -ruN a/amd/dkms/configure b/amd/dkms/configure
+--- a/amd/dkms/configure
++++ b/amd/dkms/configure
+@@ -8321,6 +8321,139 @@
+ cat $build_dir_root/confdefs.h - <<_ACEOF >conftest.c
+ 
+ 
++			#include <linux/pci.h>
++
++int
++main (void)
++{
++
++			int r = pci_resize_resource(NULL, 0, 0, 0);
++			(void)r;
++
++  ;
++  return 0;
++}
++
++_ACEOF
++
++
++
++cat - <<_ACEOF >conftest.h
++
++_ACEOF
++
++
++	if { ac_try='eval $CC $CFLAGS'
++  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
++  (eval $ac_try) 2>&5
++  ac_status=$?
++  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
++  test $ac_status = 0; }; } > /dev/null && { ac_try='test -s conftest.o || test -s .tmp_conftest.o'
++  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
++  (eval $ac_try) 2>&5
++  ac_status=$?
++  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
++  test $ac_status = 0; }; }
++then :
++
++
++printf "%s\n" "#define HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS 1" >>confdefs.h
++
++
++else $as_nop
++  printf "%s\n" "$as_me: failed program was:" >&5
++sed 's/^/| /' conftest.$ac_ext >&5
++
++
++fi
++
++
++
++	if test -s confdefs.h
++then :
++
++		cat confdefs.h >>$build_dir_root/confdefs.h
++
++fi
++	cd $build_dir_root
++	rm -rf $build_dir
++
++	}
++
++	# Extract the first word of "nproc", so it can be a program name with args.
++set dummy nproc; ac_word=$2
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
++printf %s "checking for $ac_word... " >&6; }
++if test ${ac_cv_prog_NPROC+y}
++then :
++  printf %s "(cached) " >&6
++else $as_nop
++  if test -n "$NPROC"; then
++  ac_cv_prog_NPROC="$NPROC" # Let the user override the test.
++else
++as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  case $as_dir in #(((
++    '') as_dir=./ ;;
++    */) ;;
++    *) as_dir=$as_dir/ ;;
++  esac
++    for ac_exec_ext in '' $ac_executable_extensions; do
++  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
++    ac_cv_prog_NPROC="yes"
++    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++  done
++IFS=$as_save_IFS
++
++fi
++fi
++NPROC=$ac_cv_prog_NPROC
++if test -n "$NPROC"; then
++  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NPROC" >&5
++printf "%s\n" "$NPROC" >&6; }
++else
++  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
++printf "%s\n" "no" >&6; }
++fi
++
++
++	if test x"$NPROC" != x"yes"
++then :
++
++		ncpu=1
++
++else $as_nop
++
++		ncpu=$(nproc)
++
++fi
++
++	while [ $(jobs | wc -l) -gt $ncpu ]
++	do
++		sleep 0.1
++	done
++
++	do_background &
++	procs="$! $procs"
++
++
++
++
++	do_background() {
++
++	build_dir=$(mktemp -d -t build_XXXXXXXX -p $build_dir_root)
++	cd $build_dir
++
++
++
++cat $build_dir_root/confdefs.h - <<_ACEOF >conftest.c
++
++
+ 			#include <linux/ktime.h>
+ 
+ int
+diff -ruN a/amd/dkms/m4/kernel.m4 b/amd/dkms/m4/kernel.m4
+--- a/amd/dkms/m4/kernel.m4
++++ b/amd/dkms/m4/kernel.m4
+@@ -28,6 +28,7 @@
+ 	AC_AMDGPU_PCI_CONFIGURE_EXTENDED_TAGS
+ 	AC_AMDGPU_PCI
+ 	AC_AMDGPU_PCI_REBAR_BYTES_TO_SIZE
++	AC_AMDGPU_PCI_RESIZE_RESOURCE
+ 	AC_AMDGPU_KTIME_GET_BOOTTIME_NS
+ 	AC_AMDGPU_KTIME_GET_RAW_NS
+ 	AC_AMDGPU_MEMALLOC_NOFS_SAVE
+diff -ruN a/amd/dkms/m4/pci_resize_resource.m4 b/amd/dkms/m4/pci_resize_resource.m4
+--- /dev/null
++++ b/amd/dkms/m4/pci_resize_resource.m4
+@@ -0,0 +1,19 @@
++dnl #
++dnl # commit 337b1b566db087347194e4543ddfdfa5645275cc
++dnl # PCI: Fix restoring BARs on BAR resize rollback path
++dnl # pci_resize_resource() gained an exclude_bars argument; stable and
++dnl # distro kernels backported it.
++dnl #
++AC_DEFUN([AC_AMDGPU_PCI_RESIZE_RESOURCE], [
++	AC_KERNEL_DO_BACKGROUND([
++		AC_KERNEL_TRY_COMPILE([
++			#include <linux/pci.h>
++		], [
++			int r = pci_resize_resource(NULL, 0, 0, 0);
++			(void)r;
++		], [
++			AC_DEFINE(HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS, 1,
++				[pci_resize_resource() has an exclude_bars argument])
++		])
++	])
++])

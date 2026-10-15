@@ -229,18 +229,19 @@ write_component_version "DCGM" ${DCGM_VERSION}
 # path into /run/systemd/system/nvidia-dcgm.service.d/50-mndiag.conf (and nothing at all on
 # AlmaLinux), but this image satisfies the packages' openmpi dependency with HPC-X marker
 # packages, so that path does not exist. Point nv-hostengine at the Open MPI behind mpi/hpcx
-# instead; this later-sorting drop-in overrides the generated values.
+# instead. The 99- prefix keeps this drop-in sorting after the generated one so its values win;
+# verify_dcgm_multinode_installation fails if a newer generator sets variables not covered here.
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 DCGM_MNDIAG_MPIRUN_PATH=$(command -v mpirun)
 module unload mpi/hpcx
 DCGM_MNDIAG_MPI_PREFIX=$(dirname "$(dirname "${DCGM_MNDIAG_MPIRUN_PATH}")")
-if [[ ! -x "${DCGM_MNDIAG_MPIRUN_PATH}" || ! -e "${DCGM_MNDIAG_MPI_PREFIX}/lib/libmpi.so.40" ]]; then
-    echo "ERROR: HPC-X Open MPI (mpirun and lib/libmpi.so.40) not found under ${DCGM_MNDIAG_MPI_PREFIX}" >&2
+if [[ ! -x "${DCGM_MNDIAG_MPIRUN_PATH}" || ! -d "${DCGM_MNDIAG_MPI_PREFIX}/lib" ]]; then
+    echo "ERROR: HPC-X Open MPI (bin/mpirun and lib/) not found under ${DCGM_MNDIAG_MPI_PREFIX}" >&2
     exit 1
 fi
 mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
-cat > /etc/systemd/system/nvidia-dcgm.service.d/60-mndiag-hpcx.conf <<EOF
+cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
 [Service]
 Environment="DCGM_MNDIAG_MPIRUN_PATH=${DCGM_MNDIAG_MPIRUN_PATH}"
 Environment="OPAL_PREFIX=${DCGM_MNDIAG_MPI_PREFIX}"

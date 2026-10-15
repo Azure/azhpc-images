@@ -543,33 +543,66 @@ function verify_dcgm_installation {
     systemctl is-active --quiet nvidia-dcgm
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
 
-    if dpkg-query -W -f='${Status}' datacenter-gpu-manager-4-multinode 2>/dev/null | grep -q 'install ok installed' \
-        || rpm -q datacenter-gpu-manager-4-multinode &>/dev/null; then
+    if [[ -n "$(_dcgm_multinode_packages)" ]]; then
         verify_dcgm_multinode_installation
     fi
 }
 
+# Print the installed DCGM multinode packages, one per line.
+function _dcgm_multinode_packages {
+    if command -v dpkg-query &>/dev/null; then
+        dpkg-query -W -f='${Package} ${db:Status-Status}\n' 'datacenter-gpu-manager-4-multinode*' 2>/dev/null \
+            | awk '$2 == "installed" {print $1}'
+    else
+        rpm -qa --qf '%{NAME}\n' 'datacenter-gpu-manager-4-multinode*' 2>/dev/null
+    fi
+}
+
+function _package_files {
+    if command -v dpkg-query &>/dev/null; then dpkg-query -L "$1"; else rpm -ql "$1"; fi
+}
+
+function _package_verify {
+    if command -v dpkg-query &>/dev/null; then dpkg -V "$@" 2>&1; else rpm -V "$@" 2>&1; fi
+}
+
 # Per-node checks that DCGM multinode diagnostics (dcgmi mndiag) can launch their MPI workload.
 # Running mndiag itself needs multiple GB200/GB300 nodes and is left to the validation pipeline.
+# Package contents are discovered from the package file lists rather than hardcoded, because
+# NVIDIA has moved and added files between DCGM releases (e.g. libdcgmmodulemndiag in 4.7).
 function verify_dcgm_multinode_installation {
-    local dcgm_libexec=/usr/libexec/datacenter-gpu-manager-4
-    local mndiag_module cuda_major service_env mpirun_path mpi_ld_library_path opal_prefix binary
+    local dropin=/etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf
+    local packages pkg cuda_major verify_output service_env generator key expected effective file
+    local mpirun_path mpi_ld_library_path opal_prefix driver_cuda_elf_count=0
+    packages=$(_dcgm_multinode_packages)
 
     # --hostList was introduced with mndiag in DCGM 4.3
     dcgmi mndiag --help | grep -q -- '--hostList'
     check_exit_code "dcgmi mndiag is available" "dcgmi mndiag does not list --hostList"
 
-    # The mndiag module moved from the system library directory to ${dcgm_libexec} in DCGM 4.7,
-    # so locate it through the package file list.
-    mndiag_module=$({ dpkg-query -L datacenter-gpu-manager-4-multinode 2>/dev/null \
-        || rpm -ql datacenter-gpu-manager-4-multinode 2>/dev/null; } | grep -m1 '/libdcgmmodulemndiag\.so\.4$')
-    check_exists "${mndiag_module:-libdcgmmodulemndiag.so.4}"
-
     cuda_major=$(nvidia-smi | grep -oP 'CUDA Version:\s*\K[0-9]+')
-    check_exists "${dcgm_libexec}/plugins/cuda${cuda_major}/mnubergemm"
+    grep -qx "datacenter-gpu-manager-4-multinode-cuda${cuda_major}" <<< "${packages}"
+    check_exit_code "DCGM multinode package for CUDA ${cuda_major} is installed" "datacenter-gpu-manager-4-multinode-cuda${cuda_major} is not installed"
 
-    # Merged Environment= of nv-hostengine, including the generator and image drop-ins
+    # Doc/man paths may be excluded from installation by the package manager configuration
+    verify_output=$(_package_verify ${packages} | grep -v ' /usr/share/\(doc\|man\)/')
+    echo "${verify_output}"
+    [[ -z "${verify_output}" ]]
+    check_exit_code "DCGM multinode package files are intact" "DCGM multinode package files are missing or modified"
+
+    # Every variable the package's systemd generator sets must be overridden by the image drop-in,
+    # and the drop-in must win. A newer generator adding a variable or sorting later fails here.
+    check_exists "${dropin}"
     service_env=$(systemctl show nvidia-dcgm.service -p Environment --value | tr ' ' '\n')
+    generator=$(for pkg in ${packages}; do _package_files "${pkg}"; done | grep -m1 '/system-generators/')
+    for key in $( { [[ -n "${generator}" ]] && grep -oP 'Environment="?\K[A-Za-z_][A-Za-z0-9_]*(?==)' "${generator}"
+                    grep -oP '^Environment="?\K[A-Za-z_][A-Za-z0-9_]*(?==)' "${dropin}"; } | sort -u); do
+        expected=$(sed -n "s/^Environment=\"\{0,1\}${key}=\([^\"]*\)\"\{0,1\}$/\1/p" "${dropin}" | tail -n1)
+        effective=$(sed -n "s/^${key}=//p" <<< "${service_env}" | tail -n1)
+        grep -q "^Environment=\"\{0,1\}${key}=" "${dropin}" && [[ "${effective}" == "${expected}" ]]
+        check_exit_code "nvidia-dcgm ${key} is set by ${dropin}" "nvidia-dcgm ${key}='${effective}' is not the value from ${dropin}${generator:+ (also set by ${generator})}"
+    done
+
     mpirun_path=$(sed -n 's/^DCGM_MNDIAG_MPIRUN_PATH=//p' <<< "${service_env}" | tail -n1)
     mpi_ld_library_path=$(sed -n 's/^LD_LIBRARY_PATH=//p' <<< "${service_env}" | tail -n1)
     opal_prefix=$(sed -n 's/^OPAL_PREFIX=//p' <<< "${service_env}" | tail -n1)
@@ -580,11 +613,19 @@ function verify_dcgm_multinode_installation {
     env LD_LIBRARY_PATH="${mpi_ld_library_path}" ${opal_prefix:+OPAL_PREFIX="${opal_prefix}"} "${mpirun_path}" --version
     check_exit_code "DCGM mndiag mpirun runs" "DCGM mndiag mpirun '${mpirun_path}' --version failed"
 
-    for binary in "${mndiag_module}" "${dcgm_libexec}"/plugins/cuda*/{mnubergemm,mnnvbandwidth,nvloom_cli}; do
-        [[ -e "${binary}" ]] || continue
-        ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${binary}" | grep 'not found'
-        check_exit_code "${binary} libraries resolve" "${binary} has unresolved libraries"
+    # Every ELF file the multinode packages ship (mndiag module, mnubergemm, ...) must resolve
+    # its libraries, including libmpi, in the environment nv-hostengine runs them with.
+    for pkg in ${packages}; do
+        while IFS= read -r file; do
+            [[ -f "${file}" && ! -L "${file}" ]] || continue
+            [[ "$(head -c 4 "${file}" | od -An -tx1 | tr -d ' \n')" == "7f454c46" ]] || continue
+            [[ "${pkg}" == "datacenter-gpu-manager-4-multinode-cuda${cuda_major}" ]] && driver_cuda_elf_count=$((driver_cuda_elf_count + 1))
+            ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${file}" | grep 'not found'
+            check_exit_code "${file} libraries resolve" "${file} has unresolved libraries"
+        done < <(_package_files "${pkg}")
     done
+    (( driver_cuda_elf_count > 0 ))
+    check_exit_code "DCGM multinode CUDA ${cuda_major} package ships binaries" "datacenter-gpu-manager-4-multinode-cuda${cuda_major} ships no ELF binaries"
 }
 
 function verify_sku_customization_service {

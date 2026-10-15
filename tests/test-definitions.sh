@@ -542,6 +542,44 @@ function verify_dcgm_installation {
     # Check if the NVIDIA DCGM service is active
     systemctl is-active --quiet nvidia-dcgm
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
+
+    if dpkg-query -W -f='${Status}' datacenter-gpu-manager-4-multinode 2>/dev/null | grep -q 'install ok installed' \
+        || rpm -q datacenter-gpu-manager-4-multinode &>/dev/null; then
+        verify_dcgm_multinode_installation
+    fi
+}
+
+# Per-node checks that DCGM multinode diagnostics (dcgmi mndiag) can launch their MPI workload.
+# Running mndiag itself needs multiple GB200/GB300 nodes and is left to the validation pipeline.
+function verify_dcgm_multinode_installation {
+    local dcgm_libexec=/usr/libexec/datacenter-gpu-manager-4
+    local cuda_major service_env mpirun_path mpi_ld_library_path opal_prefix binary
+
+    # --hostList was introduced with mndiag in DCGM 4.3
+    dcgmi mndiag --help | grep -q -- '--hostList'
+    check_exit_code "dcgmi mndiag is available" "dcgmi mndiag does not list --hostList"
+
+    cuda_major=$(nvidia-smi | grep -oP 'CUDA Version:\s*\K[0-9]+')
+    check_exists "${dcgm_libexec}/libdcgmmodulemndiag.so.4"
+    check_exists "${dcgm_libexec}/plugins/cuda${cuda_major}/mnubergemm"
+
+    # Merged Environment= of nv-hostengine, including the generator and image drop-ins
+    service_env=$(systemctl show nvidia-dcgm.service -p Environment --value | tr ' ' '\n')
+    mpirun_path=$(sed -n 's/^DCGM_MNDIAG_MPIRUN_PATH=//p' <<< "${service_env}" | tail -n1)
+    mpi_ld_library_path=$(sed -n 's/^LD_LIBRARY_PATH=//p' <<< "${service_env}" | tail -n1)
+    opal_prefix=$(sed -n 's/^OPAL_PREFIX=//p' <<< "${service_env}" | tail -n1)
+
+    [[ -n "${mpirun_path}" && -x "${mpirun_path}" ]]
+    check_exit_code "DCGM mndiag mpirun ${mpirun_path} is executable" "DCGM mndiag mpirun '${mpirun_path}' is not executable"
+
+    env LD_LIBRARY_PATH="${mpi_ld_library_path}" ${opal_prefix:+OPAL_PREFIX="${opal_prefix}"} "${mpirun_path}" --version
+    check_exit_code "DCGM mndiag mpirun runs" "DCGM mndiag mpirun '${mpirun_path}' --version failed"
+
+    for binary in "${dcgm_libexec}/libdcgmmodulemndiag.so.4" "${dcgm_libexec}"/plugins/cuda*/{mnubergemm,mnnvbandwidth,nvloom_cli}; do
+        [[ -e "${binary}" ]] || continue
+        ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${binary}" | grep 'not found'
+        check_exit_code "${binary} libraries resolve" "${binary} has unresolved libraries"
+    done
 }
 
 function verify_sku_customization_service {

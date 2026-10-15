@@ -553,14 +553,19 @@ function verify_dcgm_installation {
 # Running mndiag itself needs multiple GB200/GB300 nodes and is left to the validation pipeline.
 function verify_dcgm_multinode_installation {
     local dcgm_libexec=/usr/libexec/datacenter-gpu-manager-4
-    local cuda_major service_env mpirun_path mpi_ld_library_path opal_prefix binary
+    local mndiag_module cuda_major service_env mpirun_path mpi_ld_library_path opal_prefix binary
 
     # --hostList was introduced with mndiag in DCGM 4.3
     dcgmi mndiag --help | grep -q -- '--hostList'
     check_exit_code "dcgmi mndiag is available" "dcgmi mndiag does not list --hostList"
 
+    # The mndiag module moved from the system library directory to ${dcgm_libexec} in DCGM 4.7,
+    # so locate it through the package file list.
+    mndiag_module=$({ dpkg-query -L datacenter-gpu-manager-4-multinode 2>/dev/null \
+        || rpm -ql datacenter-gpu-manager-4-multinode 2>/dev/null; } | grep -m1 '/libdcgmmodulemndiag\.so\.4$')
+    check_exists "${mndiag_module:-libdcgmmodulemndiag.so.4}"
+
     cuda_major=$(nvidia-smi | grep -oP 'CUDA Version:\s*\K[0-9]+')
-    check_exists "${dcgm_libexec}/libdcgmmodulemndiag.so.4"
     check_exists "${dcgm_libexec}/plugins/cuda${cuda_major}/mnubergemm"
 
     # Merged Environment= of nv-hostengine, including the generator and image drop-ins
@@ -575,7 +580,7 @@ function verify_dcgm_multinode_installation {
     env LD_LIBRARY_PATH="${mpi_ld_library_path}" ${opal_prefix:+OPAL_PREFIX="${opal_prefix}"} "${mpirun_path}" --version
     check_exit_code "DCGM mndiag mpirun runs" "DCGM mndiag mpirun '${mpirun_path}' --version failed"
 
-    for binary in "${dcgm_libexec}/libdcgmmodulemndiag.so.4" "${dcgm_libexec}"/plugins/cuda*/{mnubergemm,mnnvbandwidth,nvloom_cli}; do
+    for binary in "${mndiag_module}" "${dcgm_libexec}"/plugins/cuda*/{mnubergemm,mnnvbandwidth,nvloom_cli}; do
         [[ -e "${binary}" ]] || continue
         ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${binary}" | grep 'not found'
         check_exit_code "${binary} libraries resolve" "${binary} has unresolved libraries"

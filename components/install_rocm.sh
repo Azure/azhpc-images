@@ -7,6 +7,38 @@ source ${UTILS_DIR}/utilities.sh
 rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
 
+############################################################################
+# @Brief    : Patch amdgpu-dkms for kernels that backported "PCI: Fix restoring
+#             BARs on BAR resize rollback path" (e.g. linux-azure 5.15.0-1123,
+#             6.8.0-1071), which adds an exclude_bars argument to
+#             pci_resize_resource() and breaks the amdgpu DKMS build.
+#             The patch selects the call from the declared prototype, so it
+#             also builds on kernels without the backport.
+# TODO      : Remove when AMD ships an amdgpu-dkms that handles the new prototype.
+############################################################################
+configure_amdgpu_dkms_pci_resize_patch() {
+    local module_version
+    local patch_dir=/etc/dkms/amdgpu/patches
+
+    case "${DISTRIBUTION}/${rocm_version}" in
+        ubuntu22.04/6.2.4) module_version=6.8.5-2070768.22.04 ;;
+        ubuntu24.04/6.4.4) module_version=6.12.12-2202139.24.04 ;;
+        *) return 0 ;;
+    esac
+
+    # DKMS overlays patches from /etc/dkms only since 3.4.1 (installed by install_cuda_repo_and_dkms.sh).
+    if ! dpkg --compare-versions "$(dkms --version | sed 's/^dkms-//')" ge 3.4.1; then
+        echo "ERROR: DKMS >= 3.4.1 is required to patch amdgpu-dkms; found $(dkms --version)" >&2
+        exit 1
+    fi
+
+    mkdir -p "${patch_dir}"
+    cp "${COMPONENT_DIR}/patches/amdgpu-pci-resize-resource-exclude-bars.patch" "${patch_dir}/pci-resize-resource-exclude-bars.patch"
+    cat > "/etc/dkms/amdgpu-${module_version}.conf" <<'EOF'
+PATCH[0]="pci-resize-resource-exclude-bars.patch"
+EOF
+}
+
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     driver_metadata=$(get_component_config "amdgpu")
     driver_version=$(jq -er '.version' <<< "$driver_metadata")
@@ -55,6 +87,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     DEBPACKAGE=$(basename ${rocm_url})
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
+    configure_amdgpu_dkms_pci_resize_patch
     # TODO: Restore this if/else once we move back to ROCm 7.0. Until then, both
     # 22.04 and 24.04 use the explicit package list below.
     # if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
@@ -65,6 +98,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # # ROCm bundles RCCL
         # write_component_version "RCCL" $(dpkg-query -W -f='${Version}' rccl)
         amdgpu-install -y --usecase=graphics
+        check_dkms_status amdgpu
         # TODO: Revisit this explicit package list when upgrading back to ROCm 7.0.
         # Install the rocm metapackage contents minus MIVisionX (and rocDecode, which
         # only MIVisionX pulls in). They pull FFmpeg (plus Qt, cJSON, and mbedTLS on

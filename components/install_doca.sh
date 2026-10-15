@@ -36,6 +36,24 @@ PATCH[0]="dpll-ffo-param.patch"
 EOF
 }
 
+configure_mlnx_ofed_kernel_dkms_xdp_patch() {
+    local module_version=25.10.OFED.25.10.3.1.8.1-1
+    local dkms_conf=/etc/dkms/mlnx-ofed-kernel-${module_version}.conf
+    local patch_dir=/etc/dkms/mlnx-ofed-kernel/patches
+
+    [[ "${DISTRIBUTION}" == "ubuntu22.04" && "${DOCA_VERSION}" == "3.2.3" ]] || return 0
+
+    # TODO: Remove when DOCA fixes detection of partially backported XDP APIs.
+    # Install even on older kernels so subsequent DKMS rebuilds get the fix.
+    mkdir -p "${patch_dir}"
+    cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
+    cat > "${dkms_conf}" <<'EOF'
+PATCH[0]="xdp-fragments.patch"
+EOF
+    # Jammy's DKMS 2.8 does not overlay patches from /etc/dkms.
+    install_cuda_dkms_3_4_1_for_jammy
+}
+
 install_hpcx_doca_ofed_deps_apt_marker() {
     local marker_control=/tmp/${HPCX_DOCA_OFED_DEPS_MARKER}
     local openmpi_version=""
@@ -201,6 +219,7 @@ PIN
 
     apt-get update
     install_hpcx_doca_ofed_deps_apt_marker
+    configure_mlnx_ofed_kernel_dkms_xdp_patch
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

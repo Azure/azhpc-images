@@ -24,25 +24,6 @@ echo --with-o2ib=no
 EOF
 }
 
-install_cuda_dkms_3_4_1_for_jammy_amd() {
-    local dkms_url=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/dkms_3.4.1-1ubuntu1_all.deb
-    local dkms_sha256=16ce508e74cbe8426fe19c1c56de5ea6e9f3dbe05d85ba5cbf5a8a271d34c2be
-    local dkms_deb=$(basename "${dkms_url}")
-    local current_version
-
-    [[ "${DISTRIBUTION}" == "ubuntu22.04" && "${GPU:-}" == "AMD" ]] || return 0
-
-    current_version=$(dkms --version 2>/dev/null | sed -n 's/^dkms-\(.*\)$/\1/p' || true)
-    if [[ -n "${current_version}" ]] && dpkg --compare-versions "${current_version}" ge 3.4.1; then
-        return 0
-    fi
-
-    rm -f "./${dkms_deb}"
-    download_and_verify "${dkms_url}" "${dkms_sha256}"
-    apt-get install -y "./${dkms_deb}"
-    rm -f "./${dkms_deb}"
-}
-
 configure_lustre_dkms_skip_artifact() {
     local module=$1
     local module_version=$2
@@ -104,7 +85,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Pre-creating that conffile makes noninteractive dpkg stop at a prompt.
     apt-get install -y "${LUSTRE_CLIENT_PACKAGE}"
     if [[ $UBUNTU_VERSION == 22.04 ]]; then
-        install_cuda_dkms_3_4_1_for_jammy_amd
+        if [[ "${GPU:-}" == "AMD" ]]; then
+            install_cuda_dkms_3_4_1_for_jammy
+        fi
         configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
     else
         configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre

@@ -116,6 +116,27 @@ verify_checksum() {
     fi
 }
 
+install_cuda_dkms_3_4_1_for_jammy() {
+    local dkms_url=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/dkms_3.4.1-1ubuntu1_all.deb
+    local dkms_sha256=16ce508e74cbe8426fe19c1c56de5ea6e9f3dbe05d85ba5cbf5a8a271d34c2be
+    local dkms_deb=$(basename "${dkms_url}")
+    local current_version
+
+    [[ "${DISTRIBUTION}" == "ubuntu22.04" ]] || return 0
+
+    if command -v dkms >/dev/null 2>&1; then
+        current_version=$(dkms --version)
+        if dpkg --compare-versions "${current_version#dkms-}" ge 3.4.1; then
+            return 0
+        fi
+    fi
+
+    rm -f "./${dkms_deb}"
+    download_and_verify "${dkms_url}" "${dkms_sha256}"
+    apt-get install -y "./${dkms_deb}"
+    rm -f "./${dkms_deb}"
+}
+
 ############################################################################
 # @Brief    : Fail if any matching DKMS module did not build/install for the
 #             running kernel. Some vendor packages mask DKMS build failures in

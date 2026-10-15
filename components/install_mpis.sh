@@ -42,6 +42,40 @@ UCX_PATH=${HPCX_PATH}/ucx
 LIBFABRIC_PATH=/opt/libfabric
 write_component_version "HPCX" $HPCX_VERSION
 
+############################################################################
+# @Brief    : Patch HPC-X's bundled UCX source so hpcx_rebuild.sh --rebuild-ucx
+#             builds a UCX that does not hang in ucs_netlink_send_request() on
+#             kernels that append NLMSG_DONE to the last route-dump datagram
+#             (Ubuntu 5.15.0-198, hence linux-azure 5.15.0-1123+). Any UCX
+#             endpoint that considers the TCP transport hangs, e.g. MPI over
+#             default UCX_TLS: https://github.com/openucx/ucx/issues/12070
+# TODO      : Remove once HPC-X ships a UCX with the upstream fix.
+############################################################################
+patch_hpcx_ucx_source_netlink_dump() {
+    local patch_file=${COMPONENT_DIR}/patches/ucx-netlink-dump-done.patch
+    local ucx_tarball ucx_name work_dir ucx_src
+
+    ucx_tarball=$(find "${HPCX_PATH}/sources" -maxdepth 1 -name 'ucx-*.tar.gz' | head -n1)
+    if [[ -z "${ucx_tarball}" ]]; then
+        echo "ERROR: HPC-X UCX source tarball not found under ${HPCX_PATH}/sources" >&2
+        exit 1
+    fi
+    ucx_name=$(basename "${ucx_tarball}" .tar.gz)
+    work_dir=$(mktemp -d)
+    tar -xzf "${ucx_tarball}" -C "${work_dir}"
+    ucx_src=${work_dir}/${ucx_name}
+
+    if grep -qF 'msg_done = ucs_netlink_is_msg_done((const struct nlmsghdr *)recv_msg);' \
+            "${ucx_src}/src/ucs/sys/netlink.c"; then
+        patch -d "${ucx_src}" -p1 < "${patch_file}"
+        tar -czf "${ucx_tarball}" -C "${work_dir}" "${ucx_name}"
+    else
+        echo "${ucx_name} does not have the netlink dump hang; skipping UCX patch"
+    fi
+
+    rm -rf "${work_dir}"
+}
+
 USE_INTERNAL_PMIX=false
 if [[ "$DISTRIBUTION" == "ubuntu26.04" ]] || [[ "$DISTRIBUTION" == "azurelinux3.0" ]] || [[ "$DISTRIBUTION" == almalinux10* ]] || [[ "$DISTRIBUTION" == rocky10* ]] || [[ "$DISTRIBUTION" == rhel10* ]]; then
     # AZL3 lacks PMIx package published by CycleCloud team
@@ -65,23 +99,47 @@ else
     OMPI_DEPS_ARGS=("--with-pmix=${PMIX_PATH}")
 fi
 
+REBUILD_UCX=false
+if sku_uses_ucx; then
+    if [[ "$GPU" == "AMD" ]]; then
+        # Rebuild UCX with ROCm support.
+        REBUILD_UCX=true
+    elif [[ "$DISTRIBUTION" == "ubuntu22.04" ]]; then
+        # linux-azure 5.15.0-1123+ triggers the UCX netlink route-dump hang, so
+        # rebuild UCX from the patched source (see patch_hpcx_ucx_source_netlink_dump).
+        REBUILD_UCX=true
+    fi
+fi
+
+# Rebuilding UCX is done by hpcx_rebuild.sh, so it always requires an HPC-X rebuild.
 REBUILD_HPCX=true
-if [[ "$USE_INTERNAL_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
+if [[ "$REBUILD_UCX" != true ]] && [[ "$USE_INTERNAL_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
     REBUILD_HPCX=false
 fi
 
 if [[ "$REBUILD_HPCX" == true ]]; then
     HPCX_REBUILD_ARGS=()
+    HPCX_REBUILD_ENV=()
+    if [[ "$REBUILD_UCX" == true ]]; then
+        patch_hpcx_ucx_source_netlink_dump
+        HPCX_REBUILD_ARGS+=(--rebuild-ucx)
+        UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
+    fi
     if [[ "$GPU" == "AMD" ]]; then
         if [[ ! -d /opt/rocm ]]; then
             echo "ROCm must be installed before rebuilding HPC-X UCX with ROCm support."
             exit 1
         fi
-        if sku_uses_ucx; then
-            HPCX_REBUILD_ARGS+=(--rebuild-ucx --ucx-extra-config "--with-rocm=/opt/rocm")
+        if [[ "$REBUILD_UCX" == true ]]; then
+            HPCX_REBUILD_ARGS+=(--ucx-extra-config "--with-rocm=/opt/rocm")
         fi
     elif [[ "$GPU" == "NVIDIA" ]]; then
         HPCX_REBUILD_ARGS+=(--cuda)
+        if [[ "$REBUILD_UCX" == true ]]; then
+            # Without CUDA_HOME, hpcx_rebuild.sh passes a bare --with-cuda, which makes UCX's
+            # configure search only default include/library paths and miss /usr/local/cuda.
+            HPCX_REBUILD_ENV+=(CUDA_HOME=/usr/local/cuda)
+        fi
     fi
 
     # Supplying --ompi-extra-config replaces the original HPC-X configure options. Restore the compatible vendor options here.
@@ -93,12 +151,25 @@ if [[ "$REBUILD_HPCX" == true ]]; then
         HPCX_REBUILD_ARGS+=(--with-hcoll)
         HPCX_REBUILD_OMPI_ARGS+=(--with-platform=contrib/platform/mellanox/optimized)
         if [[ "$GPU" == "AMD" ]]; then
-            UCX_PATH=${HPCX_PATH}/ucx/hpcx-rebuild
             HPCX_REBUILD_OMPI_ARGS+=(--with-rocm=/opt/rocm)
         fi
     fi
     HPCX_REBUILD_ARGS+=(--ompi-extra-config "${HPCX_REBUILD_OMPI_ARGS[*]}")
-    ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"
+    if ! env "${HPCX_REBUILD_ENV[@]}" ${HPCX_PATH}/utils/hpcx_rebuild.sh "${HPCX_REBUILD_ARGS[@]}"; then
+        # hpcx_rebuild.sh only names its logs, which stay on the build VM.
+        for hpcx_rebuild_log in ${HPCX_PATH}/sources/ucx-*/ucx-*.log ${HPCX_PATH}/sources/openmpi-gitclone/ompi-*.log; do
+            [[ -f "${hpcx_rebuild_log}" ]] || continue
+            echo "===== tail of ${hpcx_rebuild_log}"
+            tail -n 40 "${hpcx_rebuild_log}"
+        done
+        exit 1
+    fi
+
+    # hpcx_rebuild.sh reports but does not fail on UCX make install errors.
+    if [[ "$REBUILD_UCX" == true ]] && ! LD_LIBRARY_PATH=${UCX_PATH}/lib ${UCX_PATH}/bin/ucx_info -v > /dev/null; then
+        echo "Rebuilt HPC-X UCX at ${UCX_PATH} is not usable."
+        exit 1
+    fi
 
     # A rebuilt binary resolving libmpi outside hpcx-rebuild means the vendor Open MPI is
     # shadowing the rebuild, which otherwise fails silently at runtime.

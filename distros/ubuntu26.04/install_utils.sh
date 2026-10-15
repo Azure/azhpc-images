@@ -71,8 +71,21 @@ apt-get -y install numactl \
 # TODO(ubuntu26.04): once PMC publishes azcopy for 26.04, switch back to
 # `apt-get -y install azcopy` to align with the other Ubuntu distros.
 AZCOPY_VERSION="10.32.3"
-AZCOPY_DEB_URL="https://github.com/Azure/azure-storage-azcopy/releases/download/v${AZCOPY_VERSION}/azcopy-${AZCOPY_VERSION}.x86_64.deb"
-AZCOPY_DEB_SHA256="fab3836155cfe2fd250448f875a35dc593c91cd148d4276d39f242ce10ca861c"
+case "$(dpkg --print-architecture)" in
+    amd64)
+        AZCOPY_ARCH="x86_64"
+        AZCOPY_DEB_SHA256="fab3836155cfe2fd250448f875a35dc593c91cd148d4276d39f242ce10ca861c"
+        ;;
+    arm64)
+        AZCOPY_ARCH="arm64"
+        AZCOPY_DEB_SHA256="dd7d865dac6fee3a98c0c5863a1baf9c8a25e09355298c53b854f2a910e3c931"
+        ;;
+    *)
+        echo "ERROR: unsupported AzCopy package architecture: $(dpkg --print-architecture)" >&2
+        exit 1
+        ;;
+esac
+AZCOPY_DEB_URL="https://github.com/Azure/azure-storage-azcopy/releases/download/v${AZCOPY_VERSION}/azcopy-${AZCOPY_VERSION}.${AZCOPY_ARCH}.deb"
 curl -fsSL -o azcopy.deb "${AZCOPY_DEB_URL}"
 echo "${AZCOPY_DEB_SHA256}  azcopy.deb" | sha256sum --check --strict
 apt-get -y install ./azcopy.deb

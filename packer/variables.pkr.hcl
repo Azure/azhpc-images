@@ -108,11 +108,18 @@ variable "ubuntu_ppa_kernel_patch_version" {
   default     = env("UBUNTU_PPA_KERNEL_PATCH_VERSION")
 }
 
+variable "ubuntu_ppa_kernel_package" {
+  type        = string
+  description = "PPA kernel meta-package matching the selected kernel version, e.g. linux-azure-64k-7.0. None uses the default."
+  default     = env("UBUNTU_PPA_KERNEL_PACKAGE")
+}
+
 locals {
   use_ubuntu_proposed_suite         = try(convert(lower(var.use_ubuntu_proposed_suite), bool), false)
   use_ubuntu_ppa_repo               = try(convert(lower(var.use_ubuntu_ppa_repo), bool), false)
   ubuntu_ppa_repo_name              = coalesce(var.ubuntu_ppa_repo_name, "None")
   ubuntu_ppa_kernel_patch_version   = coalesce(var.ubuntu_ppa_kernel_patch_version, "None")
+  ubuntu_ppa_kernel_package         = coalesce(var.ubuntu_ppa_kernel_package, "None")
 
   # Validate: if use_ubuntu_ppa_repo is true, both PPA variables must be set (not "None")
   _ppa_valid = !local.use_ubuntu_ppa_repo || (local.ubuntu_ppa_repo_name != "None" && local.ubuntu_ppa_kernel_patch_version != "None")

@@ -158,10 +158,8 @@ install_ubuntu_nvidia_kernel() {
     fi
     local ubuntu_codename="noble"
     kernel_ver="${KERNEL_VERSION:-6.8}"
-    if [ "$USE_UBUNTU_PPA_REPO" == "True" ]; then
-        echo "##[section] PPA kernel repo is enabled, installing PPA kernel version: $UBUNTU_PPA_KERNEL_PATCH_VERSION"
-        sudo add-apt-repository -y "$UBUNTU_PPA_REPO_NAME"
-        install_from_ppa_repo "linux-azure-nvidia-${kernel_ver}" "$UBUNTU_PPA_KERNEL_PATCH_VERSION" "$UBUNTU_PPA_REPO_NAME"
+    if [[ "${USE_UBUNTU_PPA_REPO,,}" == "true" ]]; then
+        install_ubuntu_ppa_kernel "linux-azure-nvidia-${kernel_ver}"
     elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
         install_from_proposed_suite "${ubuntu_codename}" linux-azure-nvidia-${kernel_ver}
     else
@@ -273,25 +271,74 @@ EOF
 
 ####
 # @Brief        : Install a package version explicitly from a Launchpad PPA
-# @Desc         : Creates a temporary package pin to the PPA origin, installs the exact
-#                 version, then removes the temporary pin file.
+# @Desc         : Pins the requested version while resolving kernel dependencies,
+#                 then holds the installed kernel packages against later upgrades.
 # @Param        : package_name    - Package name
 # @Param        : package_version - Package version string
 # @Param        : ppa_repo_name   - PPA repo in format ppa:<owner>/<name>
 # @RetVal       : 0 on success
 ####
-install_from_ppa_repo() {
+install_from_ppa_repo() (
     local package_name=$1
     local package_version=$2
     local ppa_repo_name=$3
+    if [[ ! "${package_name}" =~ ^linux-[a-z0-9][a-z0-9.+-]*$ ||
+          ! "${package_version}" =~ ^[0-9][0-9A-Za-z.+:~_-]*$ ||
+          ! "${ppa_repo_name}" =~ ^ppa:[A-Za-z0-9.+_-]+/[A-Za-z0-9.+_-]+$ ]]; then
+        echo "ERROR: PPA kernel installation requires a linux-* package, an exact version, and a ppa:owner/name repository" >&2
+        return 1
+    fi
+
     local ppa_ref="${ppa_repo_name#ppa:}"
     local ppa_origin="LP-PPA-${ppa_ref//\//-}"
+    sudo add-apt-repository -y "${ppa_repo_name}"
+    configure_ppa_low_priority "${ppa_repo_name}"
+
+    # A meta-package can require older dependency versions than APT's candidates.
+    # Keep this broad version pin only for the explicit kernel install transaction.
+    local pref_file
+    pref_file=$(sudo mktemp /etc/apt/preferences.d/98-ubuntu-ppa-kernel-XXXXXX.pref)
+    trap 'sudo rm -f -- "${pref_file}"' EXIT
+    sudo tee "${pref_file}" > /dev/null <<EOF
+Package: linux-*
+Pin: version ${package_version}
+Pin-Priority: 1001
+EOF
 
     echo "##[section]Installing ${package_name}=${package_version} from ${ppa_repo_name} (origin: ${ppa_origin})"
-    sudo apt-get install -y "${package_name}=${package_version}"
+    sudo apt-get install -y --allow-downgrades "${package_name}=${package_version}"
 
-    echo "##[section]Installed ${package_name}=${package_version} from ${ppa_origin}, removing temporary pin"
-    configure_ppa_low_priority "$ppa_repo_name"
+    local installed_version
+    installed_version=$(dpkg-query -W -f='${Version}' "${package_name}")
+    if [[ "${installed_version}" != "${package_version}" ]]; then
+        echo "ERROR: ${package_name} is ${installed_version}, expected ${package_version}" >&2
+        return 1
+    fi
+
+    local installed_packages
+    installed_packages=$(dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package} ${Version}\n' 'linux-*')
+    local kernel_packages
+    mapfile -t kernel_packages < <(
+        awk -v version="${package_version}" '$1 == "ii" && $3 == version {print $2}' <<< "${installed_packages}"
+    )
+    sudo apt-mark hold "${package_name}" "${kernel_packages[@]}"
+    echo "##[section]Installed and held PPA kernel packages at ${package_version}"
+)
+
+install_ubuntu_ppa_kernel() {
+    local default_package=$1
+    local package_name="${UBUNTU_PPA_KERNEL_PACKAGE:-None}"
+    if [[ "${package_name}" == "None" ]]; then
+        package_name="${default_package}"
+    fi
+    if [[ "${package_name}" != "${default_package}" &&
+          ("${default_package}" != "linux-azure-${KERNEL_VERSION}" ||
+           "${package_name}" != "linux-azure-64k-${KERNEL_VERSION}") ]]; then
+        echo "ERROR: PPA package ${package_name} does not match the selected kernel ${KERNEL_VERSION} (${default_package})" >&2
+        return 1
+    fi
+    install_from_ppa_repo "${package_name}" \
+        "${UBUNTU_PPA_KERNEL_PATCH_VERSION:-None}" "${UBUNTU_PPA_REPO_NAME:-None}"
 }
 
 ####
@@ -380,7 +427,9 @@ install_ubuntu_lts_kernel() {
             local ubuntu_codename="noble"
 
             # Install the versioned kernel meta-package
-            if [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
+            if [[ "${USE_UBUNTU_PPA_REPO,,}" == "true" ]]; then
+                install_ubuntu_ppa_kernel "linux-azure-${kernel_ver}"
+            elif [ "$USE_UBUNTU_PROPOSED_SUITE" == "True" ]; then
                 local pkgs=("linux-azure-${kernel_ver}")
                 if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
                     pkgs+=("linux-modules-extra-azure-${kernel_ver}")
@@ -418,19 +467,26 @@ install_ubuntu_lts_kernel() {
             local kernel_ver="${KERNEL_VERSION:-7.0}"
             echo "##[section]Installing kernel ${kernel_ver} for Ubuntu 26.04"
 
-            apt install -y linux-azure-${kernel_ver}
-            # linux-modules-extra-azure-${kernel_ver} is not published for 7.0 in resolute;
-            # contents were folded into linux-modules-azure-${kernel_ver}. Install only if present.
-            if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
-                apt install -y linux-modules-extra-azure-${kernel_ver}
+            if [[ "${USE_UBUNTU_PPA_REPO,,}" == "true" ]]; then
+                install_ubuntu_ppa_kernel "linux-azure-${kernel_ver}"
             else
-                echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+                apt install -y linux-azure-${kernel_ver}
+                # The PPA meta-package supplies its own matching modules.
+                if apt-cache show linux-modules-extra-azure-${kernel_ver} &>/dev/null; then
+                    apt install -y linux-modules-extra-azure-${kernel_ver}
+                else
+                    echo "##[warning]linux-modules-extra-azure-${kernel_ver} is not in the archive; skipping (modules already in linux-modules-azure-${kernel_ver})."
+                fi
             fi
 
             apt autoremove -y
             apt upgrade -y
 
-            update-grub
+            if [[ "${NVLINK_RACKSCALE}" == "true" && "${KERNEL_VERSION}" == "7.0" ]]; then
+                configure_nvlink_rackscale_kernel
+            else
+                update-grub
+            fi
             ;;
 
         22.04)

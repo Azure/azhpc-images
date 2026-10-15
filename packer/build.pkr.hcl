@@ -82,6 +82,7 @@ build {
       "USE_UBUNTU_PPA_REPO=${var.use_ubuntu_ppa_repo}",
       "UBUNTU_PPA_REPO_NAME=${var.ubuntu_ppa_repo_name}",
       "UBUNTU_PPA_KERNEL_PATCH_VERSION=${var.ubuntu_ppa_kernel_patch_version}",
+      "UBUNTU_PPA_KERNEL_PACKAGE=${local.ubuntu_ppa_kernel_package}",
       "GB200_PARTUUID=${var.gb200_partuuid}",
       "REFRESH_MODE=${local.refresh_mode}",
       "DEBIAN_FRONTEND=noninteractive"
@@ -96,6 +97,24 @@ build {
     pause_after       = "2m"
     inline = [
       "(sleep 5; sudo shutdown -r now) &"
+    ]
+  }
+
+  provisioner "shell" {
+    name             = "Verify requested PPA kernel after reboot"
+    except           = (local.os_family == "ubuntu" && local.kernel_version == "7.0" && local.use_ubuntu_ppa_repo && !local.skip_prerequisites) ? [] : ["azure-arm.hpc"]
+    inline_shebang   = var.default_inline_shebang
+    environment_vars = [
+      "UBUNTU_PPA_KERNEL_PATCH_VERSION=${local.ubuntu_ppa_kernel_patch_version}",
+      "UBUNTU_PPA_KERNEL_PACKAGE=${local.ubuntu_ppa_kernel_package}",
+    ]
+    inline = [
+      "kernel=$(uname -r)",
+      "kernel_package=$(dpkg-query -S \"/boot/vmlinuz-$kernel\" | cut -d: -f1)",
+      "installed_version=$(dpkg-query -W -f='$${Version}' \"$kernel_package\")",
+      "if [[ \"$installed_version\" != \"$UBUNTU_PPA_KERNEL_PATCH_VERSION\" ]]; then echo \"ERROR: booted $kernel ($installed_version), expected PPA version $UBUNTU_PPA_KERNEL_PATCH_VERSION\" >&2; exit 1; fi",
+      "if [[ \"$UBUNTU_PPA_KERNEL_PACKAGE\" == *-64k* && \"$(getconf PAGESIZE)\" != 65536 ]]; then echo 'ERROR: requested a 64K kernel but the running kernel does not use 64K pages' >&2; exit 1; fi",
+      "echo \"Verified PPA kernel: $kernel ($installed_version), page size $(getconf PAGESIZE)\"",
     ]
   }
 

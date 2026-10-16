@@ -566,7 +566,7 @@ function verify_systemd_networkd_config_syntax {
 
     run_command_and_check_exit_code "systemd-networkd configuration parses" \
         "systemd-analyze cat-config failed for networkd.conf" \
-        "${systemd_analyze}" cat-config systemd/networkd.conf
+        run_with_sudo_if_needed "${systemd_analyze}" cat-config systemd/networkd.conf
 }
 
 function verify_generated_system_config_syntax {

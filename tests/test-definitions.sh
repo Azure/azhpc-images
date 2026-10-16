@@ -570,14 +570,6 @@ function verify_sunrpc_tcp_settings_service {
     check_exit_code "sunrpc TCP settings service is active" "sunrpc TCP settings service is inactive/dead!"
 }
 
-function verify_azure_persistent_rdma_naming_service {
-    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
-    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
-
-    systemctl is-active --quiet azure_persistent_rdma_naming.timer
-    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
-}
-
 function verify_nvbandwidth_setup {
     # Verify nvbandwidth setup
     # Nvbandwith is compiled in mulitple node, so we need to load mpi/hpcx module to run it

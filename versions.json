@@ -1086,18 +1086,6 @@
             "sha256": "5fc69a6dfdc50486dadc8aec082a815dc64c737fbd164bf70ad5c7080d5c7879"
         }
     },
-    "rdma_core": {
-        "ubuntu24.04": {
-            "aarch64": {
-                "version": "56.1",
-                "sha256": "0ebac5735bc38cafeba28a3124566b56606f11a8462c794411858efa7b407be0"
-            }
-        },
-        "common": {
-            "version": "59.0",
-            "sha256": "4dca3dd4eed6e5e1fd21ec32244a753b95109c8a845ebda0e58dac53528808aa"
-        }
-    },
     "pmix": {
         "common": {
             "version": "4.2.9-2"

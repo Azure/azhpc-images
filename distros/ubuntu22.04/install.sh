@@ -99,9 +99,6 @@ $COMPONENT_DIR/install_hpcdiag.sh
 # install monitor tools
 $COMPONENT_DIR/install_monitoring_tools.sh
 
-# install persistent rdma naming
-$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
-
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

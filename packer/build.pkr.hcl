@@ -132,10 +132,21 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
-    pause_after       = "2m"
+    pause_after       = "30s"
     inline = [
+      "cat /proc/sys/kernel/random/boot_id > /var/tmp/azhpc_packer_pre_reboot_boot_id",
       "(sleep 5; sudo shutdown -r now) &"
     ]
+  }
+
+  # Waits for the new boot instead of a fixed sleep; see scripts/wait_for_reboot.sh.
+  # READY_TIMEOUT_SECS caps the readiness wait at the previous fixed pause.
+  provisioner "shell" {
+    name                = "Wait for reboot"
+    script              = "scripts/wait_for_reboot.sh"
+    environment_vars    = ["READY_TIMEOUT_SECS=120"]
+    start_retry_timeout = "15m"
+    max_retries         = 20
   }
 
   provisioner "shell" {
@@ -215,10 +226,20 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
-    pause_after       = "2m"
+    pause_after       = "30s"
     inline = [
+      "cat /proc/sys/kernel/random/boot_id > /var/tmp/azhpc_packer_pre_reboot_boot_id",
       "(sleep 5; sudo shutdown -r now) &"
     ]
+  }
+
+  provisioner "shell" {
+    name                = "Wait for reboot"
+    except              = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
+    script              = "scripts/wait_for_reboot.sh"
+    environment_vars    = ["READY_TIMEOUT_SECS=120"]
+    start_retry_timeout = "15m"
+    max_retries         = 20
   }
 
   provisioner "shell" {
@@ -242,10 +263,20 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
-    pause_after       = "5m"
+    pause_after       = "30s"
     inline = [
+      "cat /proc/sys/kernel/random/boot_id > /var/tmp/azhpc_packer_pre_reboot_boot_id",
       "(sleep 5; sudo shutdown -r now) &"
     ]
+  }
+
+  provisioner "shell" {
+    name                = "Wait for reboot"
+    except              = (var.skip_hpc || local.refresh_mode) ? ["azure-arm.hpc"] : []
+    script              = "scripts/wait_for_reboot.sh"
+    environment_vars    = ["READY_TIMEOUT_SECS=300"]
+    start_retry_timeout = "15m"
+    max_retries         = 20
   }
 
   provisioner "shell" {
@@ -370,10 +401,23 @@ build {
     inline_shebang    = var.default_inline_shebang
     skip_clean        = true
     expect_disconnect = true
-    pause_after       = "15m"
+    pause_after       = "30s"
     inline = [
+      "cat /proc/sys/kernel/random/boot_id > /var/tmp/azhpc_packer_pre_reboot_boot_id",
       "(sleep 5; sudo shutdown -r now) &"
     ]
+  }
+
+  # Post-reboot tests and health checks need IB ports LinkUp/ACTIVE, not just a finished boot.
+  provisioner "shell" {
+    name   = "Wait for reboot"
+    script = "scripts/wait_for_reboot.sh"
+    environment_vars = [
+      "READY_TIMEOUT_SECS=900",
+      "WAIT_FOR_IB=${!local.skip_validation && !var.skip_hpc}",
+    ]
+    start_retry_timeout = "15m"
+    max_retries         = 20
   }
 
   provisioner "shell" {

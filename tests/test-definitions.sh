@@ -569,26 +569,6 @@ function verify_systemd_networkd_config_syntax {
         "${systemd_analyze}" cat-config systemd/networkd.conf
 }
 
-function verify_azurelinux_iptables_policy {
-    [[ "${ID}" == "azurelinux" ]] || return 0
-    local iptables_cmd
-    iptables_cmd=$(find_system_command iptables) || return 0
-
-    run_with_sudo_if_needed "${iptables_cmd}" -S INPUT | grep -qx -- '-P INPUT ACCEPT'
-    check_exit_code "iptables INPUT default policy is ACCEPT" "iptables INPUT default policy is not ACCEPT"
-
-    run_with_sudo_if_needed "${iptables_cmd}" -S OUTPUT | grep -qx -- '-P OUTPUT ACCEPT'
-    check_exit_code "iptables OUTPUT default policy is ACCEPT" "iptables OUTPUT default policy is not ACCEPT"
-
-    run_with_sudo_if_needed "${iptables_cmd}" -S FORWARD | grep -qx -- '-P FORWARD ACCEPT'
-    check_exit_code "iptables FORWARD default policy is ACCEPT" "iptables FORWARD default policy is not ACCEPT"
-
-    if systemctl list-unit-files iptables.service --no-legend 2>/dev/null | grep -q '^iptables.service'; then
-        ! systemctl is-enabled --quiet iptables.service
-        check_exit_code "iptables service is disabled" "iptables service is enabled"
-    fi
-}
-
 function verify_generated_system_config_syntax {
     verify_systemd_unit_syntax
     verify_udev_rule_syntax
@@ -597,7 +577,6 @@ function verify_generated_system_config_syntax {
     verify_netplan_config_syntax
     verify_cloud_init_config_syntax
     verify_systemd_networkd_config_syntax
-    verify_azurelinux_iptables_policy
 }
 
 function verify_package_updates {

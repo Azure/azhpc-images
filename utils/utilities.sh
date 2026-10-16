@@ -77,6 +77,20 @@ write_component_version(){
     chmod 644 ${component_versions_json}
 }
 
+write_repo_commit_version(){
+    component=$1
+    repo_dir=$2
+    specified_commit=${3:-}
+
+    if [[ -n "${specified_commit}" && "${specified_commit}" != "null" ]]; then
+        repo_commit=${specified_commit}
+    else
+        repo_commit=$(git -C "${repo_dir}" rev-parse HEAD)
+    fi
+
+    write_component_version "${component}_REPO_COMMIT" "${repo_commit}"
+}
+
 ############################################################################
 # @Brief	: Download the file and verify its checksum
 #
@@ -92,7 +106,7 @@ download_and_verify(){
     if [ $# -eq 2 ] || [ $# -eq 3 ]
     then
         wget --retry-connrefused --tries=3 --waitretry=5 $DOWNLOAD_URL
-        verify_checksum $(readlink -f $DOWNLOADED_FILE_NAME) $FILE_CHECKSUM
+        verify_checksum "$(readlink -f "$DOWNLOADED_FILE_NAME")" "$FILE_CHECKSUM"
         if [ -n "$FILE_PATH" ]; then
             mkdir -p $FILE_PATH
             mv $DOWNLOADED_FILE_NAME $FILE_PATH
@@ -106,12 +120,12 @@ download_and_verify(){
 
 # Find and verify checksum
 verify_checksum() {
-    local checksum=`sha256sum $1 | awk '{print $1}'`
+    local checksum=`sha256sum "$1" | awk '{print $1}'`
     if [[ $checksum == $2 ]]
     then
         echo "Checksum verified!"
     else
-        echo "*** Error - Checksum verification failed"
+        echo "*** Error - Checksum verification failed for $1. Expected $2, got $checksum"
         return 1
     fi
 }

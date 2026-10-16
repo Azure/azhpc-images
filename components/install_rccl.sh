@@ -64,6 +64,9 @@ else
     make -j$(nproc)
     make install
     popd
+    if [[ $rccl_branch != "" && $rccl_branch != "null" ]]; then
+        write_repo_commit_version "RCCL" ./${rccl_folder} "${rccl_commit}"
+    fi
     rm -rf ${TARBALL} ${rccl_folder}
     write_component_version "RCCL" ${rccl_version}
 fi
@@ -108,6 +111,7 @@ if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
 else
     git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
 fi
+write_repo_commit_version "RCCL_TESTS" rocm-systems
 pushd ./rocm-systems
 git sparse-checkout set projects/rccl-tests
 pushd projects/rccl-tests
@@ -143,6 +147,7 @@ fi
 # Upstream linux-rdma/perftest has full ROCm/HIP support, superseding the
 # dormant ROCm/rdma-perftest fork.
 git clone https://github.com/linux-rdma/perftest.git
+write_repo_commit_version "PERFTEST" perftest
 mkdir -p /opt/rocm-perftest
 pushd ./perftest
 ./autogen.sh

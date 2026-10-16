@@ -13,6 +13,7 @@ module load mpi/hpcx
 nvloom_metadata=$(get_component_config "nvloom")
 NVLOOM_VERSION=$(jq -r '.version' <<< $nvloom_metadata)
 NVLOOM_DOWNLOAD_URL=$(jq -r '.url' <<< $nvloom_metadata)
+NVLOOM_COMMIT=$(jq -r '.commit' <<< $nvloom_metadata)
 
 if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     # Download dependencies
@@ -22,6 +23,8 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
 
     git clone $NVLOOM_DOWNLOAD_URL --branch v$NVLOOM_VERSION
     pushd nvloom
+    git checkout $NVLOOM_COMMIT
+    write_repo_commit_version "NVLOOM" . "${NVLOOM_COMMIT}"
     git apply /home/hpcuser/azhpc-images/distros/azurelinux3.0/azurelinux_nvloom.patch
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make -j $(nproc)
@@ -35,6 +38,8 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
 
     git clone $NVLOOM_DOWNLOAD_URL --branch v$NVLOOM_VERSION
     pushd nvloom
+    git checkout $NVLOOM_COMMIT
+    write_repo_commit_version "NVLOOM" . "${NVLOOM_COMMIT}"
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make -j $(nproc)
     mv nvloom_cli $dest_dir

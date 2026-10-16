@@ -10,7 +10,9 @@ HPCX_DOCA_OFED_DEPS_MARKER=hpcx-provides-doca-ofed-deps
 
 if [[ "$DOCA_SOURCE" == "private" ]]; then
     DOCA_FILE=$(jq -r '.repo_file' <<< $doca_metadata)
+    DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
     DOCA_FILE="$TOP_DIR/internal_bits/$DOCA_FILE"
+    verify_checksum "$DOCA_FILE" "$DOCA_SHA256"
 else
     DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
     DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)

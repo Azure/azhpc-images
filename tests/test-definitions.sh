@@ -573,7 +573,7 @@ function _package_verify {
 function verify_dcgm_multinode_installation {
     local dropin=/etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf
     local packages pkg cuda_major verify_output service_env generator key expected effective file
-    local mpirun_path mpi_ld_library_path opal_prefix driver_cuda_elf_count=0
+    local mpirun_path mpi_ld_library_path opal_prefix main_pid driver_cuda_elf_count=0
     packages=$(_dcgm_multinode_packages)
 
     # --hostList was introduced with mndiag in DCGM 4.3
@@ -612,6 +612,12 @@ function verify_dcgm_multinode_installation {
 
     env LD_LIBRARY_PATH="${mpi_ld_library_path}" ${opal_prefix:+OPAL_PREFIX="${opal_prefix}"} "${mpirun_path}" --version
     check_exit_code "DCGM mndiag mpirun runs" "DCGM mndiag mpirun '${mpirun_path}' --version failed"
+
+    # mpirun and its local ranks inherit nv-hostengine's limits; UCX needs unlimited locked memory.
+    # Check the running process rather than the unit so a missed restart is also caught.
+    main_pid=$(systemctl show nvidia-dcgm.service -p MainPID --value)
+    grep -E '^Max locked memory +unlimited +unlimited' "/proc/${main_pid}/limits"
+    check_exit_code "nv-hostengine max locked memory is unlimited" "nv-hostengine (pid ${main_pid}) max locked memory is not unlimited; mndiag ranks it launches cannot register UCX memory"
 
     # Every ELF file the multinode packages ship (mndiag module, mnubergemm, ...) must resolve
     # its libraries, including libmpi, in the environment nv-hostengine runs them with.

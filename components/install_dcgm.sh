@@ -231,6 +231,10 @@ write_component_version "DCGM" ${DCGM_VERSION}
 # packages, so that path does not exist. Point nv-hostengine at the Open MPI behind mpi/hpcx
 # instead. The 99- prefix keeps this drop-in sorting after the generated one so its values win;
 # verify_dcgm_multinode_installation fails if a newer generator sets variables not covered here.
+# mpirun and its local ranks inherit nv-hostengine's resource limits, and systemd services do
+# not get the unlimited memlock from /etc/security/limits.conf (hpc-tuning.sh only raises
+# DefaultLimitMEMLOCK on RHEL-family). Without this, UCX on the launching node cannot register
+# memory and mndiag fails to spawn its ranks.
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 DCGM_MNDIAG_MPIRUN_PATH=$(command -v mpirun)
@@ -243,6 +247,7 @@ fi
 mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
 cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
 [Service]
+LimitMEMLOCK=infinity
 Environment="DCGM_MNDIAG_MPIRUN_PATH=${DCGM_MNDIAG_MPIRUN_PATH}"
 Environment="OPAL_PREFIX=${DCGM_MNDIAG_MPI_PREFIX}"
 Environment="LD_LIBRARY_PATH=${DCGM_MNDIAG_MPI_PREFIX}/lib"

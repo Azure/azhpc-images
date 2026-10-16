@@ -16,17 +16,67 @@ function check_exists {
     fi
 }
 
-# check exit code
-function check_exit_code {
-    exit_code=$?
-    if [ $exit_code -eq 0 ]
-    then
-        echo "[OK] : $1"
+function report_check_result {
+    local caller=$1
+    local exit_code=$2
+    local ok_message=$3
+    local error_message=$4
+    local output=${5:-}
+
+    if [ "${exit_code}" -eq 0 ]; then
+        echo "[OK] : ${ok_message}"
     else
-        echo "*** ${FUNCNAME[1]}: Error - $2!" >&2
-        echo "*** Failed with exit code - $exit_code" >&2
+        echo "*** ${caller}: Error - ${error_message}!" >&2
+        if [[ -n "${output}" ]]; then
+            echo "${output}" >&2
+        fi
+        echo "*** Failed with exit code - ${exit_code}" >&2
         exit_on_error
     fi
+}
+
+# check exit code
+function check_exit_code {
+    local exit_code=$?
+    report_check_result "${FUNCNAME[1]}" "${exit_code}" "$1" "$2"
+}
+
+function run_command_and_check_exit_code {
+    local ok_message=$1
+    local error_message=$2
+    shift 2
+
+    local output
+    output=$("$@" 2>&1)
+    local exit_code=$?
+    report_check_result "${FUNCNAME[1]}" "${exit_code}" "${ok_message}" "${error_message}" "${output}"
+}
+
+function run_with_sudo_if_needed {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        "$@"
+    else
+        sudo -n "$@"
+    fi
+}
+
+function find_system_command {
+    local command_name=$1
+    local candidate
+
+    if candidate=$(command -v "${command_name}" 2>/dev/null); then
+        echo "${candidate}"
+        return 0
+    fi
+
+    for candidate in "/usr/sbin/${command_name}" "/sbin/${command_name}" "/usr/bin/${command_name}" "/bin/${command_name}"; do
+        if [[ -x "${candidate}" ]]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 function ver { 
@@ -389,6 +439,165 @@ function verify_dnf_conf {
     fi
 
     echo "[OK] : ${conf} parses cleanly"
+}
+
+function verify_systemd_unit_syntax {
+    local systemd_analyze
+    systemd_analyze=$(find_system_command systemd-analyze) || return 0
+
+    local unit_file
+    local unit_files=(
+        /etc/systemd/system/disable_cloudinit.service
+        /etc/systemd/system/sunrpc_tcp_settings.service
+        /etc/systemd/system/sku-customizations.service
+        /etc/systemd/system/azure_persistent_rdma_naming.service
+        /etc/systemd/system/azure_persistent_rdma_naming.timer
+        /etc/systemd/system/nvidia-persistenced.service
+        /etc/systemd/system/nvme-raid.service
+        /etc/systemd/system/rocmstartup.service
+    )
+
+    for unit_file in "${unit_files[@]}"; do
+        if [[ -f "${unit_file}" ]]; then
+            run_command_and_check_exit_code "${unit_file} systemd syntax" \
+                "systemd-analyze verify failed for ${unit_file}" \
+                "${systemd_analyze}" verify "${unit_file}"
+        fi
+    done
+
+    local unit_name
+    if [[ -f /lib/systemd/system/cloud-init-local.service.d/50-azure-clear-persistent-obj-pkl.conf ]] && systemctl cat cloud-init-local.service >/dev/null 2>&1; then
+        unit_name=cloud-init-local.service
+        run_command_and_check_exit_code "${unit_name} systemd syntax including drop-ins" \
+            "systemd-analyze verify failed for ${unit_name}" \
+            "${systemd_analyze}" verify "${unit_name}"
+    fi
+}
+
+function verify_udev_rule_syntax {
+    local udevadm_cmd
+    udevadm_cmd=$(find_system_command udevadm) || return 0
+
+    local rule_file
+    local rule_files=(
+        /etc/udev/rules.d/60-rdma-persistent-naming.rules
+        /etc/udev/rules.d/90-nfs-readahead.rules
+        /etc/udev/rules.d/99-amdgpu-permissive.rules
+        /etc/udev/rules.d/99-hyperv-kvp.rules
+        /etc/udev/rules.d/99-issm.rules
+    )
+
+    if "${udevadm_cmd}" --help 2>&1 | grep -qw verify; then
+        for rule_file in "${rule_files[@]}"; do
+            if [[ -f "${rule_file}" ]]; then
+                run_command_and_check_exit_code "${rule_file} udev syntax" \
+                    "udevadm verify failed for ${rule_file}" \
+                    "${udevadm_cmd}" verify "${rule_file}"
+            fi
+        done
+    else
+        run_command_and_check_exit_code "udev rules reload" \
+            "udevadm could not reload rules" \
+            run_with_sudo_if_needed "${udevadm_cmd}" control --reload-rules
+    fi
+}
+
+function verify_modprobe_config_syntax {
+    local modprobe_cmd
+    modprobe_cmd=$(find_system_command modprobe) || return 0
+
+    run_command_and_check_exit_code "modprobe configuration parses" \
+        "modprobe could not parse its configuration" \
+        "${modprobe_cmd}" --showconfig
+}
+
+function verify_network_manager_config_syntax {
+    local network_manager_cmd
+    network_manager_cmd=$(find_system_command NetworkManager) || return 0
+    [[ -f /etc/NetworkManager/NetworkManager.conf ]] || return 0
+
+    run_command_and_check_exit_code "NetworkManager configuration parses" \
+        "NetworkManager could not parse its configuration" \
+        "${network_manager_cmd}" --print-config
+}
+
+function verify_netplan_config_syntax {
+    local netplan_cmd
+    netplan_cmd=$(find_system_command netplan) || return 0
+
+    run_command_and_check_exit_code "netplan configuration generates" \
+        "netplan generate failed" \
+        run_with_sudo_if_needed "${netplan_cmd}" generate --debug
+}
+
+function verify_cloud_init_config_syntax {
+    compgen -G "/etc/cloud/cloud.cfg.d/*.cfg" >/dev/null || return 0
+    command -v python3 >/dev/null 2>&1 || return 0
+
+    local output
+    if output=$(python3 - <<'PY' 2>&1
+import glob
+import sys
+
+try:
+    import yaml
+except Exception as exc:
+    print(f"PyYAML is unavailable: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+for path in sorted(glob.glob("/etc/cloud/cloud.cfg.d/*.cfg")):
+    with open(path, encoding="utf-8") as handle:
+        yaml.safe_load(handle)
+PY
+    ); then
+        echo "[OK] : cloud-init cfg fragments parse as YAML"
+    else
+        echo "*** ${FUNCNAME[0]}: Error - cloud-init cfg fragments failed YAML parsing!" >&2
+        echo "${output}" >&2
+        exit_on_error
+    fi
+}
+
+function verify_systemd_networkd_config_syntax {
+    local systemd_analyze
+    systemd_analyze=$(find_system_command systemd-analyze) || return 0
+    [[ -f /etc/systemd/networkd.conf ]] || return 0
+    "${systemd_analyze}" --help 2>&1 | grep -qw cat-config || return 0
+
+    run_command_and_check_exit_code "systemd-networkd configuration parses" \
+        "systemd-analyze cat-config failed for networkd.conf" \
+        "${systemd_analyze}" cat-config systemd/networkd.conf
+}
+
+function verify_azurelinux_iptables_policy {
+    [[ "${ID}" == "azurelinux" ]] || return 0
+    local iptables_cmd
+    iptables_cmd=$(find_system_command iptables) || return 0
+
+    run_with_sudo_if_needed "${iptables_cmd}" -S INPUT | grep -qx -- '-P INPUT ACCEPT'
+    check_exit_code "iptables INPUT default policy is ACCEPT" "iptables INPUT default policy is not ACCEPT"
+
+    run_with_sudo_if_needed "${iptables_cmd}" -S OUTPUT | grep -qx -- '-P OUTPUT ACCEPT'
+    check_exit_code "iptables OUTPUT default policy is ACCEPT" "iptables OUTPUT default policy is not ACCEPT"
+
+    run_with_sudo_if_needed "${iptables_cmd}" -S FORWARD | grep -qx -- '-P FORWARD ACCEPT'
+    check_exit_code "iptables FORWARD default policy is ACCEPT" "iptables FORWARD default policy is not ACCEPT"
+
+    if systemctl list-unit-files iptables.service --no-legend 2>/dev/null | grep -q '^iptables.service'; then
+        ! systemctl is-enabled --quiet iptables.service
+        check_exit_code "iptables service is disabled" "iptables service is enabled"
+    fi
+}
+
+function verify_generated_system_config_syntax {
+    verify_systemd_unit_syntax
+    verify_udev_rule_syntax
+    verify_modprobe_config_syntax
+    verify_network_manager_config_syntax
+    verify_netplan_config_syntax
+    verify_cloud_init_config_syntax
+    verify_systemd_networkd_config_syntax
+    verify_azurelinux_iptables_policy
 }
 
 function verify_package_updates {

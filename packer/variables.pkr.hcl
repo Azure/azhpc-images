@@ -127,7 +127,7 @@ variable "target_vm_size" {
 
 variable "build_vm_size" {
   type        = string
-  description = "VM SKU to use for the build VM. Defaults to vm_size if not explicitly set, but can be set independently to e.g. a general-purpose VM SKU, at the cost of skip_validation at build time."
+  description = "VM SKU to use for the build VM. Defaults to vm_size if not explicitly set, but can be set independently to e.g. a general-purpose VM SKU, at the cost of skip_validation at build time (unless it is another size of the same GPU SKU on an Azure VM target)."
   default     = env("BUILD_VM_SIZE_OPTION")
 }
 
@@ -138,14 +138,23 @@ locals {
 
 # Placeholder for VR SKU Name
 locals {
-  gpu_sku = (
-    local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
-    local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    contains(["Standard_ND128isr_NDR_GB200_v6", "Standard_ND128isr_GB300_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
-    contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
-    local.target_vm_size == "Standard_NC144lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
-    "A100"
-  )
+  # Several VM sizes can share a GPU SKU (e.g. A100 40GB and 80GB).
+  vm_size_gpu_sku_map = {
+    "Standard_ND40rs_v2"                    = "V100"
+    "Standard_ND96asr_v4"                   = "A100"
+    "Standard_ND96amsr_A100_v4"             = "A100"
+    "Standard_ND96isr_MI300X_v5"            = "MI300X"
+    "Standard_ND128isr_NDR_GB200_v6"        = "GB200"
+    "Standard_ND128isr_GB300_v6"            = "GB200"
+    "ND144ISR_ETH_GB200_METAL_V6"           = "GB200"
+    "Standard_ND128isr_VR200_v6"            = "VR200"
+    "ND144ISR_ETH_VR200_METAL_V6"           = "VR200"
+    "Standard_NC144lds_xl_RTXPRO6000BSE_v6" = "NCv6"
+  }
+  gpu_sku = lookup(local.vm_size_gpu_sku_map, local.target_vm_size, "A100")
+  # No fallback: general-purpose or unlisted build sizes (e.g. H100 picked via
+  # compatible-size scheduling) must not be treated as the target's GPU SKU.
+  build_gpu_sku = lookup(local.vm_size_gpu_sku_map, local.build_vm_size, "")
   gpu_platform = (
     local.gpu_sku == "MI300X" ? "AMD" : "NVIDIA"
   )
@@ -230,8 +239,15 @@ variable "skip_validation" {
   default     = null
 }
 locals {
-  # Skip validation if build_vm_size is set and different from target_vm_size (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
-  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.target_vm_size)) || var.skip_hpc)
+  # Validation is still meaningful when the build VM is a different size of the same GPU SKU
+  # (e.g. A100 40GB vs 80GB), since tests detect the actual hardware via IMDS. Baremetal
+  # targets are excluded because their build VM is an Azure VM stand-in.
+  build_vm_matches_target = (
+    local.build_vm_size == local.target_vm_size ||
+    (startswith(local.target_node_type, "azure_vm_") && local.build_gpu_sku == local.gpu_sku)
+  )
+  # Skip validation if the build VM does not match the target (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
+  skip_validation = coalesce(var.skip_validation, !local.build_vm_matches_target || var.skip_hpc)
 }
 
 variable "public_key" {

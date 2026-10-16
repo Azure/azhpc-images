@@ -1,0 +1,35 @@
+--- a/src/ucs/sys/netlink.c
++++ b/src/ucs/sys/netlink.c
+@@ -51,6 +51,23 @@
+     return (nlh->nlmsg_type == NLMSG_DONE);
+ }
+ 
++/*
++ * Some kernels (e.g. Ubuntu 5.15.0-198) append NLMSG_DONE to the datagram that
++ * carries the last dump entries, so check every header, not just the first.
++ */
++static int ucs_netlink_is_dump_done(const void *msg, size_t msg_len)
++{
++    const struct nlmsghdr *nlh = (const struct nlmsghdr *)msg;
++
++    for (; NLMSG_OK(nlh, msg_len); nlh = NLMSG_NEXT(nlh, msg_len)) {
++        if (ucs_netlink_is_msg_done(nlh) || (nlh->nlmsg_type == NLMSG_ERROR)) {
++            return 1;
++        }
++    }
++
++    return 0;
++}
++
+ static ucs_status_t ucs_netlink_socket_init(int *fd_p, int protocol)
+ {
+     struct sockaddr_nl sa = {.nl_family = AF_NETLINK};
+@@ -165,7 +182,7 @@
+         }
+ 
+         status   = ucs_netlink_parse_msg(recv_msg, recv_msg_len, parse_cb, arg);
+-        msg_done = ucs_netlink_is_msg_done((const struct nlmsghdr *)recv_msg);
++        msg_done = ucs_netlink_is_dump_done(recv_msg, recv_msg_len);
+         ucs_free(recv_msg);
+     } while ((nlmsg_flags & NLM_F_DUMP) && !msg_done);
+ 

@@ -573,7 +573,7 @@ function _package_verify {
 function verify_dcgm_multinode_installation {
     local dropin=/etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf
     local packages pkg cuda_major verify_output service_env generator key expected effective file
-    local mpirun_path mpi_ld_library_path opal_prefix main_pid driver_cuda_elf_count=0
+    local mpirun_path mpi_ld_library_path opal_prefix main_pid mpi_prefix mpi_libs shadowed driver_cuda_elf_count=0
     packages=$(_dcgm_multinode_packages)
 
     # --hostList was introduced with mndiag in DCGM 4.3
@@ -621,6 +621,8 @@ function verify_dcgm_multinode_installation {
 
     # Every ELF file the multinode packages ship (mndiag module, mnubergemm, ...) must resolve
     # its libraries, including libmpi, in the environment nv-hostengine runs them with.
+    mpi_prefix=${opal_prefix:-$(dirname "$(dirname "${mpirun_path}")")}
+    mpi_libs=$(_mpi_runtime_libraries "${mpi_prefix}" "${mpi_ld_library_path}")
     for pkg in ${packages}; do
         while IFS= read -r file; do
             [[ -f "${file}" && ! -L "${file}" ]] || continue
@@ -628,10 +630,50 @@ function verify_dcgm_multinode_installation {
             [[ "${pkg}" == "datacenter-gpu-manager-4-multinode-cuda${cuda_major}" ]] && driver_cuda_elf_count=$((driver_cuda_elf_count + 1))
             ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${file}" | grep 'not found'
             check_exit_code "${file} libraries resolve" "${file} has unresolved libraries"
+
+            # Only executables become MPI ranks; shared objects here are loaded by nv-hostengine.
+            readelf -l "${file}" | grep -q 'program interpreter' || continue
+            shadowed=$(_rpath_shadowed_libraries "${file}" "${mpi_libs}")
+            echo "${shadowed}"
+            [[ -z "${shadowed}" ]]
+            check_exit_code "${file} RPATH does not shadow MPI libraries" "${file} DT_RPATH loads a different copy of MPI runtime libraries into mndiag ranks"
         done < <(_package_files "${pkg}")
     done
     (( driver_cuda_elf_count > 0 ))
     check_exit_code "DCGM multinode CUDA ${cuda_major} package ships binaries" "datacenter-gpu-manager-4-multinode-cuda${cuda_major} ships no ELF binaries"
+}
+
+# Print the real paths of the libraries an MPI installation loads at runtime: its own libraries
+# and MCA plugins, plus everything they resolve to with the given LD_LIBRARY_PATH.
+function _mpi_runtime_libraries {
+    local mpi_prefix=$1 mpi_ld_library_path=$2
+    find "${mpi_prefix}/lib" -maxdepth 2 -name '*.so*' -type f \
+        | while IFS= read -r lib; do
+            echo "${lib}"
+            LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${lib}" 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// {print $3}'
+        done | xargs -r realpath | sort -u
+}
+
+# An executable with DT_RPATH and no DT_RUNPATH searches its RPATH directories before
+# LD_LIBRARY_PATH for every library loaded into the process, including dependencies of
+# MPI plugins dlopen'd during MPI_Init. Print "<rpath copy> (MPI uses <path>)" for each
+# MPI runtime library that such a directory holds a different copy of, e.g. the distro
+# libpmix in /usr/lib64 shadowing HPC-X's under DCGM 4.6 RPMs' mnubergemm.
+function _rpath_shadowed_libraries {
+    local file=$1 mpi_libs=$2 dynamic rpath dir lib candidate
+    dynamic=$(readelf -d "${file}")
+    grep -q '(RUNPATH)' <<< "${dynamic}" && return
+    rpath=$(sed -n 's/.*(RPATH).*\[\(.*\)\]$/\1/p' <<< "${dynamic}")
+    for dir in ${rpath//:/ }; do
+        dir=${dir//\$\{ORIGIN\}/$(dirname "${file}")}
+        dir=${dir//\$ORIGIN/$(dirname "${file}")}
+        while IFS= read -r lib; do
+            candidate="${dir}/$(basename "${lib}")"
+            if [[ -e "${candidate}" && "$(realpath "${candidate}")" != "${lib}" ]]; then
+                echo "${candidate} (MPI uses ${lib})"
+            fi
+        done <<< "${mpi_libs}"
+    done
 }
 
 function verify_sku_customization_service {

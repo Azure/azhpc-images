@@ -8,6 +8,7 @@
 # after a short sleep so the provisioner's max_retries tries again.
 #
 # Readiness = new boot_id + systemd finished starting units (running/degraded)
+# + rocmstartup.service finished (AMD, if enabled)
 # + (if WAIT_FOR_IB=true) every InfiniBand port is LinkUp and ACTIVE.
 # Readiness waits are capped at READY_TIMEOUT_SECS of uptime; on timeout we
 # warn and continue so later steps report the real failure, as before.
@@ -55,6 +56,19 @@ done
 echo "systemd state: ${state} (uptime $(uptime_secs)s)"
 if [[ "${state}" == "degraded" ]]; then
     systemctl --failed --no-pager || true
+fi
+
+# rocmstartup.service (AMD, see components/install_rocm.sh) is Type=simple, so
+# systemd reports startup complete while it is still waiting to modprobe amdgpu.
+if systemctl is-enabled --quiet rocmstartup.service 2>/dev/null; then
+    while systemctl is-active --quiet rocmstartup.service; do
+        if (( $(uptime_secs) >= READY_TIMEOUT_SECS )); then
+            echo "##[warning]rocmstartup.service still running after ${READY_TIMEOUT_SECS}s of uptime; continuing"
+            break
+        fi
+        sleep "${POLL_SECS}"
+    done
+    echo "rocmstartup.service: $(systemctl is-active rocmstartup.service) (uptime $(uptime_secs)s)"
 fi
 
 ib_ports_not_ready() {

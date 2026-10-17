@@ -445,56 +445,50 @@ function verify_systemd_unit_syntax {
     local systemd_analyze
     systemd_analyze=$(find_system_command systemd-analyze) || return 0
 
-    local unit_file
-    local unit_files=(
-        /etc/systemd/system/disable_cloudinit.service
-        /etc/systemd/system/sunrpc_tcp_settings.service
-        /etc/systemd/system/sku-customizations.service
-        /etc/systemd/system/azure_persistent_rdma_naming.service
-        /etc/systemd/system/azure_persistent_rdma_naming.timer
-        /etc/systemd/system/nvidia-persistenced.service
-        /etc/systemd/system/nvme-raid.service
-        /etc/systemd/system/rocmstartup.service
-    )
+    (
+        local units=()
+        local delta_units
 
-    for unit_file in "${unit_files[@]}"; do
-        if [[ -f "${unit_file}" ]]; then
-            run_command_and_check_exit_code "${unit_file} systemd syntax" \
-                "systemd-analyze verify failed for ${unit_file}" \
-                "${systemd_analyze}" verify "${unit_file}"
+        shopt -s globstar nullglob
+        set -o pipefail
+        cd /etc/systemd/system || exit "$?"
+
+        units=(./**/*.{service,timer,socket,path,mount})
+
+        delta_units=$(
+            LC_ALL=C SYSTEMD_COLORS=0 systemd-delta \
+                --no-pager --type=extended . | \
+                awk '$1 == "[EXTENDED]" && $2 ~ /\.(service|timer|socket|path|mount)$/ {
+                    print $2
+                }'
+        ) || exit "$?"
+
+        if [[ -n $delta_units ]]; then
+            mapfile -t -O "${#units[@]}" units <<< "$delta_units"
         fi
-    done
 
-    local unit_name
-    if [[ -f /lib/systemd/system/cloud-init-local.service.d/50-azure-clear-persistent-obj-pkl.conf ]] && systemctl cat cloud-init-local.service >/dev/null 2>&1; then
-        unit_name=cloud-init-local.service
-        run_command_and_check_exit_code "${unit_name} systemd syntax including drop-ins" \
-            "systemd-analyze verify failed for ${unit_name}" \
-            "${systemd_analyze}" verify "${unit_name}"
-    fi
+        if (( ${#units[@]} > 0 )); then
+            run_command_and_check_exit_code "systemd generated unit syntax" \
+                "systemd-analyze verify failed for generated or runtime units" \
+                "${systemd_analyze}" verify --recursive-errors=no --man=no "${units[@]}"
+        fi
+    )
 }
 
 function verify_udev_rule_syntax {
     local udevadm_cmd
     udevadm_cmd=$(find_system_command udevadm) || return 0
 
-    local rule_file
-    local rule_files=(
-        /etc/udev/rules.d/60-rdma-persistent-naming.rules
-        /etc/udev/rules.d/90-nfs-readahead.rules
-        /etc/udev/rules.d/99-amdgpu-permissive.rules
-        /etc/udev/rules.d/99-hyperv-kvp.rules
-        /etc/udev/rules.d/99-issm.rules
-    )
-
     if "${udevadm_cmd}" --help 2>&1 | grep -qw verify; then
-        for rule_file in "${rule_files[@]}"; do
-            if [[ -f "${rule_file}" ]]; then
-                run_command_and_check_exit_code "${rule_file} udev syntax" \
-                    "udevadm verify failed for ${rule_file}" \
-                    "${udevadm_cmd}" verify "${rule_file}"
-            fi
-        done
+        if "${udevadm_cmd}" verify --help 2>&1 | grep -q -- '--no-style'; then
+            run_command_and_check_exit_code "udev rules syntax" \
+                "udevadm verify failed" \
+                "${udevadm_cmd}" verify --no-style
+        else
+            run_command_and_check_exit_code "udev rules syntax" \
+                "udevadm verify failed" \
+                "${udevadm_cmd}" verify
+        fi
     else
         run_command_and_check_exit_code "udev rules reload" \
             "udevadm could not reload rules" \

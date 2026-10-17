@@ -25,11 +25,13 @@ configure_doca_dkms_patches() {
     local patch_dir=/etc/dkms/${dkms_module}/patches
 
     mkdir -p "${patch_dir}"
-    # GPL-only exports let AMDGPU use runtime PeerDirect lookup when it builds before DOCA
-    cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-peer-mem-gpl.patch" "${patch_dir}/peer-mem-gpl.patch"
-    cat > "${dkms_conf}" <<'EOF'
-PATCH[0]="peer-mem-gpl.patch"
+    # V100's proprietary nvidia-peermem cannot use GPL-only exports.
+    if [[ "${SKU}" != "V100" ]]; then
+        cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-peer-mem-gpl.patch" "${patch_dir}/peer-mem-gpl.patch"
+        cat > "${dkms_conf}" <<'EOF'
+PATCH+=("peer-mem-gpl.patch")
 EOF
+    fi
 
     # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback
     # signature, while DOCA 3.2.x / MLNX OFED 25.10 still ships the older one.
@@ -39,7 +41,7 @@ EOF
 
     cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch" "${patch_dir}/dpll-ffo-param.patch"
     cat >> "${dkms_conf}" <<'EOF'
-PATCH[1]="dpll-ffo-param.patch"
+PATCH+=("dpll-ffo-param.patch")
 EOF
 }
 
@@ -54,9 +56,9 @@ configure_mlnx_ofed_kernel_dkms_xdp_patch() {
     # Install even on older kernels so subsequent DKMS rebuilds get the fix.
     mkdir -p "${patch_dir}"
     cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
-    # Preserve PATCH[0] from the module-wide PeerDirect configuration.
+    # Append after the optional module-wide PeerDirect patch, without index gaps.
     cat > "${dkms_conf}" <<'EOF'
-PATCH[1]="xdp-fragments.patch"
+PATCH+=("xdp-fragments.patch")
 EOF
     # install_cuda_repo_and_dkms.sh provides support for /etc/dkms patch overlays.
 }

@@ -7,6 +7,30 @@ source ${UTILS_DIR}/utilities.sh
 rocm_metadata=$(get_component_config "rocm")
 rocm_version=$(jq -r '.version' <<< $rocm_metadata)
 
+configure_amdgpu_dkms_patches() {
+    local patch_dir=/etc/dkms/amdgpu/patches
+
+    mkdir -p "${patch_dir}"
+    cp "${COMPONENT_DIR}/patches/amdgpu-pci-resize-resource-exclude-bars.patch" \
+        "${patch_dir}/pci-resize-resource-exclude-bars.patch"
+    cat > /etc/dkms/amdgpu.conf <<'EOF'
+_amdgpu_source="$source_tree/$module-$module_version"
+_amdgpu_pci_resize_fixed=false
+# AMD's native fix uses ALIGN; EXCLUDE_BARS identifies our backport.
+for _amdgpu_flag in HAVE_PCI_RESIZE_RESOURCE_ALIGN HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS; do
+    if grep -Fq "$_amdgpu_flag" "$_amdgpu_source/amd/dkms/configure" &&
+       grep -Fq "$_amdgpu_flag" "$_amdgpu_source/amd/dkms/config/config.h.in" &&
+       grep -Fq "$_amdgpu_flag" "$_amdgpu_source/amd/amdgpu/amdgpu_device.c"; then
+        _amdgpu_pci_resize_fixed=true
+        break
+    fi
+done
+if [[ "$_amdgpu_pci_resize_fixed" == false ]]; then
+    PATCH+=("pci-resize-resource-exclude-bars.patch")
+fi
+EOF
+}
+
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     driver_metadata=$(get_component_config "amdgpu")
     driver_version=$(jq -er '.version' <<< "$driver_metadata")
@@ -37,6 +61,7 @@ EOF
 deb [arch=amd64 signed-by=/etc/apt/keyrings/amdrocm.gpg] https://stable.repo.amd.com/rocm/extras/rvs/packages/ubuntu2604/ stable main
 EOF
     apt update
+    configure_amdgpu_dkms_patches
     apt install -y amdgpu-dkms amdgpu-dkms-firmware
     check_dkms_status amdgpu
     apt install -y "$rocm_package" amdrocm10-rvs
@@ -55,6 +80,7 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     DEBPACKAGE=$(basename ${rocm_url})
     download_and_verify ${rocm_url} ${rocm_sha256}
     apt install -y ./${DEBPACKAGE}
+    configure_amdgpu_dkms_patches
     # TODO: Restore this if/else once we move back to ROCm 7.0. Until then, both
     # 22.04 and 24.04 use the explicit package list below.
     # if [[ $DISTRIBUTION == "ubuntu24.04" ]]; then

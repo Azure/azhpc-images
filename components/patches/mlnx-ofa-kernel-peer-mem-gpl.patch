@@ -10,12 +10,11 @@ modules with DKMS. Exporting this API with EXPORT_SYMBOL_GPL lets either
 AMDGPU/DOCA build order work during system update: AMDGPU can link directly
 when DOCA's matching Module.symvers is already present, or use runtime
 symbol_request when it builds first. The latter needs the patched DOCA
-provider at runtime, thus avoiding having to enforce DKMS build ordering,
-which requires very new (>= 3.4.1) DKMS binaries.
+provider at runtime, thus avoiding having to enforce DKMS build ordering.
 
 This is especially important for AMD MI300X configurations lacking
-DMA-BUF support. Supported NVIDIA configurations can instead use DMA-BUF
-even if nvidia-peermem is unavailable.
+DMA-BUF support. V100 is exempt because its proprietary nvidia-peermem
+cannot use GPL-only exports.
 
 ---
  drivers/infiniband/core/peer_mem.c | 8 ++++----

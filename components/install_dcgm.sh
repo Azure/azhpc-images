@@ -224,9 +224,39 @@ fi
 
 write_component_version "DCGM" ${DCGM_VERSION}
 
-# Enable the dcgm service
+# DCGM multinode diagnostics (dcgmi mndiag) launch mnubergemm through the mpirun named by
+# DCGM_MNDIAG_MPIRUN_PATH. The multinode package's systemd generator writes a distro Open MPI
+# path into /run/systemd/system/nvidia-dcgm.service.d/50-mndiag.conf (and nothing at all on
+# AlmaLinux), but this image satisfies the packages' openmpi dependency with HPC-X marker
+# packages, so that path does not exist. Point nv-hostengine at the Open MPI behind mpi/hpcx
+# instead. The 99- prefix keeps this drop-in sorting after the generated one so its values win;
+# verify_dcgm_multinode_installation fails if a newer generator sets variables not covered here.
+# mpirun and its local ranks inherit nv-hostengine's resource limits, and systemd services do
+# not get the unlimited memlock from /etc/security/limits.conf (hpc-tuning.sh only raises
+# DefaultLimitMEMLOCK on RHEL-family). Without this, UCX on the launching node cannot register
+# memory and mndiag fails to spawn its ranks.
+source /etc/profile.d/modules.sh
+module load mpi/hpcx
+DCGM_MNDIAG_MPIRUN_PATH=$(command -v mpirun)
+module unload mpi/hpcx
+DCGM_MNDIAG_MPI_PREFIX=$(dirname "$(dirname "${DCGM_MNDIAG_MPIRUN_PATH}")")
+if [[ ! -x "${DCGM_MNDIAG_MPIRUN_PATH}" || ! -d "${DCGM_MNDIAG_MPI_PREFIX}/lib" ]]; then
+    echo "ERROR: HPC-X Open MPI (bin/mpirun and lib/) not found under ${DCGM_MNDIAG_MPI_PREFIX}" >&2
+    exit 1
+fi
+mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
+cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
+[Service]
+LimitMEMLOCK=infinity
+Environment="DCGM_MNDIAG_MPIRUN_PATH=${DCGM_MNDIAG_MPIRUN_PATH}"
+Environment="OPAL_PREFIX=${DCGM_MNDIAG_MPI_PREFIX}"
+Environment="LD_LIBRARY_PATH=${DCGM_MNDIAG_MPI_PREFIX}/lib"
+EOF
+systemctl daemon-reload
+
+# Enable the dcgm service; restart so an instance started by the package picks up the drop-in
 systemctl --now enable nvidia-dcgm
-systemctl start nvidia-dcgm
+systemctl restart nvidia-dcgm
 # Check if the service is active
 systemctl is-active --quiet nvidia-dcgm
 error_code=$?

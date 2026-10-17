@@ -542,6 +542,138 @@ function verify_dcgm_installation {
     # Check if the NVIDIA DCGM service is active
     systemctl is-active --quiet nvidia-dcgm
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
+
+    if [[ -n "$(_dcgm_multinode_packages)" ]]; then
+        verify_dcgm_multinode_installation
+    fi
+}
+
+# Print the installed DCGM multinode packages, one per line.
+function _dcgm_multinode_packages {
+    if command -v dpkg-query &>/dev/null; then
+        dpkg-query -W -f='${Package} ${db:Status-Status}\n' 'datacenter-gpu-manager-4-multinode*' 2>/dev/null \
+            | awk '$2 == "installed" {print $1}'
+    else
+        rpm -qa --qf '%{NAME}\n' 'datacenter-gpu-manager-4-multinode*' 2>/dev/null
+    fi
+}
+
+function _package_files {
+    if command -v dpkg-query &>/dev/null; then dpkg-query -L "$1"; else rpm -ql "$1"; fi
+}
+
+function _package_verify {
+    if command -v dpkg-query &>/dev/null; then dpkg -V "$@" 2>&1; else rpm -V "$@" 2>&1; fi
+}
+
+# Per-node checks that DCGM multinode diagnostics (dcgmi mndiag) can launch their MPI workload.
+# Running mndiag itself needs multiple GB200/GB300 nodes and is left to the validation pipeline.
+# Package contents are discovered from the package file lists rather than hardcoded, because
+# NVIDIA has moved and added files between DCGM releases (e.g. libdcgmmodulemndiag in 4.7).
+function verify_dcgm_multinode_installation {
+    local dropin=/etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf
+    local packages pkg cuda_major verify_output service_env generator key expected effective file
+    local mpirun_path mpi_ld_library_path opal_prefix main_pid mpi_prefix mpi_libs shadowed driver_cuda_elf_count=0
+    packages=$(_dcgm_multinode_packages)
+
+    # --hostList was introduced with mndiag in DCGM 4.3
+    dcgmi mndiag --help | grep -q -- '--hostList'
+    check_exit_code "dcgmi mndiag is available" "dcgmi mndiag does not list --hostList"
+
+    cuda_major=$(nvidia-smi | grep -oP 'CUDA Version:\s*\K[0-9]+')
+    grep -qx "datacenter-gpu-manager-4-multinode-cuda${cuda_major}" <<< "${packages}"
+    check_exit_code "DCGM multinode package for CUDA ${cuda_major} is installed" "datacenter-gpu-manager-4-multinode-cuda${cuda_major} is not installed"
+
+    # Doc/man paths may be excluded from installation by the package manager configuration
+    verify_output=$(_package_verify ${packages} | grep -v ' /usr/share/\(doc\|man\)/')
+    echo "${verify_output}"
+    [[ -z "${verify_output}" ]]
+    check_exit_code "DCGM multinode package files are intact" "DCGM multinode package files are missing or modified"
+
+    # Every variable the package's systemd generator sets must be overridden by the image drop-in,
+    # and the drop-in must win. A newer generator adding a variable or sorting later fails here.
+    check_exists "${dropin}"
+    service_env=$(systemctl show nvidia-dcgm.service -p Environment --value | tr ' ' '\n')
+    generator=$(for pkg in ${packages}; do _package_files "${pkg}"; done | grep -m1 '/system-generators/')
+    for key in $( { [[ -n "${generator}" ]] && grep -oP 'Environment="?\K[A-Za-z_][A-Za-z0-9_]*(?==)' "${generator}"
+                    grep -oP '^Environment="?\K[A-Za-z_][A-Za-z0-9_]*(?==)' "${dropin}"; } | sort -u); do
+        expected=$(sed -n "s/^Environment=\"\{0,1\}${key}=\([^\"]*\)\"\{0,1\}$/\1/p" "${dropin}" | tail -n1)
+        effective=$(sed -n "s/^${key}=//p" <<< "${service_env}" | tail -n1)
+        grep -q "^Environment=\"\{0,1\}${key}=" "${dropin}" && [[ "${effective}" == "${expected}" ]]
+        check_exit_code "nvidia-dcgm ${key} is set by ${dropin}" "nvidia-dcgm ${key}='${effective}' is not the value from ${dropin}${generator:+ (also set by ${generator})}"
+    done
+
+    mpirun_path=$(sed -n 's/^DCGM_MNDIAG_MPIRUN_PATH=//p' <<< "${service_env}" | tail -n1)
+    mpi_ld_library_path=$(sed -n 's/^LD_LIBRARY_PATH=//p' <<< "${service_env}" | tail -n1)
+    opal_prefix=$(sed -n 's/^OPAL_PREFIX=//p' <<< "${service_env}" | tail -n1)
+
+    [[ -n "${mpirun_path}" && -x "${mpirun_path}" ]]
+    check_exit_code "DCGM mndiag mpirun ${mpirun_path} is executable" "DCGM mndiag mpirun '${mpirun_path}' is not executable"
+
+    env LD_LIBRARY_PATH="${mpi_ld_library_path}" ${opal_prefix:+OPAL_PREFIX="${opal_prefix}"} "${mpirun_path}" --version
+    check_exit_code "DCGM mndiag mpirun runs" "DCGM mndiag mpirun '${mpirun_path}' --version failed"
+
+    # mpirun and its local ranks inherit nv-hostengine's limits; UCX needs unlimited locked memory.
+    # Check the running process rather than the unit so a missed restart is also caught.
+    main_pid=$(systemctl show nvidia-dcgm.service -p MainPID --value)
+    grep -E '^Max locked memory +unlimited +unlimited' "/proc/${main_pid}/limits"
+    check_exit_code "nv-hostengine max locked memory is unlimited" "nv-hostengine (pid ${main_pid}) max locked memory is not unlimited; mndiag ranks it launches cannot register UCX memory"
+
+    # Every ELF file the multinode packages ship (mndiag module, mnubergemm, ...) must resolve
+    # its libraries, including libmpi, in the environment nv-hostengine runs them with.
+    mpi_prefix=${opal_prefix:-$(dirname "$(dirname "${mpirun_path}")")}
+    mpi_libs=$(_mpi_runtime_libraries "${mpi_prefix}" "${mpi_ld_library_path}")
+    for pkg in ${packages}; do
+        while IFS= read -r file; do
+            [[ -f "${file}" && ! -L "${file}" ]] || continue
+            [[ "$(head -c 4 "${file}" | od -An -tx1 | tr -d ' \n')" == "7f454c46" ]] || continue
+            [[ "${pkg}" == "datacenter-gpu-manager-4-multinode-cuda${cuda_major}" ]] && driver_cuda_elf_count=$((driver_cuda_elf_count + 1))
+            ! LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${file}" | grep 'not found'
+            check_exit_code "${file} libraries resolve" "${file} has unresolved libraries"
+
+            # Only executables become MPI ranks; shared objects here are loaded by nv-hostengine.
+            readelf -l "${file}" | grep -q 'program interpreter' || continue
+            shadowed=$(_rpath_shadowed_libraries "${file}" "${mpi_libs}")
+            echo "${shadowed}"
+            [[ -z "${shadowed}" ]]
+            check_exit_code "${file} RPATH does not shadow MPI libraries" "${file} DT_RPATH loads a different copy of MPI runtime libraries into mndiag ranks"
+        done < <(_package_files "${pkg}")
+    done
+    (( driver_cuda_elf_count > 0 ))
+    check_exit_code "DCGM multinode CUDA ${cuda_major} package ships binaries" "datacenter-gpu-manager-4-multinode-cuda${cuda_major} ships no ELF binaries"
+}
+
+# Print the real paths of the libraries an MPI installation loads at runtime: its own libraries
+# and MCA plugins, plus everything they resolve to with the given LD_LIBRARY_PATH.
+function _mpi_runtime_libraries {
+    local mpi_prefix=$1 mpi_ld_library_path=$2
+    find "${mpi_prefix}/lib" -maxdepth 2 -name '*.so*' -type f \
+        | while IFS= read -r lib; do
+            echo "${lib}"
+            LD_LIBRARY_PATH="${mpi_ld_library_path}" ldd "${lib}" 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// {print $3}'
+        done | xargs -r realpath | sort -u
+}
+
+# An executable with DT_RPATH and no DT_RUNPATH searches its RPATH directories before
+# LD_LIBRARY_PATH for every library loaded into the process, including dependencies of
+# MPI plugins dlopen'd during MPI_Init. Print "<rpath copy> (MPI uses <path>)" for each
+# MPI runtime library that such a directory holds a different copy of, e.g. the distro
+# libpmix in /usr/lib64 shadowing HPC-X's under DCGM 4.6 RPMs' mnubergemm.
+function _rpath_shadowed_libraries {
+    local file=$1 mpi_libs=$2 dynamic rpath dir lib candidate
+    dynamic=$(readelf -d "${file}")
+    grep -q '(RUNPATH)' <<< "${dynamic}" && return
+    rpath=$(sed -n 's/.*(RPATH).*\[\(.*\)\]$/\1/p' <<< "${dynamic}")
+    for dir in ${rpath//:/ }; do
+        dir=${dir//\$\{ORIGIN\}/$(dirname "${file}")}
+        dir=${dir//\$ORIGIN/$(dirname "${file}")}
+        while IFS= read -r lib; do
+            candidate="${dir}/$(basename "${lib}")"
+            if [[ -e "${candidate}" && "$(realpath "${candidate}")" != "${lib}" ]]; then
+                echo "${candidate} (MPI uses ${lib})"
+            fi
+        done <<< "${mpi_libs}"
+    done
 }
 
 function verify_sku_customization_service {

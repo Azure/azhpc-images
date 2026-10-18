@@ -26,7 +26,9 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     git clone $NVLOOM_DOWNLOAD_URL --branch $NVLOOM_REF
     pushd nvloom
     git checkout $NVLOOM_COMMIT
-    write_repo_source_info "NVLOOM" . "${NVLOOM_COMMIT}" "${NVLOOM_REF}"
+    write_repo_source_info "NVLOOM" . \
+        --commit "${NVLOOM_COMMIT}" \
+        --ref "${NVLOOM_REF}"
     git apply /home/hpcuser/azhpc-images/distros/azurelinux3.0/azurelinux_nvloom.patch
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make -j $(nproc)
@@ -41,7 +43,9 @@ elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     git clone $NVLOOM_DOWNLOAD_URL --branch $NVLOOM_REF
     pushd nvloom
     git checkout $NVLOOM_COMMIT
-    write_repo_source_info "NVLOOM" . "${NVLOOM_COMMIT}" "${NVLOOM_REF}"
+    write_repo_source_info "NVLOOM" . \
+        --commit "${NVLOOM_COMMIT}" \
+        --ref "${NVLOOM_REF}"
     cmake -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_CUDA_ARCHITECTURES="100" .
     make -j $(nproc)
     mv nvloom_cli $dest_dir

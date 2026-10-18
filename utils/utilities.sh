@@ -77,11 +77,45 @@ write_component_version(){
     chmod 644 ${component_versions_json}
 }
 
+############################################################################
+# @Brief        : Write a repository commit and ref to component_versions.txt
+#
+# @Args         : (1) Component name
+#                 (2) Repository directory
+#                 [--commit COMMIT]
+#                 [--ref REF]
+############################################################################
 write_repo_source_info(){
-    component=$1
-    repo_dir=$2
-    specified_commit=${3:-}
-    specified_ref=${4:-}
+    local component=$1
+    local repo_dir=$2
+    local specified_commit=""
+    local specified_ref=""
+
+    shift 2
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --commit)
+                if [[ $# -lt 2 ]]; then
+                    echo "Missing value for --commit" >&2
+                    return 1
+                fi
+                specified_commit=$2
+                shift 2
+                ;;
+            --ref)
+                if [[ $# -lt 2 ]]; then
+                    echo "Missing value for --ref" >&2
+                    return 1
+                fi
+                specified_ref=$2
+                shift 2
+                ;;
+            *)
+                echo "Unknown write_repo_source_info argument: $1" >&2
+                return 1
+                ;;
+        esac
+    done
 
     if [[ -n "${specified_commit}" && "${specified_commit}" != "null" ]]; then
         repo_commit=${specified_commit}

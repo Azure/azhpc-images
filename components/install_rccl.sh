@@ -65,7 +65,9 @@ else
     make install
     popd
     if [[ $rccl_ref != "" && $rccl_ref != "null" ]]; then
-        write_repo_source_info "RCCL" ./${rccl_folder} "${rccl_commit}" "${rccl_ref}"
+        write_repo_source_info "RCCL" ./${rccl_folder} \
+            --commit "${rccl_commit}" \
+            --ref "${rccl_ref}"
     fi
     rm -rf ${TARBALL} ${rccl_folder}
     write_component_version "RCCL" ${rccl_version}

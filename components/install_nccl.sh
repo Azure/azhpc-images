@@ -92,7 +92,9 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
     git clone --branch ${NCCL_RDMA_SHARP_REF} https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins
     git checkout ${NCCL_RDMA_SHARP_COMMIT}
-    write_repo_source_info "NCCL-RDMA_SHARP_PLUGIN" . "${NCCL_RDMA_SHARP_COMMIT}" "${NCCL_RDMA_SHARP_REF}"
+    write_repo_source_info "NCCL-RDMA_SHARP_PLUGIN" . \
+        --commit "${NCCL_RDMA_SHARP_COMMIT}" \
+        --ref "${NCCL_RDMA_SHARP_REF}"
 
     if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose

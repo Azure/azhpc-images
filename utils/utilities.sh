@@ -117,13 +117,16 @@ write_repo_source_info(){
         esac
     done
 
+    component_commit_name="${component}_REPO_COMMIT"
+    component_ref_name="${component}_REPO_REF"
+
     if [[ -n "${specified_commit}" && "${specified_commit}" != "null" ]]; then
         repo_commit=${specified_commit}
     else
         repo_commit=$(git -C "${repo_dir}" rev-parse HEAD)
     fi
 
-    write_component_version "${component}_REPO_COMMIT" "${repo_commit}"
+    write_component_version "${component_commit_name}" "${repo_commit}"
 
     if [[ -n "${specified_ref}" && "${specified_ref}" != "null" ]]; then
         repo_ref=${specified_ref}
@@ -135,7 +138,7 @@ write_repo_source_info(){
     fi
 
     if [[ -n "${repo_ref}" && "${repo_ref}" != "null" ]]; then
-        write_component_version "${component}_REPO_REF" "${repo_ref}"
+        write_component_version "${component_ref_name}" "${repo_ref}"
     fi
 }
 

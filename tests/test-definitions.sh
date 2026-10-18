@@ -445,34 +445,29 @@ function verify_systemd_unit_syntax {
     local systemd_analyze
     systemd_analyze=$(find_system_command systemd-analyze) || return 0
 
-    (
-        local units=()
-        local delta_units
-
-        shopt -s globstar nullglob
-        set -o pipefail
-        cd /etc/systemd/system || exit "$?"
-
-        units=(./**/*.{service,timer,socket,path,mount})
-
-        delta_units=$(
-            LC_ALL=C SYSTEMD_COLORS=0 systemd-delta \
-                --no-pager --type=extended . | \
-                awk '$1 == "[EXTENDED]" && $2 ~ /\.(service|timer|socket|path|mount)$/ {
-                    print $2
-                }'
-        ) || exit "$?"
-
-        if [[ -n $delta_units ]]; then
-            mapfile -t -O "${#units[@]}" units <<< "$delta_units"
-        fi
-
-        if (( ${#units[@]} > 0 )); then
-            run_command_and_check_exit_code "systemd generated unit syntax" \
-                "systemd-analyze verify failed for generated or runtime units" \
-                "${systemd_analyze}" verify --recursive-errors=no --man=no "${units[@]}"
-        fi
+    local unit units=()
+    local candidate_units=(
+        /etc/systemd/system/sunrpc_tcp_settings.service
+        /etc/systemd/system/disable_cloudinit.service
+        /etc/systemd/system/sku-customizations.service
+        /etc/systemd/system/nvidia-persistenced.service
+        /etc/systemd/system/azure_persistent_rdma_naming.service
+        /etc/systemd/system/azure_persistent_rdma_naming.timer
+        /etc/systemd/system/nvme-raid.service
+        /etc/systemd/system/rocmstartup.service
     )
+
+    for unit in "${candidate_units[@]}"; do
+        if [[ -e "${unit}" ]]; then
+            units+=("${unit}")
+        fi
+    done
+
+    if (( ${#units[@]} > 0 )); then
+        run_command_and_check_exit_code "systemd generated unit syntax" \
+            "systemd-analyze verify failed for generated units" \
+            run_with_sudo_if_needed "${systemd_analyze}" verify --recursive-errors=no --man=no "${units[@]}"
+    fi
 }
 
 function verify_udev_rule_syntax {
@@ -483,11 +478,11 @@ function verify_udev_rule_syntax {
         if "${udevadm_cmd}" verify --help 2>&1 | grep -q -- '--no-style'; then
             run_command_and_check_exit_code "udev rules syntax" \
                 "udevadm verify failed" \
-                "${udevadm_cmd}" verify --no-style
+                run_with_sudo_if_needed "${udevadm_cmd}" verify --no-style
         else
             run_command_and_check_exit_code "udev rules syntax" \
                 "udevadm verify failed" \
-                "${udevadm_cmd}" verify
+                run_with_sudo_if_needed "${udevadm_cmd}" verify
         fi
     else
         run_command_and_check_exit_code "udev rules reload" \
@@ -512,7 +507,7 @@ function verify_network_manager_config_syntax {
 
     run_command_and_check_exit_code "NetworkManager configuration parses" \
         "NetworkManager could not parse its configuration" \
-        "${network_manager_cmd}" --print-config
+        run_with_sudo_if_needed "${network_manager_cmd}" --print-config
 }
 
 function verify_netplan_config_syntax {

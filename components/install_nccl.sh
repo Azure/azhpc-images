@@ -7,7 +7,7 @@ source ${UTILS_DIR}/utilities.sh
 nccl_metadata=$(get_component_config "nccl")
 NCCL_VERSION=$(jq -r '.version' <<< $nccl_metadata)
 NCCL_SHA256=$(jq -r '.sha256 // empty' <<< $nccl_metadata)
-NCCL_RDMA_SHARP_BRANCH=$(jq -r '.rdmasharpplugins.branch' <<< $nccl_metadata)
+NCCL_RDMA_SHARP_REF=$(jq -r '.rdmasharpplugins.ref // .rdmasharpplugins.branch // empty' <<< $nccl_metadata)
 NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
 
 cuda_metadata=$(get_component_config "cuda")
@@ -89,10 +89,10 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
         exit 1
     fi
     mkdir -p /usr/local/nccl-rdma-sharp-plugins
-    git clone --branch ${NCCL_RDMA_SHARP_BRANCH} https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
+    git clone --branch ${NCCL_RDMA_SHARP_REF} https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins
     git checkout ${NCCL_RDMA_SHARP_COMMIT}
-    write_repo_commit_version "NCCL-RDMA_SHARP_PLUGIN" . "${NCCL_RDMA_SHARP_COMMIT}"
+    write_repo_source_info "NCCL-RDMA_SHARP_PLUGIN" . "${NCCL_RDMA_SHARP_COMMIT}" "${NCCL_RDMA_SHARP_REF}"
 
     if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose
@@ -116,7 +116,7 @@ source /etc/profile.d/modules.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git
 pushd nccl-tests
-write_repo_commit_version "NCCL_TESTS" .
+write_repo_source_info "NCCL_TESTS" .
 make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.

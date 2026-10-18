@@ -77,10 +77,11 @@ write_component_version(){
     chmod 644 ${component_versions_json}
 }
 
-write_repo_commit_version(){
+write_repo_source_info(){
     component=$1
     repo_dir=$2
     specified_commit=${3:-}
+    specified_ref=${4:-}
 
     if [[ -n "${specified_commit}" && "${specified_commit}" != "null" ]]; then
         repo_commit=${specified_commit}
@@ -89,6 +90,19 @@ write_repo_commit_version(){
     fi
 
     write_component_version "${component}_REPO_COMMIT" "${repo_commit}"
+
+    if [[ -n "${specified_ref}" && "${specified_ref}" != "null" ]]; then
+        repo_ref=${specified_ref}
+    else
+        repo_ref=$(git -C "${repo_dir}" symbolic-ref --quiet --short HEAD 2>/dev/null || true)
+        if [[ -z "${repo_ref}" ]]; then
+            repo_ref="DETACHED"
+        fi
+    fi
+
+    if [[ -n "${repo_ref}" && "${repo_ref}" != "null" ]]; then
+        write_component_version "${component}_REPO_REF" "${repo_ref}"
+    fi
 }
 
 ############################################################################

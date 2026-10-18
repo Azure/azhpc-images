@@ -931,6 +931,7 @@
     "nvbandwidth": {
         "common": {
             "version": "0.9",
+            "ref": "v0.9",
             "url": "https://github.com/NVIDIA/nvbandwidth",
             "commit": "4a49bdae82d69e69330a88746cb12b449796ee8b"
         },
@@ -938,10 +939,12 @@
             "aarch64": {
                 "baremetal_3p": {
                     "version": "0.8",
+                    "ref": "v0.8",
                     "url": "https://github.com/NVIDIA/nvbandwidth",
                     "commit": "66746a3bef61c8c2e12ab34955310da70b9e38cb"
                 },
                 "version": "0.9",
+                "ref": "v0.9",
                 "url": "https://github.com/NVIDIA/nvbandwidth",
                 "commit": "4a49bdae82d69e69330a88746cb12b449796ee8b"
             }
@@ -1227,6 +1230,7 @@
         "azurelinux3.0": {
             "aarch64": {
                 "version": "1.2.0",
+                "ref": "v1.2.0",
                 "url": "https://github.com/NVIDIA/nvloom.git",
                 "commit": "bc0983828805d9ef2a912768fdae1465d581ef7c"
             }
@@ -1235,10 +1239,12 @@
             "aarch64": {
                 "baremetal_3p": {
                     "version": "1.2.0",
+                    "ref": "v1.2.0",
                     "url": "https://github.com/NVIDIA/nvloom.git",
                     "commit": "bc0983828805d9ef2a912768fdae1465d581ef7c"
                 },
                 "version": "2.0.0",
+                "ref": "v2.0.0",
                 "url": "https://github.com/NVIDIA/nvloom.git",
                 "commit": "7426efd0f6a9feb8cab70e9c5745c1a9eefaf352"
             }

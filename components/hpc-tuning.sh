@@ -101,7 +101,7 @@ fi
 cat > /etc/udev/rules.d/90-nfs-readahead.rules << EOM
 SUBSYSTEM=="bdi", \
 ACTION=="add", \
-PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
+PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
 ATTR{read_ahead_kb}="15380"
 EOM
 

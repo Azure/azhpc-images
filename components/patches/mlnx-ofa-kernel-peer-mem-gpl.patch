@@ -1,0 +1,49 @@
+Subject: [PATCH] peer_mem: export IB peer memory API as GPL-only symbols
+
+Ported from https://github.com/microsoft/azurelinux/pull/17512.
+
+Kernels with the GPL-only symbol_get restriction reject runtime lookup of
+the IB peer-memory API when it is exported with EXPORT_SYMBOL.
+
+Unlike Azure Linux's prebuilt kmods, Non-AZL images rebuild DOCA and GPU
+modules with DKMS. Exporting this API with EXPORT_SYMBOL_GPL lets either
+AMDGPU/DOCA build order work during system update: AMDGPU can link directly
+when DOCA's matching Module.symvers is already present, or use runtime
+symbol_request when it builds first. The latter needs the patched DOCA
+provider at runtime, thus avoiding having to enforce DKMS build ordering.
+
+This is especially important for AMD MI300X configurations lacking
+DMA-BUF support. V100 is exempt because its proprietary nvidia-peermem
+cannot use GPL-only exports.
+
+---
+ drivers/infiniband/core/peer_mem.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/core/peer_mem.c b/drivers/infiniband/core/peer_mem.c
+--- a/drivers/infiniband/core/peer_mem.c
++++ b/drivers/infiniband/core/peer_mem.c
+@@ -89,4 +89,4 @@
+ }
+-EXPORT_SYMBOL(ib_register_peer_memory_client);
++EXPORT_SYMBOL_GPL(ib_register_peer_memory_client);
+ 
+ void ib_unregister_peer_memory_client(void *reg_handle)
+@@ -110,4 +110,4 @@
+ }
+-EXPORT_SYMBOL(ib_unregister_peer_memory_client);
++EXPORT_SYMBOL_GPL(ib_unregister_peer_memory_client);
+ 
+ static struct ib_peer_memory_client *
+@@ -320,4 +320,4 @@
+ }
+-EXPORT_SYMBOL(ib_umem_activate_invalidation_notifier);
++EXPORT_SYMBOL_GPL(ib_umem_activate_invalidation_notifier);
+ 
+ /*
+@@ -361,4 +361,4 @@
+ }
+-EXPORT_SYMBOL(ib_umem_stop_invalidation_notifier);
++EXPORT_SYMBOL_GPL(ib_umem_stop_invalidation_notifier);
+ 
+ static void fix_peer_sgls(struct ib_umem_peer *umem_p,

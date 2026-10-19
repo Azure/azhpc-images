@@ -957,7 +957,7 @@
         },
         "azurelinux3.0": {
             "x86_64": {
-                "version": "4.6.0"
+                "version": "4.7.0"
             },
             "aarch64": {
                 "version": "4.7.0"

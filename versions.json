@@ -29,7 +29,8 @@
                 "azure_vm_akshost":{
                     "version": "3.1.0-091513-25.07-ubuntu2404",
                     "repo_file": "doca-host_3.1.0-091513-25.07-ubuntu2404_arm64.deb",
-                    "source": "private"
+                    "source": "private",
+                    "sha256": "02fb025a34c9b550d0412c7455c7981d9c03572d84da0314076af93157c8364a"
                 },
                 "baremetal_3p": {
                     "version": "3.3.0",
@@ -884,21 +885,27 @@
     "nccl": {
         "common": {
             "version": "2.31.2-1",
+            "sha256": "64adce28d88a13047abf87b9bfd2e2874888ebdef00a76b2961a53193fa651bc",
             "rdmasharpplugins": {
-                "commit": "master"
+                "branch": "master",
+                "commit": "7daa9c64a2c496804c1d7a9284ca55b699716036"
             }
         },
         "azurelinux3.0": {
             "x86_64": {
                 "version": "2.30.4-1",
+                "sha256": "fe12cb244a4aea4c802d0a18d1072e10f102fc39c2530a8251c2abdaeea9ecba",
                 "rdmasharpplugins": {
-                    "commit": "master"
+                    "branch": "master",
+                    "commit": "7daa9c64a2c496804c1d7a9284ca55b699716036"
                 }
             },
             "aarch64": {
                 "version": "2.30.4-1",
+                "sha256": "fe12cb244a4aea4c802d0a18d1072e10f102fc39c2530a8251c2abdaeea9ecba",
                 "rdmasharpplugins": {
-                    "commit": "v2.7.x"
+                    "branch": "v2.7.x",
+                    "commit": "b246b19c264fc1a673db098cc2535a0d1a0a10fd"
                 }
             }
         },
@@ -906,13 +913,17 @@
             "aarch64": {
                 "baremetal_3p": {
                     "version": "2.30.4-1",
+                    "sha256": "fe12cb244a4aea4c802d0a18d1072e10f102fc39c2530a8251c2abdaeea9ecba",
                     "rdmasharpplugins": {
-                        "commit": "v2.7.x"
+                        "branch": "v2.7.x",
+                        "commit": "b246b19c264fc1a673db098cc2535a0d1a0a10fd"
                     }
                 },
                 "version": "2.30.4-1",
+                "sha256": "fe12cb244a4aea4c802d0a18d1072e10f102fc39c2530a8251c2abdaeea9ecba",
                 "rdmasharpplugins": {
-                    "commit": "master"
+                    "branch": "master",
+                    "commit": "7daa9c64a2c496804c1d7a9284ca55b699716036"
                 }
             }
         }
@@ -920,16 +931,22 @@
     "nvbandwidth": {
         "common": {
             "version": "0.9",
-            "url": "https://github.com/NVIDIA/nvbandwidth"
+            "ref": "v0.9",
+            "url": "https://github.com/NVIDIA/nvbandwidth",
+            "commit": "4a49bdae82d69e69330a88746cb12b449796ee8b"
         },
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
                     "version": "0.8",
-                    "url": "https://github.com/NVIDIA/nvbandwidth"
+                    "ref": "v0.8",
+                    "url": "https://github.com/NVIDIA/nvbandwidth",
+                    "commit": "66746a3bef61c8c2e12ab34955310da70b9e38cb"
                 },
                 "version": "0.9",
-                "url": "https://github.com/NVIDIA/nvbandwidth"
+                "ref": "v0.9",
+                "url": "https://github.com/NVIDIA/nvbandwidth",
+                "commit": "4a49bdae82d69e69330a88746cb12b449796ee8b"
             }
         }
     },
@@ -1213,17 +1230,23 @@
         "azurelinux3.0": {
             "aarch64": {
                 "version": "1.2.0",
-                "url": "https://github.com/NVIDIA/nvloom.git"
+                "ref": "v1.2.0",
+                "url": "https://github.com/NVIDIA/nvloom.git",
+                "commit": "bc0983828805d9ef2a912768fdae1465d581ef7c"
             }
         },
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
                     "version": "1.2.0",
-                    "url": "https://github.com/NVIDIA/nvloom.git"
+                    "ref": "v1.2.0",
+                    "url": "https://github.com/NVIDIA/nvloom.git",
+                    "commit": "bc0983828805d9ef2a912768fdae1465d581ef7c"
                 },
                 "version": "2.0.0",
-                "url": "https://github.com/NVIDIA/nvloom.git"
+                "ref": "v2.0.0",
+                "url": "https://github.com/NVIDIA/nvloom.git",
+                "commit": "7426efd0f6a9feb8cab70e9c5745c1a9eefaf352"
             }
         }
     },

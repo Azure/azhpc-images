@@ -13,6 +13,9 @@ NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
 
+# Leave one core free for sshd/agent, but never pass -j 0 on single-core VMs.
+MAKE_JOBS=$(( $(nproc) > 1 ? $(nproc) - 1 : 1 ))
+
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
 
@@ -42,7 +45,7 @@ else
     tar -xvf ${TARBALL}
 
     pushd nccl-${NCCL_VERSION}
-    make -j $(( $(nproc) - 1 )) src.build
+    make -j ${MAKE_JOBS} src.build
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         make pkg.debian.build
         pushd build/pkg/deb/
@@ -119,7 +122,7 @@ module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git
 pushd nccl-tests
 write_repo_source_info "NCCL_TESTS" .
-make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
+make -j ${MAKE_JOBS} MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx

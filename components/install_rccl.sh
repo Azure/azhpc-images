@@ -4,7 +4,10 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 rccl_metadata=$(get_component_config "rccl")
-RCCL_TEST_CMAKE_ARGS=()
+# Azure AMD GPU SKUs are MI300X (gfx942); gfx90a (MI200) is kept for compatibility. Building only
+# these instead of upstream's 10-13 default architectures cuts RCCL/rccl-tests compile time.
+AMD_GPU_TARGETS="gfx90a;gfx942"
+RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="${AMD_GPU_TARGETS}")
 RCCL_TEST_GIT_ARGS=()
 if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     rocm_metadata=$(get_component_config "rocm")
@@ -60,7 +63,9 @@ else
     echo "RCCL link parallelism: detected ${mem_gb} GB RAM -> -parallel-jobs=${num_linker_jobs}"
     sed -i -E "s/(target_link_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)[0-9]+/\1${num_linker_jobs}/" ../CMakeLists.txt
 
-    CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
+    # AMDGPU_TARGETS for RCCL 6.2.x, GPU_TARGETS for 6.4+
+    CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl \
+        -DGPU_TARGETS="${AMD_GPU_TARGETS}" -DAMDGPU_TARGETS="${AMD_GPU_TARGETS}" ..
     make -j$(nproc)
     make install
     popd

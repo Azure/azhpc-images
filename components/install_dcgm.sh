@@ -225,32 +225,49 @@ fi
 write_component_version "DCGM" ${DCGM_VERSION}
 
 # DCGM multinode diagnostics (dcgmi mndiag) launch mnubergemm through the mpirun named by
-# DCGM_MNDIAG_MPIRUN_PATH. The multinode package's systemd generator writes a distro Open MPI
-# path into /run/systemd/system/nvidia-dcgm.service.d/50-mndiag.conf (and nothing at all on
-# AlmaLinux), but this image satisfies the packages' openmpi dependency with HPC-X marker
-# packages, so that path does not exist. Point nv-hostengine at the Open MPI behind mpi/hpcx
-# instead. The 99- prefix keeps this drop-in sorting after the generated one so its values win;
-# verify_dcgm_multinode_installation fails if a newer generator sets variables not covered here.
-# mpirun and its local ranks inherit nv-hostengine's resource limits, and systemd services do
-# not get the unlimited memlock from /etc/security/limits.conf (hpc-tuning.sh only raises
-# DefaultLimitMEMLOCK on RHEL-family). Without this, UCX on the launching node cannot register
-# memory and mndiag fails to spawn its ranks.
-source /etc/profile.d/modules.sh
-module load mpi/hpcx
-DCGM_MNDIAG_MPIRUN_PATH=$(command -v mpirun)
-module unload mpi/hpcx
-DCGM_MNDIAG_MPI_PREFIX=$(dirname "$(dirname "${DCGM_MNDIAG_MPIRUN_PATH}")")
-if [[ ! -x "${DCGM_MNDIAG_MPIRUN_PATH}" || ! -d "${DCGM_MNDIAG_MPI_PREFIX}/lib" ]]; then
-    echo "ERROR: HPC-X Open MPI (bin/mpirun and lib/) not found under ${DCGM_MNDIAG_MPI_PREFIX}" >&2
+# DCGM_MNDIAG_MPIRUN_PATH in nv-hostengine's environment. The multinode package's systemd
+# generator writes a distro Open MPI path into
+# /run/systemd/system/nvidia-dcgm.service.d/50-mndiag.conf (and nothing at all on AlmaLinux),
+# but this image satisfies the packages' openmpi dependency with HPC-X marker packages, so that
+# path does not exist. Instead, run nv-hostengine in a screen session (a real pty) whose shell
+# establishes HPC-X with `module load mpi/hpcx`, the same way users do, and takes mpirun from
+# it. The generator's variables are unset so the module is their only source. The module is
+# loaded inside the session because screen is setuid/setgid on some distros, so LD_* variables
+# passed through it are dropped.
+# - nv-hostengine's own ExecStart (it already runs with -n, in the foreground) is reused, and
+#   screen -Dm runs in the foreground too, so systemd still supervises the service. screen
+#   exits cleanly when nv-hostengine dies, so Restart=always replaces the vendor's
+#   Restart=on-abort to keep restarting nv-hostengine after a crash.
+# - The session lives in a private SCREENDIR; attach with
+#   `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
+# - mpirun and its local ranks inherit nv-hostengine's resource limits, and systemd services do
+#   not get the unlimited memlock from /etc/security/limits.conf (hpc-tuning.sh only raises
+#   DefaultLimitMEMLOCK on RHEL-family). Without it, UCX on the launching node cannot register
+#   memory and mndiag fails to spawn its ranks.
+if ! command -v screen > /dev/null; then
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        apt-get install -y screen
+    else
+        dnf install -y screen
+    fi
+fi
+DCGM_UNIT_FILE=$(systemctl show -p FragmentPath --value nvidia-dcgm.service)
+DCGM_HOSTENGINE_CMD=$(sed -n 's/^ExecStart=//p' "${DCGM_UNIT_FILE}" | tail -n1)
+if [[ "${DCGM_HOSTENGINE_CMD}" != */nv-hostengine* ]]; then
+    echo "ERROR: could not find the nv-hostengine ExecStart in ${DCGM_UNIT_FILE}" >&2
     exit 1
 fi
 mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
 cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
 [Service]
 LimitMEMLOCK=infinity
-Environment="DCGM_MNDIAG_MPIRUN_PATH=${DCGM_MNDIAG_MPIRUN_PATH}"
-Environment="OPAL_PREFIX=${DCGM_MNDIAG_MPI_PREFIX}"
-Environment="LD_LIBRARY_PATH=${DCGM_MNDIAG_MPI_PREFIX}/lib"
+UnsetEnvironment=DCGM_MNDIAG_MPIRUN_PATH LD_LIBRARY_PATH
+RuntimeDirectory=nvidia-dcgm-screen
+RuntimeDirectoryMode=0700
+Environment="SCREENDIR=/run/nvidia-dcgm-screen"
+Restart=always
+ExecStart=
+ExecStart=$(command -v screen) -c /dev/null -DmS nvidia-dcgm /bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH="\$\$(command -v mpirun)" && exec ${DCGM_HOSTENGINE_CMD}'
 EOF
 systemctl daemon-reload
 

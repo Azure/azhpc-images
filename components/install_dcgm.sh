@@ -224,26 +224,13 @@ fi
 
 write_component_version "DCGM" ${DCGM_VERSION}
 
-# DCGM multinode diagnostics (dcgmi mndiag) launch mnubergemm through the mpirun named by
-# DCGM_MNDIAG_MPIRUN_PATH in nv-hostengine's environment. The multinode package's systemd
-# generator writes a distro Open MPI path into
-# /run/systemd/system/nvidia-dcgm.service.d/50-mndiag.conf (and nothing at all on AlmaLinux),
-# but this image satisfies the packages' openmpi dependency with HPC-X marker packages, so that
-# path does not exist. Instead, run nv-hostengine in a screen session (a real pty) whose shell
-# establishes HPC-X with `module load mpi/hpcx`, the same way users do, and takes mpirun from
-# it. The generator's variables are unset so the module is their only source. The module is
-# loaded inside the session because screen is setuid/setgid on some distros, so LD_* variables
-# passed through it are dropped.
-# - nv-hostengine's own ExecStart (it already runs with -n, in the foreground) is reused, and
-#   screen -Dm runs in the foreground too, so systemd still supervises the service. screen
-#   exits cleanly when nv-hostengine dies, so Restart=always replaces the vendor's
-#   Restart=on-abort to keep restarting nv-hostengine after a crash.
-# - The session lives in a private SCREENDIR; attach with
-#   `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
-# - mpirun and its local ranks inherit nv-hostengine's resource limits, and systemd services do
-#   not get the unlimited memlock from /etc/security/limits.conf (hpc-tuning.sh only raises
-#   DefaultLimitMEMLOCK on RHEL-family). Without it, UCX on the launching node cannot register
-#   memory and mndiag fails to spawn its ranks.
+# dcgmi mndiag runs the mpirun in nv-hostengine's DCGM_MNDIAG_MPIRUN_PATH. The multinode
+# package's generator points it at a distro Open MPI this image doesn't have, so run
+# nv-hostengine in a screen session that loads mpi/hpcx and takes mpirun from it.
+# - The module is loaded inside screen, which drops LD_* variables on some distros.
+# - screen exits cleanly when nv-hostengine dies, so Restart=always is needed to restart it.
+# - UCX needs unlimited memlock, which systemd services don't get from limits.conf.
+# - Attach with `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
 if ! command -v screen > /dev/null; then
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y screen

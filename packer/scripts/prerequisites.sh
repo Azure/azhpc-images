@@ -56,7 +56,6 @@ EOF
 
     systemctl stop unattended-upgrades.service 2>/dev/null || true
     systemctl disable unattended-upgrades.service 2>/dev/null || true
-    systemctl mask unattended-upgrades.service 2>/dev/null || true
 }
 
 ####

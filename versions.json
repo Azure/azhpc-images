@@ -973,8 +973,8 @@
     },
     "waagent": {
         "common": {
-            "version": "2.15.0.1",
-            "sha256": "f405cb90179dbe582a1c71a36af8016072c0defeb969aeee7861d5aab10499d8"
+            "version": "2.16.0.2",
+            "sha256": "73f643ea080ece55f48fc04b7d708e391fbfb0ba88c562ab21c398ca3692b99b"
         },
         "ubuntu24.04": {
             "aarch64": {

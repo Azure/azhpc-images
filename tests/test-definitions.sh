@@ -421,17 +421,9 @@ function verify_mkl_installation {
 }
 
 function verify_diagnostics_installation {
+    # The collector itself is run during the build by the "Collect azhpc-diagnostics bundle" step in packer/build.pkr.hcl
     local diag_script="${HPC_ENV}/diagnostics/azhpc-diagnostics.sh"
     check_exists $diag_script
-
-    # Run a real collection so the script can't silently break on new distros/SKUs
-    local out_dir
-    out_dir=$(mktemp -d)
-    sudo $diag_script --no-bug-report --output-dir $out_dir > /dev/null
-    check_exit_code "azhpc-diagnostics collection" "azhpc-diagnostics failed to collect diagnostics"
-    sudo ls $out_dir/azhpc-diagnostics-*.tar.gz
-    check_exit_code "azhpc-diagnostics bundle created" "azhpc-diagnostics did not create a bundle"
-    sudo rm -rf $out_dir
 }
 
 # Internal/ external installation of GCC

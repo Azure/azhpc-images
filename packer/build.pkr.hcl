@@ -427,6 +427,38 @@ build {
   }
 
   provisioner "shell" {
+    name            = "Collect azhpc-diagnostics bundle"
+    except          = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline = [
+      "set -e",
+      "rm -rf /tmp/azhpc-diagnostics /tmp/azhpc-diagnostics.tar.gz",
+      "/opt/azurehpc/diagnostics/azhpc-diagnostics.sh --no-bug-report --output-dir /tmp/azhpc-diagnostics",
+      # Packer downloads from a fixed path; the bundle name contains host and timestamp.
+      "mv /tmp/azhpc-diagnostics/azhpc-diagnostics-*.tar.gz /tmp/azhpc-diagnostics.tar.gz",
+      "chmod 644 /tmp/azhpc-diagnostics.tar.gz",
+    ]
+  }
+
+  provisioner "file" {
+    name        = "Download azhpc-diagnostics bundle"
+    except      = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    direction   = "download"
+    generated   = true
+    source      = "/tmp/azhpc-diagnostics.tar.gz"
+    destination = "/tmp/image_manifests/azhpc-diagnostics.tar.gz"
+  }
+
+  provisioner "shell" {
+    name            = "Remove azhpc-diagnostics bundle from image"
+    except          = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline = [
+      "rm -rf /tmp/azhpc-diagnostics /tmp/azhpc-diagnostics.tar.gz",
+    ]
+  }
+
+  provisioner "shell" {
     name            = "Collect post-build evidence"
     script          = "scripts/collect_build_evidence.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"

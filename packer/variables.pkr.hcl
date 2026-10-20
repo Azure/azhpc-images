@@ -691,6 +691,9 @@ variable "target_node_type" {
 locals {
   target_node_type = coalesce(var.target_node_type, "azure_vm_regular")
   install_script_name = local.target_node_type == "azure_vm_akshost" ? "install_aks.sh" : "install.sh"
+  # azhpc-diagnostics is installed by install.sh (not install_aks.sh) and may be
+  # missing from the base image of an in-place refresh.
+  collect_diagnostics = !var.skip_hpc && !local.refresh_mode && local.target_node_type != "azure_vm_akshost"
 
   # Keep target-node compatibility keyed by target VM size, not GPU SKU. Multiple
   # VM sizes can map to the same GPU SKU but still represent different build targets.

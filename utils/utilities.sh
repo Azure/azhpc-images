@@ -78,6 +78,71 @@ write_component_version(){
 }
 
 ############################################################################
+# @Brief        : Write a repository commit and ref to component_versions.txt
+#
+# @Args         : (1) Component name
+#                 (2) Repository directory
+#                 [--commit COMMIT]
+#                 [--ref REF]
+############################################################################
+write_repo_source_info(){
+    local component=$1
+    local repo_dir=$2
+    local specified_commit=""
+    local specified_ref=""
+
+    shift 2
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --commit)
+                if [[ $# -lt 2 ]]; then
+                    echo "Missing value for --commit" >&2
+                    return 1
+                fi
+                specified_commit=$2
+                shift 2
+                ;;
+            --ref)
+                if [[ $# -lt 2 ]]; then
+                    echo "Missing value for --ref" >&2
+                    return 1
+                fi
+                specified_ref=$2
+                shift 2
+                ;;
+            *)
+                echo "Unknown write_repo_source_info argument: $1" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    component_commit_name="${component}_REPO_COMMIT"
+    component_ref_name="${component}_REPO_REF"
+
+    if [[ -n "${specified_commit}" && "${specified_commit}" != "null" ]]; then
+        repo_commit=${specified_commit}
+    else
+        repo_commit=$(git -C "${repo_dir}" rev-parse HEAD)
+    fi
+
+    write_component_version "${component_commit_name}" "${repo_commit}"
+
+    if [[ -n "${specified_ref}" && "${specified_ref}" != "null" ]]; then
+        repo_ref=${specified_ref}
+    else
+        repo_ref=$(git -C "${repo_dir}" symbolic-ref --quiet --short HEAD 2>/dev/null || true)
+        if [[ -z "${repo_ref}" ]]; then
+            repo_ref="DETACHED"
+        fi
+    fi
+
+    if [[ -n "${repo_ref}" && "${repo_ref}" != "null" ]]; then
+        write_component_version "${component_ref_name}" "${repo_ref}"
+    fi
+}
+
+############################################################################
 # @Brief	: Download the file and verify its checksum
 #
 # @Args		: (1) Download URL
@@ -92,7 +157,7 @@ download_and_verify(){
     if [ $# -eq 2 ] || [ $# -eq 3 ]
     then
         wget --retry-connrefused --tries=3 --waitretry=5 $DOWNLOAD_URL
-        verify_checksum $(readlink -f $DOWNLOADED_FILE_NAME) $FILE_CHECKSUM
+        verify_checksum "$(readlink -f "$DOWNLOADED_FILE_NAME")" "$FILE_CHECKSUM"
         if [ -n "$FILE_PATH" ]; then
             mkdir -p $FILE_PATH
             mv $DOWNLOADED_FILE_NAME $FILE_PATH
@@ -106,12 +171,12 @@ download_and_verify(){
 
 # Find and verify checksum
 verify_checksum() {
-    local checksum=`sha256sum $1 | awk '{print $1}'`
+    local checksum=`sha256sum "$1" | awk '{print $1}'`
     if [[ $checksum == $2 ]]
     then
         echo "Checksum verified!"
     else
-        echo "*** Error - Checksum verification failed"
+        echo "*** Error - Checksum verification failed for $1. Expected $2, got $checksum"
         return 1
     fi
 }

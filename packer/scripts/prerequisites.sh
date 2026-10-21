@@ -171,9 +171,10 @@ install_ubuntu_nvidia_kernel() {
     # Purge non-nvidia kernels
     apt-get purge -y linux-azure linux-image-azure
 
-    # Remove non-nvidia kernel packages
+    # Remove all versioned non-nvidia kernel packages (e.g. the base image's 6.14/6.17/7.0 HWE
+    # kernel) so DKMS doesn't try to build OFED/xpmem/etc. against them.
     local packages_to_remove
-    packages_to_remove=$(dpkg -l | awk '/linux-(azure|image|cloud-tools|headers|modules|tools)-6\.(14|17)/ && $2 !~ /nvidia/ {print $2}' || true)
+    packages_to_remove=$(dpkg -l | awk '$2 ~ /^linux-(azure-[0-9]|(image|image-unsigned|cloud-tools|headers|modules|modules-extra|tools|buildinfo)-[0-9])/ && $2 !~ /nvidia/ {print $2}' || true)
     if [[ -n "${packages_to_remove}" ]]; then
         apt-get purge -y ${packages_to_remove}
     fi

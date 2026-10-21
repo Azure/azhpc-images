@@ -354,6 +354,68 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+# Post-reboot check for a pre-release amdgpu driver staged by
+# components/install_test_amdgpu_driver.sh; no-op when nothing was staged.
+function verify_amdgpu_driver_update {
+    local expected_file=/opt/azurehpc/amdgpu_driver_test.env
+    if [[ ! -f "$expected_file" ]]; then
+        echo "No pre-release amdgpu driver staged, skipping driver update check"
+        return 0
+    fi
+    source "$expected_file"
+    cat "$expected_file"
+
+    [[ "$(uname -r)" == "$AMDGPU_TEST_KERNEL" ]]
+    check_exit_code "Booted kernel $(uname -r)" "Booted kernel $(uname -r), expected $AMDGPU_TEST_KERNEL"
+
+    rpm -q "$AMDGPU_TEST_PKG" "$AMDGPU_TEST_FIRMWARE_PKG"
+    check_exit_code "Pre-release amdgpu packages installed" "Pre-release amdgpu packages not installed"
+
+    # rocmstartup.service loads amdgpu a few minutes after boot.
+    local expected_gpus gpu_count=0 waited=0
+    expected_gpus=$(lspci -d 1002:74b5 | wc -l)
+    while (( waited < 900 )); do
+        if [[ "$(cat /sys/module/amdgpu/initstate 2>/dev/null)" == "live" ]]; then
+            gpu_count=$(/opt/rocm/bin/rocminfo 2>/dev/null | grep -cE '^\s+Name:\s+gfx942\s*$' || true)
+            (( gpu_count >= expected_gpus && expected_gpus > 0 )) && break
+        fi
+        sleep 30
+        waited=$((waited + 30))
+    done
+
+    [[ "$(cat /sys/module/amdgpu/initstate 2>/dev/null)" == "live" ]]
+    check_exit_code "amdgpu module is loaded" "amdgpu module is not loaded"
+
+    [[ "$(cat /sys/module/amdgpu/srcversion)" == "$AMDGPU_TEST_SRCVERSION" ]]
+    check_exit_code "Loaded amdgpu matches $AMDGPU_TEST_KO" "Loaded amdgpu (srcversion $(cat /sys/module/amdgpu/srcversion)) is not the pre-release build"
+
+    echo "amdgpu version: $(cat /sys/module/amdgpu/version 2>/dev/null), ip_block_mask: $(cat /sys/module/amdgpu/parameters/ip_block_mask 2>/dev/null)"
+
+    (( gpu_count == expected_gpus && expected_gpus > 0 ))
+    check_exit_code "rocminfo reports $gpu_count/$expected_gpus MI300X GPUs" "rocminfo reports $gpu_count GPU agents, expected $expected_gpus"
+
+    if [[ -x /opt/rocm/bin/amd-smi ]]; then
+        /opt/rocm/bin/amd-smi version
+        /opt/rocm/bin/amd-smi list
+    fi
+    /opt/rocm/bin/rocm-smi --showdriverversion --showproductname
+    check_exit_code "rocm-smi queried all GPUs" "rocm-smi failed"
+
+    local rvs_conf=/opt/rocm/share/rocm-validation-suite/conf/MI300X/gst_single.conf
+    [[ -f "$rvs_conf" ]] || rvs_conf=/opt/rocm/share/rocm-validation-suite/conf/gst_single.conf
+    local rvs_log rvs_rc
+    rvs_log=$(mktemp)
+    sudo timeout 1800 /opt/rocm/bin/rvs -c "$rvs_conf" > "$rvs_log" 2>&1
+    rvs_rc=$?
+    cat "$rvs_log"
+    (( rvs_rc == 0 )) && grep -qE '(pass|met): TRUE' "$rvs_log" && ! grep -qE '(pass|met): FALSE' "$rvs_log"
+    check_exit_code "RVS GPU stress test ($rvs_conf) passed" "RVS GPU stress test ($rvs_conf) failed"
+    rm -f "$rvs_log"
+
+    echo "amdgpu kernel log errors/warnings (informational):"
+    sudo dmesg | grep -i amdgpu | grep -iE 'error|fail|fault|timeout|hang' || echo "none"
+}
+
 # Validate /etc/dnf/dnf.conf is well-formed. Build-time only (call sites
 # should gate on validation_mode).
 #

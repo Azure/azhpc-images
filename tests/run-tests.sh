@@ -71,6 +71,7 @@ function test_component {
         check_nccl) verify_nccl_installation;;
         check_rocm) verify_rocm_installation;;
         check_rccl) verify_rccl_installation;;
+        check_amdgpu_driver_update) verify_amdgpu_driver_update;;
         check_aocl) verify_aocl_installation;;
         check_aocc) verify_aocc_installation;;
         check_docker) verify_docker_installation;;

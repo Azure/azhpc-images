@@ -197,6 +197,24 @@ build {
     ]
   }
 
+  // Temporary: stage a pre-release Azure Linux amdgpu driver drop (zip or tar of RPMs)
+  // for components/install_test_amdgpu_driver.sh, run via extra_provision_script.
+  provisioner "shell-local" {
+    name           = "(Azure Linux AMD) download pre-release driver drop"
+    except         = (!var.skip_hpc && local.os_family == "azurelinux" && local.gpu_platform == "AMD") ? [] : ["azure-arm.hpc"]
+    inline_shebang = var.default_inline_shebang
+    inline = [
+      "if [[ -z \"${var.internal_bits_container_name}\" || -z \"${var.internal_bits_blob_name}\" || \"${var.internal_bits_container_name}\" =~ ^[Nn]one$ || \"${var.internal_bits_blob_name}\" =~ ^[Nn]one$ ]]; then echo 'Skipping driver drop download: INTERNAL_BITS_CONTAINER_NAME or INTERNAL_BITS_BLOB_NAME is unset/None'; exit 0; fi",
+      "dest=${path.root}/../prebuilt/amdgpu-driver-test",
+      "tmp=$(mktemp -d)",
+      "rm -rf \"$dest\" && mkdir -p \"$dest\"",
+      "az storage blob download -f \"$tmp/drop\" -c ${var.internal_bits_container_name} -n ${var.internal_bits_blob_name} --account-name azhpcstoralt --auth-mode login --only-show-errors",
+      "case \"${var.internal_bits_blob_name}\" in *.zip) python3 -m zipfile -e \"$tmp/drop\" \"$dest\" ;; *) tar -xf \"$tmp/drop\" -C \"$dest\" ;; esac",
+      "rm -rf \"$tmp\"",
+      "find \"$dest\" -name '*.rpm' | sort",
+    ]
+  }
+
   provisioner "shell" {
     name           = "Create azhpc-images directory"
     inline_shebang = var.default_inline_shebang

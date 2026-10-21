@@ -86,11 +86,13 @@ Please keep using our latest HPC images. If any compliance issues (e.g., securit
 
 # Collecting Diagnostics
 
-If you run into a problem with a VM built from our HPC/AI images, run the bundled diagnostics script and attach the output to your support request. It collects system, GPU, InfiniBand, MPI/NCCL and image information from the VM into a single tarball.
+If you run into a problem with a VM built from our HPC/AI images, run the bundled diagnostics script and attach the output to your support request. It collects GPU, system, InfiniBand, MPI/NCCL and image information from the VM into a single tarball. On NVIDIA VMs the bundle includes a full report from NVIDIA's `nvidia-bug-report.sh`.
 
 ```bash
 sudo azhpc-diagnostics
 ```
+
+The script needs root. If you run it without `sudo`, `pkexec` asks you to authenticate as an administrator. Run it as `azhpc-diagnostics` or by its full path: `pkexec` starts it in root's home directory, so a relative path such as `./azhpc-diagnostics.sh` doesn't work.
 
 The script is installed at `/opt/azurehpc/diagnostics/azhpc-diagnostics.sh` (`azhpc-diagnostics` is a link to it in `/usr/sbin`). When it finishes, it prints a short list of automatically detected issues (for example, missing GPUs, GPU Xid/ECC errors, inactive InfiniBand ports, a stopped NVIDIA Fabric Manager or a kernel that differs from the one the image shipped with) and the path of the bundle:
 
@@ -102,10 +104,10 @@ By default the script only runs read-only commands, so it is safe to run while w
 
 |Option|Description|
 |------|-----------|
-|`-o`, `--output-dir DIR`|Directory to write the tarball to (default: `/var/tmp`)|
+|`-o`, `--output-dir DIR`|Absolute path of the directory to write the tarball to (default: `/var/tmp`)|
 |`--gpu-diag LEVEL`|Also run `dcgmi diag -r LEVEL` (1-3) on NVIDIA GPUs. Stresses the GPUs; do not run alongside workloads|
 |`--nhc`|Also run the [Azure HPC node health checks](https://github.com/Azure/azurehpc-health-checks). Stresses GPUs and network; do not run alongside workloads|
-|`--no-bug-report`|Skip `nvidia-bug-report.sh`|
+|`--no-bug-report`|Skip `nvidia-bug-report.sh` (for example, if it hangs)|
 |`--timeout SECONDS`|Per-command timeout (default: 120)|
 |`-h`, `--help`|Show all options|
 

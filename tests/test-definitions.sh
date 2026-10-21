@@ -424,6 +424,8 @@ function verify_diagnostics_installation {
     # The collector itself is run during the build by the "Collect azhpc-diagnostics bundle" step in packer/build.pkr.hcl
     local diag_script="${HPC_ENV}/diagnostics/azhpc-diagnostics.sh"
     check_exists $diag_script
+    # The script's interpreter (shebang)
+    check_exists /usr/bin/pkexec
 }
 
 # Internal/ external installation of GCC

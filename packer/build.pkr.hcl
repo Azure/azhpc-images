@@ -433,7 +433,7 @@ build {
     inline = [
       "set -e",
       "rm -rf /tmp/azhpc-diagnostics /tmp/azhpc-diagnostics.tar.gz",
-      "/opt/azurehpc/diagnostics/azhpc-diagnostics.sh --no-bug-report --output-dir /tmp/azhpc-diagnostics",
+      "/opt/azurehpc/diagnostics/azhpc-diagnostics.sh --output-dir /tmp/azhpc-diagnostics",
       # Packer downloads from a fixed path; the bundle name contains host and timestamp.
       "mv /tmp/azhpc-diagnostics/azhpc-diagnostics-*.tar.gz /tmp/azhpc-diagnostics.tar.gz",
       "chmod 644 /tmp/azhpc-diagnostics.tar.gz",

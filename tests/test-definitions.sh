@@ -428,11 +428,10 @@ function verify_amdgpu_driver_update {
     [[ -f "$rvs_conf" ]] || rvs_conf=/opt/rocm/share/rocm-validation-suite/conf/gst_single.conf
     local rvs_log rvs_rc
     rvs_log=$(mktemp)
-    sudo timeout 1800 /opt/rocm/bin/rvs -c "$rvs_conf" > "$rvs_log" 2>&1
-    rvs_rc=$?
-    cat "$rvs_log"
+    sudo timeout 1800 /opt/rocm/bin/rvs -c "$rvs_conf" 2>&1 | tee "$rvs_log"
+    rvs_rc=${PIPESTATUS[0]}
     (( rvs_rc == 0 )) && grep -qE '(pass|met): TRUE' "$rvs_log" && ! grep -qE '(pass|met): FALSE' "$rvs_log"
-    check_exit_code "RVS GPU stress test ($rvs_conf) passed" "RVS GPU stress test ($rvs_conf) failed"
+    check_exit_code "RVS GPU stress test ($rvs_conf) passed" "RVS GPU stress test ($rvs_conf) failed (exit code $rvs_rc)"
     rm -f "$rvs_log"
 
     echo "amdgpu kernel log errors/warnings (informational):"

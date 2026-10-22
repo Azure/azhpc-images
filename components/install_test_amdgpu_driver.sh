@@ -147,6 +147,11 @@ while true; do
 done
 
 dracut -f --kver "${target_kernel}"
+# Unsigned (dev) driver builds cannot load under lockdown=integrity; relax it for this test VM only.
+if [[ -z "$(modinfo -F sig_id "${amdgpu_ko}")" ]] && grep -q 'lockdown=integrity' /etc/default/grub; then
+    echo "##[warning]${amdgpu_pkg} modules are unsigned; removing lockdown=integrity from the kernel command line for this test"
+    sed -i 's/lockdown=integrity *//' /etc/default/grub
+fi
 grub2-mkconfig -o /boot/grub2/grub.cfg
 if grep -q '^GRUB_DEFAULT=saved' /etc/default/grub 2>/dev/null; then
     grub2-set-default 0
@@ -159,6 +164,11 @@ elif [[ "${first_linux}" != *"vmlinuz-${target_kernel}"* ]]; then
 fi
 
 mkdir -p "$(dirname "${EXPECTED_FILE}")"
+# RVS needs librocrand via hiprand, but AMD's Azure Linux 3 hiprand package does not declare the dependency.
+if rpm -q rocm-validation-suite &>/dev/null && ! rpm -q rocrand &>/dev/null; then
+    dnf -y install rocrand
+fi
+
 cat > "${EXPECTED_FILE}" <<EOF
 AMDGPU_TEST_KERNEL=${target_kernel}
 AMDGPU_TEST_PKG=${amdgpu_pkg}

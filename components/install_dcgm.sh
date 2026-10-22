@@ -224,9 +224,44 @@ fi
 
 write_component_version "DCGM" ${DCGM_VERSION}
 
-# Enable the dcgm service
+# dcgmi mndiag runs the mpirun in nv-hostengine's DCGM_MNDIAG_MPIRUN_PATH. The multinode
+# package's generator points it at a distro Open MPI this image doesn't have, so run
+# nv-hostengine in a screen session that loads mpi/hpcx and takes mpirun from it.
+# - The module is loaded inside screen, which drops LD_* variables on some distros.
+# - screen exits cleanly when nv-hostengine dies, so Restart=always is needed to restart it.
+# - UCX needs unlimited memlock, which systemd services don't get from limits.conf.
+# - Attach with `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
+if ! command -v screen > /dev/null; then
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        apt-get install -y screen
+    else
+        dnf install -y screen
+    fi
+fi
+DCGM_UNIT_FILE=$(systemctl show -p FragmentPath --value nvidia-dcgm.service)
+DCGM_HOSTENGINE_CMD=$(sed -n 's/^ExecStart=//p' "${DCGM_UNIT_FILE}" | tail -n1)
+if [[ "${DCGM_HOSTENGINE_CMD}" != */nv-hostengine* ]]; then
+    echo "ERROR: could not find the nv-hostengine ExecStart in ${DCGM_UNIT_FILE}" >&2
+    exit 1
+fi
+mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
+cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
+[Service]
+LimitMEMLOCK=infinity
+UnsetEnvironment=DCGM_MNDIAG_MPIRUN_PATH LD_LIBRARY_PATH
+RuntimeDirectory=nvidia-dcgm-screen
+RuntimeDirectoryMode=0700
+Environment="SCREENDIR=/run/nvidia-dcgm-screen"
+Environment="OMPI_MCA_mca_base_env_list=LD_LIBRARY_PATH;PATH"
+Restart=always
+ExecStart=
+ExecStart=$(command -v screen) -c /dev/null -DmS nvidia-dcgm /bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH="\$\$(command -v mpirun)" && exec ${DCGM_HOSTENGINE_CMD}'
+EOF
+systemctl daemon-reload
+
+# Enable the dcgm service; restart so an instance started by the package picks up the drop-in
 systemctl --now enable nvidia-dcgm
-systemctl start nvidia-dcgm
+systemctl restart nvidia-dcgm
 # Check if the service is active
 systemctl is-active --quiet nvidia-dcgm
 error_code=$?

@@ -354,6 +354,24 @@ function verify_rccl_installation {
     module unload mpi/hpcx
 }
 
+function dump_amdgpu_diagnostics {
+    echo "===== amdgpu diagnostics ====="
+    cat /proc/cmdline
+    lspci -nn -d 1002:
+    lsmod | grep -E 'amd|drm|kcl|hyperv' || true
+    modinfo -n amdgpu
+    cat /etc/modprobe.d/*.conf /etc/modules-load.d/*.conf 2>/dev/null | grep -i -E 'amdgpu|radeon' || true
+    sudo systemctl status rocmstartup --no-pager -l || true
+    sudo journalctl -b --no-pager -u rocmstartup -u systemd-modules-load | tail -n 100 || true
+    echo "--- kernel log (amdgpu/kfd/drm) ---"
+    sudo dmesg | grep -iE 'amdgpu|amdkcl|amdxcp|amd-sched|amddrm|kfd|\[drm\]|unknown symbol|disagrees about version' | tail -n 300 || true
+    echo "--- manual modprobe attempt ---"
+    sudo timeout 600 modprobe -v amdgpu ip_block_mask=0x7f
+    echo "modprobe exit code: $?, initstate: $(cat /sys/module/amdgpu/initstate 2>&1)"
+    sudo dmesg | tail -n 100
+    echo "===== end amdgpu diagnostics ====="
+}
+
 # Post-reboot check for a pre-release amdgpu driver staged by
 # components/install_test_amdgpu_driver.sh; no-op when nothing was staged.
 function verify_amdgpu_driver_update {
@@ -384,6 +402,11 @@ function verify_amdgpu_driver_update {
     done
 
     [[ "$(cat /sys/module/amdgpu/initstate 2>/dev/null)" == "live" ]]
+    local loaded=$?
+    if (( loaded != 0 )); then
+        dump_amdgpu_diagnostics
+    fi
+    (exit $loaded)
     check_exit_code "amdgpu module is loaded" "amdgpu module is not loaded"
 
     [[ "$(cat /sys/module/amdgpu/srcversion)" == "$AMDGPU_TEST_SRCVERSION" ]]

@@ -52,7 +52,6 @@ apt-get -y install numactl \
                    python3-pip \
                    python3-setuptools \
                    pkg-config \
-                   dkms \
                    jq \
                    curl \
                    libyaml-dev \
@@ -63,6 +62,8 @@ apt-get -y install numactl \
                    nfs-common \
                    pssh \
                    dos2unix
+
+$COMPONENT_DIR/install_cuda_repo_and_dkms.sh
 
 # azcopy: Microsoft's PMC ubuntu/26.04/prod pool does not yet ship azcopy
 # (verified Sep 2026).

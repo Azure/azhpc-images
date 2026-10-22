@@ -252,6 +252,7 @@ UnsetEnvironment=DCGM_MNDIAG_MPIRUN_PATH LD_LIBRARY_PATH
 RuntimeDirectory=nvidia-dcgm-screen
 RuntimeDirectoryMode=0700
 Environment="SCREENDIR=/run/nvidia-dcgm-screen"
+Environment="OMPI_MCA_mca_base_env_list=LD_LIBRARY_PATH;PATH"
 Restart=always
 ExecStart=
 ExecStart=$(command -v screen) -c /dev/null -DmS nvidia-dcgm /bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH="\$\$(command -v mpirun)" && exec ${DCGM_HOSTENGINE_CMD}'

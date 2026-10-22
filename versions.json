@@ -1070,10 +1070,10 @@
         },
         "ubuntu24.04": {
             "aarch64": {
-                "version": "2.17.0-24-gf517bc4"
+                "version": "2.17.0-28-gc7c975e"
             },
             "x86_64": {
-                "version": "2.17.0-24-gf517bc4"
+                "version": "2.17.0-28-gc7c975e"
             }
         },
         "rocky8.10": {

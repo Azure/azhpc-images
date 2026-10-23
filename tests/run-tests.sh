@@ -92,6 +92,8 @@ function verify_common_components {
         verify_package_updates;
     fi
 
+    verify_generated_system_config_syntax;
+
     if ! verify_network_components_hook; then
         if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
             verify_ofed_installation;

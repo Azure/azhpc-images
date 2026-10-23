@@ -429,8 +429,26 @@ update_rhel_packages() {
     fi
     
     echo "##[section]Updating packages for ${os_family}"
-    
-    dnf update -y --refresh
+
+    # Agents/extensions on the booted image can run dnf/rpm concurrently and change the
+    # rpmdb mid-transaction ("rpm exception: package not installed"), so wait and retry.
+    local attempt max_attempts=3
+    for attempt in $(seq 1 "${max_attempts}"); do
+        while pgrep -x 'dnf|yum|rpm|dnf-automatic' >/dev/null; do
+            echo "Waiting for other package manager processes to finish..."
+            sleep 10
+        done
+        if dnf update -y --refresh; then
+            break
+        fi
+        if (( attempt == max_attempts )); then
+            echo "##[error]dnf update failed after ${max_attempts} attempts"
+            return 1
+        fi
+        echo "##[warning]dnf update failed (attempt ${attempt}/${max_attempts}), retrying..."
+        sleep 30
+    done
+
     dnf install -y git
     
     if [[ "${os_family}" == "azurelinux"* ]]; then

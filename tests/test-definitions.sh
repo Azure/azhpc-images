@@ -419,6 +419,17 @@ function verify_gcc_installation {
 function verify_aocl_installation {
     # verify AMD modulefiles
     check_exists "${MODULE_FILES_ROOT}/amd/aocl"
+
+    # Images built before the MT/ST layout use lib_LP64/include_LP64 (seen on in-place refresh)
+    if [[ ! -e /opt/amd/MT && -d /opt/amd/lib_LP64 ]]; then
+        echo "Legacy LP64/ILP64 AOCL layout detected under /opt/amd"
+        check_exists "/opt/amd/lib_LP64/"
+        check_exists "/opt/amd/include_LP64/"
+        check_exists "/opt/amd/lib/"
+        check_exists "/opt/amd/include/"
+        return
+    fi
+
     check_exists "/opt/amd/MT/lib/"
     check_exists "/opt/amd/MT/include/"
     check_exists "/opt/amd/ST/lib/"

@@ -139,7 +139,8 @@ run_t() {
         124|137) status=TIMEOUT ;;
         *) status=FAIL ;;
     esac
-    printf '%s\t%s\t%ss\t%s\t%s\n' "$status" "$rc" "$((SECONDS - start))" "$rel" "$*" >> "$COMMANDS"
+    printf '%s\t%s\t%ss\t%s\t%s\n' "$status" "$rc" "$((SECONDS - start))" "$rel" \
+        "$(printf '%s' "$*" | tr -s '\t\n ' ' ')" >> "$COMMANDS"
     return $rc
 }
 
@@ -278,7 +279,8 @@ collect_services() {
     local svc
     for svc in $SERVICES; do
         systemctl cat "$svc.service" >/dev/null 2>&1 || continue
-        run "services/$svc.txt" systemctl status --no-pager -l "$svc.service"
+        # exit 3 = not running, normal for one-shot units
+        run_sh "services/$svc.txt" "systemctl status --no-pager -l $svc.service || [ \$? -eq 3 ]"
         run "services/$svc.txt" journalctl -b -u "$svc.service" --no-pager -n 500 -o short-iso
     done
 }
@@ -353,8 +355,6 @@ collect_amd() {
     run amd/amd-smi-static.txt amd-smi static
     run amd/amd-smi-firmware.txt amd-smi firmware
     run amd/amd-smi-metric.txt amd-smi metric
-    run amd/amd-smi-bad-pages.txt amd-smi bad-pages
-    run amd/amd-smi-topology.txt amd-smi topology
     run amd/amd-smi-xgmi.txt amd-smi xgmi
     run amd/rocminfo.txt rocminfo
 }
@@ -472,6 +472,12 @@ analyze() {
                 finding ERROR "amd-smi lists $amd_count of $AMD_GPU_COUNT AMD GPU(s) found on the PCI bus"
             fi
         fi
+
+        local amd_ecc
+        amd_ecc=$(awk '/^GPU: / {g = $2}
+            /TOTAL_UNCORRECTABLE_COUNT:/ && $2 ~ /^[0-9]+$/ && $2 > 0 {printf "%sGPU %s: %s", sep, g, $2; sep="; "}' \
+            "$WORK_DIR/amd/amd-smi-metric.txt" 2>/dev/null)
+        [ -n "$amd_ecc" ] && finding WARN "Uncorrectable ECC errors: $amd_ecc"
     fi
 
     local timeouts

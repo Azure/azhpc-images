@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Azure/azhpc-images/components/diagnostics/schema/build-manifest.schema.json",
+  "title": "azhpc image build manifest",
+  "description": "Written at build time by packer/scripts/collect_build_evidence.sh (post-build phase) to /opt/azurehpc/diagnostics/build-manifest.json and kept in the image, so azhpc-diagnostics can tell what the image was built for. Contains no subscription, resource or build-input information.",
+  "type": "object",
+  "required": ["schema_version", "image_version", "target_vm_size", "gpu_sku", "gpu_platform", "target_node_type", "built_at", "kernel", "arch", "os", "dkms"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "image_version": {"type": "string"},
+    "target_vm_size": {"type": "string"},
+    "build_vm_size": {"type": "string"},
+    "gpu_sku": {"type": "string", "description": "e.g. A100, MI300X, GB200"},
+    "gpu_platform": {"enum": ["NVIDIA", "AMD"]},
+    "target_node_type": {"type": "string", "description": "e.g. azure_vm_regular, baremetal_1p"},
+    "built_at": {"type": "string", "format": "date-time"},
+    "kernel": {"type": "string", "description": "Kernel the image was built and validated with"},
+    "arch": {"type": "string"},
+    "os": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "version_id": {"type": "string"}
+      }
+    },
+    "dkms": {
+      "type": "array",
+      "description": "DKMS state at the end of the build",
+      "items": {"$ref": "facts.schema.json#/$defs/dkms_entry"}
+    }
+  }
+}

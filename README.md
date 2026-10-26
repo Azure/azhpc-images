@@ -86,7 +86,7 @@ Please keep using our latest HPC images. If any compliance issues (e.g., securit
 
 # Collecting Diagnostics
 
-If you run into a problem with a VM built from our HPC/AI images, run the bundled diagnostics script and attach the output to your support request. It collects GPU, system, InfiniBand, MPI/NCCL and image information from the VM into a single tarball. On NVIDIA VMs the bundle includes a full report from NVIDIA's `nvidia-bug-report.sh`.
+If you run into a problem with a VM built from our HPC/AI images, run the bundled diagnostics script and attach the output to your support request. It collects system, hardware (`lspci`, `dmidecode`, `lsmod`, `dmesg`), network/InfiniBand, GPU, MPI/NCCL and image information from the VM into a single tarball. On NVIDIA VMs the bundle includes a full report from NVIDIA's `nvidia-bug-report.sh`.
 
 ```bash
 sudo azhpc-diagnostics
@@ -94,7 +94,7 @@ sudo azhpc-diagnostics
 
 The script needs root. If you run it without `sudo`, `pkexec` asks you to authenticate as an administrator. Run it as `azhpc-diagnostics` or by its full path: `pkexec` starts it in root's home directory, so a relative path such as `./azhpc-diagnostics.sh` doesn't work.
 
-The script is installed at `/opt/azurehpc/diagnostics/azhpc-diagnostics.sh` (`azhpc-diagnostics` is a link to it in `/usr/sbin`). When it finishes, it prints a short list of automatically detected issues (for example, missing GPUs, GPU Xid/ECC errors, inactive InfiniBand ports, a stopped NVIDIA Fabric Manager or a kernel that differs from the one the image shipped with) and the path of the bundle:
+The script is installed at `/opt/azurehpc/diagnostics/azhpc-diagnostics.sh` (`azhpc-diagnostics` is a link to it in `/usr/sbin`). When it finishes, it prints a short list of automatically detected issues and the path of the bundle. The checks compare the hardware visible on the VM with the hardware its VM size should have (taken from the Azure Instance Metadata Service). They report, for example, missing GPUs or InfiniBand devices, GPU drivers that aren't loaded, GPU Xid/ECC errors, inactive InfiniBand ports, a stopped NVIDIA Fabric Manager, DKMS modules that aren't built for the running kernel, and an image built for another GPU vendor than the VM has.
 
 ```
 Diagnostics bundle: /var/tmp/azhpc-diagnostics-<hostname>-<timestamp>.tar.gz
@@ -118,6 +118,14 @@ sudo azhpc-diagnostics --gpu-diag 1
 ```
 
 Nothing is uploaded by the script; the bundle stays on the VM and is only readable by root. It may contain hostnames, IP/MAC addresses and hardware serial numbers, so review it before sharing.
+
+Besides the raw command output, the bundle contains `facts.json`, a structured summary of the collected data, and `findings.json`/`findings.txt`, the result of the automated checks. The checks only read `facts.json`, so they can be re-run on an extracted bundle on any machine with `jq`:
+
+```bash
+/opt/azurehpc/diagnostics/azhpc-diagnostics-analyze.sh <extracted bundle directory>
+```
+
+The JSON schemas of these files are in [components/diagnostics/schema](components/diagnostics/schema). The image build collects its build evidence with the same code, and records what the image was built for in `/opt/azurehpc/diagnostics/build-manifest.json`.
 
 # Contributing
 

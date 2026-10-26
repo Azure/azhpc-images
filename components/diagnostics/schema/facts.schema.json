@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Azure/azhpc-images/components/diagnostics/schema/facts.schema.json",
+  "title": "azhpc facts",
+  "description": "Structured facts written by azhpc-collect-lib.sh (azc_write_facts) for both azhpc-diagnostics bundles (context=diagnostics) and image build evidence (context=build). Consumed by azhpc-diagnostics-analyze.sh. Raw command output is stored next to this file; paths in 'commands' are relative to it.",
+  "type": "object",
+  "required": ["schema_version", "context", "collector", "collected_at", "vm", "expected_hardware", "pci", "os", "image",
+               "kernel_modules", "dkms", "rdma", "services", "failed_units", "filesystems", "gpus", "commands", "notes"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "context": {"enum": ["diagnostics", "build"]},
+    "collector": {
+      "type": "object",
+      "required": ["name", "version", "lib_version"],
+      "properties": {
+        "name": {"type": "string", "description": "azhpc-diagnostics or build-evidence"},
+        "version": {"type": "string"},
+        "lib_version": {"type": "string"}
+      }
+    },
+    "collected_at": {"type": "string", "format": "date-time"},
+    "hostname": {"type": "string"},
+    "options": {"type": "object", "description": "Collector options, e.g. gpu_diag_level, nhc, bug_report, timeout_s"},
+    "vm": {
+      "type": "object",
+      "required": ["size"],
+      "properties": {
+        "size": {"type": ["string", "null"], "description": "Azure VM size from IMDS; null if IMDS is unreachable"},
+        "source": {"enum": ["imds", null]}
+      }
+    },
+    "expected_hardware": {
+      "type": "object",
+      "description": "Hardware the VM size is supposed to have (azc_sku_hardware). The source of truth for intended hardware; null means unknown.",
+      "required": ["known", "gpu_vendor", "gpu_count", "infiniband", "nvswitch"],
+      "properties": {
+        "known": {"type": "boolean"},
+        "gpu_vendor": {"enum": ["nvidia", "amd", "none", null]},
+        "gpu_count": {"type": ["integer", "null"], "minimum": 0},
+        "infiniband": {"type": ["boolean", "null"]},
+        "nvswitch": {"type": ["boolean", "null"]}
+      }
+    },
+    "pci": {
+      "type": "object",
+      "description": "Devices visible on the PCI bus (observed hardware)",
+      "required": ["nvidia_gpus", "nvswitches", "amd_gpus", "infiniband_controllers"],
+      "properties": {
+        "nvidia_gpus": {"type": "integer", "minimum": 0},
+        "nvswitches": {"type": "integer", "minimum": 0},
+        "amd_gpus": {"type": "integer", "minimum": 0},
+        "infiniband_controllers": {"type": "integer", "minimum": 0}
+      }
+    },
+    "os": {
+      "type": ["object", "null"],
+      "properties": {
+        "id": {"type": "string"},
+        "version_id": {"type": "string"},
+        "pretty_name": {"type": "string"},
+        "kernel": {"type": "string"},
+        "arch": {"type": "string"}
+      }
+    },
+    "image": {
+      "type": "object",
+      "required": ["component_versions", "build_manifest"],
+      "properties": {
+        "component_versions": {"type": ["object", "null"], "description": "/opt/azurehpc/component_versions.txt"},
+        "build_manifest": {
+          "oneOf": [{"$ref": "build-manifest.schema.json"}, {"type": "null"}],
+          "description": "/opt/azurehpc/diagnostics/build-manifest.json"
+        }
+      }
+    },
+    "kernel_modules": {"type": "array", "items": {"type": "string"}, "description": "Loaded kernel modules"},
+    "dkms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/dkms_entry"}
+    },
+    "rdma": {
+      "type": "object",
+      "required": ["ports"],
+      "properties": {
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["device", "port", "state", "link_layer"],
+            "properties": {
+              "device": {"type": "string"},
+              "port": {"type": ["integer", "string"]},
+              "state": {"type": "string", "description": "e.g. '4: ACTIVE'"},
+              "phys_state": {"type": "string"},
+              "link_layer": {"type": "string", "description": "InfiniBand or Ethernet"},
+              "rate": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string"},
+          "load_state": {"type": ["string", "null"]},
+          "unit_file_state": {"type": ["string", "null"]},
+          "active_state": {"type": ["string", "null"]},
+          "sub_state": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "failed_units": {"type": "array", "items": {"type": "string"}},
+    "filesystems": {
+      "type": "object",
+      "properties": {
+        "root_use_percent": {"type": ["integer", "null"], "minimum": 0, "maximum": 100}
+      }
+    },
+    "gpus": {
+      "type": "object",
+      "required": ["nvidia", "amd"],
+      "properties": {
+        "nvidia": {
+          "type": ["object", "null"],
+          "properties": {
+            "driver_loaded": {"type": "boolean"},
+            "driver_version": {"type": ["string", "null"], "description": "First line of /proc/driver/nvidia/version"},
+            "smi_ran": {"type": "boolean"},
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "index": {"type": ["integer", "null"]},
+                  "bus_id": {"type": "string"},
+                  "name": {"type": "string"},
+                  "serial": {"type": "string"},
+                  "uuid": {"type": "string"},
+                  "driver_version": {"type": "string"},
+                  "vbios_version": {"type": "string"},
+                  "persistence_mode": {"type": "string"},
+                  "ecc_uncorrected_volatile": {"type": ["integer", "null"]},
+                  "temperature_c": {"type": ["number", "null"]}
+                }
+              }
+            },
+            "remapped_rows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "index": {"type": ["integer", "null"]},
+                  "bus_id": {"type": "string"},
+                  "pending": {"type": "string"},
+                  "failure": {"type": "string"}
+                }
+              }
+            },
+            "xid_counts": {
+              "type": "object",
+              "description": "Xid code -> number of occurrences in the kernel log",
+              "additionalProperties": {"type": "integer"}
+            }
+          }
+        },
+        "amd": {
+          "type": ["object", "null"],
+          "properties": {
+            "driver_loaded": {"type": "boolean"},
+            "smi_visible": {"type": ["integer", "null"], "description": "GPUs listed by amd-smi; null if it did not run"},
+            "ecc_uncorrectable": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "gpu": {"type": ["integer", "string"]},
+                  "count": {"type": "integer"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["status", "output", "command"],
+        "properties": {
+          "status": {"enum": ["OK", "FAIL", "TIMEOUT", "SKIPPED"]},
+          "exit_code": {"type": ["integer", "null"]},
+          "duration_s": {"type": ["integer", "null"]},
+          "output": {"type": "string"},
+          "command": {"type": "string"}
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Issues the collector ran into",
+      "items": {
+        "type": "object",
+        "required": ["severity", "message"],
+        "properties": {
+          "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+          "message": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "dkms_entry": {
+      "type": "object",
+      "required": ["module", "version", "status"],
+      "properties": {
+        "module": {"type": "string"},
+        "version": {"type": "string"},
+        "kernel": {"type": ["string", "null"]},
+        "arch": {"type": ["string", "null"]},
+        "status": {"type": "string"}
+      }
+    }
+  }
+}

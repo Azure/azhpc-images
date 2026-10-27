@@ -113,6 +113,10 @@ make install
 popd
 rm -rf /tmp/azure-vm-utils
 
+if sku_uses_ipoib; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
+
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh
 

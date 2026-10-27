@@ -62,19 +62,72 @@ CUDA_VERSION=$((CUDA_DRIVER_SUPPORTED_VERSION / 1000))
 cuda_metadata=$(get_component_config "cuda")
 SKU_CUDA_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata | cut -d'.' -f1)
 
+# Print "<pkg>=<version>" for each given package and, recursively, every dependency
+# it declares as "(= <version>)". DCGM 4.7+ is split into many sub-packages (libdcgm,
+# dcgmi, nv-hostengine, datacenter-gpu-manager-4-module-*, ...) that the top-level
+# packages depend on with exact versions; apt would otherwise pick the newest revision
+# for those unpinned dependencies and fail to resolve.
+resolve_exact_version_deps() {
+    local version=$1
+    shift
+    local -a queue=("$@")
+    local -A seen=()
+    local pkg dep_list
+    while (( ${#queue[@]} )); do
+        pkg=${queue[0]}
+        queue=("${queue[@]:1}")
+        [[ -n "${seen[$pkg]:-}" ]] && continue
+        seen[$pkg]=1
+        dep_list=$(apt-cache show "${pkg}=${version}" 2>/dev/null || true)
+        if [[ -z "${dep_list}" ]]; then
+            echo "ERROR: ${pkg}=${version} is not available from the configured apt repositories" >&2
+            return 1
+        fi
+        echo "${pkg}=${version}"
+        mapfile -t -O "${#queue[@]}" queue < <(awk -v ver="${version}" '
+            /^(Pre-)?Depends:/ {
+                sub(/^[^:]*:[ \t]*/, "")
+                n = split($0, deps, /[,|]/)
+                for (i = 1; i <= n; i++) {
+                    d = deps[i]
+                    gsub(/^[ \t]+|[ \t]+$/, "", d)
+                    if (d ~ /^[^ ]+ \(= [^)]+\)$/) {
+                        split(d, parts, / \(= /)
+                        sub(/\)$/, "", parts[2])
+                        sub(/:.*$/, "", parts[1])
+                        if (parts[2] == ver) print parts[1]
+                    }
+                }
+            }' <<< "${dep_list}" | sort -u)
+    done
+}
+
 # Install DCGM
 # Reference: https://developer.nvidia.com/dcgm#Downloads
 # the repo is already added during nvidia/ cuda installations
 
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-    # Get DCGM version from versions.json
-    dcgm_metadata=$(get_component_config "dcgm")
-    DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
-    apt-get install -y \
-        datacenter-gpu-manager-4-cuda${CUDA_VERSION}=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-core=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary=${DCGM_VERSION} \
-        datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION}=${DCGM_VERSION}
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        apt-get install -y \
+            datacenter-gpu-manager-4-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-core \
+            datacenter-gpu-manager-4-proprietary \
+            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-multinode \
+            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}
+    else
+        # Get DCGM version from versions.json
+        dcgm_metadata=$(get_component_config "dcgm")
+        DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
+        dcgm_packages=$(resolve_exact_version_deps "${DCGM_VERSION}" \
+            datacenter-gpu-manager-4-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-core \
+            datacenter-gpu-manager-4-proprietary \
+            datacenter-gpu-manager-4-proprietary-cuda${CUDA_VERSION} \
+            datacenter-gpu-manager-4-multinode \
+            datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION})
+        apt-get install -y ${dcgm_packages}
+    fi
 
     # Nvidia documentation says that "Generally speaking, users should install binaries targeting the major version of the CUDA user-mode driver that's installed on their system."
     # but that v100 "is not supported by version 13.0.0 of the CUDA Toolkit. Consequently, Maxwell, Volta, and Pascal systems using driver version 580 should install DCGM packages targeting major version 12
@@ -82,9 +135,21 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # In practice though, DCGM requires both cuda12 and cuda13 support packages (https://github.com/NVIDIA/DCGM/issues/254).
     if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
-        apt-get install -y \
-            datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION} \
-            datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION}=${DCGM_VERSION}
+        if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+            apt-get install -y \
+                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
+        else
+            dcgm_packages=$(resolve_exact_version_deps "${DCGM_VERSION}" \
+                datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-proprietary-cuda${SKU_CUDA_VERSION} \
+                datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION})
+            apt-get install -y ${dcgm_packages}
+        fi
+    fi
+    if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+        DCGM_VERSION=$(dpkg-query -W -f='${Version}' datacenter-gpu-manager-4-core)
     fi
 elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     # Get DCGM version from versions.json
@@ -92,28 +157,111 @@ elif [[ $DISTRIBUTION == *"azurelinux"* ]]; then
     DCGM_VERSION=$(jq -r '.version' <<< $dcgm_metadata)
     # V100 does not support CUDA 13.0
     # so use DCGM compatible with CUDA 12
+    hpcx_provides_openmpi_marker=hpcx-provides-openmpi
+    if ! rpm -q "${hpcx_provides_openmpi_marker}" &>/dev/null; then
+        rpm_topdir=$(mktemp -d)
+        spec_file="${rpm_topdir}/${hpcx_provides_openmpi_marker}.spec"
+        mkdir -p "${rpm_topdir}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+        cat > "${spec_file}" <<EOF
+Name: ${hpcx_provides_openmpi_marker}
+Version: 1.0
+Release: 1
+Summary: Marker package to indicate that HPC-X provides Open MPI
+License: MIT
+BuildArch: noarch
+Provides: openmpi
+
+%description
+HPC-X, installed earlier by install_mpis.sh into /opt, provides Open MPI at
+runtime for this image. This marker package satisfies the "openmpi"
+dependency of datacenter-gpu-manager-4-multinode-cuda<N> so dnf does not
+install the Azure Linux openmpi RPM, whose newest build bundles PMIx files
+that conflict with the separately-installed pmix package.
+
+%install
+mkdir -p %{buildroot}/usr/share/doc/%{name}
+cat > %{buildroot}/usr/share/doc/%{name}/README <<'README'
+HPC-X provides Open MPI for this image; see install_mpis.sh.
+README
+
+%files
+/usr/share/doc/%{name}/README
+EOF
+        rpmbuild --define "_topdir ${rpm_topdir}" -bb "${spec_file}"
+        marker_rpm=$(find "${rpm_topdir}/RPMS" -type f -name "${hpcx_provides_openmpi_marker}-*.rpm" | head -n1)
+        if [[ -z "${marker_rpm}" ]]; then
+            echo "ERROR: failed to build ${hpcx_provides_openmpi_marker} marker RPM" >&2
+            exit 1
+        fi
+        rpm -Uvh --replacepkgs "${marker_rpm}"
+        rm -rf "${rpm_topdir}"
+    fi
     if [ "$1" = "V100" ]; then
-        dnf install -y datacenter-gpu-manager-4-cuda12-${DCGM_VERSION}
+        dnf install -y \
+            datacenter-gpu-manager-4-cuda12-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda12-${DCGM_VERSION}
     else
-        dnf install -y datacenter-gpu-manager-4-cuda13-${DCGM_VERSION}
+        dnf install -y \
+            datacenter-gpu-manager-4-cuda13-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-${DCGM_VERSION} \
+            datacenter-gpu-manager-4-multinode-cuda13-${DCGM_VERSION}
     fi
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     dnf clean expire-cache
     dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+    # Multinode diagnostic plugin (mnubergemm) for multi-node/rack-level testing; requires CUDA 12+.
+    dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${CUDA_VERSION}
     # V100 needs cuda12 DCGM packages in addition to cuda13 (same as Ubuntu logic above)
     if [[ "${SKU_CUDA_VERSION}" -lt "${CUDA_VERSION}" ]]; then
         echo "Installing DCGM packages for SKU-specific CUDA ${SKU_CUDA_VERSION}"
         dnf install --assumeyes --setopt=install_weak_deps=True datacenter-gpu-manager-4-cuda${SKU_CUDA_VERSION}
+        dnf install --assumeyes datacenter-gpu-manager-4-multinode-cuda${SKU_CUDA_VERSION}
     fi
     DCGM_VERSION=$(dcgmi --version | awk '{print $3}')
 fi
 
 write_component_version "DCGM" ${DCGM_VERSION}
 
-# Enable the dcgm service
+# dcgmi mndiag runs the mpirun in nv-hostengine's DCGM_MNDIAG_MPIRUN_PATH. The multinode
+# package's generator points it at a distro Open MPI this image doesn't have, so run
+# nv-hostengine in a screen session that loads mpi/hpcx and takes mpirun from it.
+# - The module is loaded inside screen, which drops LD_* variables on some distros.
+# - screen exits cleanly when nv-hostengine dies, so Restart=always is needed to restart it.
+# - UCX needs unlimited memlock, which systemd services don't get from limits.conf.
+# - Attach with `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
+if ! command -v screen > /dev/null; then
+    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+        apt-get install -y screen
+    else
+        dnf install -y screen
+    fi
+fi
+DCGM_UNIT_FILE=$(systemctl show -p FragmentPath --value nvidia-dcgm.service)
+DCGM_HOSTENGINE_CMD=$(sed -n 's/^ExecStart=//p' "${DCGM_UNIT_FILE}" | tail -n1)
+if [[ "${DCGM_HOSTENGINE_CMD}" != */nv-hostengine* ]]; then
+    echo "ERROR: could not find the nv-hostengine ExecStart in ${DCGM_UNIT_FILE}" >&2
+    exit 1
+fi
+mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
+cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
+[Service]
+LimitMEMLOCK=infinity
+UnsetEnvironment=DCGM_MNDIAG_MPIRUN_PATH LD_LIBRARY_PATH
+RuntimeDirectory=nvidia-dcgm-screen
+RuntimeDirectoryMode=0700
+Environment="SCREENDIR=/run/nvidia-dcgm-screen"
+Environment="OMPI_MCA_mca_base_env_list=LD_LIBRARY_PATH;PATH"
+Restart=always
+ExecStart=
+ExecStart=$(command -v screen) -c /dev/null -DmS nvidia-dcgm /bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH="\$\$(command -v mpirun)" && exec ${DCGM_HOSTENGINE_CMD}'
+EOF
+systemctl daemon-reload
+
+# Enable the dcgm service; restart so an instance started by the package picks up the drop-in
 systemctl --now enable nvidia-dcgm
-systemctl start nvidia-dcgm
+systemctl restart nvidia-dcgm
 # Check if the service is active
 systemctl is-active --quiet nvidia-dcgm
 error_code=$?

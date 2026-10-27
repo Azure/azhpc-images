@@ -8,7 +8,7 @@ if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
 
     # Disable some unneeded services by default (administrators can re-enable if desired)
     systemctl disable ufw
-elif [[ $DISTRIBUTION == "ubuntu24.04" ]]; then
+elif [[ $DISTRIBUTION == "ubuntu24.04" ]] || [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     apt install -y python3-netifaces
     apt install -y python3-yaml
     systemctl disable ufw
@@ -101,7 +101,7 @@ fi
 cat > /etc/udev/rules.d/90-nfs-readahead.rules << EOM
 SUBSYSTEM=="bdi", \
 ACTION=="add", \
-PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
+PROGRAM="/usr/bin/awk -v bdi=\$kernel 'BEGIN{ret=1} {if (\$\$4 == bdi) {ret=0}} END{exit ret}' /proc/fs/nfsfs/volumes", \
 ATTR{read_ahead_kb}="15380"
 EOM
 

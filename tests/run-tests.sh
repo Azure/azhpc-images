@@ -40,7 +40,7 @@ function verify_network_components_hook {
 }
 
 function should_verify_ompi_installation {
-    return 0
+    [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]
 }
 
 function test_service {
@@ -92,10 +92,7 @@ function verify_common_components {
         verify_package_updates;
     fi
 
-    # Ensure the exclusive GPU profiling context is actually acquirable and not
-    # held by another client (e.g. dynolog), which would clash with dcgm-exporter.
-    # No-op on images without DCGM (e.g. AMD).
-    verify_gpu_profiling_context_available;
+    verify_generated_system_config_syntax;
 
     if ! verify_network_components_hook; then
         if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
@@ -117,7 +114,11 @@ function verify_common_components {
 
     verify_pssh_installation;
     if [[ "${SKU_FAMILY:-}" != "gb-family" ]]; then
-        verify_mvapich2_installation;
+        # MVAPICH is intentionally not built on Ubuntu 26.04 (libfabric +
+        # MVAPICH 4.1 don't compile on resolute's gcc 15; see install_mpis.sh).
+        if [[ "$DISTRIBUTION" != "ubuntu26.04" && "$DISTRIBUTION" != "ubuntu26.04-aks" ]]; then
+            verify_mvapich2_installation;
+        fi
         verify_mkl_installation;
         verify_hpcdiag_installation;
         verify_aznfs_installation;

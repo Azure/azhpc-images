@@ -16,17 +16,67 @@ function check_exists {
     fi
 }
 
-# check exit code
-function check_exit_code {
-    exit_code=$?
-    if [ $exit_code -eq 0 ]
-    then
-        echo "[OK] : $1"
+function report_check_result {
+    local caller=$1
+    local exit_code=$2
+    local ok_message=$3
+    local error_message=$4
+    local output=${5:-}
+
+    if [ "${exit_code}" -eq 0 ]; then
+        echo "[OK] : ${ok_message}"
     else
-        echo "*** ${FUNCNAME[1]}: Error - $2!" >&2
-        echo "*** Failed with exit code - $exit_code" >&2
+        echo "*** ${caller}: Error - ${error_message}!" >&2
+        if [[ -n "${output}" ]]; then
+            echo "${output}" >&2
+        fi
+        echo "*** Failed with exit code - ${exit_code}" >&2
         exit_on_error
     fi
+}
+
+# check exit code
+function check_exit_code {
+    local exit_code=$?
+    report_check_result "${FUNCNAME[1]}" "${exit_code}" "$1" "$2"
+}
+
+function run_command_and_check_exit_code {
+    local ok_message=$1
+    local error_message=$2
+    shift 2
+
+    local output
+    output=$("$@" 2>&1)
+    local exit_code=$?
+    report_check_result "${FUNCNAME[1]}" "${exit_code}" "${ok_message}" "${error_message}" "${output}"
+}
+
+function run_with_sudo_if_needed {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        "$@"
+    else
+        sudo -n "$@"
+    fi
+}
+
+function find_system_command {
+    local command_name=$1
+    local candidate
+
+    if candidate=$(command -v "${command_name}" 2>/dev/null); then
+        echo "${candidate}"
+        return 0
+    fi
+
+    for candidate in "/usr/sbin/${command_name}" "/sbin/${command_name}" "/usr/bin/${command_name}" "/bin/${command_name}"; do
+        if [[ -x "${candidate}" ]]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 function ver { 
@@ -127,6 +177,13 @@ function verify_hpcx_installation {
     fi
     
     module load mpi/hpcx
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        ompi_info --version | grep -qE '^Open MPI v5\.'
+        check_exit_code "HPC-X uses Open MPI 5" "HPC-X did not report Open MPI 5"
+
+        pkg-config --atleast-version=5 pmix
+        check_exit_code "HPC-X uses PMIx 5" "HPC-X did not provide PMIx 5"
+    fi
     mpirun -np 2 --map-by ppr:2:node ${mpi_args} ${HPCX_OSU_DIR}/osu_latency
     check_exit_code "HPC-X" "Failed to run HPC-X"
     module unload mpi/hpcx
@@ -207,7 +264,11 @@ function verify_cuda_installation {
     fi
 
     # Verify the compilation of CUDA samples
-    /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    if [[ -x /usr/local/cuda/samples/mergeSort ]]; then
+        /usr/local/cuda/samples/mergeSort
+    else
+        /usr/local/cuda/samples/0_Introduction/mergeSort/mergeSort
+    fi
     check_exit_code "CUDA Samples ${VERSION_CUDA}" "Failed to perform merge sort using CUDA Samples"
 }
 
@@ -308,7 +369,11 @@ function verify_rocm_installation {
     # Verify if ROCM is installed
     check_exists "/opt/rocm/"
 
-    amd_rocm_version=$(cat /opt/rocm/.info/version)
+    local rocm_prefix=/opt/rocm
+    if [[ "$DISTRIBUTION" == "ubuntu26.04" ]]; then
+        rocm_prefix=/opt/rocm/core
+    fi
+    amd_rocm_version=$(cat "$rocm_prefix/.info/version")
     check_exit_code "AMD ROCM version ${amd_rocm_version} found" "AMD ROCM not found"
 
     # Verify if AMD GPU driver exists
@@ -322,9 +387,9 @@ function verify_rccl_installation {
 
     amdgpumod=$(lsmod | grep "^amdgpu")
     check_exit_code "amdgpu driver is loaded" "No amdgpu driver"
-    
+
     case ${VMSIZE} in
-        standard_nd96isr_mi300x_v5) mpirun -np 8 \
+        standard_nd96isr_mi300x_v5) timeout 600 mpirun -np 8 \
             --allow-run-as-root \
             --map-by ppr:8:node \
             -x LD_LIBRARY_PATH=/opt/rccl/lib:$LD_LIBRARY_PATH \
@@ -374,6 +439,155 @@ function verify_dnf_conf {
     fi
 
     echo "[OK] : ${conf} parses cleanly"
+}
+
+function verify_systemd_unit_syntax {
+    local systemd_analyze
+    systemd_analyze=$(find_system_command systemd-analyze) || return 0
+
+    (
+        local units=()
+        local delta_units
+
+        shopt -s globstar nullglob
+        set -o pipefail
+        cd /etc/systemd/system || exit "$?"
+
+        units=(./**/*.{service,timer,socket,path,mount})
+
+        delta_units=$(
+            LC_ALL=C SYSTEMD_COLORS=0 systemd-delta \
+                --no-pager --type=extended . | \
+                awk '$1 == "[EXTENDED]" && $2 ~ /\.(service|timer|socket|path|mount)$/ {
+                    print $2
+                }'
+        ) || exit "$?"
+
+        if [[ -n $delta_units ]]; then
+            mapfile -t -O "${#units[@]}" units <<< "$delta_units"
+        fi
+
+        # Azure Linux cloud-init units are distro-owned and may reference
+        # components that are unavailable while the image is being built.
+        # Exclude only the standard cloud-init unit family; continue to verify
+        # all other generated and extended units.
+        if [[ "${ID}" == "azurelinux" ]]; then
+            local filtered_units=()
+            local unit unit_name
+            for unit in "${units[@]}"; do
+                unit_name=${unit##*/}
+                case "${unit_name}" in
+                    cloud-config.service|cloud-final.service|cloud-init*.service|cloud-init*.socket) continue ;;
+                    *) filtered_units+=("${unit}") ;;
+                esac
+            done
+            units=("${filtered_units[@]}")
+        fi
+
+        if (( ${#units[@]} > 0 )); then
+            run_command_and_check_exit_code "systemd generated unit syntax" \
+                "systemd-analyze verify failed for generated or runtime units" \
+                "${systemd_analyze}" verify --recursive-errors=no --man=no "${units[@]}"
+        fi
+    )
+}
+
+function verify_udev_rule_syntax {
+    local udevadm_cmd
+    udevadm_cmd=$(find_system_command udevadm) || return 0
+
+    if "${udevadm_cmd}" --help 2>&1 | grep -qw verify; then
+        if "${udevadm_cmd}" verify --help 2>&1 | grep -q -- '--no-style'; then
+            run_command_and_check_exit_code "udev rules syntax" \
+                "udevadm verify failed" \
+                run_with_sudo_if_needed "${udevadm_cmd}" verify --no-style
+        else
+            run_command_and_check_exit_code "udev rules syntax" \
+                "udevadm verify failed" \
+                run_with_sudo_if_needed "${udevadm_cmd}" verify
+        fi
+    else
+        run_command_and_check_exit_code "udev rules reload" \
+            "udevadm could not reload rules" \
+            run_with_sudo_if_needed "${udevadm_cmd}" control --reload-rules
+    fi
+}
+
+function verify_modprobe_config_syntax {
+    local modprobe_cmd
+    modprobe_cmd=$(find_system_command modprobe) || return 0
+
+    run_command_and_check_exit_code "modprobe configuration parses" \
+        "modprobe could not parse its configuration" \
+        "${modprobe_cmd}" --showconfig
+}
+
+function verify_network_manager_config_syntax {
+    local network_manager_cmd
+    network_manager_cmd=$(find_system_command NetworkManager) || return 0
+    [[ -f /etc/NetworkManager/NetworkManager.conf ]] || return 0
+
+    run_command_and_check_exit_code "NetworkManager configuration parses" \
+        "NetworkManager could not parse its configuration" \
+        run_with_sudo_if_needed "${network_manager_cmd}" --print-config
+}
+
+function verify_netplan_config_syntax {
+    local netplan_cmd
+    netplan_cmd=$(find_system_command netplan) || return 0
+
+    run_command_and_check_exit_code "netplan configuration generates" \
+        "netplan generate failed" \
+        run_with_sudo_if_needed "${netplan_cmd}" generate --debug
+}
+
+function verify_cloud_init_config_syntax {
+    compgen -G "/etc/cloud/cloud.cfg.d/*.cfg" >/dev/null || return 0
+    command -v python3 >/dev/null 2>&1 || return 0
+
+    local output
+    if output=$(python3 - <<'PY' 2>&1
+import glob
+import sys
+
+try:
+    import yaml
+except Exception as exc:
+    print(f"PyYAML is unavailable: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+for path in sorted(glob.glob("/etc/cloud/cloud.cfg.d/*.cfg")):
+    with open(path, encoding="utf-8") as handle:
+        yaml.safe_load(handle)
+PY
+    ); then
+        echo "[OK] : cloud-init cfg fragments parse as YAML"
+    else
+        echo "*** ${FUNCNAME[0]}: Error - cloud-init cfg fragments failed YAML parsing!" >&2
+        echo "${output}" >&2
+        exit_on_error
+    fi
+}
+
+function verify_systemd_networkd_config_syntax {
+    local systemd_analyze
+    systemd_analyze=$(find_system_command systemd-analyze) || return 0
+    [[ -f /etc/systemd/networkd.conf ]] || return 0
+    "${systemd_analyze}" --help 2>&1 | grep -qw cat-config || return 0
+
+    run_command_and_check_exit_code "systemd-networkd configuration parses" \
+        "systemd-analyze cat-config failed for networkd.conf" \
+        run_with_sudo_if_needed "${systemd_analyze}" cat-config systemd/networkd.conf
+}
+
+function verify_generated_system_config_syntax {
+    verify_systemd_unit_syntax
+    verify_udev_rule_syntax
+    verify_modprobe_config_syntax
+    verify_network_manager_config_syntax
+    verify_netplan_config_syntax
+    verify_cloud_init_config_syntax
+    verify_systemd_networkd_config_syntax
 }
 
 function verify_package_updates {
@@ -540,57 +754,6 @@ function verify_dcgm_installation {
     check_exit_code "NVIDIA DCGM service is active" "NVIDIA DCGM service is inactive/dead!"
 }
 
-# Verify the exclusive GPU profiling context can actually be acquired.
-#
-# GPU hardware profiling is exclusive - only one profiling client per GPU at a
-# time. dynolog is built with the DCGM_FI_PROF_* fields; if it (or any other
-# client) holds that context, dcgm-exporter cannot acquire it and enters
-# CrashLoopBackOff. Rather than only inspecting dynolog's systemd state, this
-# probes the context the same way dcgm-exporter does: it asks the standalone
-# nv-hostengine (nvidia-dcgm.service) to watch a DCGM_FI_PROF_* profiling field.
-# If another client is holding the context exclusively, the watch fails.
-function verify_gpu_profiling_context_available {
-    # Only meaningful on NVIDIA images where DCGM is installed and running.
-    if ! command -v dcgmi &>/dev/null; then
-        echo "dcgmi not present; skipping GPU profiling context check [OK]"
-        return 0
-    fi
-    if ! systemctl is-active --quiet nvidia-dcgm; then
-        echo "nvidia-dcgm inactive; skipping GPU profiling context check [OK]"
-        return 0
-    fi
-
-    # 1001 = DCGM_FI_PROF_GR_ENGINE_ACTIVE, a DCP profiling field that requires
-    # the exclusive profiling context. -c 1 takes a single sample then exits.
-    local prof_field="1001"
-    local out rc
-    out=$(timeout 1m dcgmi dmon -e ${prof_field} -c 1 2>&1)
-    rc=$?
-
-    # GPUs that don't support DCP profiling at all are out of scope for this
-    # clash - treat as a skip rather than a failure.
-    if echo "$out" | grep -qiE "not supported|unsupported|profiling.*disabled"; then
-        echo "GPU profiling (DCP) not supported on this SKU; skipping check [OK]"
-        return 0
-    fi
-
-    # A held/exclusive context surfaces as a non-zero exit or an "in use" style
-    # error from DCGM.
-    if [[ $rc -ne 0 ]] || echo "$out" | grep -qiE "in use|already|could not be completed|resource"; then
-        echo "*** ${FUNCNAME[0]}: Error - could not acquire the GPU profiling context (DCGM field ${prof_field})!" >&2
-        echo "*** Another profiling client is likely holding it exclusively; dcgm-exporter will CrashLoopBackOff." >&2
-        if systemctl is-active --quiet dynolog.service 2>/dev/null; then
-            echo "*** Hint: dynolog.service is active and is the likely holder." >&2
-        fi
-        echo "*** dcgmi output:" >&2
-        echo "$out" >&2
-        exit_on_error
-        return
-    fi
-
-    echo "[OK] : GPU profiling context is available (DCGM field ${prof_field})"
-}
-
 function verify_sku_customization_service {
     # Check if the SKU customization service is active
     # Note: bash =~ is ERE, so use regex instead of glob patterns for matching
@@ -618,9 +781,11 @@ function verify_sunrpc_tcp_settings_service {
 }
 
 function verify_azure_persistent_rdma_naming_service {
-    # Check if the azure persistent rdma naming service is active
-    systemctl is-active --quiet azure_persistent_rdma_naming
-    check_exit_code "Azure persistent rdma naming service is active" "Azure persistent rdma naming service is inactive/dead!"
+    systemctl is-enabled --quiet azure_persistent_rdma_naming.service
+    check_exit_code "Azure persistent RDMA naming service is enabled" "Azure persistent RDMA naming service is not enabled!"
+
+    systemctl is-active --quiet azure_persistent_rdma_naming.timer
+    check_exit_code "Azure persistent RDMA naming timer is active" "Azure persistent RDMA naming timer is inactive/dead!"
 }
 
 function verify_nvbandwidth_setup {

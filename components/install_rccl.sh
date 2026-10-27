@@ -4,14 +4,31 @@ set -ex
 source ${UTILS_DIR}/utilities.sh
 
 rccl_metadata=$(get_component_config "rccl")
+# Azure AMD GPU SKUs are MI300X (gfx942); gfx90a (MI200) is kept for compatibility. Building only
+# these instead of upstream's 10-13 default architectures cuts RCCL/rccl-tests compile time.
+AMD_GPU_TARGETS="gfx90a;gfx942"
+RCCL_TEST_CMAKE_ARGS=(-DGPU_TARGETS="${AMD_GPU_TARGETS}")
+RCCL_TEST_GIT_ARGS=()
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    rocm_metadata=$(get_component_config "rocm")
+    rocm_version=$(jq -r '.version' <<< "$rocm_metadata")
+    # TODO: AMD upstream needs to provide the missing /opt/rocm/.info link.
+    # Revisit the ROCM_PATH override once that compatibility link is available.
+    RCCL_TEST_CMAKE_ARGS=(-DROCM_PATH=/opt/rocm/core -DGPU_TARGETS="gfx90a;gfx942;gfx1250" -DCMAKE_INSTALL_RPATH=/opt/rocm/lib -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON)
+    RCCL_TEST_GIT_ARGS=(--branch "therock-${rocm_version}")
+fi
 
-# Azure Linux 3 uses packaged RCCL; build from source on other distros.
-if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+# Ubuntu 26.04 and Azure Linux 3 use packaged RCCL; build from source on other distros.
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    rccl_version=$(awk -F '"' '/^set\(PACKAGE_VERSION "/ {print $2; exit}' /opt/rocm/lib/cmake/rccl/rccl-config-version.cmake)
+    [[ "$rccl_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    write_component_version "RCCL" "$rccl_version"
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     dnf install -y rccl rccl-devel rccl-unittests
     write_component_version "RCCL" "$(rpm -q --queryformat '%{VERSION}-%{RELEASE}' rccl)"
 else
     # Ubuntu 24.04 temporarily needs a source build while using ROCm 6.4.
-    rccl_branch=$(jq -r '.branch' <<< $rccl_metadata)
+    rccl_ref=$(jq -r '.ref // .branch // empty' <<< $rccl_metadata)
     rccl_commit=$(jq -r '.commit' <<< $rccl_metadata)
     rccl_version=$(jq -r '.version' <<< $rccl_metadata)
     rccl_url=$(jq -r '.url' <<< $rccl_metadata)
@@ -22,8 +39,8 @@ else
 
     # due to https://github.com/ROCm/rccl/issues/1877
     # we need to resort to doing a git clone instead of downloading the rccl tarball, by specifying a branch to clone
-    if [[ $rccl_branch != "" && $rccl_branch != "null" ]]; then
-        git clone --branch ${rccl_branch} https://github.com/ROCm/rccl.git ${rccl_folder}
+    if [[ $rccl_ref != "" && $rccl_ref != "null" ]]; then
+        git clone --branch ${rccl_ref} https://github.com/ROCm/rccl.git ${rccl_folder}
         pushd ${rccl_folder}
         git checkout ${rccl_commit}
         popd
@@ -46,10 +63,17 @@ else
     echo "RCCL link parallelism: detected ${mem_gb} GB RAM -> -parallel-jobs=${num_linker_jobs}"
     sed -i -E "s/(target_link_options\(\s*rccl\s+PRIVATE[^)]*-parallel-jobs=)[0-9]+/\1${num_linker_jobs}/" ../CMakeLists.txt
 
-    CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl ..
+    # AMDGPU_TARGETS for RCCL 6.2.x, GPU_TARGETS for 6.4+
+    CXX=/opt/rocm/bin/hipcc CMAKE_POLICY_VERSION_MINIMUM=3.5 cmake -DCMAKE_PREFIX_PATH=/opt/rocm/ -DCMAKE_INSTALL_PREFIX=/opt/rccl \
+        -DGPU_TARGETS="${AMD_GPU_TARGETS}" -DAMDGPU_TARGETS="${AMD_GPU_TARGETS}" ..
     make -j$(nproc)
     make install
     popd
+    if [[ $rccl_ref != "" && $rccl_ref != "null" ]]; then
+        write_repo_source_info "RCCL" ./${rccl_folder} \
+            --commit "${rccl_commit}" \
+            --ref "${rccl_ref}"
+    fi
     rm -rf ${TARBALL} ${rccl_folder}
     write_component_version "RCCL" ${rccl_version}
 fi
@@ -67,9 +91,9 @@ echo "vm.max_map_count=1048576" | tee -a /etc/sysctl.conf
 source /etc/profile.d/modules.sh
 module load mpi/hpcx
 
-# TODO: uncomment if we switch back to ROCm 7
-# if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" ]]; then
-if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+# TODO: uncomment if we switch back to ROCm 7 on Ubuntu 24.04
+# if [[ $DISTRIBUTION == "ubuntu24.04" || $DISTRIBUTION == "azurelinux3.0" || $DISTRIBUTION == "ubuntu26.04" ]]; then
+if [[ $DISTRIBUTION == "azurelinux3.0" || $DISTRIBUTION == "ubuntu26.04" ]]; then
     # RCCL ships via ROCm distro packages and lives in /opt/rocm
     RCCL_PREFIX="/opt/rocm"
 else
@@ -82,7 +106,19 @@ mkdir -p $DEST_TEST_DIR
 
 # Sparse-clone only the rccl-tests subproject of rocm-systems to keep the
 # clone small.
-git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    git clone --depth=1 --filter=blob:none --sparse "${RCCL_TEST_GIT_ARGS[@]}" https://github.com/ROCm/TheRock.git
+    rccl_tests_commit=$(git -C TheRock rev-parse HEAD:rocm-systems)
+    git init rocm-systems
+    git -C rocm-systems remote add origin https://github.com/ROCm/rocm-systems.git
+    git -C rocm-systems sparse-checkout set projects/rccl-tests
+    git -C rocm-systems fetch --depth=1 --filter=blob:none origin "$rccl_tests_commit"
+    git -C rocm-systems checkout --detach FETCH_HEAD
+    rm -rf TheRock
+else
+    git clone --depth=1 --filter=blob:none --sparse https://github.com/ROCm/rocm-systems.git
+fi
+write_repo_source_info "RCCL_TESTS" rocm-systems
 pushd ./rocm-systems
 git sparse-checkout set projects/rccl-tests
 pushd projects/rccl-tests
@@ -93,9 +129,10 @@ pushd build
 # hipconfig, and amdclang++ via its toolchain file.
 PATH=/opt/rocm/bin:$PATH cmake \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;/opt/rocm;$HPCX" \
+    -DCMAKE_PREFIX_PATH="$RCCL_PREFIX;/opt/rocm;$HPCX_MPI_DIR" \
     -DROCM_PATH=/opt/rocm \
     -DUSE_MPI=ON \
+    "${RCCL_TEST_CMAKE_ARGS[@]}" \
     ..
 make -j$(nproc)
 # Place perf binaries directly under /opt/rccl-tests to preserve the layout
@@ -110,10 +147,14 @@ module unload mpi/hpcx
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y libpci-dev
 fi
+if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
+    apt install -y libibumad-dev
+fi
 
 # Upstream linux-rdma/perftest has full ROCm/HIP support, superseding the
 # dormant ROCm/rdma-perftest fork.
 git clone https://github.com/linux-rdma/perftest.git
+write_repo_source_info "PERFTEST" perftest
 mkdir -p /opt/rocm-perftest
 pushd ./perftest
 ./autogen.sh

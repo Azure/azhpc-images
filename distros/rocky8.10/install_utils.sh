@@ -35,9 +35,6 @@ sudo dnf install -y wget
 # Install net-tools as Rocky Linux 8.10 does not have ifconfig by default
 sudo dnf install -y net-tools
 
-# Install jq for JSON parsing (needed by utilities.sh)
-sudo dnf install -y jq
-
 # Install Kernel dependencies
 KERNEL=$(uname -r)
 
@@ -93,6 +90,7 @@ dnf install -y numactl \
     gcc-gfortran \
     perl \
     libdrm-devel \
+    json-c-devel \
     dos2unix \
     azcopy \
     lvm2
@@ -108,7 +106,18 @@ dnf install -y kernel-abi-stablelists
 ## Install EPEL packages (pssh, dkms, subunit, subunit-devel)
 dnf install -y pssh dkms subunit subunit-devel
 
-echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+git clone --depth 1 https://github.com/Azure/azure-vm-utils.git /tmp/azure-vm-utils
+pushd /tmp/azure-vm-utils
+mkdir build && cd build
+cmake -DENABLE_TESTS=0 ..
+make
+make install
+popd
+rm -rf /tmp/azure-vm-utils
+
+if sku_uses_ipoib; then
+    echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf
+fi
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

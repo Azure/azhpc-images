@@ -627,6 +627,7 @@ function verify_diagnostics_installation {
     check_exists "${HPC_ENV}/diagnostics/azhpc-diagnostics-analyze.sh"
     # The script's interpreter (shebang)
     check_exists /usr/bin/pkexec
+    check_exists /usr/sbin/dmidecode
 }
 
 # Internal/ external installation of GCC

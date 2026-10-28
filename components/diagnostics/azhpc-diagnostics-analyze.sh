@@ -118,6 +118,9 @@ def gpu_checks($f; $vendor; $name; $observed; $driver_loaded; $driver; $tool; $l
                "amdgpu"; "amd-smi"; ($amd.smi_visible // 0)),
     ([$amd.ecc_uncorrectable[]? | select(.count > 0) | "GPU \(.gpu): \(.count)"]
         | if length > 0 then finding("WARN"; "amd-ecc"; "Uncorrectable ECC errors: " + join("; ")) else empty end),
+    (if ($pci.amd_gpus // 0) > 0 and ($amd.driver_loaded // false) and (($amd.ecc_uncorrectable // []) | length) == 0 then
+         finding("INFO"; "amd-ecc"; "ECC error counts are unavailable (neither amd-smi metric nor the amdgpu RAS sysfs counters reported any); uncorrectable ECC errors were not checked")
+     else empty end),
 
     # InfiniBand
     (if ($exp.infiniband // false) and ($ib_ports | length) == 0 then

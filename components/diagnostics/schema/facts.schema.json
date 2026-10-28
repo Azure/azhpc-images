@@ -172,6 +172,7 @@
           "properties": {
             "driver_loaded": {"type": "boolean"},
             "smi_visible": {"type": ["integer", "null"], "description": "GPUs listed by amd-smi; null if it did not run"},
+            "ecc_source": {"enum": ["amd-smi", "sysfs", null], "description": "Where ecc_uncorrectable comes from: amd-smi metric, or the amdgpu RAS sysfs counters (amd-smi before 25.x doesn't report ECC in VMs); null if neither had ECC counts"},
             "ecc_uncorrectable": {
               "type": "array",
               "items": {

@@ -319,6 +319,12 @@ azc_collect_amd() {
     azc_run amd/amd-smi-static.txt amd-smi static
     azc_run amd/amd-smi-firmware.txt amd-smi firmware
     azc_run amd/amd-smi-metric.txt amd-smi metric
+    # amdgpu RAS error counters ("ue: N" / "ce: N" per IP block). Fallback for the ECC check:
+    # amd-smi before 25.x doesn't report ECC in VMs.
+    azc_run_sh amd/ras-sysfs.txt 'for d in /sys/bus/pci/devices/*; do
+        [ "$(cat "$d/vendor" 2>/dev/null)" = 0x1002 ] || continue
+        grep -H . "$d"/ras/*_err_count 2>/dev/null
+    done; true'
     azc_run amd/amd-smi-xgmi.txt amd-smi xgmi
     azc_run amd/rocminfo.txt rocminfo
 }
@@ -405,15 +411,25 @@ azc_nvidia_json() {
 }
 
 azc_amd_json() {
-    local l="$AZC_DIR/amd/amd-smi-list.txt" m="$AZC_DIR/amd/amd-smi-metric.txt" visible=null ecc
+    local l="$AZC_DIR/amd/amd-smi-list.txt" m="$AZC_DIR/amd/amd-smi-metric.txt" r="$AZC_DIR/amd/ras-sysfs.txt"
+    local visible=null ecc source=null
     if [ -f "$l" ]; then
         visible=$(grep -c '^GPU: ' "$l" || true)
     fi
     ecc=$( (awk '/^GPU: / {g = $2} /TOTAL_UNCORRECTABLE_COUNT:/ && $2 ~ /^[0-9]+$/ {print g "\t" $2}' "$m" 2>/dev/null || true) |
         jq -Rn '[inputs | split("\t") | {gpu: (.[0] | tonumber? // .[0]), count: (.[1] | tonumber)}]')
-    jq -n --argjson visible "${visible:-null}" --argjson ecc "${ecc:-[]}" \
+    if [ "$(printf '%s' "${ecc:-[]}" | jq length)" -gt 0 ]; then
+        source='"amd-smi"'
+    else
+        # Sum of uncorrectable errors over all RAS blocks, per GPU (PCI address)
+        ecc=$( (sed -n 's#^/sys/bus/pci/devices/\([^/]*\)/ras/[^:]*_err_count:ue: *\([0-9][0-9]*\)$#\1\t\2#p' "$r" 2>/dev/null || true) |
+            jq -Rn '[inputs | split("\t") | {gpu: .[0], count: (.[1] | tonumber)}]
+                | group_by(.gpu) | map({gpu: .[0].gpu, count: (map(.count) | add)})')
+        if [ "$(printf '%s' "${ecc:-[]}" | jq length)" -gt 0 ]; then source='"sysfs"'; fi
+    fi
+    jq -n --argjson visible "${visible:-null}" --argjson ecc "${ecc:-[]}" --argjson source "$source" \
         --argjson loaded "$([ -d /sys/module/amdgpu ] && echo true || echo false)" \
-        '{driver_loaded: $loaded, smi_visible: $visible, ecc_uncorrectable: $ecc}'
+        '{driver_loaded: $loaded, smi_visible: $visible, ecc_source: $source, ecc_uncorrectable: $ecc}'
 }
 
 azc_commands_json() {

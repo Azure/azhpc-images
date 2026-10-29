@@ -320,10 +320,15 @@ azc_collect_amd() {
     azc_run amd/amd-smi-firmware.txt amd-smi firmware
     azc_run amd/amd-smi-metric.txt amd-smi metric
     # amdgpu RAS error counters ("ue: N" / "ce: N" per IP block). Fallback for the ECC check:
-    # amd-smi before 25.x doesn't report ECC in VMs.
+    # amd-smi before 25.x doesn't report ECC in VMs. Read errors are kept to show why counters
+    # are missing (the driver may reject reads on a virtual function).
     azc_run_sh amd/ras-sysfs.txt 'for d in /sys/bus/pci/devices/*; do
         [ "$(cat "$d/vendor" 2>/dev/null)" = 0x1002 ] || continue
-        grep -H . "$d"/ras/*_err_count 2>/dev/null
+        if [ ! -d "$d/ras" ]; then echo "${d##*/}: no ras directory"; continue; fi
+        for f in "$d"/ras/*_err_count; do
+            if [ ! -e "$f" ]; then echo "${d##*/}: no ras/*_err_count files"; break; fi
+            grep -H . "$f" 2>&1
+        done
     done; true'
     azc_run amd/amd-smi-xgmi.txt amd-smi xgmi
     azc_run amd/rocminfo.txt rocminfo

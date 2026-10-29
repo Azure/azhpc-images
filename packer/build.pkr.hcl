@@ -33,23 +33,6 @@ build {
     ]
   }
 
-  provisioner "shell" {
-    name            = "Collect pre-build baseline evidence"
-    script          = "scripts/collect_build_evidence.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
-    environment_vars = [
-      "IMAGE_EVIDENCE_PHASE=baseline",
-      "IMAGE_EVIDENCE_RUN_NAME=${local.image_version}",
-      "AZHPC_IMAGES_SSH_USERNAME=${local.ssh_username}",
-      "IMAGE_VERSION=${local.image_version}",
-      "TARGET_VM_SIZE=${local.target_vm_size}",
-      "BUILD_VM_SIZE=${local.build_vm_size}",
-      "GPU_SKU=${local.gpu_sku}",
-      "TARGET_NODE_TYPE=${local.target_node_type}",
-      "INTERNAL_BITS_BLOB_NAME=${var.internal_bits_blob_name}",
-    ]
-  }
-
   # Ubuntu 26.04 ships sudo-rs (Trifecta Tech Foundation's Rust rewrite) as
   # the default for /usr/bin/sudo. sudo-rs deliberately does not implement
   # bare `-E` / `--preserve-env` (upstream wontfix, sudo-rs#1299), and many
@@ -69,6 +52,23 @@ build {
       "sudo update-alternatives --set sudo /usr/bin/sudo.ws",
       "sudo --version | head -n1",
       "sudo --version | grep -qiv 'sudo-rs'",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "Collect pre-build baseline evidence"
+    script          = "scripts/collect_build_evidence.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    environment_vars = [
+      "IMAGE_EVIDENCE_PHASE=baseline",
+      "IMAGE_EVIDENCE_RUN_NAME=${local.image_version}",
+      "AZHPC_IMAGES_SSH_USERNAME=${local.ssh_username}",
+      "IMAGE_VERSION=${local.image_version}",
+      "TARGET_VM_SIZE=${local.target_vm_size}",
+      "BUILD_VM_SIZE=${local.build_vm_size}",
+      "GPU_SKU=${local.gpu_sku}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+      "INTERNAL_BITS_BLOB_NAME=${var.internal_bits_blob_name}",
     ]
   }
 

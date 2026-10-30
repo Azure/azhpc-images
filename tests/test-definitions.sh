@@ -619,9 +619,15 @@ function verify_mkl_installation {
     check_exit_code "Intel Oneapi MKL ${VERSION_INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
 }
 
-function verify_hpcdiag_installation {
-    local hpcdiag_path="${HPC_ENV}/diagnostics/gather_azhpc_vm_diagnostics.sh"
-    check_exists $hpcdiag_path
+function verify_diagnostics_installation {
+    # The collector itself is run during the build by the "Collect azhpc-diagnostics bundle" step in packer/build.pkr.hcl
+    local diag_script="${HPC_ENV}/diagnostics/azhpc-diagnostics.sh"
+    check_exists $diag_script
+    check_exists "${HPC_ENV}/diagnostics/azhpc-collect-lib.sh"
+    check_exists "${HPC_ENV}/diagnostics/azhpc-diagnostics-analyze.sh"
+    # The script's interpreter (shebang)
+    check_exists /usr/bin/pkexec
+    check_exists /usr/sbin/dmidecode
 }
 
 # Internal/ external installation of GCC

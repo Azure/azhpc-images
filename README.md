@@ -84,6 +84,49 @@ Our HPC image releasing primary cadence is quarterly. In between releases, if we
 
 Please keep using our latest HPC images. If any compliance issues (e.g., security bugs) are identified, please also report them (and patches, if any) to us. We will apply the fix and release the patched images as a hotfix.
 
+# Collecting Diagnostics
+
+If you run into a problem with a VM built from our HPC/AI images, run the bundled diagnostics script and attach the output to your support request. It collects system, hardware (`lspci`, `dmidecode`, `lsmod`, `dmesg`), network/InfiniBand, GPU, MPI/NCCL and image information from the VM into a single tarball. On NVIDIA VMs the bundle includes a full report from NVIDIA's `nvidia-bug-report.sh`.
+
+```bash
+sudo azhpc-diagnostics
+```
+
+The script needs root. If you run it without `sudo`, `pkexec` asks you to authenticate as an administrator. Run it as `azhpc-diagnostics` or by its full path: `pkexec` starts it in root's home directory, so a relative path such as `./azhpc-diagnostics.sh` doesn't work.
+
+The script is installed at `/opt/azurehpc/diagnostics/azhpc-diagnostics.sh` (`azhpc-diagnostics` is a link to it in `/usr/sbin`). When it finishes, it prints a short list of automatically detected issues and the path of the bundle. The checks compare the hardware visible on the VM with the hardware its VM size should have (taken from the Azure Instance Metadata Service). They report, for example, missing GPUs or InfiniBand devices, GPU drivers that aren't loaded, GPU Xid/ECC errors, inactive InfiniBand ports, a stopped NVIDIA Fabric Manager, DKMS modules that aren't built for the running kernel, and an image built for another GPU vendor than the VM has.
+
+```
+Diagnostics bundle: /var/tmp/azhpc-diagnostics-<hostname>-<timestamp>.tar.gz
+```
+
+By default the script only runs read-only commands, so it is safe to run while workloads are running. It usually takes a few minutes on GPU VMs, mostly due to `nvidia-bug-report.sh`.
+
+|Option|Description|
+|------|-----------|
+|`-o`, `--output-dir DIR`|Absolute path of the directory to write the tarball to (default: `/var/tmp`)|
+|`--gpu-diag LEVEL`|Also run `dcgmi diag -r LEVEL` (1-3) on NVIDIA GPUs. Stresses the GPUs; do not run alongside workloads|
+|`--nhc`|Also run the [Azure HPC node health checks](https://github.com/Azure/azurehpc-health-checks). Stresses GPUs and network; do not run alongside workloads|
+|`--no-bug-report`|Skip `nvidia-bug-report.sh` (for example, if it hangs)|
+|`--timeout SECONDS`|Per-command timeout (default: 120)|
+|`-h`, `--help`|Show all options|
+
+For example, to also run a quick GPU diagnostic on an idle NVIDIA VM:
+
+```bash
+sudo azhpc-diagnostics --gpu-diag 1
+```
+
+Nothing is uploaded by the script; the bundle stays on the VM and is only readable by root. It may contain hostnames, IP/MAC addresses and hardware serial numbers, so review it before sharing.
+
+Besides the raw command output, the bundle contains `facts.json`, a structured summary of the collected data, and `findings.json`/`findings.txt`, the result of the automated checks. The checks only read `facts.json`, so they can be re-run on an extracted bundle on any machine with `jq`:
+
+```bash
+/opt/azurehpc/diagnostics/azhpc-diagnostics-analyze.sh <extracted bundle directory>
+```
+
+The JSON schemas of these files are in [components/diagnostics/schema](components/diagnostics/schema). The image build collects its build evidence with the same code, and records what the image was built for in `/opt/azurehpc/diagnostics/build-manifest.json`.
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

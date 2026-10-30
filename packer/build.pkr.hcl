@@ -33,6 +33,12 @@ build {
     ]
   }
 
+  provisioner "file" {
+    name        = "Upload shared collection library for build evidence"
+    source      = "${path.root}/../components/diagnostics/azhpc-collect-lib.sh"
+    destination = "/var/tmp/azhpc-collect-lib.sh"
+  }
+
   provisioner "shell" {
     name            = "Collect pre-build baseline evidence"
     script          = "scripts/collect_build_evidence.sh"
@@ -45,6 +51,7 @@ build {
       "TARGET_VM_SIZE=${local.target_vm_size}",
       "BUILD_VM_SIZE=${local.build_vm_size}",
       "GPU_SKU=${local.gpu_sku}",
+      "GPU_PLATFORM=${local.gpu_platform}",
       "TARGET_NODE_TYPE=${local.target_node_type}",
       "INTERNAL_BITS_BLOB_NAME=${var.internal_bits_blob_name}",
     ]
@@ -426,6 +433,8 @@ build {
     ]
   }
 
+  # Also writes /opt/azurehpc/diagnostics/build-manifest.json, which stays in the image and is
+  # picked up by the azhpc-diagnostics bundle below.
   provisioner "shell" {
     name            = "Collect post-build evidence"
     script          = "scripts/collect_build_evidence.sh"
@@ -434,6 +443,44 @@ build {
       "IMAGE_EVIDENCE_PHASE=post-build",
       "IMAGE_EVIDENCE_RUN_NAME=${local.image_version}",
       "AZHPC_IMAGES_SSH_USERNAME=${local.ssh_username}",
+      "IMAGE_VERSION=${local.image_version}",
+      "TARGET_VM_SIZE=${local.target_vm_size}",
+      "BUILD_VM_SIZE=${local.build_vm_size}",
+      "GPU_SKU=${local.gpu_sku}",
+      "GPU_PLATFORM=${local.gpu_platform}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
+    ]
+  }
+
+  provisioner "shell" {
+    name            = "Collect azhpc-diagnostics bundle"
+    except          = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline = [
+      "set -e",
+      "rm -rf /tmp/azhpc-diagnostics /tmp/azhpc-diagnostics.tar.gz",
+      "/opt/azurehpc/diagnostics/azhpc-diagnostics.sh --output-dir /tmp/azhpc-diagnostics",
+      # Packer downloads from a fixed path; the bundle name contains host and timestamp.
+      "mv /tmp/azhpc-diagnostics/azhpc-diagnostics-*.tar.gz /tmp/azhpc-diagnostics.tar.gz",
+      "chmod 644 /tmp/azhpc-diagnostics.tar.gz",
+    ]
+  }
+
+  provisioner "file" {
+    name        = "Download azhpc-diagnostics bundle"
+    except      = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    direction   = "download"
+    generated   = true
+    source      = "/tmp/azhpc-diagnostics.tar.gz"
+    destination = "/tmp/image_manifests/azhpc-diagnostics.tar.gz"
+  }
+
+  provisioner "shell" {
+    name            = "Remove azhpc-diagnostics bundle from image"
+    except          = local.collect_diagnostics ? [] : ["azure-arm.hpc"]
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+    inline = [
+      "rm -rf /tmp/azhpc-diagnostics /tmp/azhpc-diagnostics.tar.gz",
     ]
   }
 

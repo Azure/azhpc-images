@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Azure/azhpc-images/components/diagnostics/schema/findings.schema.json",
+  "title": "azhpc findings",
+  "description": "Written by azhpc-diagnostics-analyze.sh from facts.json",
+  "type": "object",
+  "required": ["schema_version", "analyzer_version", "findings"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "analyzer_version": {"type": "string"},
+    "facts_schema_version": {"type": ["string", "null"]},
+    "context": {"type": ["string", "null"]},
+    "findings": {
+      "type": "array",
+      "description": "Sorted by severity (ERROR, WARN, INFO)",
+      "items": {
+        "type": "object",
+        "required": ["severity", "check", "message"],
+        "properties": {
+          "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+          "check": {"type": "string", "description": "Stable identifier of the check, e.g. nvidia-gpu-presence"},
+          "message": {"type": "string"}
+        }
+      }
+    }
+  }
+}

@@ -620,14 +620,16 @@ function verify_mkl_installation {
 }
 
 function verify_diagnostics_installation {
-    # The collector itself is run during the build by the "Collect azhpc-diagnostics bundle" step in packer/build.pkr.hcl
-    local diag_script="${HPC_ENV}/diagnostics/azhpc-diagnostics.sh"
-    check_exists $diag_script
-    check_exists "${HPC_ENV}/diagnostics/azhpc-collect-lib.sh"
-    check_exists "${HPC_ENV}/diagnostics/azhpc-diagnostics-analyze.sh"
-    # The script's interpreter (shebang)
-    check_exists /usr/bin/pkexec
+    local diag_dir="${HPC_ENV}/diagnostics" python
+    check_exists "${diag_dir}/azhpc-diagnostics.sh"
+    check_exists "${diag_dir}/azhpc-collect-lib.sh"
+    check_exists "${diag_dir}/azhpc-diagnostics-facts.py"
+    check_exists "${diag_dir}/azhpc-diagnostics-analyze.py"
     check_exists /usr/sbin/dmidecode
+    # Structuring and analysis need Python 3 (platform-python on EL8 images without python3)
+    python=$(command -v python3 || echo /usr/libexec/platform-python)
+    [[ "$("${python}" "${diag_dir}/azhpc-diagnostics-facts.py" sku-hardware --field gpu_vendor Standard_ND96asr_v4)" == nvidia ]]
+    check_exit_code "azhpc-diagnostics Python scripts run with ${python}" "azhpc-diagnostics Python scripts don't run with ${python}"
 }
 
 # Internal/ external installation of GCC

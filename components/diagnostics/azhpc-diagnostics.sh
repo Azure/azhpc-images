@@ -1,13 +1,12 @@
-#!/usr/bin/pkexec /bin/bash
-# shellcheck shell=bash
+#!/bin/bash
 #
 # azhpc-diagnostics: collect a diagnostics bundle for Azure HPC/AI image support requests.
 #
 # Three separate steps:
-#   1. collection: raw command output, GPU- and NIC-agnostic (azhpc-collect-lib.sh, shared with
-#      the image build evidence), plus vendor GPU data and nvidia-bug-report.sh on NVIDIA VMs
-#   2. structuring: facts.json (schema/facts.schema.json)
-#   3. analysis: azhpc-diagnostics-analyze.sh reads facts.json only and writes findings
+#   1. collection: raw command output (azhpc-collect-lib.sh). The general tier is shared with the
+#      image build evidence; the hardware tier (InfiniBand, GPUs, nvidia-bug-report.sh) is not.
+#   2. structuring: azhpc-diagnostics-facts.py turns the collected output into facts.json
+#   3. analysis: azhpc-diagnostics-analyze.py reads facts.json only and writes findings
 # Read-only unless --gpu-diag or --nhc is given. Nothing is uploaded.
 
 VERSION="1.0.0"
@@ -27,17 +26,14 @@ Usage: $(basename "$0") [OPTIONS]
 
 Collect GPU, system, network/InfiniBand, MPI and image information from this VM
 into a single tarball that can be attached to an Azure support request. On
-NVIDIA VMs this includes a full nvidia-bug-report.sh report.
-
-Runs as root through pkexec, which asks for authentication if you don't start
-it with sudo.
+NVIDIA VMs this includes a full nvidia-bug-report.sh report. Must be run as
+root (e.g. with sudo).
 
 By default only read-only commands are run. The VM can keep running workloads,
 although collection may take a few minutes.
 
 Options:
-  -o, --output-dir DIR   Absolute path of the directory to write the tarball to
-                         (default: /var/tmp)
+  -o, --output-dir DIR   Directory to write the tarball to (default: /var/tmp)
       --gpu-diag LEVEL   Also run 'dcgmi diag -r LEVEL' (1-3) on NVIDIA GPUs.
                          Level 1 takes about a minute, levels 2 and 3 take
                          several minutes up to an hour. Stresses the GPUs; do
@@ -82,14 +78,10 @@ done
 
 [[ "$GPU_DIAG_LEVEL" =~ ^[0-3]$ ]] || die "--gpu-diag must be 1, 2 or 3"
 [[ "$CMD_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || die "--timeout must be a positive integer"
-# pkexec starts in root's home, so relative paths don't work
-[[ "$OUTPUT_BASE" == /* ]] || die "--output-dir must be an absolute path"
-# 'bash azhpc-diagnostics.sh' bypasses the pkexec shebang
-[ "$(id -u)" -eq 0 ] || die "This script must be run as root (use sudo)"
+[ "$(id -u)" -eq 0 ] || die "azhpc-diagnostics must be run as root (sudo azhpc-diagnostics)"
 
 # Resolves the /usr/sbin/azhpc-diagnostics link to the install directory
 SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-ANALYZER="$SCRIPT_DIR/azhpc-diagnostics-analyze.sh"
 # shellcheck source-path=SCRIPTDIR source=azhpc-collect-lib.sh
 . "$SCRIPT_DIR/azhpc-collect-lib.sh" || die "Cannot load $SCRIPT_DIR/azhpc-collect-lib.sh"
 
@@ -129,15 +121,19 @@ collect_nvidia_bug_report() {
 collect_vm_metadata() {
     azc_log "Collecting VM metadata"
     mkdir -p "$WORK_DIR/image"
-    local compute
+    local compute py
     compute=$(azc_imds compute)
     if [ -n "$compute" ]; then
-        if command -v jq >/dev/null 2>&1; then
+        if py=$(azc_python); then
             # Drop tags, subscription and similar
-            echo "$compute" | jq '{vmId, vmSize, name, location, zone, placementGroupId,
-                vmScaleSetName, priority, osType, securityProfile,
-                imageReference: .storageProfile.imageReference}' \
-                > "$WORK_DIR/image/imds-compute.json" 2>> "$AZC_LOG"
+            printf '%s' "$compute" | "$py" -c '
+import json, sys
+c = json.load(sys.stdin)
+keep = ["vmId", "vmSize", "name", "location", "zone", "placementGroupId", "vmScaleSetName",
+        "priority", "osType", "securityProfile"]
+out = {k: c.get(k) for k in keep}
+out["imageReference"] = (c.get("storageProfile") or {}).get("imageReference")
+json.dump(out, sys.stdout, indent=2)' > "$WORK_DIR/image/imds-compute.json" 2>> "$AZC_LOG"
         else
             echo "$compute" | grep -oE '"(vmId|vmSize|location)":"[^"]*"' \
                 > "$WORK_DIR/image/imds-compute.txt"
@@ -181,15 +177,9 @@ run_health_checks() {
 ####################################################################################################
 
 structure_and_analyze() {
-    # shellcheck disable=SC2086
-    azc_write_facts diagnostics azhpc-diagnostics "$VERSION" \
-        "{\"gpu_diag_level\": $GPU_DIAG_LEVEL, \"nhc\": $RUN_NHC, \"bug_report\": $RUN_BUG_REPORT, \"timeout_s\": $CMD_TIMEOUT}" \
-        $AZC_SERVICES
-    if [ -f "$WORK_DIR/facts.json" ] && [ -f "$ANALYZER" ]; then
-        azc_log "Checking for common issues"
-        bash "$ANALYZER" "$WORK_DIR" > /dev/null 2>> "$AZC_LOG" ||
-            azc_log "WARNING: automated checks failed (see collector log)"
-    fi
+    azc_write_facts diagnostics azhpc-diagnostics "$VERSION" gpu_diag_level="$GPU_DIAG_LEVEL" \
+        nhc="$RUN_NHC" bug_report="$RUN_BUG_REPORT" timeout_s="$CMD_TIMEOUT"
+    azc_analyze
     if [ -f "$WORK_DIR/findings.txt" ]; then
         FINDINGS_TEXT=$(cat "$WORK_DIR/findings.txt")
     else
@@ -211,11 +201,9 @@ End time (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)
 Hostname: $(hostname)
 VM size: ${AZC_VM_SIZE:-unknown}
 Kernel: $(uname -r)
-Intended hardware for the VM size: GPU vendor ${AZC_EXPECT_GPU_VENDOR:-unknown}, GPUs ${AZC_EXPECT_GPU_COUNT:--}, InfiniBand ${AZC_EXPECT_IB:-unknown}, NVSwitch ${AZC_EXPECT_NVSWITCH:-unknown}
+GPU vendor of the VM size: ${AZC_EXPECT_GPU_VENDOR:-unknown}
 NVIDIA GPUs on PCI bus: ${AZC_PCI_NVIDIA_GPUS:-0}
-NVSwitches on PCI bus: ${AZC_PCI_NVSWITCHES:-0}
 AMD GPUs on PCI bus: ${AZC_PCI_AMD_GPUS:-0}
-InfiniBand controllers on PCI bus: ${AZC_PCI_IB_CONTROLLERS:-0}
 EOF
     if tar -C "$OUTPUT_BASE" -czf "$TARBALL" "$BUNDLE_NAME" 2>> "$AZC_LOG"; then
         rm -rf "$WORK_DIR"
@@ -244,20 +232,24 @@ hardware serial numbers; review it before sharing.
 EOF
 
 azc_detect
-azc_log "VM size: ${AZC_VM_SIZE:-unknown (IMDS unreachable)}; intended hardware: GPU vendor $AZC_EXPECT_GPU_VENDOR, GPUs $AZC_EXPECT_GPU_COUNT, InfiniBand $AZC_EXPECT_IB, NVSwitch $AZC_EXPECT_NVSWITCH"
-azc_log "On the PCI bus: $AZC_PCI_NVIDIA_GPUS NVIDIA GPU(s), $AZC_PCI_NVSWITCHES NVSwitch(es), $AZC_PCI_AMD_GPUS AMD GPU(s), $AZC_PCI_IB_CONTROLLERS InfiniBand controller(s)"
+azc_log "VM size: ${AZC_VM_SIZE:-unknown (IMDS unreachable)}; GPU vendor of the VM size: $AZC_EXPECT_GPU_VENDOR"
+azc_log "On the PCI bus: $AZC_PCI_NVIDIA_GPUS NVIDIA GPU(s), $AZC_PCI_AMD_GPUS AMD GPU(s)"
 
 collect_nvidia_bug_report
 collect_vm_metadata
+# General tier (shared with the image build evidence)
 azc_collect_image
 azc_collect_os
-azc_collect_hardware
+azc_collect_platform
+azc_collect_kernel
 azc_collect_software_state
 # shellcheck disable=SC2086
 azc_collect_services $AZC_SERVICES
 azc_collect_logs
 azc_collect_network
 azc_collect_hpc_stack
+# Hardware tier
+azc_collect_rdma
 if azc_want_amd; then azc_collect_amd; fi
 if azc_want_nvidia; then azc_collect_nvidia; fi
 run_dcgm_diag

@@ -92,7 +92,7 @@ If you run into a problem with a VM built from our HPC/AI images, run the bundle
 sudo azhpc-diagnostics
 ```
 
-The script needs root. If you run it without `sudo`, `pkexec` asks you to authenticate as an administrator. Run it as `azhpc-diagnostics` or by its full path: `pkexec` starts it in root's home directory, so a relative path such as `./azhpc-diagnostics.sh` doesn't work.
+The script needs root and exits with an error if it isn't run as root (for example, with `sudo`).
 
 The script is installed at `/opt/azurehpc/diagnostics/azhpc-diagnostics.sh` (`azhpc-diagnostics` is a link to it in `/usr/sbin`). When it finishes, it prints a short list of automatically detected issues and the path of the bundle. The checks compare the hardware visible on the VM with the hardware its VM size should have (taken from the Azure Instance Metadata Service). They report, for example, missing GPUs or InfiniBand devices, GPU drivers that aren't loaded, GPU Xid/ECC errors, inactive InfiniBand ports, a stopped NVIDIA Fabric Manager, DKMS modules that aren't built for the running kernel, and an image built for another GPU vendor than the VM has.
 
@@ -104,7 +104,7 @@ By default the script only runs read-only commands, so it is safe to run while w
 
 |Option|Description|
 |------|-----------|
-|`-o`, `--output-dir DIR`|Absolute path of the directory to write the tarball to (default: `/var/tmp`)|
+|`-o`, `--output-dir DIR`|Directory to write the tarball to (default: `/var/tmp`)|
 |`--gpu-diag LEVEL`|Also run `dcgmi diag -r LEVEL` (1-3) on NVIDIA GPUs. Stresses the GPUs; do not run alongside workloads|
 |`--nhc`|Also run the [Azure HPC node health checks](https://github.com/Azure/azurehpc-health-checks). Stresses GPUs and network; do not run alongside workloads|
 |`--no-bug-report`|Skip `nvidia-bug-report.sh` (for example, if it hangs)|
@@ -119,13 +119,13 @@ sudo azhpc-diagnostics --gpu-diag 1
 
 Nothing is uploaded by the script; the bundle stays on the VM and is only readable by root. It may contain hostnames, IP/MAC addresses and hardware serial numbers, so review it before sharing.
 
-Besides the raw command output, the bundle contains `facts.json`, a structured summary of the collected data, and `findings.json`/`findings.txt`, the result of the automated checks. The checks only read `facts.json`, so they can be re-run on an extracted bundle on any machine with `jq`:
+Besides the raw command output, the bundle contains `facts.json`, a structured summary of the collected data, and `findings.json`/`findings.txt`, the result of the automated checks. Neither is produced by running commands on the VM: `azhpc-diagnostics-facts.py` builds `facts.json` from the collected files, and the checks only read `facts.json`. The checks can be re-run on an extracted bundle on any machine with Python 3:
 
 ```bash
-/opt/azurehpc/diagnostics/azhpc-diagnostics-analyze.sh <extracted bundle directory>
+python3 /opt/azurehpc/diagnostics/azhpc-diagnostics-analyze.py <extracted bundle directory>
 ```
 
-The JSON schemas of these files are in [components/diagnostics/schema](components/diagnostics/schema). The image build collects its build evidence with the same code, and records what the image was built for in `/opt/azurehpc/diagnostics/build-manifest.json`.
+The image build collects part of its build evidence with the same code (only the parts that don't need GPUs or InfiniBand, since images can be built on general-purpose VMs), and records what the image was built for in `/opt/azurehpc/diagnostics/build-manifest.json`.
 
 # Contributing
 

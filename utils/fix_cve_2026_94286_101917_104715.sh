@@ -1,40 +1,48 @@
 #!/bin/bash
 # In-place refresh fix-up for:
+#   - CVE-2026-94286  (libXtst, USN-8939-1)    -> libxtst6 (+ libxtst-dev)
 #   - CVE-2026-101917 (PyJWT, USN-8934-1)      -> python3-jwt
 #   - CVE-2026-104715 (cifs-utils, USN-8938-1) -> cifs-utils
 # Upgrades only the affected packages (if installed) and verifies that the
 # installed version is >= the fixed version for this Ubuntu release.
+# libxtst-dev pins libxtst6 to the exact same version, so it is upgraded
+# alongside libxtst6 to avoid apt removing it.
+# https://ubuntu.com/security/CVE-2026-94286
 # https://ubuntu.com/security/CVE-2026-101917
 # https://ubuntu.com/security/CVE-2026-104715
 #
-# Usage (Packer): EXTRA_PROVISION_SCRIPT=utils/fix_cve_2026_101917_104715.sh
+# Usage (Packer): EXTRA_PROVISION_SCRIPT=utils/fix_cve_2026_94286_101917_104715.sh
 #                 SKIP_PREREQUISITES=true REFRESH_MODE=true
 set -euo pipefail
 
 . /etc/os-release
 
 if [[ "${ID}" != "ubuntu" ]]; then
-    echo "CVE-2026-101917/CVE-2026-104715 fix-up applies to Ubuntu only (detected ${ID} ${VERSION_ID}); nothing to do."
+    echo "CVE-2026-94286/CVE-2026-101917/CVE-2026-104715 fix-up applies to Ubuntu only (detected ${ID} ${VERSION_ID}); nothing to do."
     exit 0
 fi
 
 declare -A FIXED_VERSIONS
 case "${VERSION_ID}" in
     22.04)
+        FIXED_VERSIONS[libxtst6]="2:1.2.3-1ubuntu0.22.04.1"
         FIXED_VERSIONS[python3-jwt]="2.3.0-1ubuntu0.6"
         FIXED_VERSIONS[cifs-utils]="2:6.14-1ubuntu0.7"
         ;;
     24.04)
+        FIXED_VERSIONS[libxtst6]="2:1.2.3-1.1ubuntu0.1"
         FIXED_VERSIONS[python3-jwt]="2.7.0-1ubuntu0.4"
         FIXED_VERSIONS[cifs-utils]="2:7.0-2ubuntu0.6"
         ;;
     26.04)
+        FIXED_VERSIONS[libxtst6]="2:1.2.5-1ubuntu0.1"
         FIXED_VERSIONS[python3-jwt]="2.10.1-4ubuntu1.3"
         FIXED_VERSIONS[cifs-utils]="2:7.4-1ubuntu0.26.04.4"
         ;;
     *) echo "ERROR: no fixed versions known for Ubuntu ${VERSION_ID}"; exit 1 ;;
 esac
-PACKAGES=(python3-jwt cifs-utils)
+FIXED_VERSIONS[libxtst-dev]="${FIXED_VERSIONS[libxtst6]}"
+PACKAGES=(libxtst6 libxtst-dev python3-jwt cifs-utils)
 
 export DEBIAN_FRONTEND=noninteractive
 APT_OPTS=(-o DPkg::Lock::Timeout=600 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
@@ -78,4 +86,4 @@ if [[ ${failed} -ne 0 ]]; then
     exit 1
 fi
 
-echo "CVE-2026-101917/CVE-2026-104715 remediated: $(for p in "${INSTALLED_PACKAGES[@]}"; do printf '%s=%s ' "${p}" "$(current_version "${p}")"; done)"
+echo "CVE-2026-94286/CVE-2026-101917/CVE-2026-104715 remediated: $(for p in "${INSTALLED_PACKAGES[@]}"; do printf '%s=%s ' "${p}" "$(current_version "${p}")"; done)"

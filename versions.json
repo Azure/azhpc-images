@@ -33,9 +33,9 @@
                     "sha256": "02fb025a34c9b550d0412c7455c7981d9c03572d84da0314076af93157c8364a"
                 },
                 "baremetal_3p": {
-                    "version": "3.3.0",
-                    "sha256": "ef4a16860fe1bf765f50605b331b5f4db35144b6d9dc914535261e1f68882636",
-                    "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.3.0/host/doca-host_3.3.0-088000-26.01-ubuntu2404_arm64.deb"
+                    "version": "3.5.0",
+                    "sha256": "be2a37501432a74ea9fd7a6cb4aa1326e1a4d5b0761b4bd44e1edcb699995d8c",
+                    "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.5.0/host/doca-host_3.5.0-082000-26.07-ubuntu2404_arm64.deb"
                 },
                 "version": "3.3.0",
                 "sha256": "ef4a16860fe1bf765f50605b331b5f4db35144b6d9dc914535261e1f68882636",
@@ -110,9 +110,9 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "2.24.1",
-                    "sha256": "0bc5c26a4f0ca98fd6292aac9d51cc2a4ee3277d38d4011b64eafd133be633b4",
-                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.24.1_cuda13/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
+                    "version": "2.25.1",
+                    "sha256": "cfc6816a4ac7932cf65e3f17a47106845728652cfd4d5ad71b0cb9b3ce2a9e48",
+                    "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz"
                 },
                 "version": "2.25.1",
                 "sha256": "cfc6816a4ac7932cf65e3f17a47106845728652cfd4d5ad71b0cb9b3ce2a9e48",
@@ -367,9 +367,9 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "5.0.8",
-                    "sha256": "f891ddf2dab3b604f2521d0569615bc1c07a1ac86a295ac543e059aecb303621",
-                    "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz"
+                    "version": "5.0.10",
+                    "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
+                    "url": "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
                 },
                 "version": "5.0.10",
                 "sha256": "5692cc80554a7117c99eaa725d35100edd8bbf73423a5e265ff867979192df7d",
@@ -409,20 +409,20 @@
                 "baremetal_3p": {
                     "nvidia_gb200": {
                         "driver": {
-                            "version": "580.167.08",
+                            "version": "580.178.04",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.167.08-1"
+                            "version": "580.178.04-1"
                         }
                     },
                     "nvidia_gb300": {
                         "driver": {
-                            "version": "580.167.08",
+                            "version": "580.178.04",
                             "major_version": "580"
                         },
                         "imex": {
-                            "version": "580.167.08-1"
+                            "version": "580.178.04-1"
                         }
                     }
                 },
@@ -800,8 +800,8 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "2.5.2-1",
-                    "commit": "c91ad9f178e5fb729fc5b6dc62a77c3bb364d6c9",
+                    "version": "2.6-1",
+                    "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
                     "distribution": "Ubuntu24_04"
                 },
                 "azure_vm_akshost": {
@@ -938,10 +938,10 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "0.8",
-                    "ref": "v0.8",
+                    "version": "0.10.0",
+                    "ref": "v0.10.0",
                     "url": "https://github.com/NVIDIA/nvbandwidth",
-                    "commit": "66746a3bef61c8c2e12ab34955310da70b9e38cb"
+                    "commit": "82fc4e8c6afa0babb8687793678f615b3b8d793e"
                 },
                 "version": "0.9",
                 "ref": "v0.9",
@@ -967,7 +967,7 @@
             },
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "1:4.5.3-1"
+                    "version": "1:4.7.0-1"
                 },
                 "version": "1:4.6.1-1"
             }
@@ -1238,10 +1238,10 @@
         "ubuntu24.04": {
             "aarch64": {
                 "baremetal_3p": {
-                    "version": "1.2.0",
-                    "ref": "v1.2.0",
+                    "version": "2.1.0",
+                    "ref": "v2.1.0",
                     "url": "https://github.com/NVIDIA/nvloom.git",
-                    "commit": "bc0983828805d9ef2a912768fdae1465d581ef7c"
+                    "commit": "028e473427c46e94936fdf924ac22b11ec16dc5e"
                 },
                 "version": "2.0.0",
                 "ref": "v2.0.0",

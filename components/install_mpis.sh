@@ -112,8 +112,13 @@ if sku_uses_ucx; then
 fi
 
 # Rebuilding UCX is done by hpcx_rebuild.sh, so it always requires an HPC-X rebuild.
+# Skipping the rebuild leaves HPC-X's vendor Open MPI in place, which is only equivalent where
+# that tree is already Open MPI 5 with PMIx 5 (HPC-X v2.51+). Baremetal 3p pins older HPC-X whose
+# vendor tree is Open MPI 4.1 with PMIx 3, and additionally needs hcoll and CUDA compiled in, so
+# it must keep rebuilding.
 REBUILD_HPCX=true
-if [[ "$REBUILD_UCX" != true ]] && [[ "$USE_INTERNAL_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx; then
+if [[ "$REBUILD_UCX" != true ]] && [[ "$USE_INTERNAL_PMIX" == true ]] && [[ "$GPU" == "NVIDIA" ]] && sku_uses_ucx \
+    && [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_3p" ]]; then
     REBUILD_HPCX=false
 fi
 

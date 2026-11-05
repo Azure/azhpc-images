@@ -94,7 +94,7 @@ $COMPONENT_DIR/install_waagent.sh
 $COMPONENT_DIR/install_aznfs.sh
 
 # install diagnostic script
-$COMPONENT_DIR/install_hpcdiag.sh
+$COMPONENT_DIR/install_diagnostics.sh
 
 # install monitor tools
 $COMPONENT_DIR/install_monitoring_tools.sh

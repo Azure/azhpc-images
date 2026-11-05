@@ -61,7 +61,6 @@ def queue_scanner(pipeline_id, branch, pr_number):
     }
     url = f"{ORG}/{PROJECT}/_apis/pipelines/{pipeline_id}/runs?api-version={API_VERSION}"
     run = request("POST", url, json=body).json()
-    # Tags go in the body: Azure DevOps rejects ':' in the URL path with 400.
     tag = f"triggered_by:{os.environ['BUILD_BUILDID']}"
     try:
         request(

@@ -160,22 +160,24 @@ def hardware_checks(f):
                            "visible on the PCI bus; CUDA and NCCL will fail on this VM "
                            "(see services/nvidia-fabricmanager.txt)".format(nvswitches)))
     # Rack-scale NVLink (GB200/GB300, Vera Rubin NVL72) has no NVSwitches on the VM's PCI bus and uses
-    # nvidia-imex instead of nvidia-fabricmanager. Single-VM CUDA works without IMEX, and IMEX needs the
-    # VMs of the NVLink domain in its node list (often managed per job by the scheduler), so this is
-    # only a warning.
+    # nvidia-imex instead of nvidia-fabricmanager. Only cross-VM GPU communication by host workloads
+    # needs IMEX, and IMEX needs the VMs of the NVLink domain in its node list (often managed per job by
+    # the scheduler), so this is only a warning.
     imex_checked = bool(exp.get("imex")) and (pci.get("nvidia_gpus") or 0) > 0
     if imex_checked:
         imex = next((s for s in services if s.get("name") == "nvidia-imex"), None)
+        imex_scope = ("nvidia-imex is required for GPU communication between VMs over multi-node NVLink (e.g. NCCL "
+                      "across VMs) by workloads running on the host. It is not needed for single-VM workloads, or for "
+                      "containerized workloads where the container platform runs its own IMEX daemons (e.g. NVIDIA "
+                      "DRA driver ComputeDomains on Kubernetes).")
         if imex is None or imex.get("load_state") == "not-found":
             out.append(finding("WARN", "nvidia-imex", "nvidia-imex is not installed but VM size {} is part of a "
-                               "multi-node NVLink domain; GPU memory sharing between VMs over NVLink (e.g. NCCL "
-                               "over multi-node NVLink) is unavailable".format(size)))
+                               "multi-node NVLink domain. {}".format(size, imex_scope)))
         elif imex.get("active_state") != "active":
             out.append(finding("WARN", "nvidia-imex", "nvidia-imex is {} but VM size {} is part of a multi-node NVLink "
-                               "domain; GPU memory sharing between VMs over NVLink (e.g. NCCL over multi-node NVLink) "
-                               "is unavailable until nvidia-imex runs with the VMs of the NVLink domain in "
-                               "/etc/nvidia-imex/nodes_config.cfg (see services/nvidia-imex.txt)".format(
-                                   imex.get("active_state"), size)))
+                               "domain. {} To enable it, list the VMs of the NVLink domain in "
+                               "/etc/nvidia-imex/nodes_config.cfg and start nvidia-imex "
+                               "(see services/nvidia-imex.txt).".format(imex.get("active_state"), size, imex_scope)))
 
     # AMD
     amd_gpus = pci.get("amd_gpus") or 0

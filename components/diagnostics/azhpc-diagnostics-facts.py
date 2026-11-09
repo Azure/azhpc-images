@@ -26,25 +26,28 @@ import sys
 FORMAT_VERSION = "1"
 
 # Hardware each VM size is supposed to have:
-#   (VM size patterns, GPU vendor, GPU count, InfiniBand, NVSwitch); None means unknown.
+#   (VM size patterns, GPU vendor, GPU count, InfiniBand, NVSwitch, IMEX); None means unknown.
+# NVSwitch means NVSwitches on the VM's PCI bus, managed by nvidia-fabricmanager. IMEX means a
+# rack-scale (multi-node) NVLink domain such as GB200/GB300 NVL72, where the NVSwitches sit in
+# separate switch trays and nvidia-imex is used instead of nvidia-fabricmanager.
 # The VM size from IMDS is the source of truth for the intended hardware. The PCI bus only shows
 # what is visible, so it can't tell "driver or device broken" from "not part of this VM size".
 # TODO: non-Azure environments (no IMDS, e.g. bare metal) need a reliable hint of the intended
 # hardware. Until then everything is unknown there and the checks fall back to what is observed.
 SKU_HARDWARE = [
-    (("standard_nd40rs_v2",), "nvidia", 8, True, False),
-    (("standard_nd96asr_v4", "standard_nd96amsr_a100_v4"), "nvidia", 8, True, True),
-    (("standard_nc24ads_a100_v4",), "nvidia", 1, False, False),
-    (("standard_nc48ads_a100_v4",), "nvidia", 2, False, False),
-    (("standard_nc96ads_a100_v4",), "nvidia", 4, False, False),
-    (("standard_nc40ads_h100_v5",), "nvidia", 1, False, False),
-    (("standard_nc80adis_h100_v5",), "nvidia", 2, False, False),
-    (("standard_nd96is*_h[12]00_v5",), "nvidia", 8, True, True),
-    (("standard_nd96isr_mi300x_v5",), "amd", 8, True, False),
-    (("standard_nd128is*_gb[23]00_v6",), "nvidia", 4, True, False),
-    (("standard_nd128isr_vr200_v6",), "nvidia", None, None, None),
-    (("standard_nc*_rtxpro6000bse_v6",), "nvidia", None, False, False),
-    (("standard_hb*", "standard_hc*", "standard_hx*"), "none", 0, True, False),
+    (("standard_nd40rs_v2",), "nvidia", 8, True, False, False),
+    (("standard_nd96asr_v4", "standard_nd96amsr_a100_v4"), "nvidia", 8, True, True, False),
+    (("standard_nc24ads_a100_v4",), "nvidia", 1, False, False, False),
+    (("standard_nc48ads_a100_v4",), "nvidia", 2, False, False, False),
+    (("standard_nc96ads_a100_v4",), "nvidia", 4, False, False, False),
+    (("standard_nc40ads_h100_v5",), "nvidia", 1, False, False, False),
+    (("standard_nc80adis_h100_v5",), "nvidia", 2, False, False, False),
+    (("standard_nd96is*_h[12]00_v5",), "nvidia", 8, True, True, False),
+    (("standard_nd96isr_mi300x_v5",), "amd", 8, True, False, False),
+    (("standard_nd128is*_gb[23]00_v6",), "nvidia", 4, True, False, True),
+    (("standard_nd128isr_vr200_v6",), "nvidia", None, None, None, None),
+    (("standard_nc*_rtxpro6000bse_v6",), "nvidia", None, False, False, False),
+    (("standard_hb*", "standard_hc*", "standard_hx*"), "none", 0, True, False, False),
 ]
 
 EXIT_CODE_RE = re.compile(r"^\[exit code: (-?\d+)\]$")
@@ -58,11 +61,12 @@ AMD_RAS_RE = re.compile(r"^/sys/bus/pci/devices/([^/]*)/ras/[^:]*_err_count:ue: 
 
 def sku_hardware(vm_size):
     size = (vm_size or "").lower()
-    for patterns, vendor, count, infiniband, nvswitch in SKU_HARDWARE:
+    for patterns, vendor, count, infiniband, nvswitch, imex in SKU_HARDWARE:
         if any(fnmatch.fnmatchcase(size, p) for p in patterns):
             return {"known": True, "gpu_vendor": vendor, "gpu_count": count,
-                    "infiniband": infiniband, "nvswitch": nvswitch}
-    return {"known": False, "gpu_vendor": None, "gpu_count": None, "infiniband": None, "nvswitch": None}
+                    "infiniband": infiniband, "nvswitch": nvswitch, "imex": imex}
+    return {"known": False, "gpu_vendor": None, "gpu_count": None, "infiniband": None, "nvswitch": None,
+            "imex": None}
 
 
 ####################################################################################################
@@ -402,7 +406,7 @@ def main():
 
     p = sub.add_parser("sku-hardware", help="print the hardware a VM size is supposed to have")
     p.add_argument("vm_size")
-    p.add_argument("--field", choices=["known", "gpu_vendor", "gpu_count", "infiniband", "nvswitch"])
+    p.add_argument("--field", choices=["known", "gpu_vendor", "gpu_count", "infiniband", "nvswitch", "imex"])
     p.set_defaults(func=cmd_sku_hardware)
 
     p = sub.add_parser("build-manifest", help="write the image build manifest")

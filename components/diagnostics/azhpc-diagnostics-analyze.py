@@ -22,8 +22,8 @@ ANALYZER_VERSION = "1.0.0"
 FORMAT_VERSION = "1"
 SEVERITY_RANK = {"ERROR": 0, "WARN": 1, "INFO": 2}
 
-# Services that should stay active once enabled. One-shot services are excluded, and
-# nvidia-fabricmanager is checked against the NVSwitches instead.
+# Services that should stay active once enabled. One-shot services are excluded, nvidia-fabricmanager
+# is checked against the NVSwitches instead, and nvidia-imex against the VM size when it is known.
 PERSISTENT_SERVICES = {"waagent", "walinuxagent", "sku-customizations", "openibd", "nvidia-persistenced",
                        "nvidia-imex", "nvidia-dcgm", "docker", "sunrpc_tcp_settings", "nvme-raid"}
 
@@ -159,6 +159,22 @@ def hardware_checks(f):
         out.append(finding("ERROR", "nvidia-fabricmanager", "nvidia-fabricmanager is not active but {} NVSwitch(es) are "
                            "visible on the PCI bus; CUDA and NCCL will fail on this VM "
                            "(see services/nvidia-fabricmanager.txt)".format(nvswitches)))
+    # Rack-scale NVLink (GB200/GB300) has no NVSwitches on the VM's PCI bus and uses nvidia-imex instead
+    # of nvidia-fabricmanager. Single-VM CUDA works without IMEX, and IMEX needs the VMs of the NVLink
+    # domain in its node list (often managed per job by the scheduler), so this is only a warning.
+    imex_checked = bool(exp.get("imex")) and (pci.get("nvidia_gpus") or 0) > 0
+    if imex_checked:
+        imex = next((s for s in services if s.get("name") == "nvidia-imex"), None)
+        if imex is None or imex.get("load_state") == "not-found":
+            out.append(finding("WARN", "nvidia-imex", "nvidia-imex is not installed but VM size {} is part of a "
+                               "multi-node NVLink domain; GPU memory sharing between VMs over NVLink (e.g. NCCL "
+                               "over multi-node NVLink) is unavailable".format(size)))
+        elif imex.get("active_state") != "active":
+            out.append(finding("WARN", "nvidia-imex", "nvidia-imex is {} but VM size {} is part of a multi-node NVLink "
+                               "domain; GPU memory sharing between VMs over NVLink (e.g. NCCL over multi-node NVLink) "
+                               "is unavailable until nvidia-imex runs with the VMs of the NVLink domain in "
+                               "/etc/nvidia-imex/nodes_config.cfg (see services/nvidia-imex.txt)".format(
+                                   imex.get("active_state"), size)))
 
     # AMD
     amd_gpus = pci.get("amd_gpus") or 0
@@ -196,6 +212,8 @@ def hardware_checks(f):
 
     # Services, many of which depend on the hardware (GPU, InfiniBand, NVMe)
     for s in services:
+        if s.get("name") == "nvidia-imex" and imex_checked:
+            continue
         if s.get("name") in PERSISTENT_SERVICES and s.get("unit_file_state") == "enabled" \
                 and s.get("active_state") != "active":
             out.append(finding("WARN", "service", "Service {} is enabled but {} (see services/{}.txt)".format(

@@ -159,9 +159,10 @@ def hardware_checks(f):
         out.append(finding("ERROR", "nvidia-fabricmanager", "nvidia-fabricmanager is not active but {} NVSwitch(es) are "
                            "visible on the PCI bus; CUDA and NCCL will fail on this VM "
                            "(see services/nvidia-fabricmanager.txt)".format(nvswitches)))
-    # Rack-scale NVLink (GB200/GB300) has no NVSwitches on the VM's PCI bus and uses nvidia-imex instead
-    # of nvidia-fabricmanager. Single-VM CUDA works without IMEX, and IMEX needs the VMs of the NVLink
-    # domain in its node list (often managed per job by the scheduler), so this is only a warning.
+    # Rack-scale NVLink (GB200/GB300, Vera Rubin NVL72) has no NVSwitches on the VM's PCI bus and uses
+    # nvidia-imex instead of nvidia-fabricmanager. Single-VM CUDA works without IMEX, and IMEX needs the
+    # VMs of the NVLink domain in its node list (often managed per job by the scheduler), so this is
+    # only a warning.
     imex_checked = bool(exp.get("imex")) and (pci.get("nvidia_gpus") or 0) > 0
     if imex_checked:
         imex = next((s for s in services if s.get("name") == "nvidia-imex"), None)

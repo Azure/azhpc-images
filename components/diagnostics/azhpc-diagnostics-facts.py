@@ -28,8 +28,8 @@ FORMAT_VERSION = "1"
 # Hardware each VM size is supposed to have:
 #   (VM size patterns, GPU vendor, GPU count, InfiniBand, NVSwitch, IMEX); None means unknown.
 # NVSwitch means NVSwitches on the VM's PCI bus, managed by nvidia-fabricmanager. IMEX means a
-# rack-scale (multi-node) NVLink domain such as GB200/GB300 NVL72, where the NVSwitches sit in
-# separate switch trays and nvidia-imex is used instead of nvidia-fabricmanager.
+# rack-scale (multi-node) NVLink domain such as GB200/GB300 NVL72 or Vera Rubin NVL72, where the
+# NVSwitches sit in separate switch trays and nvidia-imex is used instead of nvidia-fabricmanager.
 # The VM size from IMDS is the source of truth for the intended hardware. The PCI bus only shows
 # what is visible, so it can't tell "driver or device broken" from "not part of this VM size".
 # TODO: non-Azure environments (no IMDS, e.g. bare metal) need a reliable hint of the intended
@@ -45,7 +45,7 @@ SKU_HARDWARE = [
     (("standard_nd96is*_h[12]00_v5",), "nvidia", 8, True, True, False),
     (("standard_nd96isr_mi300x_v5",), "amd", 8, True, False, False),
     (("standard_nd128is*_gb[23]00_v6",), "nvidia", 4, True, False, True),
-    (("standard_nd128isr_vr200_v6",), "nvidia", None, None, None, None),
+    (("standard_nd168isr_vr_nvl72_v7",), "nvidia", None, None, None, True),
     (("standard_nc*_rtxpro6000bse_v6",), "nvidia", None, False, False, False),
     (("standard_hb*", "standard_hc*", "standard_hx*"), "none", 0, True, False, False),
 ]

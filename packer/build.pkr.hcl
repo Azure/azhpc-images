@@ -55,6 +55,16 @@ build {
     ]
   }
 
+  provisioner "file" {
+    name = "Upload collection scripts shared with azhpc-diagnostics for build evidence"
+    sources = [
+      "${path.root}/../components/diagnostics/azhpc-collect-lib.sh",
+      "${path.root}/../components/diagnostics/azhpc-diagnostics-facts.py",
+      "${path.root}/../components/diagnostics/azhpc-diagnostics-analyze.py",
+    ]
+    destination = "/var/tmp/"
+  }
+
   provisioner "shell" {
     name            = "Collect pre-build baseline evidence"
     script          = "scripts/collect_build_evidence.sh"
@@ -67,6 +77,7 @@ build {
       "TARGET_VM_SIZE=${local.target_vm_size}",
       "BUILD_VM_SIZE=${local.build_vm_size}",
       "GPU_SKU=${local.gpu_sku}",
+      "GPU_PLATFORM=${local.gpu_platform}",
       "TARGET_NODE_TYPE=${local.target_node_type}",
       "INTERNAL_BITS_BLOB_NAME=${var.internal_bits_blob_name}",
     ]
@@ -426,6 +437,8 @@ build {
     ]
   }
 
+  # Also writes /opt/azurehpc/diagnostics/build-manifest.json, which stays in the image so that
+  # azhpc-diagnostics can tell what hardware the image was built for.
   provisioner "shell" {
     name            = "Collect post-build evidence"
     script          = "scripts/collect_build_evidence.sh"
@@ -434,6 +447,12 @@ build {
       "IMAGE_EVIDENCE_PHASE=post-build",
       "IMAGE_EVIDENCE_RUN_NAME=${local.image_version}",
       "AZHPC_IMAGES_SSH_USERNAME=${local.ssh_username}",
+      "IMAGE_VERSION=${local.image_version}",
+      "TARGET_VM_SIZE=${local.target_vm_size}",
+      "BUILD_VM_SIZE=${local.build_vm_size}",
+      "GPU_SKU=${local.gpu_sku}",
+      "GPU_PLATFORM=${local.gpu_platform}",
+      "TARGET_NODE_TYPE=${local.target_node_type}",
     ]
   }
 

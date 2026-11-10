@@ -8,6 +8,11 @@ run_name="${IMAGE_EVIDENCE_RUN_NAME:-build}"
 run_dir="${evidence_root}/${run_name}"
 archive="/tmp/build-evidence.tgz"
 repo_root="/home/${AZHPC_IMAGES_SSH_USERNAME}/azhpc-images"
+# Collection shared with azhpc-diagnostics (components/diagnostics). Packer uploads it before the
+# baseline phase, when the repository isn't staged on the VM yet.
+collect_lib="/var/tmp/azhpc-collect-lib.sh"
+# Kept in the image so azhpc-diagnostics can tell what hardware the image was built for
+build_manifest="/opt/azurehpc/diagnostics/build-manifest.json"
 
 capture() {
     local output=$1
@@ -33,7 +38,42 @@ create_layout() {
         "${run_dir}/inputs" \
         "${run_dir}/build" \
         "${run_dir}/health" \
+        "${run_dir}/collected" \
         "${run_dir}/summary"
+}
+
+load_collect_lib() {
+    if [[ ! -r "${collect_lib}" ]]; then
+        echo "Missing ${collect_lib}" >&2
+        exit 1
+    fi
+    # shellcheck source-path=SCRIPTDIR/../../components/diagnostics source=azhpc-collect-lib.sh
+    source "${collect_lib}"
+}
+
+# collect_shared <phase>: the general tier of the collection shared with azhpc-diagnostics, into
+# collected/<phase> with the same layout as a diagnostics bundle, plus facts.json and findings.
+# Image builds may run on general-purpose VMs, so the hardware tier (InfiniBand and GPU tools)
+# isn't used; the analyzer then only runs its general checks.
+collect_shared() {
+    local phase_name=$1
+    load_collect_lib
+    azc_init "${run_dir}/collected/${phase_name}"
+    azc_collect_os
+    azc_collect_platform
+    azc_collect_kernel
+    azc_collect_software_state
+    # shellcheck disable=SC2086
+    azc_collect_services ${AZC_SERVICES}
+    azc_collect_network
+    azc_collect_hpc_stack
+    azc_collect_image
+    azc_write_facts build build-evidence "${AZC_LIB_VERSION}" phase="${phase_name}"
+    azc_analyze
+    if [[ -s "${AZC_DIR}/findings.txt" ]]; then
+        echo "Findings (${phase_name}):"
+        cat "${AZC_DIR}/findings.txt"
+    fi
 }
 
 collect_baseline() {
@@ -44,6 +84,7 @@ IMAGE_VERSION=${IMAGE_VERSION:-unknown}
 TARGET_VM_SIZE=${TARGET_VM_SIZE:-unknown}
 BUILD_VM_SIZE=${BUILD_VM_SIZE:-unknown}
 GPU_SKU=${GPU_SKU:-unknown}
+GPU_PLATFORM=${GPU_PLATFORM:-unknown}
 TARGET_NODE_TYPE=${TARGET_NODE_TYPE:-unknown}
 INTERNAL_BITS_BLOB_NAME=${INTERNAL_BITS_BLOB_NAME:-none}
 COLLECTED_AT_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -82,6 +123,8 @@ source_image_sku storageProfile/imageReference/sku
 source_image_version storageProfile/imageReference/version
 EOF
     "
+
+    collect_shared baseline
 }
 
 collect_inputs() {
@@ -137,6 +180,31 @@ collect_post_build() {
     if [[ -f /opt/azurehpc/component_versions.txt ]]; then
         cp /opt/azurehpc/component_versions.txt "${run_dir}/identity/component_versions.txt"
     fi
+
+    write_build_manifest
+    collect_shared post-build
+}
+
+# Records what the image was built for. Kept in the image when azhpc-diagnostics is installed, so
+# it can detect an image deployed on hardware it wasn't built for (e.g. NVIDIA image on an AMD VM).
+write_build_manifest() {
+    local py tmp
+    load_collect_lib
+    if ! py=$(azc_python); then
+        echo "WARNING: Python 3 is not installed; build manifest not written" >&2
+        return 0
+    fi
+    tmp=$(mktemp)
+    if ! "${py}" "${AZC_FACTS_SCRIPT}" build-manifest --output "${tmp}" --dkms-status "${run_dir}/build/dkms.txt"; then
+        echo "WARNING: failed to write the build manifest" >&2
+        rm -f "${tmp}"
+        return 0
+    fi
+    install -m 0644 "${tmp}" "${run_dir}/identity/build-manifest.json"
+    if [[ -x /opt/azurehpc/diagnostics/azhpc-diagnostics.sh ]]; then
+        install -m 0644 "${tmp}" "${build_manifest}"
+    fi
+    rm -f "${tmp}"
 }
 
 archive_evidence() {
@@ -156,7 +224,8 @@ cleanup_evidence() {
         /var/tmp/azhpc-image-evidence/*) rm -rf -- "${run_dir}" ;;
         *) echo "Refusing to remove unexpected evidence path: ${run_dir}" >&2; exit 1 ;;
     esac
-    rm -f -- "${archive}" "${archive}.sha256"
+    rm -f -- "${archive}" "${archive}.sha256" \
+        /var/tmp/azhpc-collect-lib.sh /var/tmp/azhpc-diagnostics-facts.py /var/tmp/azhpc-diagnostics-analyze.py
 }
 
 case "${phase}" in

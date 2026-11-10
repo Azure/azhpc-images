@@ -79,7 +79,7 @@ $COMPONENT_DIR/hpc-tuning.sh
 $COMPONENT_DIR/install_waagent.sh
 
 # install diagnostic script
-$COMPONENT_DIR/install_hpcdiag.sh
+$COMPONENT_DIR/install_diagnostics.sh
 
 # Install AZNFS Mount Helper
 $COMPONENT_DIR/install_aznfs.sh

@@ -619,9 +619,17 @@ function verify_mkl_installation {
     check_exit_code "Intel Oneapi MKL ${VERSION_INTEL_ONE_MKL}" "Intel Oneapi MKL installation not found!"
 }
 
-function verify_hpcdiag_installation {
-    local hpcdiag_path="${HPC_ENV}/diagnostics/gather_azhpc_vm_diagnostics.sh"
-    check_exists $hpcdiag_path
+function verify_diagnostics_installation {
+    local diag_dir="${HPC_ENV}/diagnostics" python
+    check_exists "${diag_dir}/azhpc-diagnostics.sh"
+    check_exists "${diag_dir}/azhpc-collect-lib.sh"
+    check_exists "${diag_dir}/azhpc-diagnostics-facts.py"
+    check_exists "${diag_dir}/azhpc-diagnostics-analyze.py"
+    check_exists /usr/sbin/dmidecode
+    # Structuring and analysis need Python 3 (platform-python on EL8 images without python3)
+    python=$(command -v python3 || echo /usr/libexec/platform-python)
+    [[ "$("${python}" "${diag_dir}/azhpc-diagnostics-facts.py" sku-hardware --field gpu_vendor Standard_ND96asr_v4)" == nvidia ]]
+    check_exit_code "azhpc-diagnostics Python scripts run with ${python}" "azhpc-diagnostics Python scripts don't run with ${python}"
 }
 
 # Internal/ external installation of GCC

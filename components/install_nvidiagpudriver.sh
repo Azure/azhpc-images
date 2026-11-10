@@ -45,6 +45,10 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
     fi
 
+    # Prefer PMC (default priority 99) for overlaps, even if NVIDIA has a newer version.
+    # Keep NVIDIA's repo available for packages only it provides, such as the CUDA toolkit.
+    dnf config-manager --save --setopt='cuda-azl3*.priority=200' >/dev/null
+
     # Disable the NVIDIA CUDA repo during driver install -- all driver
     # packages come from PMC and the CUDA repo has an identically-named
     # 'cuda' meta-package that would conflict.

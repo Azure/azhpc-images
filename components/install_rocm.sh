@@ -13,6 +13,8 @@ configure_amdgpu_dkms_patches() {
     mkdir -p "${patch_dir}"
     cp "${COMPONENT_DIR}/patches/amdgpu-pci-resize-resource-exclude-bars.patch" \
         "${patch_dir}/pci-resize-resource-exclude-bars.patch"
+    cp "${COMPONENT_DIR}/patches/amdgpu-drm-exec-locked-object-index.patch" \
+        "${patch_dir}/drm-exec-locked-object-index.patch"
     cat > /etc/dkms/amdgpu.conf <<'EOF'
 _amdgpu_source="$source_tree/$module-$module_version"
 _amdgpu_pci_resize_fixed=false
@@ -27,6 +29,15 @@ for _amdgpu_flag in HAVE_PCI_RESIZE_RESOURCE_ALIGN HAVE_PCI_RESIZE_RESOURCE_EXCL
 done
 if [[ "$_amdgpu_pci_resize_fixed" == false ]]; then
     PATCH+=("pci-resize-resource-exclude-bars.patch")
+fi
+# Drivers that use the kernel's drm_exec.h through this KCL shim still call the
+# 3-argument drm_exec_for_each_locked_object(); newer kernels take 2. The patch
+# is a no-op on kernels without the change. Skip sources without the shim
+# (newer drivers vendor their own drm_exec) or that already handle it.
+_amdgpu_kcl_drm_exec="$_amdgpu_source/include/kcl/backport/kcl_drm_exec.h"
+if [[ -f "$_amdgpu_kcl_drm_exec" ]] &&
+   ! grep -Fq "__drm_exec_for_each_locked_object" "$_amdgpu_kcl_drm_exec"; then
+    PATCH+=("drm-exec-locked-object-index.patch")
 fi
 EOF
 }

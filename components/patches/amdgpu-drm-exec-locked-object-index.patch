@@ -1,17 +1,52 @@
+--- a/amd/dkms/m4/drm-exec.m4
++++ b/amd/dkms/m4/drm-exec.m4
+@@ -15,6 +15,28 @@
+         ])
+ ])
+ 
++dnl #
++dnl # drm/exec: drm_exec_for_each_locked_object[_reverse]() dropped the
++dnl # index argument; stable and distro kernels (e.g. linux-azure
++dnl # 6.8.0-1073) backported it.
++dnl #
++AC_DEFUN([AC_AMDGPU_DRM_EXEC_FOR_EACH_LOCKED_OBJECT], [
++        AC_KERNEL_DO_BACKGROUND([
++                AC_KERNEL_TRY_COMPILE([
++                        #include <drm/drm_exec.h>
++                ], [
++                        struct drm_exec *exec = NULL;
++                        struct drm_gem_object *obj;
++
++                        drm_exec_for_each_locked_object(exec, obj)
++                                (void)obj;
++                ], [
++                        AC_DEFINE(HAVE_DRM_EXEC_FOR_EACH_LOCKED_OBJECT_2_ARGUMENTS, 1,
++                                [drm_exec_for_each_locked_object() has 2 arguments])
++                ])
++        ])
++])
++
+ AC_DEFUN([AC_AMDGPU_DRM_EXEC], [
+                 AC_AMDGPU_DRM_EXEC_INIT
+ ])
+--- a/amd/dkms/m4/kernel.m4
++++ b/amd/dkms/m4/kernel.m4
+@@ -240,6 +240,7 @@
+ 	AC_AMDGPU_DMA_FENCE_IS_LATER_OR_SAME
+ 	AC_AMDGPU_WORKQUEUE
+ 	AC_AMDGPU_DRM_EXEC_INIT
++	AC_AMDGPU_DRM_EXEC_FOR_EACH_LOCKED_OBJECT
+ 	AC_AMDGPU_DRM_DBG_PRINTER
+ 	AC_AMDGPU_DRM_GEM_OBJECT_IS_SHARED_FOR_MEMORY_STATS
+ 	AC_AMDGPU_DRM_DEBUG_CATEGORY
 --- a/include/kcl/backport/kcl_drm_exec.h
 +++ b/include/kcl/backport/kcl_drm_exec.h
-@@ -5,6 +5,23 @@
+@@ -5,6 +5,17 @@
  #include <drm/drm_exec.h>
  #include <kcl/kcl_drm_exec.h>
  
-+/*
-+ * Kernels with the drm/exec rework (upstream, backported to linux-azure
-+ * 6.8.0-1073) dropped the index argument from
-+ * drm_exec_for_each_locked_object[_reverse]() and added the internal
-+ * __drm_exec_for_each_locked_object() helper. Restore the 3-argument form
-+ * this driver uses.
-+ */
-+#ifdef __drm_exec_for_each_locked_object
++#ifdef HAVE_DRM_EXEC_FOR_EACH_LOCKED_OBJECT_2_ARGUMENTS
++/* Restore the 3-argument form this driver uses. */
 +#undef drm_exec_for_each_locked_object
 +#define drm_exec_for_each_locked_object(exec, index, obj)		\
 +	for ((index) = 0; ((obj) = drm_exec_obj(exec, index)); ++(index))
@@ -19,7 +54,7 @@
 +#define drm_exec_for_each_locked_object_reverse(exec, index, obj)	\
 +	for ((index) = (exec)->num_objects - 1;				\
 +	     ((obj) = drm_exec_obj(exec, index)); --(index))
-+#endif
++#endif /* HAVE_DRM_EXEC_FOR_EACH_LOCKED_OBJECT_2_ARGUMENTS */
 +
  #ifndef HAVE_DRM_EXEC_INIT_3_ARGUMENTS
  static inline

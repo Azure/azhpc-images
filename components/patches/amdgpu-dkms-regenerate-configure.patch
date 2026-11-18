@@ -1,0 +1,7 @@
+--- a/amd/dkms/pre-build.sh
++++ b/amd/dkms/pre-build.sh
+@@ -63,2 +63,4 @@
+ 
++(cd "$SRC" && ./autogen.sh) || exit $?
++
+ export KERNELVER

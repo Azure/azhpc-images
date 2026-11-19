@@ -8,9 +8,29 @@ network: {config: disabled}
 EOF
 
     # Remove Hardware Mac Address and DHCP Name
-    sed -i '/^HWADDR=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
-    sed -i '/^DHCP_HOSTNAME=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
-    sed -i '/^IPV6INIT=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0 
+    # EL10 NetworkManager has no ifcfg support, so the file may not exist.
+    if [[ -f /etc/sysconfig/network-scripts/ifcfg-eth0 ]]; then
+        sed -i '/^HWADDR=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+        sed -i '/^DHCP_HOSTNAME=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+        sed -i '/^IPV6INIT=.*$/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    fi
+
+    # EL10 uses NetworkManager keyfiles, and cloud-init's eth0 keyfile pins the
+    # build VM's MAC. With cloud-init networking disabled and no-auto-default=*,
+    # VMs created from the image would get no network, so match eth0 by name.
+    if [[ $DISTRIBUTION =~ ^(almalinux|rocky|rhel)10 ]]; then
+        eth0_mac=$(cat /sys/class/net/eth0/address 2>/dev/null || true)
+        for kf in /etc/NetworkManager/system-connections/*.nmconnection; do
+            [[ -f "$kf" ]] || continue
+            if ! grep -qx 'interface-name=eth0' "$kf" && \
+               ! { [[ -n "$eth0_mac" ]] && grep -qix "mac-address=${eth0_mac}" "$kf"; }; then
+                continue
+            fi
+            sed -i '/^mac-address=/d; /^dhcp-hostname=/d' "$kf"
+            grep -q '^interface-name=' "$kf" || sed -i '/^\[connection\]/a interface-name=eth0' "$kf"
+        done
+        nmcli connection reload
+    fi
 
     if [[ $DISTRIBUTION == "almalinux8.10" ]] || [[ $DISTRIBUTION == "rocky8.10" ]] || [[ $DISTRIBUTION == rhel8* ]]; then
         SCRIPT_PATH="/usr/sbin/disable_cloudinit.sh"

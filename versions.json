@@ -56,11 +56,11 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel8.x86_64.rpm"
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
-                "version": "3.2.3",
-                "sha256": "59150518897d998d19c87c814550d8b2c70c344053201d24f393f3df165e7825",
-                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel9.x86_64.rpm"
+                "version": "3.6.0",
+                "sha256": "3129ceec3a61b109072aa155bcf1aa9b097cfad9c860dd48c0548ac414719864",
+                "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.6.0/host/doca-host-3.6.0-070000_26.10_rhel9.x86_64.rpm"
             }
         },
         "almalinux10.3": {
@@ -159,7 +159,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.3_cuda13/hpcx-v2.25.3-gcc-doca_ofed-redhat8-cuda13-x86_64.tbz"
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "azure_vm_regular": {
                     "nvidia_v100": {
@@ -271,7 +271,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.18/hpcx-v2.18-gcc-mlnx_ofed-redhat8-cuda12-x86_64.tbz"
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "version": "2.24.1",
                 "sha256": "e21eadd223541b887cf3cf4a4b21cd03c2bd867cfbf07ec00d64ac0411b63923",
@@ -329,7 +329,7 @@
             "sha256": "03fc160c81a1d522b1e7c6723841e27fcab04d527484e4242d3e66d7c5024205",
             "url": "http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.7-2.tar.gz"
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "version": "4.1",
                 "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
@@ -476,7 +476,7 @@
                 }
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "driver": {
                     "version": "580.178.04",
@@ -667,7 +667,7 @@
                 }
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "azure_vm_regular": {
                     "nvidia_v100": 
@@ -880,7 +880,7 @@
                 "distribution": "el8"
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "version": "2.5.1-1",
                 "commit": "0f7366e73b019e7facf907381f6b0b2f5a1576e4",
@@ -1111,7 +1111,7 @@
                 "version": "2.15.8_39_g2d32b59"
             }
         },
-        "almalinux9.8": {
+        "almalinux9.9": {
             "x86_64": {
                 "version": "2.15.8_39_g2d32b59"
             }

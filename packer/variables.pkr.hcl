@@ -24,13 +24,13 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 26.04, 10.3, 8.10, 9.8, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 26.04, 10.3, 8.10, 9.9, 3.0)"
   default     = "24.04"
 }
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_26.04, ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, alma10.3, rocky8.10, rocky9.8, rhel8.10, rhel9.8, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_26.04, ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.9, alma10.3, rocky8.10, rocky9.8, rhel8.10, rhel9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
@@ -62,7 +62,7 @@ locals {
     }
     "alma" = {
       "8.10" = "4.18"
-      "9.8"  = "5.14"
+      "9.9"  = "5.14"
       "10.3"  = "6.12"  
     }
     "rocky" = {
@@ -798,7 +798,7 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"],
+          "9.9"  = ["almalinux", "almalinux-x86_64", "9-gen2"],
           "10.3"  = ["almalinux", "almalinux-x86_64", "10-gen2"]
         },
         "azurelinux" = {
@@ -879,7 +879,7 @@ locals {
       },
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "9.9"  = "AlmaLinuxHPC-9.9-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
         "10.3"  = "AlmaLinuxHPC-10.3-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {

@@ -182,7 +182,7 @@
             }
         }
     },
-    "almalinux9.8": {
+    "almalinux9.9": {
         "azure_vm_regular": {
             "common": {
                 "components": [

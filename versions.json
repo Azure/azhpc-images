@@ -63,7 +63,7 @@
                 "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.3/host/doca-host-3.2.3-019000_25.10_rhel9.x86_64.rpm"
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "version": "3.2.3",
                 "sha256": "cfd9b61c768e3a64243e7ef09f92b48c7034f72449269f402a99907f66abc5c9",
@@ -173,7 +173,7 @@
                 "url": "https://content.mellanox.com/hpc/hpc-x/v2.25.3_cuda13/hpcx-v2.25.3-gcc-doca_ofed-redhat9-cuda13-x86_64.tbz"
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "version": "2.51",
                 "sha256": "6b8c5ce449ea9e377a4e25c44712092d6f70a11bcdf7d2280c11b24da82cb23f",
@@ -336,7 +336,7 @@
                 "url": "https://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich-4.1.tar.gz"
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "version": "4.1",
                 "sha256": "25a53d3725b669e2c648158fb7c9fc5b1388953f3a2f949748586c447d0e43ee",
@@ -489,7 +489,7 @@
                 }
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "driver": {
                     "version": "580.178.04",
@@ -692,7 +692,7 @@
                 }
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "driver": {
                     "version": "13.0",
@@ -887,7 +887,7 @@
                 "distribution": "el9"
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "version": "2.6-1",
                 "commit": "93c606bbcaa10457cbbab93163aa446d902b983d",
@@ -1116,7 +1116,7 @@
                 "version": "2.15.8_39_g2d32b59"
             }
         },
-        "almalinux10.2": {
+        "almalinux10.3": {
             "x86_64": {
                 "version": "2.17.0_28_gc7c975e"
             }

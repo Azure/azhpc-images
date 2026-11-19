@@ -210,7 +210,7 @@
             }
         }
     },
-    "almalinux10.2": {
+    "almalinux10.3": {
         "azure_vm_regular": {
             "common": {
                 "components": [

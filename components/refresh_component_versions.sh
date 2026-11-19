@@ -99,10 +99,14 @@ write_version "CMAKE" "${CMAKE_VERSION}"
 
 # ---- DOCA / OFED ----
 echo "[DOCA/OFED]"
-if command -v ofed_info &>/dev/null; then
-    OFED_RAW=$(ofed_info -n 2>/dev/null || true)
-    # ofed_info -n returns something like "25.10-OFED.25.10.0.2.8.1" or "MLNX_OFED_LINUX-24.10..."
-    OFED_VERSION="${OFED_RAW}"
+if command -v ofed_info >/dev/null 2>&1; then
+    OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    OFED_VERSION=$(dpkg-query -W -f='${Version}' mlnx-ofed-kernel-utils 2>/dev/null || true)
+else
+    OFED_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' mlnx-ofa_kernel 2>/dev/null || true)
+fi
+if [[ -n "${OFED_VERSION}" ]]; then
     write_version "OFED" "${OFED_VERSION}"
 fi
 

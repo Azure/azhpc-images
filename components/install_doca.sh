@@ -292,7 +292,18 @@ else
 fi
 
 write_component_version "DOCA" $DOCA_VERSION
-OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+# DOCA >= 3.6 (OFED 26.10) no longer ships ofed_info; fall back to the mlnx-ofa_kernel package version.
+if command -v ofed_info >/dev/null 2>&1; then
+    OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    OFED_VERSION=$(dpkg-query -W -f='${Version}' mlnx-ofed-kernel-utils 2>/dev/null || true)
+else
+    OFED_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' mlnx-ofa_kernel 2>/dev/null || true)
+fi
+if [[ -z "${OFED_VERSION}" ]]; then
+    echo "ERROR: unable to determine OFED version" >&2
+    exit 1
+fi
 write_component_version "OFED" $OFED_VERSION
 
 # Create systemd drop-in configuration for openibd.service

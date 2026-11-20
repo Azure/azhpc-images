@@ -85,9 +85,6 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Pre-creating that conffile makes noninteractive dpkg stop at a prompt.
     apt-get install -y "${LUSTRE_CLIENT_PACKAGE}"
     if [[ $UBUNTU_VERSION == 22.04 ]]; then
-        if [[ "${GPU:-}" == "AMD" ]]; then
-            install_cuda_dkms_3_4_1_for_jammy
-        fi
         configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
     else
         configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre

@@ -6,10 +6,15 @@ source ${UTILS_DIR}/utilities.sh
 # Set NCCL versions
 nccl_metadata=$(get_component_config "nccl")
 NCCL_VERSION=$(jq -r '.version' <<< $nccl_metadata)
+NCCL_SHA256=$(jq -r '.sha256 // empty' <<< $nccl_metadata)
+NCCL_RDMA_SHARP_REF=$(jq -r '.rdmasharpplugins.ref // .rdmasharpplugins.branch // empty' <<< $nccl_metadata)
 NCCL_RDMA_SHARP_COMMIT=$(jq -r '.rdmasharpplugins.commit' <<< $nccl_metadata)
 
 cuda_metadata=$(get_component_config "cuda")
 CUDA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $cuda_metadata)
+
+# Leave one core free for sshd/agent, but never pass -j 0 on single-core VMs.
+MAKE_JOBS=$(( $(nproc) > 1 ? $(nproc) - 1 : 1 ))
 
 TARBALL="v${NCCL_VERSION}.tar.gz"
 NCCL_DOWNLOAD_URL=https://github.com/NVIDIA/nccl/archive/refs/tags/${TARBALL}
@@ -36,11 +41,11 @@ if [[ $DISTRIBUTION == "ubuntu26.04" ]]; then
     apt-mark hold libnccl-dev
     NCCL_VERSION=$(dpkg-query -W -f='${Version}' libnccl2 | sed 's/+cuda.*//')
 else
-    wget ${NCCL_DOWNLOAD_URL}
+    download_and_verify ${NCCL_DOWNLOAD_URL} ${NCCL_SHA256}
     tar -xvf ${TARBALL}
 
     pushd nccl-${NCCL_VERSION}
-    make -j $(( $(nproc) - 1 )) src.build
+    make -j ${MAKE_JOBS} src.build
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         make pkg.debian.build
         pushd build/pkg/deb/
@@ -87,9 +92,12 @@ if [[ "$(sku_network_mode)" == "standard_ib" ]]; then
         exit 1
     fi
     mkdir -p /usr/local/nccl-rdma-sharp-plugins
-    git clone https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
+    git clone --branch ${NCCL_RDMA_SHARP_REF} https://github.com/Mellanox/nccl-rdma-sharp-plugins.git
     pushd nccl-rdma-sharp-plugins
     git checkout ${NCCL_RDMA_SHARP_COMMIT}
+    write_repo_source_info "NCCL-RDMA_SHARP_PLUGIN" . \
+        --commit "${NCCL_RDMA_SHARP_COMMIT}" \
+        --ref "${NCCL_RDMA_SHARP_REF}"
 
     if [[ "$DISTRIBUTION" == "azurelinux3.0" ]]; then
         libtoolize --verbose
@@ -113,7 +121,8 @@ source /etc/profile.d/modules.sh
 module load mpi/hpcx
 git clone https://github.com/NVIDIA/nccl-tests.git
 pushd nccl-tests
-make MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
+write_repo_source_info "NCCL_TESTS" .
+make -j ${MAKE_JOBS} MPI=1 MPI_HOME=${HPCX_MPI_DIR} CUDA_HOME=/usr/local/cuda
 popd
 mv nccl-tests /opt/.
 module unload mpi/hpcx

@@ -1,0 +1,61 @@
+--- a/amd/amdgpu/amdgpu_device.c
++++ b/amd/amdgpu/amdgpu_device.c
+@@ -1704,7 +1704,13 @@
+ 
+ 	pci_release_resource(adev->pdev, 0);
+ 
++#ifdef HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS
++	r = pci_resize_resource(adev->pdev, 0, rbar_size,
++				(adev->asic_type >= CHIP_BONAIRE) ? 1 << 5
++								  : 1 << 2);
++#else
+ 	r = pci_resize_resource(adev->pdev, 0, rbar_size);
++#endif
+ 	if (r == -ENOSPC)
+ 		DRM_INFO("Not enough PCI address space for a large BAR.");
+ 	else if (r && r != -ENOTSUPP)
+--- a/amd/dkms/aclocal.m4
++++ b/amd/dkms/aclocal.m4
+@@ -211,2 +211,3 @@
+ m4_include([m4/pci_rebar_bytes_to_size.m4])
++m4_include([m4/pci_resize_resource.m4])
+ m4_include([m4/pcie-aspm-enabled.m4])
+--- a/amd/dkms/m4/kernel.m4
++++ b/amd/dkms/m4/kernel.m4
+@@ -28,6 +28,7 @@
+ 	AC_AMDGPU_PCI_CONFIGURE_EXTENDED_TAGS
+ 	AC_AMDGPU_PCI
+ 	AC_AMDGPU_PCI_REBAR_BYTES_TO_SIZE
++	AC_AMDGPU_PCI_RESIZE_RESOURCE
+ 	AC_AMDGPU_KTIME_GET_BOOTTIME_NS
+ 	AC_AMDGPU_KTIME_GET_RAW_NS
+ 	AC_AMDGPU_MEMALLOC_NOFS_SAVE
+--- /dev/null
++++ b/amd/dkms/m4/pci_resize_resource.m4
+@@ -0,0 +1,19 @@
++dnl #
++dnl # commit 337b1b566db087347194e4543ddfdfa5645275cc
++dnl # PCI: Fix restoring BARs on BAR resize rollback path
++dnl # pci_resize_resource() gained an exclude_bars argument; stable and
++dnl # distro kernels backported it.
++dnl #
++AC_DEFUN([AC_AMDGPU_PCI_RESIZE_RESOURCE], [
++	AC_KERNEL_DO_BACKGROUND([
++		AC_KERNEL_TRY_COMPILE([
++			#include <linux/pci.h>
++		], [
++			int r = pci_resize_resource(NULL, 0, 0, 0);
++			(void)r;
++		], [
++			AC_DEFINE(HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS, 1,
++				[pci_resize_resource() has an exclude_bars argument])
++		])
++	])
++])
+--- a/amd/dkms/pre-build.sh
++++ b/amd/dkms/pre-build.sh
+@@ -63,2 +63,4 @@
+ 
++(cd "$SRC" && ./autogen.sh) || exit $?
++
+ export KERNELVER

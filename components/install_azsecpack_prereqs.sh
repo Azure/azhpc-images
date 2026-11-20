@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 install_nmap() {
     if command -v nmap >/dev/null 2>&1; then
         echo "nmap already installed: $(nmap --version 2>/dev/null | head -1 || true)"

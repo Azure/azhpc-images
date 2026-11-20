@@ -46,6 +46,8 @@ packer init .
 packer build --var 'target_vm_size=Standard_ND96asr_v4' --var 'os_family=ubuntu' --var 'distro_version=24.04' --var 'azure_location=southcentralus' --on-error=run-cleanup-provisioner .
 ```
 
+Azure services, such as VM extensions deployed by Azure Policy, can install packages on the build VM while the build scripts run. On RPM-based distributions, [utilities.sh](utils/utilities.sh) wraps `dnf` to retry transactions that fail because of such concurrent package installs once other package managers are idle. Component scripts should source it before calling `dnf`, and run `rpm` package installs through `retry_on_rpm_contention`.
+
 # Kernel Update/Patching
 
 Historically, OS kernel updates broke compatibility of HPC components we install (e.g., Lustre), so the kernel was excluded from updates. Lustre was the last component tightly coupled to a specific kernel version, and it has since been switched to DKMS. As a result, the kernel is **no longer locked by default** in our HPC images, and kernel updates are now allowed.

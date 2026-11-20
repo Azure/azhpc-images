@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 DESTINATION_DIR=/opt/azurehpc/diagnostics
 
 # Used by the collector and by nvidia-bug-report.sh; missing on Azure Linux 3.0

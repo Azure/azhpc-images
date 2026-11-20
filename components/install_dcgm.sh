@@ -193,7 +193,7 @@ EOF
             echo "ERROR: failed to build ${hpcx_provides_openmpi_marker} marker RPM" >&2
             exit 1
         fi
-        rpm -Uvh --replacepkgs "${marker_rpm}"
+        retry_on_rpm_contention rpm -Uvh --replacepkgs "${marker_rpm}"
         rm -rf "${rpm_topdir}"
     fi
     if [ "$1" = "V100" ]; then

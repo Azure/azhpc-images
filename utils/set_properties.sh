@@ -38,6 +38,10 @@ if [[ -z "${SKU_FAMILY:-}" ]]; then
     esac
 fi
 
+# Load shared helpers before installing packages so dnf retries transactions
+# that collide with other package managers.
+source ${UTILS_DIR}/utilities.sh
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     if [[ "${TARGET_NODE_TYPE}" == "baremetal_3p" ]]; then
         # Baremetal: skip apt upgrade — the offline ISO installer cannot reach
@@ -71,5 +75,3 @@ fi
 
 # Component Versions
 export COMPONENT_VERSIONS=$(jq -r . $TOP_DIR/versions.json)
-
-source ${UTILS_DIR}/utilities.sh

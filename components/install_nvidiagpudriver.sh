@@ -141,8 +141,32 @@ if [[ "$TARGET_NODE_TYPE" != "azure_vm_akshost" ]]; then
     if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         # NVIDIA APT repo already configured during driver installation
         apt install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
-    elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then    
-        dnf install -y cuda-toolkit-${CUDA_DRIVER_VERSION//./-}
+    elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+        (
+            set -o pipefail
+            cuda_install_log=$(mktemp)
+            trap 'rm -f "${cuda_install_log}"' EXIT
+
+            for cuda_attempt in 1 2; do
+                if LC_ALL=C dnf install -y "cuda-toolkit-${CUDA_DRIVER_VERSION//./-}" 2>&1 | tee "${cuda_install_log}"; then
+                    break
+                else
+                    cuda_status=("${PIPESTATUS[@]}")
+                fi
+                if [[ ${cuda_status[1]} -ne 0 ]]; then
+                    exit "${cuda_status[1]}"
+                fi
+                if [[ ${cuda_attempt} -eq 2 ]] ||
+                    ! grep -Eq '^[[:space:]]*package .+ is already installed$' "${cuda_install_log}"; then
+                    exit "${cuda_status[0]}"
+                fi
+
+                # AAD SSH's TDNF can install dependencies while DNF downloads CUDA.
+                # Start a fresh DNF transaction so it rereads the changed RPM database.
+                echo "Concurrent package installation detected; retrying CUDA installation once." >&2
+                sleep 5
+            done
+        )
     else
         # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
         dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/x86_64/cuda-${CUDA_DRIVER_DISTRIBUTION}.repo

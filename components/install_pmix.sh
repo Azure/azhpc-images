@@ -53,7 +53,7 @@ else
 
     if [ ! -e /etc/yum.repos.d/microsoft-prod.repo ];then
         curl -sSL -O https://packages.microsoft.com/config/rhel/${OS_MAJOR_VERSION}/packages-microsoft-prod.rpm
-        rpm -i packages-microsoft-prod.rpm
+        dnf install -y --nogpgcheck ./packages-microsoft-prod.rpm
         rm packages-microsoft-prod.rpm
     fi
 

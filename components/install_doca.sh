@@ -214,7 +214,11 @@ EOF
         echo "ERROR: failed to build ${HPCX_DOCA_OFED_DEPS_MARKER} marker RPM" >&2
         exit 1
     fi
-    rpm -Uvh --replacepkgs "${marker_rpm}"
+    if rpm -q "${HPCX_DOCA_OFED_DEPS_MARKER}-${DOCA_VERSION}-1" &>/dev/null; then
+        dnf reinstall -y --nogpgcheck "${marker_rpm}"
+    else
+        dnf install -y --nogpgcheck "${marker_rpm}"
+    fi
     rm -rf "${rpm_topdir}"
 }
 
@@ -236,14 +240,14 @@ PIN
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     download_and_verify $DOCA_URL $DOCA_SHA256
-    rpm -i $DOCA_FILE
+    dnf install -y --nogpgcheck "$(realpath "${DOCA_FILE}")"
     dnf clean all
     install_hpcx_doca_ofed_deps_rpm_marker
     dnf -y install doca-ofed
 else
     download_and_verify $DOCA_URL $DOCA_SHA256
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
-    rpm -i $DOCA_FILE
+    dnf install -y --nogpgcheck "$(realpath "${DOCA_FILE}")"
     dnf clean all
 
     # Backup

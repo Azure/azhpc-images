@@ -97,8 +97,6 @@ else
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
     REPO_PATH=/etc/yum.repos.d/amlfs.repo
 
-    rpm --import https://packages.microsoft.com/keys/microsoft.asc
-
     echo -e "[amlfs]" > ${REPO_PATH}
     echo -e "name=Azure Lustre Packages" >> ${REPO_PATH}
     echo -e "baseurl=https://packages.microsoft.com/yumrepos/amlfs-el${OS_MAJOR_VERSION}" >> ${REPO_PATH}

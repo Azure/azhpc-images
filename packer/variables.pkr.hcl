@@ -353,7 +353,10 @@ locals {
   )
   first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
-    "SkipASMAzSecPack"          = "true"
+    "SkipASMAzSecPack"          = "true",
+    # Skip CloudGov_AAD_VM policy deploying AADSSHLoginForLinux, whose handler
+    # runs tdnf concurrently with Packer's dnf transactions on Azure Linux 3.
+    "skip-cloudgov-SvcFabric_EntraIDAuth" = "true"
     },
     (local.tip_session_id != "None" && local.tip_session_id != null && local.tip_session_id != "") ? { "TipNode.SessionId" = local.tip_session_id } : {}
   ) : {}

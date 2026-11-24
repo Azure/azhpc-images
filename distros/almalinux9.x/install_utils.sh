@@ -42,7 +42,7 @@ dnf -y install dnf-plugins-core
 dnf config-manager --set-enabled crb
 
 # Install pre-reqs and development tools
-dnf groupinstall -y "Development Tools"
+dnf groupinstall -y --exclude=jna "Development Tools"
 dnf install -y numactl \
     numactl-devel \
     libxml2-devel \

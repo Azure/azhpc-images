@@ -26,9 +26,17 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y moby-buildx
     fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    dnf install -y moby-engine
-    dnf install -y moby-cli
-    dnf install -y docker-buildx
+    tdnf install -y moby-engine
+    tdnf install -y moby-cli
+    tdnf install -y docker-buildx
+elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
+    # Microsoft's moby-* packages are not (yet) published for EL10; use upstream
+    # Docker CE, which provides docker-ce (engine), docker-ce-cli, and
+    # docker-buildx-plugin for the EL10 family.
+    # Remove this once Microsoft publishes moby-* packages for EL10.
+    dnf install -y dnf-plugins-core
+    dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     # NOTE: on el8 the MS repo is marked with `module_hotfixes=1` by the
@@ -76,8 +84,13 @@ if [[ $DISTRIBUTION == ubuntu* ]]; then
     fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     moby_version=$(rpm -qa | grep moby | cut -d'-' -f3,4)
+elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
+    moby_version=""
+    write_component_version "DOCKER_CE" "$(rpm -q --qf '%{VERSION}-%{RELEASE}' docker-ce)"
 else
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     moby_version=$(dnf list installed | grep moby-engine | awk -F' ' '{print $2}')
 fi
-write_component_version "MOBY_ENGINE" ${moby_version}
+if [[ -n "${moby_version}" ]]; then
+    write_component_version "MOBY_ENGINE" ${moby_version}
+fi

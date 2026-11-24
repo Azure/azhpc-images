@@ -215,6 +215,8 @@ check_dkms_status() {
             for log_file in /var/lib/dkms/${module}/*/build/make.log; do
                 [[ -f "${log_file}" ]] || continue
                 echo "--- ${log_file} ---" >&2
+                # Parallel make can push the real error out of the tail window.
+                grep -nE "error:|Error [0-9]+" "${log_file}" | head -n 40 >&2 || true
                 tail -n 80 "${log_file}" >&2 || true
             done
             exit 1

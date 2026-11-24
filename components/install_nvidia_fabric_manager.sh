@@ -47,7 +47,6 @@ else
     nvidia_fabricmanager_metadata=$(jq -r '.fabricmanager' <<< $nvidia_metadata)
     NVIDIA_FABRICMANAGER_DISTRIBUTION=$(jq -r '.distribution' <<< $nvidia_fabricmanager_metadata)
     NVIDIA_FABRICMANAGER_VERSION=$(jq -r '.version' <<< $nvidia_fabricmanager_metadata)
-    NVIDIA_FABRICMANAGER_SHA256=$(jq -r '.sha256' <<< $nvidia_fabricmanager_metadata)
     NVIDIA_FABRICMANAGER_PREFIX=$(echo $NVIDIA_FABRICMANAGER_VERSION | cut -d '.' -f1)
 
     # For NVIDIA Fabric Manager major version 580, Nvidia dropped the hyphen between fabric and manager
@@ -56,11 +55,27 @@ else
     else
         PACKAGE_NAME="nvidia-fabric-manager"
     fi
-    NVIDIA_FABRIC_MNGR_PKG=https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}.x86_64.rpm
-    FILENAME=$(basename $NVIDIA_FABRIC_MNGR_PKG)
-    download_and_verify ${NVIDIA_FABRIC_MNGR_PKG} ${NVIDIA_FABRICMANAGER_SHA256}
-    
-    dnf install -y ./${FILENAME}
+
+    # Install from NVIDIA's CUDA repo so dnf verifies the RPM signature with the
+    # repo's GPG key. A private reposdir keeps this independent of whether
+    # install_nvidiagpudriver.sh added the repo (it does not on AKS hosts) and
+    # avoids rewriting that repo's saved excludepkgs.
+    FM_REPOS_DIR=$(mktemp -d)
+    curl -fsSL -o "${FM_REPOS_DIR}/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo" \
+        "https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo"
+    # Releases are "1" up to 580.126.20 and "1.el<N>" from 580.159.03, so match
+    # the configured release with an optional dist tag.
+    # Bypass driver-module filtering for this isolated, version-pinned install.
+    dnf install -y --setopt=reposdir="${FM_REPOS_DIR}" \
+        --setopt="cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}-x86_64.module_hotfixes=true" \
+        "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}*"
+    rm -rf "${FM_REPOS_DIR}"
+
+    installed_fm=$(rpm -q --qf '%{VERSION}-%{RELEASE}' "${PACKAGE_NAME}")
+    if [[ ! "${installed_fm}" =~ ^${NVIDIA_FABRICMANAGER_VERSION//./\\.}(\.el[0-9_]+)?$ ]]; then
+        echo "ERROR: installed ${PACKAGE_NAME}-${installed_fm}, expected ${NVIDIA_FABRICMANAGER_VERSION}" >&2
+        exit 1
+    fi
 
     # Prevent package from being updated after installation
     dnf_pin_packages "${PACKAGE_NAME}"

@@ -216,7 +216,7 @@ EOF
         echo "ERROR: failed to build ${HPCX_DOCA_OFED_DEPS_MARKER} marker RPM" >&2
         exit 1
     fi
-    rpm -Uvh --replacepkgs "${marker_rpm}"
+    retry_on_rpm_contention rpm -Uvh --replacepkgs "${marker_rpm}"
     rm -rf "${rpm_topdir}"
 }
 
@@ -240,7 +240,7 @@ PIN
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     download_and_verify $DOCA_URL $DOCA_SHA256
-    rpm -i $DOCA_FILE
+    retry_on_rpm_contention rpm -i $DOCA_FILE
     dnf clean all
     install_hpcx_doca_ofed_deps_rpm_marker
     dnf -y install doca-ofed

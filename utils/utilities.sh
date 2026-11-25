@@ -301,3 +301,65 @@ function dnf_pin_packages {
         return 1
     fi
 }
+
+############################################################################
+# @Brief    : Run a command that performs an RPM transaction, retrying when
+#             another package manager changed the RPM database at the same
+#             time.
+#
+# Azure services can install packages on the build VM while the image is
+# being built (e.g. VM extensions deployed by Azure Policy). Without a
+# terminal, RPM fails instead of waiting while another transaction holds its
+# lock, and dnf fails its transaction test when a package it resolved is
+# installed by someone else before dnf's own transaction runs. Neither
+# failure changes the system, so wait until other package managers are idle
+# and run the command again.
+#
+# @Args     : Command and arguments (e.g. rpm -i ./foo.rpm). Shell functions
+#             are bypassed, so 'dnf' runs the dnf binary. Returns only after
+#             all processes holding the command's stderr exit; with rpm, that
+#             includes background processes started by package scriptlets.
+# @Returns  : Exit status of the last attempt.
+############################################################################
+function retry_on_rpm_contention {
+    { local -; set +x; } 2>/dev/null
+    local -r max_attempts=5
+    local attempt status stderr_log deadline idle_seconds
+
+    stderr_log=$(mktemp) || { command "$@"; return; }
+    for ((attempt = 1; ; attempt++)); do
+        # Stream stderr to the caller while keeping a copy to inspect.
+        { command "$@" 2>&1 1>&3 3>&- | tee "$stderr_log" >&2 3>&-; status=${PIPESTATUS[0]}; } 3>&1 || true
+        if ((status == 0 || attempt == max_attempts)) || ! grep -Eq \
+            -e "can't create transaction lock on .* \(Resource temporarily unavailable\)" \
+            -e '^  package .+ is already installed$' \
+            -e '^  file .+ from install of (.+)-[^-]+-[^-]+ conflicts with file from package \1-[^-]+-[^-]+$' \
+            "$stderr_log"; then
+            break
+        fi
+
+        echo "$1: RPM transaction collided with another package manager (attempt ${attempt}/${max_attempts}); retrying once package managers are idle" >&2
+        pgrep -a -x 'dnf|tdnf|yum|rpm' >&2 || true
+        # Idle means no package manager seen for 30 seconds; give up waiting after 10 minutes.
+        deadline=$((SECONDS + 600))
+        idle_seconds=0
+        while ((idle_seconds < 30 && SECONDS < deadline)); do
+            sleep 5
+            if pgrep -x 'dnf|tdnf|yum|rpm' >/dev/null; then
+                idle_seconds=0
+            else
+                idle_seconds=$((idle_seconds + 5))
+            fi
+        done
+    done
+    rm -f "$stderr_log"
+    return "$status"
+}
+
+# Only wrap dnf where it is installed so 'command -v dnf' checks stay accurate.
+if type -P dnf >/dev/null; then
+    function dnf {
+        { local -; set +x; } 2>/dev/null
+        retry_on_rpm_contention dnf "$@"
+    }
+fi

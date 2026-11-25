@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+source ${UTILS_DIR}/utilities.sh
+
 if [[ $DISTRIBUTION == "ubuntu22.04" ]]; then
     # Install Dependencies
     pip3 install -U netifaces

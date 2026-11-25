@@ -61,7 +61,9 @@ else
         dnf config-manager --add-repo "https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo"
     fi
     # Trailing glob matches both "-1" and newer "-1.el<N>" releases.
-    dnf install -y "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}*"
+    # EL8/9 CUDA repos ship FM inside nvidia-driver module streams, which a runfile driver install never enables.
+    dnf install -y --setopt="cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}-x86_64.module_hotfixes=true" \
+        "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}*"
 
     # Prevent package from being updated after installation
     dnf_pin_packages "${PACKAGE_NAME}"

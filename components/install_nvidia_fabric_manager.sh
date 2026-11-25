@@ -56,26 +56,14 @@ else
         PACKAGE_NAME="nvidia-fabric-manager"
     fi
 
-    # Install from NVIDIA's CUDA repo so dnf verifies the RPM signature with the
-    # repo's GPG key. A private reposdir keeps this independent of whether
-    # install_nvidiagpudriver.sh added the repo (it does not on AKS hosts) and
-    # avoids rewriting that repo's saved excludepkgs.
-    FM_REPOS_DIR=$(mktemp -d)
-    curl -fsSL -o "${FM_REPOS_DIR}/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo" \
-        "https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo"
-    # Releases are "1" up to 580.126.20 and "1.el<N>" from 580.159.03, so match
-    # the configured release with an optional dist tag.
-    # Bypass driver-module filtering for this isolated, version-pinned install.
-    dnf install -y --setopt=reposdir="${FM_REPOS_DIR}" \
-        --setopt="cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}-x86_64.module_hotfixes=true" \
-        "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}*"
-    rm -rf "${FM_REPOS_DIR}"
-
-    installed_fm=$(rpm -q --qf '%{VERSION}-%{RELEASE}' "${PACKAGE_NAME}")
-    if [[ ! "${installed_fm}" =~ ^${NVIDIA_FABRICMANAGER_VERSION//./\\.}(\.el[0-9_]+)?$ ]]; then
-        echo "ERROR: installed ${PACKAGE_NAME}-${installed_fm}, expected ${NVIDIA_FABRICMANAGER_VERSION}" >&2
-        exit 1
+    CUDA_REPO_FILE=/etc/yum.repos.d/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo
+    if [[ ! -f "${CUDA_REPO_FILE}" ]]; then
+        dnf config-manager --add-repo "https://developer.download.nvidia.com/compute/cuda/repos/${NVIDIA_FABRICMANAGER_DISTRIBUTION}/x86_64/cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}.repo"
     fi
+    # Trailing glob matches both "-1" and newer "-1.el<N>" releases.
+    # EL8/9 CUDA repos ship FM inside nvidia-driver module streams, which a runfile driver install never enables.
+    dnf install -y --setopt="cuda-${NVIDIA_FABRICMANAGER_DISTRIBUTION}-x86_64.module_hotfixes=true" \
+        "${PACKAGE_NAME}-${NVIDIA_FABRICMANAGER_VERSION}*"
 
     # Prevent package from being updated after installation
     dnf_pin_packages "${PACKAGE_NAME}"

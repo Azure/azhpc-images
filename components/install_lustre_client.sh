@@ -64,6 +64,50 @@ EOF
         "Ubuntu 22.04 ko2iblnd is record 11; --with-o2ib=no intentionally skips it."
 }
 
+# EL10.3 backports the ->mkdir() dentry return but not vfs_mkdir()'s, so Lustre's
+# HAVE_IOPS_MKDIR_RETURNS_DENTRY check picks the wrong ll_vfs_mkdir() variant.
+fix_lustre_vfs_mkdir_compat() {
+    local module=$1
+    local module_version=$2
+    local compat_h=/usr/src/${module}-${module_version}/lustre/include/lustre_compat.h
+    local kernel_version=$(uname -r)
+
+    [[ -f "${compat_h}" ]] || return 0
+    grep -q "define ll_vfs_mkdir" "${compat_h}" || return 0
+
+    if ! grep -q "azhpc: ll_vfs_mkdir by vfs_mkdir return type" "${compat_h}"; then
+        local fix
+        fix=$(cat <<'EOF'
+/* azhpc: ll_vfs_mkdir by vfs_mkdir return type */
+#undef ll_vfs_mkdir
+#define ll_vfs_mkdir(i, inode, de, mode) ({				\
+	long __ll_rc = (long)vfs_mkdir((i), (inode), (de), (mode));	\
+	struct dentry *__ll_de;						\
+	if (__builtin_types_compatible_p(				\
+		typeof(vfs_mkdir((i), (inode), (de), (mode))), int)) {	\
+		if (__ll_rc) {						\
+			dput((de));					\
+			__ll_de = ERR_PTR(__ll_rc);			\
+		} else {						\
+			__ll_de = (de);					\
+		}							\
+	} else {							\
+		__ll_de = (struct dentry *)__ll_rc;			\
+	}								\
+	__ll_de;							\
+})
+
+EOF
+)
+        FIX="${fix}" perl -0pi -e 's{(#endif /\* _LUSTRE_COMPAT_H \*/\s*)\z}{$ENV{FIX}\n$1}' "${compat_h}"
+        grep -q "azhpc: ll_vfs_mkdir by vfs_mkdir return type" "${compat_h}"
+    fi
+
+    if ! dkms status -m "${module}" -v "${module_version}" -k "${kernel_version}" | grep -q ": installed"; then
+        dkms install -m "${module}" -v "${module_version}" -k "${kernel_version}"
+    fi
+}
+
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     source /etc/lsb-release
     UBUNTU_VERSION=$(cat /etc/os-release | grep VERSION_ID | cut -d= -f2 | cut -d\" -f2)
@@ -116,6 +160,7 @@ else
     configure_lustre_dkms_skip_artifact lustre-client "${LUSTRE_VERSION_UNDERSCORE}" 3 \
         "EL ko2iblnd is record 3; --with-o2ib=no intentionally skips it."
     dnf install -y --disableexcludes=main --refresh "${LUSTRE_PACKAGES[@]}"
+    fix_lustre_vfs_mkdir_compat lustre-client "${LUSTRE_VERSION_UNDERSCORE}"
     check_dkms_status lustre-client
     LUSTRE_VERSION=${LUSTRE_VERSION_UNDERSCORE}
 fi

@@ -26,9 +26,9 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
         apt-get install -y moby-buildx
     fi
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
-    tdnf install -y moby-engine
-    tdnf install -y moby-cli
-    tdnf install -y docker-buildx
+    dnf install -y moby-engine
+    dnf install -y moby-cli
+    dnf install -y docker-buildx
 elif [[ $DISTRIBUTION == almalinux10* ]] || [[ $DISTRIBUTION == rocky10* ]] || [[ $DISTRIBUTION == rhel10* ]]; then
     # Microsoft's moby-* packages are not (yet) published for EL10; use upstream
     # Docker CE, which provides docker-ce (engine), docker-ce-cli, and

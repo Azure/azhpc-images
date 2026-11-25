@@ -1,7 +1,11 @@
 #!/bin/bash
 set -ex
 
-sed -i '/\[main\]/a no-auto-default=*' /etc/NetworkManager/NetworkManager.conf
+# Sorts after NetworkManager-config-server's 00-server.conf, so this value wins.
+cat <<EOF > /etc/NetworkManager/conf.d/99-azurehpc-no-auto-default.conf
+[main]
+no-auto-default=type:infiniband
+EOF
 
 # update network config on reboot
 mkdir -p /lib/systemd/system/cloud-init-local.service.d/

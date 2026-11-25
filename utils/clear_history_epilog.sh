@@ -243,6 +243,7 @@ if [[ "${TARGET_NODE_TYPE:-azure_vm_regular}" != "baremetal_1p" ]]; then
     # Deprovision the user
     waagent -deprovision+user -force
 
+    # Escaped so the sudo shell, not the outer heredoc, expands it.
     if [[ "\${legacy_ifcfg_created}" == true ]]; then
         rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
         rmdir /etc/sysconfig/network-scripts 2>/dev/null || true

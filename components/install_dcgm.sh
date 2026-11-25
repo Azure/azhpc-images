@@ -226,48 +226,23 @@ write_component_version "DCGM" ${DCGM_VERSION}
 
 # dcgmi mndiag runs the mpirun in nv-hostengine's DCGM_MNDIAG_MPIRUN_PATH. The multinode
 # package's generator points it at a distro Open MPI this image doesn't have, so run
-# nv-hostengine in a screen session that loads mpi/hpcx and takes mpirun from it.
-# - The module is loaded inside screen, which drops LD_* variables on some distros.
-# - screen exits cleanly when nv-hostengine dies, so Restart=always is needed to restart it.
+# nv-hostengine through a wrapper that loads mpi/hpcx and takes mpirun from it.
 # - UCX needs unlimited memlock, which systemd services don't get from limits.conf.
-# - Attach with `sudo SCREENDIR=/run/nvidia-dcgm-screen screen -r nvidia-dcgm`.
-# - SELinux on RHEL-family denies init_t executing screen_exec_t, so there
-#   systemd runs the same HPC-X wrapper directly, without screen.
-USE_DCGM_SCREEN=true
-if [[ $DISTRIBUTION == almalinux* ]] || [[ $DISTRIBUTION == rocky* ]] || [[ $DISTRIBUTION == rhel* ]]; then
-    USE_DCGM_SCREEN=false
-fi
-if [[ "${USE_DCGM_SCREEN}" == true ]] && ! command -v screen > /dev/null; then
-    if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
-        apt-get install -y screen
-    else
-        dnf install -y screen
-    fi
-fi
 DCGM_UNIT_FILE=$(systemctl show -p FragmentPath --value nvidia-dcgm.service)
 DCGM_HOSTENGINE_CMD=$(sed -n 's/^ExecStart=//p' "${DCGM_UNIT_FILE}" | tail -n1)
 if [[ "${DCGM_HOSTENGINE_CMD}" != */nv-hostengine* ]]; then
     echo "ERROR: could not find the nv-hostengine ExecStart in ${DCGM_UNIT_FILE}" >&2
     exit 1
 fi
-DCGM_HPCX_CMD="/bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH=\"\$\$(command -v mpirun)\" && exec ${DCGM_HOSTENGINE_CMD}'"
-if [[ "${USE_DCGM_SCREEN}" == true ]]; then
-    DCGM_SCREEN_SETTINGS="RuntimeDirectory=nvidia-dcgm-screen
-RuntimeDirectoryMode=0700
-Environment=\"SCREENDIR=/run/nvidia-dcgm-screen\""
-    DCGM_EXEC_START="$(command -v screen) -c /dev/null -DmS nvidia-dcgm ${DCGM_HPCX_CMD}"
-else
-    DCGM_SCREEN_SETTINGS=""
-    DCGM_EXEC_START="${DCGM_HPCX_CMD}"
-fi
+DCGM_EXEC_START="/bin/bash -c 'source /etc/profile.d/modules.sh && module load mpi/hpcx && export DCGM_MNDIAG_MPIRUN_PATH=\"\$\$(command -v mpirun)\" && exec ${DCGM_HOSTENGINE_CMD}'"
 mkdir -p /etc/systemd/system/nvidia-dcgm.service.d
 cat > /etc/systemd/system/nvidia-dcgm.service.d/99-mndiag-hpcx.conf <<EOF
 [Service]
 LimitMEMLOCK=infinity
 UnsetEnvironment=DCGM_MNDIAG_MPIRUN_PATH LD_LIBRARY_PATH
-${DCGM_SCREEN_SETTINGS}
 Environment="OMPI_MCA_mca_base_env_list=LD_LIBRARY_PATH;PATH"
 Restart=always
+# Empty ExecStart= clears the packaged command; non-oneshot units allow only one.
 ExecStart=
 ExecStart=${DCGM_EXEC_START}
 EOF

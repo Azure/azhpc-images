@@ -98,9 +98,6 @@ $COMPONENT_DIR/hpc-tuning.sh
 # install Azure Linux Agent
 $COMPONENT_DIR/install_waagent.sh
 
-# install persistent rdma naming
-$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
-
 # Install AZNFS Mount Helper
 $COMPONENT_DIR/install_aznfs.sh
 
@@ -117,6 +114,9 @@ $COMPONENT_DIR/install_health_checks.sh "$GPU"
 $COMPONENT_DIR/write_kernel_os_version.sh
 
 $COMPONENT_DIR/install_azsecpack_prereqs.sh
+
+# install persistent rdma naming (bare-metal fallback; skipped on Azure VM SKUs)
+$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
 
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh

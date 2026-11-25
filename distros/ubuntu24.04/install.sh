@@ -147,6 +147,9 @@ $COMPONENT_DIR/write_kernel_os_version.sh
 
 $COMPONENT_DIR/install_azsecpack_prereqs.sh
 
+# install persistent rdma naming (bare-metal fallback; skipped on Azure VM SKUs)
+$COMPONENT_DIR/install_azure_persistent_rdma_naming.sh
+
 # add udev rule
 $COMPONENT_DIR/add-udev-rules.sh
 

@@ -7,6 +7,8 @@ source ${UTILS_DIR}/utilities.sh
 # calls to Microsoft endpoints.
 $COMPONENT_DIR/install_microsoft_tls_root_g2.sh
 
+bash "${COMPONENT_DIR}/configure_azurelinux_hpc_repo.sh"
+
 # The legacy TDNF repo metadata plugin uses root's per-user GnuPG keyring,
 # which is removed when the image is deprovisioned. Disable only this plugin;
 # DNF and RPM package signature checks remain enabled.

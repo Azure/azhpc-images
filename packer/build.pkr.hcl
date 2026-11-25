@@ -122,6 +122,13 @@ build {
   }
 
   provisioner "shell" {
+    name            = "(Azure Linux 3.0) Configure PMC HPC repository"
+    except          = (local.os_family == "azurelinux" && local.distro_version == "3.0") ? [] : ["azure-arm.hpc"]
+    script          = "${path.root}/../components/configure_azurelinux_hpc_repo.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+  }
+
+  provisioner "shell" {
     name            = "Install prerequisites (LTS kernel, package updates)"
     except          = local.skip_prerequisites ? ["azure-arm.hpc"] : []
     script          = "scripts/prerequisites.sh"

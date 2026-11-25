@@ -50,6 +50,7 @@ else
         git clone https://github.com/NVIDIA/gdrcopy.git
         pushd gdrcopy/packages/
         git checkout ${GDRCOPY_COMMIT}
+        write_repo_source_info "GDRCOPY" .. --commit "${GDRCOPY_COMMIT}"
         if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
             # Install gdrcopy
             apt install -y build-essential devscripts debhelper check libsubunit-dev fakeroot pkg-config

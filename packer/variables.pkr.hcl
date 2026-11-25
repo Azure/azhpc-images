@@ -24,13 +24,13 @@ variable "os_family" {
 
 variable "distro_version" {
   type        = string
-  description = "Distro version (e.g., 22.04, 24.04, 26.04, 8.10, 9.8, 3.0)"
+  description = "Distro version (e.g., 22.04, 24.04, 26.04, 10.3, 8.10, 9.9, 3.0)"
   default     = "24.04"
 }
 
 variable "os_version" {
   type        = string
-  description = "OS version consistent with internal ADO pipeline convention (ubuntu_26.04, ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.8, rocky8.10, rocky9.8, rhel8.10, rhel9.8, azurelinux3.0)"
+  description = "OS version consistent with internal ADO pipeline convention (ubuntu_26.04, ubuntu_24.04, ubuntu_22.04, alma8.10, alma9.9, alma10.3, rocky8.10, rocky9.8, rhel8.10, rhel9.8, azurelinux3.0)"
   default     = env("OS_VERSION")
 }
 
@@ -43,7 +43,7 @@ locals {
   # Folder suffix for distros/ scripts. EL9 distros (AlmaLinux, Rocky, RHEL 9.*)
   # share a single `9.x` folder since their install scripts are not minor-specific.
   # All other distros pin to the minor.
-  _os_script_folder_distro_version = (contains(["alma", "rocky", "rhel"], local.os_family) && can(regex("^9\\.", local.distro_version))) ? "9.x" : local.distro_version
+  _os_script_folder_distro_version = (contains(["alma", "rocky", "rhel"], local.os_family) && can(regex("^(9|10)\\.", local.distro_version))) ? "${split(".", local.distro_version)[0]}.x" : local.distro_version
   os_script_folder_name            = "${local.os_family == "alma" ? "almalinux" : local.os_family}${local._os_script_folder_distro_version}"
 }
 
@@ -62,7 +62,8 @@ locals {
     }
     "alma" = {
       "8.10" = "4.18"
-      "9.8"  = "5.14"
+      "9.9"  = "5.14"
+      "10.3"  = "6.12"  
     }
     "rocky" = {
       "8.10" = "4.18"
@@ -127,7 +128,7 @@ variable "target_vm_size" {
 
 variable "build_vm_size" {
   type        = string
-  description = "VM SKU to use for the build VM. Defaults to vm_size if not explicitly set, but can be set independently to e.g. a general-purpose VM SKU, at the cost of skip_validation at build time."
+  description = "VM SKU to use for the build VM. Defaults to vm_size if not explicitly set, but can be set independently to e.g. a general-purpose VM SKU, at the cost of skip_validation at build time (unless it is another size of the same GPU SKU on an Azure VM target)."
   default     = env("BUILD_VM_SIZE_OPTION")
 }
 
@@ -138,14 +139,23 @@ locals {
 
 # Placeholder for VR SKU Name
 locals {
-  gpu_sku = (
-    local.target_vm_size == "Standard_ND40rs_v2" ? "V100" :
-    local.target_vm_size == "Standard_ND96isr_MI300X_v5" ? "MI300X" :
-    contains(["Standard_ND128isr_NDR_GB200_v6", "Standard_ND128isr_GB300_v6", "ND144ISR_ETH_GB200_METAL_V6"], local.target_vm_size) ? "GB200" :
-    contains(["Standard_ND128isr_VR200_v6", "ND144ISR_ETH_VR200_METAL_V6"], local.target_vm_size) ? "VR200" :
-    local.target_vm_size == "Standard_NC144lds_xl_RTXPRO6000BSE_v6" ? "NCv6" :
-    "A100"
-  )
+  # Several VM sizes can share a GPU SKU (e.g. A100 40GB and 80GB).
+  vm_size_gpu_sku_map = {
+    "Standard_ND40rs_v2"                    = "V100"
+    "Standard_ND96asr_v4"                   = "A100"
+    "Standard_ND96amsr_A100_v4"             = "A100"
+    "Standard_ND96isr_MI300X_v5"            = "MI300X"
+    "Standard_ND128isr_NDR_GB200_v6"        = "GB200"
+    "Standard_ND128isr_GB300_v6"            = "GB200"
+    "ND144ISR_ETH_GB200_METAL_V6"           = "GB200"
+    "Standard_ND128isr_VR200_v6"            = "VR200"
+    "ND144ISR_ETH_VR200_METAL_V6"           = "VR200"
+    "Standard_NC144lds_xl_RTXPRO6000BSE_v6" = "NCv6"
+  }
+  gpu_sku = lookup(local.vm_size_gpu_sku_map, local.target_vm_size, "A100")
+  # No fallback: general-purpose or unlisted build sizes (e.g. H100 picked via
+  # compatible-size scheduling) must not be treated as the target's GPU SKU.
+  build_gpu_sku = lookup(local.vm_size_gpu_sku_map, local.build_vm_size, "")
   gpu_platform = (
     local.gpu_sku == "MI300X" ? "AMD" : "NVIDIA"
   )
@@ -214,7 +224,7 @@ locals {
 
 variable "enable_first_party_specifics" {
   type        = bool
-  description = "Whether to enable first-party-specific operations, such as certain Azure tags and internal artifacts."
+  description = "Whether to enable first-party-specific operations, such as certain Azure tags, MDE enrollment, and internal artifacts."
   default     = false
 }
 
@@ -230,8 +240,15 @@ variable "skip_validation" {
   default     = null
 }
 locals {
-  # Skip validation if build_vm_size is set and different from target_vm_size (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
-  skip_validation = coalesce(var.skip_validation, ((var.build_vm_size != null) && (var.build_vm_size != "") && (var.build_vm_size != var.target_vm_size)) || var.skip_hpc)
+  # Validation is still meaningful when the build VM is a different size of the same GPU SKU
+  # (e.g. A100 40GB vs 80GB), since tests detect the actual hardware via IMDS. Baremetal
+  # targets are excluded because their build VM is an Azure VM stand-in.
+  build_vm_matches_target = (
+    local.build_vm_size == local.target_vm_size ||
+    (startswith(local.target_node_type, "azure_vm_") && local.build_gpu_sku == local.gpu_sku)
+  )
+  # Skip validation if the build VM does not match the target (usually meaning using a general-purpose SKU for the build VM or building baremetal image)
+  skip_validation = coalesce(var.skip_validation, !local.build_vm_matches_target || var.skip_hpc)
 }
 
 variable "public_key" {
@@ -330,6 +347,11 @@ variable "extra_tags" {
 }
 
 locals {
+  manual_mde_install = (
+    var.enable_first_party_specifics &&
+    local.os_family == "ubuntu" &&
+    contains(["22.04", "24.04"], local.distro_version)
+  )
   first_party_tags = var.enable_first_party_specifics ? merge({
     "OptOutOfBakedInExtensions" = "",
     "SkipASMAzSecPack"          = "true"
@@ -339,7 +361,13 @@ locals {
   # TODO(ubuntu26.04): Remove this exclusion once MDE officially supports
   # Ubuntu 26.04. The current installer falls back to the Ubuntu 18.04
   # repository and overwrites the valid microsoft-prod.list.
-  mde_exclusion_tag = (local.os_family == "ubuntu" && local.distro_version == "26.04") ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
+  # Ubuntu 22.04/24.04 first-party builds install MDE explicitly because its
+  # auto-provisioned apt update cannot wait for /var/lib/apt/lists/lock:
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1069167
+  mde_exclusion_tag = (
+    local.manual_mde_install ||
+    (local.os_family == "ubuntu" && local.distro_version == "26.04")
+  ) ? { "ExcludeMdeAutoProvisioning" = "True" } : {}
   owner_tag   = (local.owner_alias != null && local.owner_alias != "") ? { "Owner" = local.owner_alias } : {}
   buildid_tag = (var.build_buildid != null && var.build_buildid != "") ? { "BuildId" = var.build_buildid } : {}
   all_tags = merge(
@@ -770,7 +798,8 @@ locals {
         },
         "alma" = {
           "8.10" = ["almalinux", "almalinux-x86_64", "8-gen2"],
-          "9.8"  = ["almalinux", "almalinux-x86_64", "9-gen2"]
+          "9.9"  = ["almalinux", "almalinux-x86_64", "9-gen2"],
+          "10.3"  = ["almalinux", "almalinux-x86_64", "10-gen2"]
         },
         "azurelinux" = {
           "3.0" = ["MicrosoftCBLMariner", "azure-linux-3", "azure-linux-3-gen2"]
@@ -850,7 +879,8 @@ locals {
       },
       "alma" = {
         "8.10" = "AlmaLinuxHPC-8.10-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2",
-        "9.8"  = "AlmaLinuxHPC-9.8-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "9.9"  = "AlmaLinuxHPC-9.9-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
+        "10.3"  = "AlmaLinuxHPC-10.3-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2"
       },
       "azurelinux" = {
         "3.0" = "AzureLinuxHPC-3.0-NonFIPS-${local.internal_sig_image_definition_platform}${local.internal_sig_image_definition_sku}gen2-TL"

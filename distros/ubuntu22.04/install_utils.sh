@@ -45,7 +45,6 @@ apt-get -y install numactl \
                    libsecret-1-0 \
                    python3-pip \
                    python3-setuptools \
-                   dkms \
                    jq \
                    curl \
                    libyaml-dev \
@@ -57,6 +56,8 @@ apt-get -y install numactl \
                    pssh \
                    dos2unix \
                    azcopy
+
+$COMPONENT_DIR/install_cuda_repo_and_dkms.sh
 
 # copy kvp client file
 $COMPONENT_DIR/copy_kvp_client.sh

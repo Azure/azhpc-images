@@ -45,6 +45,10 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
         curl https://developer.download.nvidia.com/compute/cuda/repos/azl3/x86_64/cuda-azl3.repo > /etc/yum.repos.d/cuda-azl3.repo
     fi
 
+    # Prefer PMC (default priority 99) for overlaps, even if NVIDIA has a newer version.
+    # Keep NVIDIA's repo available for packages only it provides, such as the CUDA toolkit.
+    dnf config-manager --save --setopt='cuda-azl3*.priority=200' >/dev/null
+
     # Disable the NVIDIA CUDA repo during driver install -- all driver
     # packages come from PMC and the CUDA repo has an identically-named
     # 'cuda' meta-package that would conflict.
@@ -56,17 +60,6 @@ if [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
 elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # APT-based NVIDIA driver installation for Ubuntu
     NVIDIA_DRIVER_VERSION=$(jq -r '.driver.version' <<< $nvidia_metadata)
-    CUDA_DRIVER_DISTRIBUTION=$(jq -r '.driver.distribution' <<< $cuda_metadata)
-
-    if [ "$ARCHITECTURE" = "aarch64" ]; then
-        CUDA_ARCHITECTURE="sbsa"
-    else
-        CUDA_ARCHITECTURE="x86_64"
-    fi
-    # Add NVIDIA CUDA APT repo (provides both driver and toolkit packages)
-    wget https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_DRIVER_DISTRIBUTION}/${CUDA_ARCHITECTURE}/cuda-keyring_1.1-1_all.deb
-    apt install -y ./cuda-keyring_1.1-1_all.deb
-    apt-get update
 
     NVIDIA_DRIVER_SOURCE=$(jq -r '.driver.source' <<< $nvidia_metadata)
     if _is_mrc_network || [ "$NVIDIA_DRIVER_SOURCE" = "private" ]; then

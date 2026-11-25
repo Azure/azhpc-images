@@ -47,7 +47,6 @@ apt-get -y install numactl \
                    python3 \
                    python3-pip \
                    python3-setuptools \
-                   dkms \
                    jq \
                    curl \
                    libyaml-dev \
@@ -59,6 +58,8 @@ apt-get -y install numactl \
                    pssh \
                    dos2unix \
                    azcopy
+
+$COMPONENT_DIR/install_cuda_repo_and_dkms.sh
 
 # Load ib_ipoib on Azure VM builds; skip on baremetal (IPoIB is not used).
 if sku_uses_ipoib; then

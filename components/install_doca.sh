@@ -10,7 +10,9 @@ HPCX_DOCA_OFED_DEPS_MARKER=hpcx-provides-doca-ofed-deps
 
 if [[ "$DOCA_SOURCE" == "private" ]]; then
     DOCA_FILE=$(jq -r '.repo_file' <<< $doca_metadata)
+    DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
     DOCA_FILE="$TOP_DIR/internal_bits/$DOCA_FILE"
+    verify_checksum "$DOCA_FILE" "$DOCA_SHA256"
 else
     DOCA_URL=$(jq -r '.url' <<< $doca_metadata)
     DOCA_SHA256=$(jq -r '.sha256' <<< $doca_metadata)
@@ -18,22 +20,19 @@ else
     DOCA_FILE=$(basename ${DOCA_URL})
 fi
 
-configure_mlnx_ofa_kernel_dkms_dpll_patch() {
-    local kernel_header=/usr/src/kernels/$(uname -r)/include/linux/dpll.h
-    local dkms_conf=/etc/dkms/mlnx-ofa_kernel.conf
-    local patch_file=${COMPONENT_DIR}/patches/mlnx-ofa-kernel-dpll-ffo-param.patch
-    local patch_dir=/etc/dkms/mlnx-ofa_kernel/patches
-
-    # Alma/Rocky/RHEL 9.8 kernels use Red Hat's newer DPLL ffo_get callback
-    # signature, while DOCA 3.2.x / MLNX OFED 25.10 still ships the older one.
-    [[ -f "${kernel_header}" ]] || return 0
-    grep -q 'struct dpll_ffo_param \*ffo,' "${kernel_header}" || return 0
+configure_doca_dkms_patches() {
+    local dkms_module=$1
+    local dkms_conf=/etc/dkms/${dkms_module}.conf
+    local patch_dir=/etc/dkms/${dkms_module}/patches
 
     mkdir -p "${patch_dir}"
-    cp "${patch_file}" "${patch_dir}/dpll-ffo-param.patch"
-    cat > "${dkms_conf}" <<'EOF'
-PATCH[0]="dpll-ffo-param.patch"
+    # V100's proprietary nvidia-peermem cannot use GPL-only exports.
+    if [[ "${SKU}" != "V100" ]]; then
+        cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-peer-mem-gpl.patch" "${patch_dir}/peer-mem-gpl.patch"
+        cat > "${dkms_conf}" <<'EOF'
+PATCH+=("peer-mem-gpl.patch")
 EOF
+    fi
 }
 
 configure_mlnx_ofed_kernel_dkms_xdp_patch() {
@@ -47,11 +46,11 @@ configure_mlnx_ofed_kernel_dkms_xdp_patch() {
     # Install even on older kernels so subsequent DKMS rebuilds get the fix.
     mkdir -p "${patch_dir}"
     cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
+    # Append after the optional module-wide PeerDirect patch, without index gaps.
     cat > "${dkms_conf}" <<'EOF'
-PATCH[0]="xdp-fragments.patch"
+PATCH+=("xdp-fragments.patch")
 EOF
-    # Jammy's DKMS 2.8 does not overlay patches from /etc/dkms.
-    install_cuda_dkms_3_4_1_for_jammy
+    # install_cuda_repo_and_dkms.sh provides support for /etc/dkms patch overlays.
 }
 
 install_hpcx_doca_ofed_deps_apt_marker() {
@@ -210,7 +209,7 @@ EOF
 if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     apt install -y "$(realpath "${DOCA_FILE}")"
 
-    # we prefer distro-shipped dkms and ignore the one from DOCA, unless there is evidence to the contrary
+    # Prefer CUDA repo's newer dkms and ignore the older copy from DOCA.
     cat > /etc/apt/preferences.d/doca-dkms-pin <<PIN
 Package: dkms
 Pin: release l=DOCA-HOST*
@@ -219,6 +218,7 @@ PIN
 
     apt-get update
     install_hpcx_doca_ofed_deps_apt_marker
+    configure_doca_dkms_patches mlnx-ofed-kernel
     configure_mlnx_ofed_kernel_dkms_xdp_patch
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
@@ -229,7 +229,6 @@ elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
     install_hpcx_doca_ofed_deps_rpm_marker
     dnf -y install doca-ofed
 else
-    download_and_verify $DOCA_URL $DOCA_SHA256
     # RHEL-family: AlmaLinux, Rocky Linux, RHEL, etc.
     rpm -i $DOCA_FILE
     dnf clean all
@@ -238,58 +237,73 @@ else
     cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
     sed -i '/^exclude=/d' /etc/dnf/dnf.conf
     install_hpcx_doca_ofed_deps_rpm_marker
-    configure_mlnx_ofa_kernel_dkms_dpll_patch
-    dnf -y install doca-ofed
-    check_dkms_status mlnx-ofa_kernel iser isert srp
-    # Restore exclusion
-    mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
-
-    # Repo-local exclude (deliberately NOT a global /etc/dnf/dnf.conf
-    # pin) so 'dnf check-update' in verify_package_updates only flags
-    # legitimate non-conflicting updates -- not the entire DOCA package
-    # set. The cuda-rhel9 mft exclude is set in install_nvidiagpudriver.sh
-    # at the point cuda-rhel9.repo is added (this repo does not exist yet).
-    #
-    # EL9.x baseos rdma-core refresh: AlmaLinux/Rocky 9.8 (in 2026-05)
-    # split out a brand-new RDMA-core stack with a separate libhns
-    # provider and ABI-bumped libibverbs/perftest (IBVERBS_1.15 / HNS_1.0
-    # symbols) incompatible with DOCA's libibverbs-2510.0.11-1.el9.
-    # Without this exclude, install_pmix.sh's 'dnf update -y' aborts with:
-    #   cannot install both libibverbs-61.0-2.el9 from baseos and
-    #   libibverbs-2510.0.11-1.el9 from @System
-    # DOCA's 'doca' (userland) repo provides the only rdma-core stack
-    # we want at runtime; baseos must never offer alternatives.
-    mapfile -t doca_pkgs < <(
-        dnf repoquery --installed --quiet --qf '%{name} %{from_repo}\n' \
-            | awk '$2 ~ /^doca/ {print $1}' | sort -u
-    )
-    if [[ ${#doca_pkgs[@]} -eq 0 ]]; then
-        echo "ERROR: no packages found from doca* repos after doca-ofed install" >&2
-        exit 1
-    fi
+    configure_doca_dkms_patches mlnx-ofa_kernel
     baseos_repo=baseos
     if [[ $DISTRIBUTION == rhel* ]]; then
         rhel_version=${DISTRIBUTION#rhel}
         baseos_repo=rhel-${rhel_version%%.*}-for-${ARCHITECTURE}-baseos-rhui-rpms
     fi
-    mapfile -t baseos_pkgs < <(
-        dnf repoquery --quiet --repo="${baseos_repo}" --qf '%{name}\n' '*' | sort -u
-    )
-    mapfile -t baseos_conflicts < <(
-        comm -12 \
-            <(printf '%s\n' "${doca_pkgs[@]}") \
-            <(printf '%s\n' "${baseos_pkgs[@]}")
-    )
-    if [[ ${#baseos_conflicts[@]} -gt 0 ]]; then
-        echo "Pinning ${#baseos_conflicts[@]} baseos package(s) shadowed by DOCA: ${baseos_conflicts[*]}"
-        dnf config-manager --save \
-            --setopt="${baseos_repo}.excludepkgs=${baseos_conflicts[*]}" \
-            >/dev/null
+    dnf -y install --setopt="${baseos_repo}.excludepkgs=perftest" doca-ofed
+    check_dkms_status mlnx-ofa_kernel iser isert srp
+    # Restore exclusion
+    mv /etc/dnf/dnf.conf.bak /etc/dnf/dnf.conf
+
+    # Keep the DOCA stack together across OS repos: BaseOS supplies rdma-core
+    # and opensm-libs, CRB supplies opensm-devel, and AppStream supplies rshim.
+    # Repo-local exclusions leave unrelated OS updates and DOCA updates available.
+    if ! installed_doca_pkgs=$(dnf repoquery --installed --quiet --qf '%{name} %{from_repo}\n'); then
+        echo "ERROR: could not query installed DOCA packages" >&2
+        exit 1
     fi
+    mapfile -t doca_pkgs < <(awk '$2 ~ /^doca/ {print $1}' <<< "${installed_doca_pkgs}" | sort -u)
+    if [[ ${#doca_pkgs[@]} -eq 0 ]]; then
+        echo "ERROR: no packages found from doca* repos after doca-ofed install" >&2
+        exit 1
+    fi
+    # Include already-excluded candidates so reruns preserve the protection.
+    if ! available_doca_pkgs=$(dnf repoquery --available --quiet --disableexcludes=all \
+        --qf '%{repoid} %{name}\n' "${doca_pkgs[@]}"); then
+        echo "ERROR: could not query OS alternatives to DOCA packages" >&2
+        exit 1
+    fi
+    os_conflicts=$(awk '
+        $1 ~ /^(baseos|appstream|crb|powertools)$/ ||
+        $1 ~ /^rhel-[0-9]+-for-.+-(baseos|appstream)-rhui-rpms$/ ||
+        $1 ~ /^codeready-builder-for-rhel-[0-9]+-.+-rhui-rpms$/ {
+            print $1, $2
+        }' <<< "${available_doca_pkgs}" | sort -u)
+    mapfile -t os_repos < <(
+        awk 'NF == 2 {print $1}' <<< "${os_conflicts}" | sort -u
+    )
+    for os_repo in "${os_repos[@]}"; do
+        mapfile -t repo_conflicts < <(
+            awk -v repo="${os_repo}" '$1 == repo {print $2}' <<< "${os_conflicts}"
+        )
+        if ! repo_config=$(dnf config-manager --dump "${os_repo}"); then
+            echo "ERROR: could not read exclusions for ${os_repo}" >&2
+            exit 1
+        fi
+        existing_excludes=$(awk '/^excludepkgs[[:space:]]*=/ {sub(/^[^=]*=[[:space:]]*/, ""); print}' <<< "${repo_config}")
+        echo "Excluding ${#repo_conflicts[@]} ${os_repo} package(s) shadowed by DOCA: ${repo_conflicts[*]}"
+        dnf config-manager --save \
+            --setopt="${os_repo}.excludepkgs=${existing_excludes:+${existing_excludes} }${repo_conflicts[*]}" \
+            >/dev/null
+    done
 fi
 
 write_component_version "DOCA" $DOCA_VERSION
-OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+# DOCA >= 3.6 (OFED 26.10) no longer ships ofed_info; fall back to the mlnx-ofa_kernel package version.
+if command -v ofed_info >/dev/null 2>&1; then
+    OFED_VERSION=$(ofed_info | sed -n '1,1p' | awk -F'-' 'OFS="-" {print $3,$4}' | tr -d ':')
+elif [[ $DISTRIBUTION == *"ubuntu"* ]]; then
+    OFED_VERSION=$(dpkg-query -W -f='${Version}' mlnx-ofed-kernel-utils 2>/dev/null || true)
+else
+    OFED_VERSION=$(rpm -q --qf '%{VERSION}-%{RELEASE}' mlnx-ofa_kernel 2>/dev/null || true)
+fi
+if [[ -z "${OFED_VERSION}" ]]; then
+    echo "ERROR: unable to determine OFED version" >&2
+    exit 1
+fi
 write_component_version "OFED" $OFED_VERSION
 
 # Create systemd drop-in configuration for openibd.service

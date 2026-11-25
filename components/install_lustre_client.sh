@@ -85,9 +85,6 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # Pre-creating that conffile makes noninteractive dpkg stop at a prompt.
     apt-get install -y "${LUSTRE_CLIENT_PACKAGE}"
     if [[ $UBUNTU_VERSION == 22.04 ]]; then
-        if [[ "${GPU:-}" == "AMD" ]]; then
-            install_cuda_dkms_3_4_1_for_jammy
-        fi
         configure_legacy_lustre_dkms_no_o2ib "${LUSTRE_VERSION}"
     else
         configure_lustre_dkms_no_o2ib_with_tr_workaround /etc/sysconfig/dkms-lustre
@@ -100,14 +97,16 @@ else
     OS_MAJOR_VERSION=$(sed -n 's/^VERSION_ID="\([0-9]\+\).*/\1/p' /etc/os-release)
     REPO_PATH=/etc/yum.repos.d/amlfs.repo
 
+    # el10 AMLFS packages are signed with the 2025 PMC key; older repos use microsoft.asc.
     rpm --import https://packages.microsoft.com/keys/microsoft.asc
+    rpm --import https://packages.microsoft.com/keys/microsoft-2025.asc
 
     echo -e "[amlfs]" > ${REPO_PATH}
     echo -e "name=Azure Lustre Packages" >> ${REPO_PATH}
     echo -e "baseurl=https://packages.microsoft.com/yumrepos/amlfs-el${OS_MAJOR_VERSION}" >> ${REPO_PATH}
     echo -e "enabled=1" >> ${REPO_PATH}
     echo -e "gpgcheck=1" >> ${REPO_PATH}
-    echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
+    echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc https://packages.microsoft.com/keys/microsoft-2025.asc" >> ${REPO_PATH}
 
     LUSTRE_PACKAGES=(
         "lustre-client-dkms-${LUSTRE_VERSION_UNDERSCORE}"

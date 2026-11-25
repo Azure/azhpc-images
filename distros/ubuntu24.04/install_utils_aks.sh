@@ -12,7 +12,8 @@ rm -rf packages-microsoft-prod.deb
 apt-get -y install build-essential
 apt-get -y install net-tools \
                    infiniband-diags \
-                   dkms \
                    jq 
+
+$COMPONENT_DIR/install_cuda_repo_and_dkms.sh
 
 echo ib_ipoib | sudo tee /etc/modules-load.d/ib_ipoib.conf

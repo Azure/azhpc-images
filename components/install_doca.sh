@@ -26,31 +26,45 @@ configure_doca_dkms_patches() {
     local patch_dir=/etc/dkms/${dkms_module}/patches
 
     mkdir -p "${patch_dir}"
+    rm -f "${dkms_conf}"
     # V100's proprietary nvidia-peermem cannot use GPL-only exports.
     if [[ "${SKU}" != "V100" ]]; then
         cp "${COMPONENT_DIR}/patches/mlnx-ofa-kernel-peer-mem-gpl.patch" "${patch_dir}/peer-mem-gpl.patch"
-        cat > "${dkms_conf}" <<'EOF'
+        cat >> "${dkms_conf}" <<'EOF'
 PATCH+=("peer-mem-gpl.patch")
 EOF
     fi
-}
 
-configure_mlnx_ofed_kernel_dkms_xdp_patch() {
-    local module_version=25.10.OFED.25.10.3.1.8.1-1
-    local dkms_conf=/etc/dkms/mlnx-ofed-kernel-${module_version}.conf
-    local patch_dir=/etc/dkms/mlnx-ofed-kernel/patches
-
-    [[ "${DISTRIBUTION}" == "ubuntu22.04" && "${DOCA_VERSION}" == "3.2.3" ]] || return 0
-
-    # TODO: Remove when DOCA fixes detection of partially backported XDP APIs.
-    # Install even on older kernels so subsequent DKMS rebuilds get the fix.
-    mkdir -p "${patch_dir}"
-    cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
-    # Append after the optional module-wide PeerDirect patch, without index gaps.
-    cat > "${dkms_conf}" <<'EOF'
-PATCH+=("xdp-fragments.patch")
+    # Scoped to mlnx-ofed-kernel (Ubuntu) where backports are pre-applied.
+    # Unconditionally pass --force-autogen so MOFED's ./configure regenerates
+    # compat/configure from compat/config/rdma.m4 (avoiding per-DOCA-version
+    # patches to the generated configure script).
+    if [[ "${dkms_module}" == "mlnx-ofed-kernel" ]]; then
+        cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xsk-tx-metadata.patch" "${patch_dir}/xsk-tx-metadata.patch"
+        cat >> "${dkms_conf}" <<'EOF'
+PRE_BUILD="${PRE_BUILD} --force-autogen"
+_mlnx_source="$source_tree/$module-$module_version"
+_mlnx_tx="$_mlnx_source/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c"
+if [[ -f "$_mlnx_tx" ]] && \
+   grep -Fq 'xsk_buff_get_metadata(pool, desc.addr);' "$_mlnx_tx" && \
+   ! grep -Fq 'xsk_buff_get_metadata(pool, desc.addr,' "$_mlnx_tx"; then
+    PATCH+=("xsk-tx-metadata.patch")
+fi
 EOF
-    # install_cuda_repo_and_dkms.sh provides support for /etc/dkms patch overlays.
+        if [[ "${DISTRIBUTION}" == "ubuntu22.04" ]]; then
+            # TODO: Remove when DOCA fixes detection of partially backported XDP APIs.
+            # Install even on older kernels so subsequent DKMS rebuilds get the fix.
+            cp "${COMPONENT_DIR}/patches/mlnx-ofed-kernel-xdp-fragments.patch" "${patch_dir}/xdp-fragments.patch"
+            cat >> "${dkms_conf}" <<'EOF'
+_mlnx_rdma_m4="$_mlnx_source/compat/config/rdma.m4"
+if [[ -f "$_mlnx_rdma_m4" ]] && \
+   grep -Fq 'HAVE_XDP_BUFF_HAS_FLAGS' "$_mlnx_rdma_m4" && \
+   ! grep -Fq 'xdp_buff_is_frag_pfmemalloc' "$_mlnx_rdma_m4"; then
+    PATCH+=("xdp-fragments.patch")
+fi
+EOF
+        fi
+    fi
 }
 
 install_hpcx_doca_ofed_deps_apt_marker() {
@@ -217,9 +231,11 @@ Pin-Priority: -1
 PIN
 
     apt-get update
+    # Required by compat/autogen.sh when --force-autogen regenerates MOFED's
+    # Autoconf probes (e.g. xsk-tx-metadata.patch).
+    apt-get -y install autoconf automake
     install_hpcx_doca_ofed_deps_apt_marker
     configure_doca_dkms_patches mlnx-ofed-kernel
-    configure_mlnx_ofed_kernel_dkms_xdp_patch
     apt-get -y install doca-ofed
     check_dkms_status mlnx-ofed-kernel iser isert srp
 elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then

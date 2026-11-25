@@ -1,0 +1,56 @@
+Subject: [PATCH] mlx5e: probe 3-arg xsk_buff_get_metadata() and pass desc.options
+
+Ubuntu linux-azure 6.8.0-1074.83 (LP: #2172890, Ubuntu 6.8.0-150.150)
+backports upstream commit "xsk: honor XDP_TX_METADATA in zero-copy path"
+(CVE-2026-90086), adding a third `u32 options` argument to
+xsk_buff_get_metadata() in net/xdp_sock_drv.h.
+
+MLNX OFED / DOCA's mlnx-ofed-kernel-dkms (3.2.3-3.5.0) still calls the
+2-argument form in drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c,
+failing DKMS builds with:
+  error: too few arguments to function 'xsk_buff_get_metadata'
+
+Add an MLNX_RDMA_TEST_CASE Autoconf probe in compat/config/rdma.m4
+(HAVE_XSK_BUFF_GET_METADATA_3_PARAMS) and guard the 3-argument call in
+tx.c on it so the patch works across both older kernels (including
+6.8.0-1001..1073-azure, where XDP_TX_METADATA is already defined but
+xsk_buff_get_metadata still takes 2 arguments) and newer kernels
+(>= 6.8.0-1074-azure and 7.0+).
+
+---
+ compat/config/rdma.m4                               | 7 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c | 4 ++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/compat/config/rdma.m4 b/compat/config/rdma.m4
+--- a/compat/config/rdma.m4
++++ b/compat/config/rdma.m4
+@@ -4015,6 +4015,13 @@
+ 		return 0;
+ 	])
+ 
++	MLNX_RDMA_TEST_CASE(HAVE_XSK_BUFF_GET_METADATA_3_PARAMS, [xsk_buff_get_metadata takes 3 parameters], [
++		#include <net/xdp_sock_drv.h>
++	],[
++		struct xsk_tx_metadata *meta = xsk_buff_get_metadata(NULL, 0, 0);
++		return meta != NULL;
++	])
++
+ 	MLNX_RDMA_TEST_CASE(HAVE_XSK_TX_METADATA_OPS, [struct xsk_tx_metadata_ops is defined], [
+ 		#include <net/xdp_sock.h>
+ 	],[
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xsk/tx.c
+@@ -121,7 +121,11 @@
+ #endif
+ 		xdptxd.len = desc.len;
+ #ifdef HAVE_XSK_TX_METADATA_OPS
++#ifdef HAVE_XSK_BUFF_GET_METADATA_3_PARAMS
++		meta = xsk_buff_get_metadata(pool, desc.addr, desc.options);
++#else
+ 		meta = xsk_buff_get_metadata(pool, desc.addr);
++#endif
+ #endif
+ 
+ #ifdef HAVE_XSK_BUFF_ALLOC

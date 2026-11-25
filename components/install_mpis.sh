@@ -338,6 +338,10 @@ setenv          FI_PROVIDER tcp
 setenv          MPIR_CVAR_CH4_CMA_ENABLE 0
 EXTRAS
     fi
+    # Disable MVAPICH2 IB hardware multicast by default: on Azure IB partitions
+    # (>8 nodes), multicast group setup fails and MVAPICH2 2.3.7-2's fallback
+    # path can deadlock in rdma_get_cm_event() during MPI_Bcast. Ignored by
+    # MVAPICH 4.x (which uses MVP_* instead of MV2_*).
     cat << EOF >> ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION}
 #%Module 1.0
 #
@@ -352,6 +356,7 @@ setenv          MPI_INCLUDE     /opt/mvapich-${MVAPICH_VERSION}/include
 setenv          MPI_LIB         /opt/mvapich-${MVAPICH_VERSION}/lib
 setenv          MPI_MAN         /opt/mvapich-${MVAPICH_VERSION}/share/man
 setenv          MPI_HOME        /opt/mvapich-${MVAPICH_VERSION}
+setenv          MV2_USE_MCAST   0
 ${MVAPICH_NON_UCX_EXTRAS}
 EOF
     ln -s ${MPI_MODULE_FILES_DIRECTORY}/mvapich-${MVAPICH_VERSION} ${MPI_MODULE_FILES_DIRECTORY}/mvapich

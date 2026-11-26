@@ -51,8 +51,22 @@ if [[ $DISTRIBUTION == *"ubuntu"* ]]; then
     # jq is needed to parse the component versions from the versions.json file
     apt install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/modules/modulefiles
+elif [[ $DISTRIBUTION == almalinux* ]]; then
+    if [[ $DISTRIBUTION == "almalinux8.10" ]]; then
+        # Import the newest AlmaLinux GPG key
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux
+    elif [[ $DISTRIBUTION == almalinux9* ]]; then
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-9
+    elif [[ $DISTRIBUTION == almalinux10* ]]; then
+        rpm --import https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-10
+    fi
+    dnf install -y jq
+    export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
+elif [[ $DISTRIBUTION == "azurelinux3.0" ]]; then
+    dnf install -y jq
+    export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
 else
-    # RPM-based distros: AlmaLinux, Azure Linux, Rocky Linux, RHEL, etc.
+    # Rocky Linux, RHEL, and other RHEL-family distros
     dnf install -y jq
     export MODULE_FILES_DIRECTORY=/usr/share/Modules/modulefiles
 fi

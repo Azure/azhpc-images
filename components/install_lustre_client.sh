@@ -102,7 +102,7 @@ else
     echo -e "baseurl=https://packages.microsoft.com/yumrepos/amlfs-el${OS_MAJOR_VERSION}" >> ${REPO_PATH}
     echo -e "enabled=1" >> ${REPO_PATH}
     echo -e "gpgcheck=1" >> ${REPO_PATH}
-    echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc" >> ${REPO_PATH}
+    echo -e "gpgkey=https://packages.microsoft.com/keys/microsoft.asc https://packages.microsoft.com/keys/microsoft-2025.asc" >> ${REPO_PATH}
 
     LUSTRE_PACKAGES=(
         "lustre-client-dkms-${LUSTRE_VERSION_UNDERSCORE}"

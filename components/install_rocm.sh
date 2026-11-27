@@ -13,8 +13,13 @@ configure_amdgpu_dkms_patches() {
     mkdir -p "${patch_dir}"
     cp "${COMPONENT_DIR}/patches/amdgpu-pci-resize-resource-exclude-bars.patch" \
         "${patch_dir}/pci-resize-resource-exclude-bars.patch"
+    cp "${COMPONENT_DIR}/patches/amdgpu-drm-exec-locked-object-index.patch" \
+        "${patch_dir}/drm-exec-locked-object-index.patch"
+    cp "${COMPONENT_DIR}/patches/amdgpu-dkms-regenerate-configure.patch" \
+        "${patch_dir}/regenerate-configure.patch"
     cat > /etc/dkms/amdgpu.conf <<'EOF'
 _amdgpu_source="$source_tree/$module-$module_version"
+_amdgpu_regenerate_configure=false
 _amdgpu_pci_resize_fixed=false
 # AMD's native fix uses ALIGN; EXCLUDE_BARS identifies our backport.
 for _amdgpu_flag in HAVE_PCI_RESIZE_RESOURCE_ALIGN HAVE_PCI_RESIZE_RESOURCE_EXCLUDE_BARS; do
@@ -27,6 +32,20 @@ for _amdgpu_flag in HAVE_PCI_RESIZE_RESOURCE_ALIGN HAVE_PCI_RESIZE_RESOURCE_EXCL
 done
 if [[ "$_amdgpu_pci_resize_fixed" == false ]]; then
     PATCH+=("pci-resize-resource-exclude-bars.patch")
+    _amdgpu_regenerate_configure=true
+fi
+# Only drivers that build against the kernel's drm_exec.h through the KCL shim
+# need this; newer drivers vendor their own drm_exec. Skip sources whose
+# configure already checks drm_exec_for_each_locked_object().
+if [[ -f "$_amdgpu_source/include/kcl/backport/kcl_drm_exec.h" &&
+      -f "$_amdgpu_source/amd/dkms/m4/drm-exec.m4" ]] &&
+   ! grep -Fq "drm_exec_for_each_locked_object" "$_amdgpu_source/amd/dkms/m4/drm-exec.m4"; then
+    PATCH+=("drm-exec-locked-object-index.patch")
+    _amdgpu_regenerate_configure=true
+fi
+# The patches above add configure checks, so configure must be regenerated.
+if [[ "$_amdgpu_regenerate_configure" == true ]]; then
+    PATCH+=("regenerate-configure.patch")
 fi
 EOF
 }

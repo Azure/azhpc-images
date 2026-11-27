@@ -24,7 +24,6 @@ else
     AZNFS_DOWNLOAD_URL=https://github.com/Azure/AZNFS-mount/releases/download/${AZNFS_VERSION}/aznfs_install.sh
 
     download_and_verify $AZNFS_DOWNLOAD_URL $AZNFS_SHA256
-    sed -i 's/yum/dnf/' aznfs_install.sh
-    bash aznfs_install.sh
+    AZNFS_FORCE_PACKAGE_MANAGER=dnf bash aznfs_install.sh
     rm -f aznfs_install.sh
 fi
